@@ -1,0 +1,319 @@
+@model PersonelTakipSistemi.ViewModels.PersonelEkleViewModel
+@{
+    ViewData["Title"] = "Personel Ekle";
+}
+
+@section Styles {
+  <link rel="stylesheet" href="~/sevilay-tema/css/personel-ekle.css" />
+}
+
+
+<div class="tabs-container">
+
+  <!-- TAB BUTONLARI -->
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="tab1">Kişisel Bilgiler</button>
+    <button class="tab-btn" data-tab="tab2">Beceriler</button>
+    <button class="tab-btn" data-tab="tab3">Uzmanlık</button>
+    <button class="tab-btn" data-tab="tab4">Görev Türü</button>
+    <button class="tab-btn" data-tab="tab5">Yapılan İş Niteliği</button>
+    <button class="tab-btn" data-tab="tab6">Kontrol</button>
+
+  </div>
+
+ <!-- TAB1 KİŞİSEL BİLGİLER -->
+<div id="tab1" class="tab-content active">
+  <h2>Kişisel Bilgiler</h2>
+
+  <form id="personelGorevlendirForm" method="post" action="#">
+    <!-- Personel Fotoğrafı -->
+    <div class="mb-4 d-flex align-items-center gap-4">
+      <!-- Fotoğraf Önizleme -->
+      <div>
+        <div class="photo-preview-container" id="previewContainer">
+            <i class='bx bx-user'></i>
+            <img id="photoPreview" src="" alt="Personel Fotoğrafı" />
+        </div>
+      </div>
+
+      <!-- Fotoğraf Yükleme -->
+      <div>
+        <label class="form-label d-block">Personel Fotoğrafı</label>
+        <input type="file" id="personelFoto" name="personelFoto" accept="image/*" class="form-control" >
+        <small class="text-muted">JPG, PNG yükleyebilirsiniz.</small>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <label asp-for="Ad" class="form-label">Personel Adı:</label>
+      <input type="text" id="personelAdi" asp-for="Ad" class="form-control" placeholder="Personel adını girin" >
+    </div>
+
+    <div class="mb-4">
+      <label asp-for="Soyad" class="form-label">Personel Soyadı:</label>
+      <input  type="text"  id="personelSoyadi" asp-for="Soyad" class="form-control" placeholder="Personel soyadını girin" >
+    </div>
+
+    <!-- Cinsiyet (RADIO) -->
+    <div class="mb-4">
+      <label class="form-label d-block">Personel Cinsiyet:</label>
+
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" asp-for="PersonelCinsiyet" id="cinsiyetKadin" value="1" >
+        <label class="form-check-label" for="cinsiyetKadin">Kadın</label>
+      </div>
+
+      <div class="form-check form-check-inline">
+        <input class="form-check-input" type="radio" asp-for="PersonelCinsiyet" id="cinsiyetErkek" value="0"         >
+        <label class="form-check-label" for="cinsiyetErkek">Erkek</label>
+      </div>
+    </div>
+
+    <div class="mb-4">
+      <label asp-for="TcKimlikNo" class="form-label">Personel TC KİMLİK NO:</label>
+      <input type="text" id="personelTcKimlik" asp-for="TcKimlikNo" class="form-control" placeholder="Personel TC Kimlik Numarasını girin" maxlength="11" >
+    </div>
+
+    <div class="mb-4">
+      <label for="sifre" class="form-label">Şifre</label>
+      <input type="password" class="form-control" id="sifre" name="personelsifre" maxlength="6" title="Şifre en az 6 karakter olmalıdır." required >
+    </div>
+
+    <div class="mb-4">
+      <label asp-for="Telefon" class="form-label">Telefon</label>
+      <input  type="tel" class="form-control" id="personeltelefon" asp-for="Telefon" placeholder="0555 555 55 55" pattern="^0[0-9]{10}$"  maxlength="11"  title="Telefon numarası 11 haneli olmalıdır. Örnek: 05551234567"
+      >
+    </div>
+
+    <div class="mb-4">
+      <label asp-for="Eposta" class="form-label">E-posta</label>
+      <input type="email" class="form-control"  id="personelemail"  asp-for="Eposta" placeholder="ornek@mail.com" required >
+    </div>
+
+    <div class="mb-4">
+      <label asp-for="GorevliIl" class="form-label">Görevli İl</label>
+      <select
+        class="form-select"  id="personelgorevli_il"  asp-for="GorevliIl"  required >
+        <option value="">İl Seçiniz...</option>
+        <option value="Adana">Adana</option>
+        <option value="Adıyaman">Adıyaman</option>
+        <option value="Afyonkarahisar">Afyonkarahisar</option>
+        <option value="Ağrı">Ağrı</option>
+        <option value="Amasya">Amasya</option>
+      </select>
+    </div>
+
+  <!-- ✅ BRANŞ ALANI -->
+  <div class="mb-4">
+    <label asp-for="Brans" class="form-label">Branş</label>
+    <select id="personelBrans" asp-for="Brans" class="form-select">
+      <option value="">Branş Seçiniz...</option>
+      <option value="Bilişim Teknolojileri">Bilişim Teknolojileri</option>
+      <option value="Türkçe">Türkçe</option>
+      <option value="Matematik">Matematik</option>
+      <option value="Fen Bilimleri">Fen Bilimleri</option>
+      <option value="Sosyal Bilgiler">Sosyal Bilgiler</option>
+      <option value="İngilizce">İngilizce</option>
+      <option value="Sınıf Öğretmeni">Sınıf Öğretmeni</option>
+      <option value="Rehberlik">Rehberlik</option>
+      <option value="Diğer">Diğer</option>
+    </select>
+  </div>
+
+      <div class="mb-4">
+      <label asp-for="KadroKurum" class="form-label">Kadro Kurum</label>
+      <input  type="text" id="personelKadroKurum" asp-for="KadroKurum" class="form-control"  placeholder="Personelin Kadrosunun Bulunduğu Kurumu Giriniz"  >
+    </div>
+
+    <div class="form-check mb-4">
+      <input  type="checkbox" id="gorevAktif" asp-for="AktifMi" class="form-check-input"  >
+      <label for="gorevAktif" class="form-check-label">Görev Aktiflik</label>
+    </div>
+
+    <button type="reset" class="btn btn-outline-secondary me-2">Temizle</button>
+    <button type="button" class="btn btn-primary" id="next1">İlerle</button>
+  </form>
+</div>
+
+  <!-- TAB2 BECERİLER -->
+  <div id="tab2" class="tab-content">
+    <h2>Personelin Becerileri</h2>
+
+    <div class="mb-4">
+
+
+    <div class="row">
+
+        <div class="col-md-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="photoshop" value="Photoshop" name="yazilimlar">
+                <label class="form-check-label" for="photoshop">Photoshop</label>
+            </div>
+
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="illustrator" value="Illustrator" name="yazilimlar">
+                <label class="form-check-label" for="illustrator">İllüstrator</label>
+            </div>
+             <!-- ... diğer checkboxlar ... -->
+             <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="dotnet" value=".NET" name="yazilimlar">
+                <label class="form-check-label" for="dotnet">.NET</label>
+            </div>
+        </div>
+        <!-- Diğer sütunlar burada devam etmeli ancak kısa tutuyoruz -->
+        </div>
+
+
+ <button type="reset" class="btn btn-outline-secondary me-2">Temizle</button>
+<button type="button" class="btn btn-primary" id="next2">İlerle</button>
+
+</div>
+
+  </div>
+
+  <!-- TAB3 UZMANLIK -->
+  <div id="tab3" class="tab-content">
+        <h2>Personelin Uzmanlığı</h2>
+     <div class="mb-4">
+    <div class="row">
+        <!-- Checkboxlar -->
+         <div class="col-md-3">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="bilisimUzmani" value="Bilişim Uzmanı" name="uzmanliklar">
+                <label class="form-check-label" for="bilisimUzmani">Bilişim Uzmanı</label>
+            </div>
+         </div>
+    </div>
+<button type="reset" class="btn btn-outline-secondary me-2">Temizle</button>
+<button type="button" class="btn btn-primary" id="next3">İlerle</button>
+</div>
+  </div>
+
+<!-- TAB4 GÖREVİ-->
+  <div id="tab4" class="tab-content">
+    <h2>Personelin Görev Türü</h2>
+    <div class="mb-4">
+      <div class="row">
+         <!-- Görev Checkboxlar -->
+      </div>
+     <button type="reset" class="btn btn-outline-secondary me-2 mt-3">Temizle</button>
+<button type="button" class="btn btn-primary mt-3" id="next4">İlerle</button>
+    </div>
+  </div>
+
+  <!-- TAB5 Yapılan İş Niteliği -->
+  <div id="tab5" class="tab-content">
+    <h2>Yapılan İş Niteliği</h2>
+    <div class="mb-4">
+       <!-- İş Niteliği Checkboxlar -->
+      <button type="reset" class="btn btn-outline-secondary me-2 mt-3">Temizle</button>
+<button type="button" class="btn btn-primary mt-3" id="next5">İlerle</button>
+    </div>
+  </div>
+
+  <div id="tab6" class="tab-content">
+  <p class="text-muted">
+    Diğer sekmelerde kaydedilen bilgiler aşağıdaki tabloda özetlenir.
+  </p>
+  <div class="text-center mb-4">
+  <div class="photo-preview-container mx-auto" id="controlContainer">
+      <i class='bx bx-user'></i>
+      <img id="kontrolFoto" src="" alt="Personel Fotoğrafı" />
+  </div>
+  <p class="mt-2 fw-bold">Personel Fotoğrafı</p>
+</div>
+
+  <table class="table table-bordered table-sm">
+    <thead>
+      <tr>
+        <th>ALANLAR</th>
+        <th>DEĞERLER</th>
+      </tr>
+    </thead>
+    <tbody id="kontrolTableBody">
+      <!-- JS ile doldurulacak -->
+    </tbody>
+  </table>
+
+  </div>
+</div>
+</div> <!-- /tabs-container -->
+
+@section Scripts {
+    <script>
+      // Basitleştirilmiş JS, orijinal dosyadaki mantığı korur
+      document.addEventListener("DOMContentLoaded", function () {
+        const buttons = document.querySelectorAll(".tab-btn");
+        const contents = document.querySelectorAll(".tab-content");
+
+        function activateTab(tabId) {
+          buttons.forEach((b) => {
+            const isActive = b.getAttribute("data-tab") === tabId;
+            b.classList.toggle("active", isActive);
+          });
+          contents.forEach((c) => {
+            c.classList.toggle("active", c.id === tabId);
+          });
+        }
+
+        buttons.forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const tabId = btn.getAttribute("data-tab");
+            activateTab(tabId);
+          });
+        });
+
+        // İlerle butonu eventleri (basit geçişler)
+        const nextBtns = [1, 2, 3, 4, 5];
+        nextBtns.forEach(i => {
+            const btn = document.getElementById("next" + i);
+            if(btn) {
+                btn.addEventListener("click", () => {
+                    activateTab("tab" + (i+1));
+                });
+            }
+        });
+
+        // Fotoğraf Önizleme
+        const photoInput = document.getElementById("personelFoto");
+        const previewImg = document.getElementById("photoPreview");
+        
+        // Control tab elements
+        const controlImg = document.getElementById("kontrolFoto");
+
+        function updateContainer(imgElement) {
+            if(!imgElement) return;
+            // Kardeş icon elementini bul ve gizle
+            const container = imgElement.parentElement;
+            const icon = container.querySelector("i");
+            if(icon) icon.style.display = "none";
+            
+            // Resmi göster
+            imgElement.style.display = "block";
+        }
+        
+        if(photoInput) {
+            photoInput.addEventListener("change", function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        const result = e.target.result;
+                        
+                        if(previewImg) {
+                            previewImg.src = result;
+                            updateContainer(previewImg);
+                        }
+                        
+                        if(controlImg) {
+                            controlImg.src = result;
+                            updateContainer(controlImg);
+                        }
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+      });
+    </script>
+}

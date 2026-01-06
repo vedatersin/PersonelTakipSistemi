@@ -1,0 +1,1105 @@
+{
+  "Files": [
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\PersonelTakipSistemi.bundle.scp.css",
+      "PackagePath": "staticwebassets\\PersonelTakipSistemi.bundle.scp.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\css\\site.css",
+      "PackagePath": "staticwebassets\\css\\site.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\favicon.ico",
+      "PackagePath": "staticwebassets\\favicon.ico"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\js\\site.js",
+      "PackagePath": "staticwebassets\\js\\site.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\LICENSE",
+      "PackagePath": "staticwebassets\\lib\\bootstrap"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.min.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.js.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.min.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
+      "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\LICENSE.txt"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\jquery.validate.unobtrusive.min.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\LICENSE.md"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\additional-methods.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\additional-methods.min.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\jquery.validate.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\jquery.validate.min.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery\\LICENSE.txt",
+      "PackagePath": "staticwebassets\\lib\\jquery\\LICENSE.txt"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery\\dist\\jquery.js",
+      "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
+      "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
+      "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\.browserslistrc",
+      "PackagePath": "staticwebassets\\sevilay-tema\\.browserslistrc"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\.editorconfig",
+      "PackagePath": "staticwebassets\\sevilay-tema\\.editorconfig"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\.eslintignore",
+      "PackagePath": "staticwebassets\\sevilay-tema\\.eslintignore"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\.eslintrc.json",
+      "PackagePath": "staticwebassets\\sevilay-tema\\.eslintrc.json"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\.gitattributes",
+      "PackagePath": "staticwebassets\\sevilay-tema\\.gitattributes"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\.gitignore",
+      "PackagePath": "staticwebassets\\sevilay-tema\\.gitignore"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\.npmrc",
+      "PackagePath": "staticwebassets\\sevilay-tema\\.npmrc"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\.prettierignore",
+      "PackagePath": "staticwebassets\\sevilay-tema\\.prettierignore"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\.prettierrc.json",
+      "PackagePath": "staticwebassets\\sevilay-tema\\.prettierrc.json"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\.stylelintignore",
+      "PackagePath": "staticwebassets\\sevilay-tema\\.stylelintignore"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\.stylelintrc.json",
+      "PackagePath": "staticwebassets\\sevilay-tema\\.stylelintrc.json"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\CHANGELOG.md",
+      "PackagePath": "staticwebassets\\sevilay-tema\\CHANGELOG.md"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\LICENSE",
+      "PackagePath": "staticwebassets\\sevilay-tema"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\LICENSE.md",
+      "PackagePath": "staticwebassets\\sevilay-tema\\LICENSE.md"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\README.md",
+      "PackagePath": "staticwebassets\\sevilay-tema\\README.md"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\css\\demo.css",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\css\\demo.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\avatars\\1.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\avatars\\1.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\avatars\\2.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\avatars\\2.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\avatars\\3.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\avatars\\3.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\avatars\\4.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\avatars\\4.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\backgrounds\\1.jpg",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\backgrounds\\1.jpg"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\1.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\1.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\10.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\10.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\11.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\11.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\12.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\12.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\13.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\13.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\14.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\14.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\15.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\15.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\16.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\16.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\17.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\17.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\18.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\18.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\19.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\19.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\2.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\2.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\3.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\3.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\4.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\4.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\5.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\5.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\6.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\6.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\7.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\7.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\8.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\8.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\elements\\9.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\elements\\9.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\favicon\\favicon.ico",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\favicon\\favicon.ico"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\brands\\asana.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\brands\\asana.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\brands\\behance.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\brands\\behance.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\brands\\dribbble.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\brands\\dribbble.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\brands\\facebook.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\brands\\facebook.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\brands\\github.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\brands\\github.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\brands\\google.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\brands\\google.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\brands\\instagram.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\brands\\instagram.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\brands\\mailchimp.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\brands\\mailchimp.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\brands\\slack.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\brands\\slack.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\brands\\twitter.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\brands\\twitter.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\unicons\\cc-primary.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\unicons\\cc-primary.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\unicons\\cc-warning.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\unicons\\cc-warning.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\unicons\\chart-success.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\unicons\\chart-success.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\unicons\\chart.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\unicons\\chart.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\unicons\\paypal.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\unicons\\paypal.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\unicons\\wallet-info.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\unicons\\wallet-info.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\icons\\unicons\\wallet.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\icons\\unicons\\wallet.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\illustrations\\girl-doing-yoga-light.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\illustrations\\girl-doing-yoga-light.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\illustrations\\man-with-laptop.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\illustrations\\man-with-laptop.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\illustrations\\page-misc-error-light.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\illustrations\\page-misc-error-light.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\layouts\\layout-container-light.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\layouts\\layout-container-light.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\layouts\\layout-fluid-light.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\layouts\\layout-fluid-light.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\layouts\\layout-without-menu-light.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\layouts\\layout-without-menu-light.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\layouts\\layout-without-navbar-light.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\layouts\\layout-without-navbar-light.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\config.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\config.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\dashboards-analytics.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\dashboards-analytics.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\extended-ui-perfect-scrollbar.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\extended-ui-perfect-scrollbar.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\form-basic-inputs.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\form-basic-inputs.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\include.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\include.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\komisyonlar.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\komisyonlar.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\main.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\main.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\pages-account-settings-account.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\pages-account-settings-account.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\ui-modals.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\ui-modals.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\ui-popover.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\ui-popover.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\ui-toasts.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\ui-toasts.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\css\\core.css",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\css\\core.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\css\\pages\\page-auth.css",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\css\\pages\\page-auth.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\css\\pages\\page-icons.css",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\css\\pages\\page-icons.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\css\\pages\\page-misc.css",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\css\\pages\\page-misc.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\fonts\\iconify-icons.css",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\fonts\\iconify-icons.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\js\\bootstrap.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\js\\bootstrap.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\js\\helpers.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\js\\helpers.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\js\\menu.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\js\\menu.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\libs\\apex-charts\\apex-charts.css",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\libs\\apex-charts\\apex-charts.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\libs\\apex-charts\\apexcharts.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\libs\\apex-charts\\apexcharts.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\libs\\highlight\\highlight-github.css",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\libs\\highlight\\highlight-github.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\libs\\highlight\\highlight.css",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\libs\\highlight\\highlight.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\libs\\highlight\\highlight.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\libs\\highlight\\highlight.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\libs\\jquery\\jquery.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\libs\\jquery\\jquery.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\libs\\masonry\\masonry.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\libs\\masonry\\masonry.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\libs\\perfect-scrollbar\\perfect-scrollbar.css",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\libs\\perfect-scrollbar\\perfect-scrollbar.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\libs\\perfect-scrollbar\\perfect-scrollbar.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\libs\\perfect-scrollbar\\perfect-scrollbar.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\vendor\\libs\\popper\\popper.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\vendor\\libs\\popper\\popper.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\auth-login-basic.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\auth-login-basic.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\beceriler.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\beceriler.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\build-config.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\build-config.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\css\\personel-ekle.css",
+      "PackagePath": "staticwebassets\\sevilay-tema\\css\\personel-ekle.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\documentation.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\documentation.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\fonts\\iconify\\iconify.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\fonts\\iconify\\iconify.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\gorev_detay.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\gorev_detay.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\gorev_filtrele.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\gorev_filtrele.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\gorev_kategorisi_ekle.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\gorev_kategorisi_ekle.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\gorevler_modulu.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\gorevler_modulu.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\gulpfile.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\gulpfile.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\html\\form-layouts-horizontal.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\html\\form-layouts-horizontal.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\html\\form-layouts-vertical.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\html\\form-layouts-vertical.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\html\\forms-basic-inputs - Kopya.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\html\\forms-basic-inputs - Kopya.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\html\\forms-basic-inputs.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\html\\forms-basic-inputs.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\html\\forms-input-groups.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\html\\forms-input-groups.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\html\\tables-basic.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\html\\tables-basic.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\html\\uzmanlik2.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\html\\uzmanlik2.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\index.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\index.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\istatistikler.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\istatistikler.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\js\\bootstrap.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\js\\bootstrap.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\js\\helpers.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\js\\helpers.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\js\\menu.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\js\\menu.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\komisyon_gorevlendirme.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\komisyon_gorevlendirme.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\komisyon_uyelik_modulu.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\komisyon_uyelik_modulu.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\komisyonlar_modulu.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\komisyonlar_modulu.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\koordinatorluk_modul.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\koordinatorluk_modul.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\kullanilan_programlar.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\kullanilan_programlar.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\libs\\apex-charts\\apex-charts.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\libs\\apex-charts\\apex-charts.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\libs\\apex-charts\\apexcharts.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\libs\\apex-charts\\apexcharts.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\libs\\highlight\\highlight-github.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\libs\\highlight\\highlight-github.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\libs\\highlight\\highlight.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\libs\\highlight\\highlight.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\libs\\highlight\\highlight.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\libs\\highlight\\highlight.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\libs\\jquery\\jquery.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\libs\\jquery\\jquery.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\libs\\masonry\\masonry.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\libs\\masonry\\masonry.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\libs\\perfect-scrollbar\\perfect-scrollbar.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\libs\\perfect-scrollbar\\perfect-scrollbar.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\libs\\perfect-scrollbar\\perfect-scrollbar.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\libs\\perfect-scrollbar\\perfect-scrollbar.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\libs\\popper\\popper.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\libs\\popper\\popper.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\package.json",
+      "PackagePath": "staticwebassets\\sevilay-tema\\package.json"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\partials\\footer.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\partials\\footer.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\partials\\navbar.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\partials\\navbar.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\partials\\sidebar.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\partials\\sidebar.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\personel_detay.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\personel_detay.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\personel_ekleme.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\personel_ekleme.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\personel_gorevlendirme.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\personel_gorevlendirme.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\personel_statusu.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\personel_statusu.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_accordion.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_accordion.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_alert.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_alert.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_badge.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_badge.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_breadcrumb.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_breadcrumb.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_button-group.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_button-group.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_buttons.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_buttons.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_card.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_card.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_carousel.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_carousel.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_dropdown.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_dropdown.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_forms.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_forms.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_functions.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_functions.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_helpers.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_helpers.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_include.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_include.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_list-group.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_list-group.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_mixins.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_mixins.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_modal.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_modal.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_nav.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_nav.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_navbar.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_navbar.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_offcanvas.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_offcanvas.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_pagination.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_pagination.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_popover.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_popover.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_progress.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_progress.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_reboot.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_reboot.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_root.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_root.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_spinners.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_spinners.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_tables.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_tables.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_toasts.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_toasts.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_tooltip.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_tooltip.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_type.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_type.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_utilities.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_utilities.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\_variables.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\_variables.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_floating-labels.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_floating-labels.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_form-check.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_form-check.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_form-control.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_form-control.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_form-range.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_form-range.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_form-select.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_form-select.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_input-group.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_input-group.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_labels.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\forms\\_labels.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\helpers\\_color-bg.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\helpers\\_color-bg.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\mixins\\_border-radius.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\mixins\\_border-radius.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\mixins\\_caret.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\mixins\\_caret.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap-extended\\mixins\\_misc.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap-extended\\mixins\\_misc.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_bootstrap.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_bootstrap.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_colors.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_colors.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components\\_app-brand.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components\\_app-brand.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components\\_avatar.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components\\_avatar.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components\\_base.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components\\_base.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components\\_common.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components\\_common.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components\\_footer.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components\\_footer.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components\\_include.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components\\_include.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components\\_layout.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components\\_layout.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components\\_menu.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components\\_menu.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components\\_root.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components\\_root.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components\\_text-divider.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components\\_text-divider.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_components\\_variables.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_components\\_variables.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_custom-styles.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_custom-styles.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_custom-variables\\_bootstrap-extended.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_custom-variables\\_bootstrap-extended.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\_custom-variables\\_components.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\_custom-variables\\_components.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\core.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\core.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\pages\\page-auth.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\pages\\page-auth.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\pages\\page-icons.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\pages\\page-icons.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\scss\\pages\\page-misc.scss",
+      "PackagePath": "staticwebassets\\sevilay-tema\\scss\\pages\\page-misc.scss"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\tasks\\build.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\tasks\\build.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\tasks\\prod.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\tasks\\prod.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\uzmanlik_modulu.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\uzmanlik_modulu.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\webpack.config.js",
+      "PackagePath": "staticwebassets\\sevilay-tema\\webpack.config.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\yarn.lock",
+      "PackagePath": "staticwebassets\\sevilay-tema\\yarn.lock"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\yetkili_ekle.html",
+      "PackagePath": "staticwebassets\\sevilay-tema\\yetkili_ekle.html"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.PersonelTakipSistemi.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.build.PersonelTakipSistemi.props",
+      "PackagePath": "build\\PersonelTakipSistemi.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildMultiTargeting.PersonelTakipSistemi.props",
+      "PackagePath": "buildMultiTargeting\\PersonelTakipSistemi.props"
+    },
+    {
+      "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.buildTransitive.PersonelTakipSistemi.props",
+      "PackagePath": "buildTransitive\\PersonelTakipSistemi.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

@@ -1,0 +1,130 @@
+﻿@{
+    ViewData["Title"] = "Genel Görünüm";
+}
+
+<div class="row">
+    <div class="col-xxl-8 mb-6">
+    <div class="card h-100">
+        <div class="d-flex align-items-start row">
+        <div class="col-sm-7">
+            <div class="card-body">
+            <h5 class="card-title mb-3" style="color: #2c3e50;"> Tebrikler Sisteme Giriş Yaptınız 🎉 </h5>
+            <a href="#" class="btn btn-sm btn-outline-primary">İstatistikler</a>
+            </div>
+        </div>
+        <div class="col-sm-5 text-center text-sm-left">
+            <div class="col-xxl-4 col-lg-12 col-md-4 mb-6">
+            <img src="~/sevilay-tema/assets/img/illustrations/man-with-laptop.png" height="175" alt="View Badge User" />
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+    <div class="col-xxl-4 col-lg-12 col-md-4 mb-6">
+    <div class="row">
+        <div class="col-lg-6 col-md-12 col-6 mb-6">
+        <div class="card h-100">
+            <div class="card-body">
+            <div class="card-title d-flex align-items-start justify-content-between mb-4">
+                <div class="avatar flex-shrink-0">
+                <i class="bx bx-user-circle text-primary fs-2"></i>
+                </div>
+            </div>
+            <a asp-controller="Personel" asp-action="Detay" class="btn btn-sm btn-outline-primary">Personel Ara</a>
+            </div>
+        </div>
+        </div>
+        <div class="col-lg-6 col-md-12 col-6 mb-6">
+        <div class="card h-100">
+            <div class="card-body">
+            <div class="card-title d-flex align-items-start justify-content-between mb-4">
+
+                <i class="bx bx-user-circle text-primary fs-2"></i>
+
+            </div>
+            <p class="mb-1">Toplam Personel Sayısı</p>
+            <h4 class="card-title mb-3">250</h4>
+            <small class="text-success fw-medium"><i class="icon-base bx bx-up-arrow-alt"></i>BURAYA SAYI
+                GELECEK</small>
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+    <!-- Total Revenue -->
+    <div class="col-12 col-xxl-8 mb-6 total-revenue">
+    <div class="card h-100">
+        <div class="row row-bordered g-0">
+        <div class="col-lg-8">
+            <div class="card-header d-flex align-items-center justify-content-between">
+            <div class="card-title mb-0">
+                <h5 class="m-0 me-2">Komisyon İş Yoğunluğu</h5>
+            </div>
+
+            </div>
+            <div id="totalRevenueChart" class="px-3"></div>
+        </div>
+        </div>
+    </div>
+    </div>
+    <!--/ Total Revenue -->
+    <div class="col-12 col-md-8 col-lg-12 col-xxl-4 order-3 order-md-2 profile-report">
+    <div class="row">
+        <div class="col-6 mb-6 payments">
+        <div class="card h-100">
+            <div class="card-body">
+            <div class="card-title d-flex align-items-start justify-content-between mb-4">
+                <div class="avatar flex-shrink-0">
+                <i class='bx bx-group' style="font-size:32px;color:#556;opacity:0.9"></i>
+                </div>
+                <div class="dropdown">
+                <button class="btn p-0" type="button" id="cardOpt4" data-bs-toggle="dropdown"
+                    aria-haspopup="true" aria-expanded="false">
+                    <i class="icon-base bx bx-dots-vertical-rounded text-body-secondary"></i>
+                </button>
+
+                </div>
+            </div>
+            <p class="mb-1">Komisyon Sayısı</p>
+            <h4 class="card-title mb-3">10</h4>
+            <small class="text-danger fw-medium"><i class="icon-base bx bx-down-arrow-alt"></i> </small>
+            </div>
+        </div>
+        </div>
+        <div class="col-6 mb-6 transactions">
+        <div class="card h-100">
+            <div class="card-body">
+            <div class="card-title d-flex align-items-start justify-content-between mb-4">
+                <div class="avatar flex-shrink-0">
+                <div class="card-icon" style="background:#2c3e5021; border-radius:12px;">
+                    <i class="bx bx-group" style="font-size:32px; color:#2c3e50;"></i>
+                </div>
+                </div>
+            </div>
+            <p class="mb-1">Koordinatörlük Sayısı</p>
+            <h4 class="card-title mb-3">25</h4>
+            </div>
+        </div>
+        </div>
+        <div class="col-12 mb-6 profile-report">
+        <div class="card h-200">
+            <div class="card-body">
+            <div
+                class="d-flex justify-content-between align-items-center flex-sm-row flex-column gap-10 flex-wrap">
+                <div class="d-flex flex-sm-column flex-row align-items-start justify-content-between">
+                <div class="card-title mb-6">
+                    <a href="#" class="btn btn-sm btn-outline-primary">KOMİSYON ÜYE
+                    EKLE</a>
+
+                </div>
+                <div class="mt-sm-auto">
+
+                </div>
+                </div>
+            </div>
+            </div>
+        </div>
+        </div>
+    </div>
+    </div>
+</div>
