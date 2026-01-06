@@ -59,3 +59,4 @@ C:\Users\vedat\source\repos\Personel-Takip-Sistemi\PersonelTakipSistemi\obj\Debu
 C:\Users\vedat\source\repos\Personel-Takip-Sistemi\PersonelTakipSistemi\obj\Debug\net8.0\PersonelTakipSistemi.pdb
 C:\Users\vedat\source\repos\Personel-Takip-Sistemi\PersonelTakipSistemi\obj\Debug\net8.0\PersonelTakipSistemi.genruntimeconfig.cache
 C:\Users\vedat\source\repos\Personel-Takip-Sistemi\PersonelTakipSistemi\obj\Debug\net8.0\ref\PersonelTakipSistemi.dll
+C:\Users\vedat\source\repos\PersonelTakipSistemi\PersonelTakipSistemi\obj\Debug\net8.0\PersonelTakipSistemi.sourcelink.json

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\PersonelTakipSistemi.csproj": {}
+    "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\PersonelTakipSistemi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\PersonelTakipSistemi.csproj": {
+    "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\PersonelTakipSistemi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\PersonelTakipSistemi.csproj",
+        "projectUniqueName": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\PersonelTakipSistemi.csproj",
         "projectName": "PersonelTakipSistemi",
-        "projectPath": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\PersonelTakipSistemi.csproj",
+        "projectPath": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\PersonelTakipSistemi.csproj",
         "packagesPath": "C:\\Users\\vedat\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\vedat\\source\\repos\\Personel-Takip-Sistemi\\PersonelTakipSistemi\\obj\\",
+        "outputPath": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\vedat\\AppData\\Roaming\\NuGet\\NuGet.Config",
