@@ -62,20 +62,20 @@
 
 
     <!-- Personel Bilgileri -->
-    <li class="menu-item open">
-      <a href="javascript:void(0);" class="menu-link menu-toggle">
+    <li class="menu-item active open">
+      <a asp-controller="Personel" asp-action="Index" class="menu-link menu-toggle">
         <i class="menu-icon tf-icons bx bx-id-card"></i>
         <div class="text-truncate" data-i18n="Personel Bilgileri">Personel Bilgileri</div>
       </a>
       <ul class="menu-sub">
         <li class="menu-item">
-          <a asp-controller="Personel" asp-action="Ekle" class="menu-link">
-            <div class="text-truncate" data-i18n="Personel Ekle">Personel Ekle</div>
+          <a asp-controller="Personel" asp-action="Index" class="menu-link">
+            <div class="text-truncate" data-i18n="Personel Listesi">Personel Listesi</div>
           </a>
         </li>
         <li class="menu-item">
-          <a asp-controller="Personel" asp-action="Detay" class="menu-link">
-            <div class="text-truncate" data-i18n="Personel Detay">Personel Detay</div>
+          <a asp-controller="Personel" asp-action="Ekle" class="menu-link">
+            <div class="text-truncate" data-i18n="Yeni Personel Ekle">Yeni Personel Ekle</div>
           </a>
         </li>
       </ul>

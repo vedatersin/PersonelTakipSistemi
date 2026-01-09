@@ -1,0 +1,229 @@
+@model PersonelTakipSistemi.ViewModels.PersonelIndexViewModel
+@{
+    ViewData["Title"] = "Personel Listesi";
+}
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form asp-action="Index" method="get" id="filterForm">
+            <!-- Üst Bölüm: Arama -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <label class="form-label">Ad / Soyad</label>
+                    <input type="text" class="form-control" asp-for="Filter.SearchName" placeholder="Ad veya Soyad ara..." />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">TC Kimlik No</label>
+                    <input type="text" class="form-control" asp-for="Filter.TcKimlikNo" placeholder="TC Kimlik No..." />
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Ara</button>
+                </div>
+            </div>
+
+            <!-- Alt Bölüm: Filtreler (Dropdown Checkbox) -->
+            <div class="row g-3">
+                
+                <!-- Branş (Tekil) -->
+                <div class="col-md-2">
+                    <label class="form-label">Branş</label>
+                    <select class="form-select" asp-for="Filter.Brans">
+                        <option value="">Tümü</option>
+                        @foreach (var x in Model.Lookups.Branslar) { <option value="@x">@x</option> }
+                    </select>
+                </div>
+
+                <!-- Görevli İl (Tekil) -->
+                <div class="col-md-2">
+                    <label class="form-label">Görevli İl</label>
+                    <select class="form-select" asp-for="Filter.GorevliIl">
+                        <option value="">Tümü</option>
+                        @foreach (var x in Model.Lookups.Iller) { <option value="@x">@x</option> }
+                    </select>
+                </div>
+
+                <!-- Yazılımlar (Çoklu) -->
+                <div class="col-md-2">
+                     <label class="form-label">Yazılımlar</label>
+                     <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Seçiniz
+                        </button>
+                        <ul class="dropdown-menu p-3" style="max-height: 250px; overflow-y: auto;">
+                            @foreach (var item in Model.Lookups.Yazilimlar)
+                            {
+                                <li class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="Filter.SeciliYazilimIdleri" value="@item.Id" id="yazilim_@item.Id" 
+                                           @(Model.Filter.SeciliYazilimIdleri != null && Model.Filter.SeciliYazilimIdleri.Contains(item.Id) ? "checked" : "")>
+                                    <label class="form-check-label" for="yazilim_@item.Id">@item.Ad</label>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Uzmanlıklar (Çoklu) -->
+                <div class="col-md-2">
+                     <label class="form-label">Uzmanlıklar</label>
+                     <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Seçiniz
+                        </button>
+                        <ul class="dropdown-menu p-3" style="max-height: 250px; overflow-y: auto;">
+                            @foreach (var item in Model.Lookups.Uzmanliklar)
+                            {
+                                <li class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="Filter.SeciliUzmanlikIdleri" value="@item.Id" id="uzmanlik_@item.Id"
+                                           @(Model.Filter.SeciliUzmanlikIdleri != null && Model.Filter.SeciliUzmanlikIdleri.Contains(item.Id) ? "checked" : "")>
+                                    <label class="form-check-label" for="uzmanlik_@item.Id">@item.Ad</label>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Görev Türü (Çoklu) -->
+                <div class="col-md-2">
+                     <label class="form-label">Görev Türü</label>
+                     <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Seçiniz
+                        </button>
+                        <ul class="dropdown-menu p-3" style="max-height: 250px; overflow-y: auto;">
+                            @foreach (var item in Model.Lookups.GorevTurleri)
+                            {
+                                <li class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="Filter.SeciliGorevTuruIdleri" value="@item.Id" id="gorev_@item.Id"
+                                           @(Model.Filter.SeciliGorevTuruIdleri != null && Model.Filter.SeciliGorevTuruIdleri.Contains(item.Id) ? "checked" : "")>
+                                    <label class="form-check-label" for="gorev_@item.Id">@item.Ad</label>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- İş Niteliği (Çoklu) -->
+                <div class="col-md-2">
+                     <label class="form-label">İş Niteliği</label>
+                     <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Seçiniz
+                        </button>
+                        <ul class="dropdown-menu p-3" style="max-height: 250px; overflow-y: auto;">
+                            @foreach (var item in Model.Lookups.IsNitelikleri)
+                            {
+                                <li class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="Filter.SeciliIsNiteligiIdleri" value="@item.Id" id="is_@item.Id"
+                                            @(Model.Filter.SeciliIsNiteligiIdleri != null && Model.Filter.SeciliIsNiteligiIdleri.Contains(item.Id) ? "checked" : "")>
+                                    <label class="form-check-label" for="is_@item.Id">@item.Ad</label>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">Filtrele</button>
+                </div>
+            </div>
+            
+            <input type="hidden" name="Filter.Page" value="1" id="pageInput" />
+            <input type="hidden" name="Filter.PageSize" value="@Model.Filter.PageSize" />
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive text-nowrap">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>Ad Soyad</th>
+                    <th>Branş</th>
+                    <th>Görevli İl</th>
+                    <th>E-posta</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody class="table-border-bottom-0">
+                @foreach (var item in Model.Results)
+                {
+                    <tr style="cursor: pointer;" onclick="window.location.href='/Personel/Detay/@item.PersonelId'">
+                        <td>
+                            @if (!string.IsNullOrEmpty(item.FotografYolu))
+                            {
+                                <img src="@item.FotografYolu" alt="Avatar" class="rounded-circle" width="32" height="32" />
+                            }
+                            else
+                            {
+                                <div class="avatar avatar-xs">
+                                     <span class="avatar-initial rounded-circle bg-label-primary">@item.AdSoyad.Substring(0,1)</span>
+                                </div>
+                            }
+                        </td>
+                        <td><strong>@item.AdSoyad</strong></td>
+                        <td>@item.Brans</td>
+                        <td>@item.GorevliIl</td>
+                        <td>@item.Eposta</td>
+                        <td>
+                            @if (item.AktifMi)
+                            {
+                                <span class="badge bg-label-success me-1">Aktif</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-label-secondary me-1">Pasif</span>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Results.Any())
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4">Kayıt bulunamadı.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Pagination -->
+    @if (Model.Pagination.TotalPages > 1)
+    {
+        <div class="card-footer d-flex justify-content-center">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    <li class="page-item @(Model.Pagination.HasPreviousPage ? "" : "disabled")">
+                        <a class="page-link" href="javascript:void(0);" onclick="changePage(@(Model.Pagination.CurrentPage - 1))">Önceki</a>
+                    </li>
+                    
+                    @for (int i = 1; i <= Model.Pagination.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.Pagination.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="javascript:void(0);" onclick="changePage(@i)">@i</a>
+                        </li>
+                    }
+                    
+                    <li class="page-item @(Model.Pagination.HasNextPage ? "" : "disabled")">
+                        <a class="page-link" href="javascript:void(0);" onclick="changePage(@(Model.Pagination.CurrentPage + 1))">Sonraki</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
+
+<script>
+    function changePage(page) {
+        document.getElementById('pageInput').value = page;
+        document.getElementById('filterForm').submit();
+    }
+    
+    // Dropdown checkbox'larına tıklandığında dropdown kapanmasın
+    document.querySelectorAll('.dropdown-menu').forEach(function(element){
+        element.addEventListener('click', function (e) {
+          e.stopPropagation();
+        });
+    });
+</script>

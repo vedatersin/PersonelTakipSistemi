@@ -3,132 +3,203 @@
     ViewData["Title"] = "Personel Detay";
 }
 
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">Personel Detayları</h5>
-        <a asp-action="Ekle" class="btn btn-primary">Yeni Personel Ekle</a>
+<div class="container-xxl flex-grow-1 container-p-y">
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold py-3 mb-0">
+            <span class="text-muted fw-light">Personel /</span> Detay
+        </h4>
+        <div>
+            <a asp-action="Index" class="btn btn-outline-secondary me-2">Geri Dön</a>
+            <a href="@Url.Action("Ekle", new { id = Model.PersonelId })" class="btn btn-primary me-2">Düzenle</a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Sil</button>
+        </div>
     </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-4 text-center">
-                @if (!string.IsNullOrEmpty(Model.FotografYolu))
-                {
-                    <img src="@Model.FotografYolu" alt="@Model.Ad @Model.Soyad" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
-                }
-                else
-                {
-                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px;">
-                        <i class="bx bx-user fs-1"></i>
+
+    <div class="row">
+        <!-- Sol Kart: Profil -->
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center">
+                    <div class="mx-auto mb-3">
+                        @if (!string.IsNullOrEmpty(Model.FotografYolu))
+                        {
+                            <img src="@Model.FotografYolu" alt="Personel Foto" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;" />
+                        }
+                        else
+                        {
+                             <div class="avatar avatar-xl mx-auto" style="width: 150px; height: 150px; font-size: 3rem; display: flex; align-items: center; justify-content: center; background-color: #696cff; color: white; border-radius: 50%;">
+                                @Model.Ad.Substring(0, 1)@Model.Soyad.Substring(0, 1)
+                            </div>
+                        }
                     </div>
-                }
-                <h4>@Model.Ad @Model.Soyad</h4>
-                <p class="text-muted">@Model.Brans</p>
-                <div class="badge bg-@(Model.AktifMi ? "success" : "danger")">
-                    @(Model.AktifMi ? "Aktif Görevde" : "Pasif")
+                    <h4 class="mb-1">@Model.Ad @Model.Soyad</h4>
+                    <p class="text-muted mb-3">@Model.Brans</p>
+                    
+                    <div class="d-flex justify-content-center gap-2">
+                        @if (Model.AktifMi)
+                        {
+                            <span class="badge bg-success">Aktif Personel</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Pasif Personel</span>
+                        }
+                    </div>
+
+                    <div class="mt-4 text-start">
+                        <p class="mb-2"><i class="bx bx-map me-2"></i> <strong>İl:</strong> @Model.GorevliIl</p>
+                        <p class="mb-2"><i class="bx bx-buildings me-2"></i> <strong>Kurum:</strong> @Model.KadroKurum</p>
+                        <p class="mb-2"><i class="bx bx-male-female me-2"></i> <strong>Cinsiyet:</strong> @Model.Cinsiyet</p>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-8">
-                <table class="table table-borderless">
-                    <tbody>
-                        <tr>
-                            <th style="width: 30%">TC Kimlik No</th>
-                            <td>@Model.TcKimlikNo</td>
-                        </tr>
-                        <tr>
-                            <th>Telefon</th>
-                            <td>@Model.Telefon</td>
-                        </tr>
-                        <tr>
-                            <th>E-posta</th>
-                            <td>@Model.Eposta</td>
-                        </tr>
-                        <tr>
-                            <th>Cinsiyet</th>
-                            <td>@Model.Cinsiyet</td>
-                        </tr>
-                        <tr>
-                            <th>Görevli İl</th>
-                            <td>@Model.GorevliIl</td>
-                        </tr>
-                        <tr>
-                            <th>Kadro Kurum</th>
-                            <td>@Model.KadroKurum</td>
-                        </tr>
-                        <tr>
-                            <th>Kayıt Tarihi</th>
-                            <td>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         </div>
 
-        <hr class="my-4">
+        <!-- Sağ Kart: Temel Bilgiler ve Detaylar -->
+        <div class="col-md-8 mb-4">
+            <div class="card mb-4">
+                <h5 class="card-header">Temel Bilgiler</h5>
+                <div class="card-body">
+                    <div class="table-responsive">
+                       <table class="table table-borderless">
+                           <tbody>
+                               <tr>
+                                   <td class="fw-bold" style="width: 30%;">TC Kimlik No</td>
+                                   <td>@Model.TcKimlikNo</td>
+                               </tr>
+                               <tr>
+                                   <td class="fw-bold">Telefon</td>
+                                   <td>@Model.Telefon</td>
+                               </tr>
+                               <tr>
+                                   <td class="fw-bold">E-posta</td>
+                                   <td>@Model.Eposta</td>
+                               </tr>
+                               <tr>
+                                   <td class="fw-bold">Kayıt Tarihi</td>
+                                   <td>@Model.CreatedAt.ToString("dd.MM.yyyy")</td>
+                               </tr>
+                           </tbody>
+                       </table>
+                    </div>
+                </div>
+            </div>
 
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <h6 class="fw-bold">Yazılım Bilgisi</h6>
-                @if(Model.Yazilimlar != null && Model.Yazilimlar.Any())
-                {
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach(var item in Model.Yazilimlar)
-                        {
-                            <span class="badge bg-label-primary">@item</span>
-                        }
+            <!-- Alt Kartlar: Özellikler -->
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                        <h6 class="card-header">Kullandığı Yazılımlar</h6>
+                        <div class="card-body">
+                            @if (Model.Yazilimlar != null && Model.Yazilimlar.Any())
+                            {
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var item in Model.Yazilimlar)
+                                    {
+                                        <span class="badge bg-label-primary">@item</span>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Veri yok.</span>
+                            }
+                        </div>
                     </div>
-                }
-                else
-                {
-                    <span class="text-muted">Yazılım bilgisi girilmemiş.</span>
-                }
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                         <h6 class="card-header">Uzmanlık Alanları</h6>
+                        <div class="card-body">
+                             @if (Model.Uzmanliklar != null && Model.Uzmanliklar.Any())
+                            {
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var item in Model.Uzmanliklar)
+                                    {
+                                        <span class="badge bg-label-info">@item</span>
+                                    }
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="text-muted small">Veri yok.</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100">
+                         <h6 class="card-header">Görevler</h6>
+                        <div class="card-body">
+                             @if (Model.GorevTurleri != null && Model.GorevTurleri.Any())
+                            {
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var item in Model.GorevTurleri)
+                                    {
+                                        <span class="badge bg-label-warning">@item</span>
+                                    }
+                                </div>
+                            }
+                             else
+                            {
+                                <span class="text-muted small">Veri yok.</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-4">
+                     <div class="card h-100">
+                         <h6 class="card-header">İş Niteliği</h6>
+                        <div class="card-body">
+                             @if (Model.IsNitelikleri != null && Model.IsNitelikleri.Any())
+                            {
+                                <div class="d-flex flex-wrap gap-2">
+                                    @foreach (var item in Model.IsNitelikleri)
+                                    {
+                                        <span class="badge bg-label-danger">@item</span>
+                                    }
+                                </div>
+                            }
+                             else
+                            {
+                                <span class="text-muted small">Veri yok.</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+                
             </div>
-            <div class="col-md-6 mb-4">
-                <h6 class="fw-bold">Uzmanlık Alanları</h6>
-                @if(Model.Uzmanliklar != null && Model.Uzmanliklar.Any())
-                {
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach(var item in Model.Uzmanliklar)
-                        {
-                            <span class="badge bg-label-info">@item</span>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <span class="text-muted">Uzmanlık bilgisi girilmemiş.</span>
-                }
+        </div>
+    </div>
+</div>
+
+<!-- Silme Modalı -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalCenterTitle">Personel Silme</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-             <div class="col-md-6 mb-4">
-                <h6 class="fw-bold">Görev Türleri</h6>
-                @if(Model.GorevTurleri != null && Model.GorevTurleri.Any())
-                {
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach(var item in Model.GorevTurleri)
-                        {
-                            <span class="badge bg-label-warning">@item</span>
-                        }
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col mb-3">
+                        <p><strong>@Model.Ad @Model.Soyad</strong> adlı personeli silmek istediğinize emin misiniz?</p>
+                        <p class="text-danger small mb-0">Bu işlem geri alınamaz.</p>
                     </div>
-                }
-                else
-                {
-                    <span class="text-muted">Görev türü seçilmemiş.</span>
-                }
+                </div>
             </div>
-             <div class="col-md-6 mb-4">
-                <h6 class="fw-bold">İş Nitelikleri</h6>
-                @if(Model.IsNitelikleri != null && Model.IsNitelikleri.Any())
-                {
-                    <div class="d-flex flex-wrap gap-2">
-                        @foreach(var item in Model.IsNitelikleri)
-                        {
-                            <span class="badge bg-label-success">@item</span>
-                        }
-                    </div>
-                }
-                else
-                {
-                    <span class="text-muted">İş niteliği seçilmemiş.</span>
-                }
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                <form asp-action="Sil" method="post">
+                    <input type="hidden" name="id" value="@Model.PersonelId" />
+                    <button type="submit" class="btn btn-danger">Evet, Sil</button>
+                </form>
             </div>
         </div>
     </div>

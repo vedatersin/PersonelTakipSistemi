@@ -5,6 +5,8 @@ namespace PersonelTakipSistemi.ViewModels
 {
     public class PersonelEkleViewModel
     {
+        public int PersonelId { get; set; } // For Edit Mode
+
         [Required(ErrorMessage = "Ad alanı zorunludur.")]
         public string Ad { get; set; } = null!;
 
