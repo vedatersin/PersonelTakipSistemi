@@ -1,35 +1,4 @@
-<style>
-  body {
-    margin: 0;
-    padding: 0;
-    background: #b4b1c1;
-    font-family: Arial, sans-serif;
-  }
 
-  /* Scrollbar override */
-  #layout-menu.layout-menu {
-    position: relative !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  #layout-menu .menu-inner {
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  /* Active and Open Menu Item Styling */
-  .menu-item.active>.menu-link,
-  .menu-item.open>.menu-link {
-    background-color: #6584a6 !important;
-    color: #ffffff !important;
-  }
-
-  .menu-item.active>.menu-link .menu-icon,
-  .menu-item.open>.menu-link .menu-icon {
-    color: #ffffff !important;
-  }
-</style>
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
   <div class="app-brand demo pb-6">
     <a asp-controller="Home" asp-action="Index" class="app-brand-link">

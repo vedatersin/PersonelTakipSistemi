@@ -1,31 +1,27 @@
+using System;
 using System.Collections.Generic;
 
 namespace PersonelTakipSistemi.ViewModels
 {
     public class PersonelDetayViewModel
     {
-        public int Id { get; set; }
-        public string Ad { get; set; }
-        public string Soyad { get; set; }
-        public string TcKimlikNo { get; set; }
-        public string Telefon { get; set; }
-        public string Eposta { get; set; }
-        public int PersonelCinsiyet { get; set; } // 0: Erkek, 1: Kadın
-        public string CinsiyetAdi => PersonelCinsiyet == 1 ? "Kadın" : "Erkek";
-        public string GorevliIl { get; set; }
-        public string Brans { get; set; }
-        public string KadroKurum { get; set; }
+        public int PersonelId { get; set; }
+        public string Ad { get; set; } = null!;
+        public string Soyad { get; set; } = null!;
+        public string TcKimlikNo { get; set; } = null!;
+        public string Telefon { get; set; } = null!;
+        public string Eposta { get; set; } = null!;
+        public string Cinsiyet { get; set; } = null!; // Erkek/Kadın olarak string dönebiliriz veya View'da işleyebiliriz
+        public string GorevliIl { get; set; } = null!;
+        public string Brans { get; set; } = null!;
+        public string KadroKurum { get; set; } = null!;
         public bool AktifMi { get; set; }
-        
-        // Mock lists for detail view tabs
-        public List<string> KullanilanYazilimlar { get; set; } = new List<string>();
-        public List<string> UzmanlikAlanlari { get; set; } = new List<string>();
+        public string? FotografYolu { get; set; }
+        public DateTime CreatedAt { get; set; }
 
-        public PersonelDetayViewModel()
-        {
-            // Dummy data for visual purposes
-            KullanilanYazilimlar = new List<string> { "Visual Studio", "SQL Key", "Postman" };
-            UzmanlikAlanlari = new List<string> { ".NET Core MVC", "Entity Framework", "Web API" };
-        }
+        public List<string> Yazilimlar { get; set; } = new List<string>();
+        public List<string> Uzmanliklar { get; set; } = new List<string>();
+        public List<string> GorevTurleri { get; set; } = new List<string>();
+        public List<string> IsNitelikleri { get; set; } = new List<string>();
     }
 }

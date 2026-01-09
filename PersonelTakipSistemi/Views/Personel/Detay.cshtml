@@ -3,184 +3,133 @@
     ViewData["Title"] = "Personel Detay";
 }
 
-<style>
-  .card {
-    background-color: #ffffff !important;
-    border: 1px solid #ffffff !important;
-    border-radius: 14px !important;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.07) !important;
-  }
-  .card-header {
-    background-color: #ffffff !important;
-    border-bottom: 1px solid #ffffff !important;
-    font-weight: 600;
-  }
-</style>
-
-<div class="card mb-4">
-    <div class="card-header">
-      <h5 class="mb-0">Personel Arama</h5>
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Personel Detayları</h5>
+        <a asp-action="Ekle" class="btn btn-primary">Yeni Personel Ekle</a>
     </div>
     <div class="card-body">
-      <div class="row g-2 align-items-end">
-        <div class="col-md-4">
-          <label for="araAdSoyad" class="form-label">Ad / Soyad</label>
-          <input
-            type="text"
-            id="araAdSoyad"
-            class="form-control"
-            placeholder="Ad veya soyad girin"
-          >
-        </div>
-        <div class="col-md-4">
-          <label for="araTc" class="form-label">TC Kimlik No</label>
-          <input
-            type="text"
-            id="araTc"
-            class="form-control"
-            maxlength="11"
-            placeholder="TC Kimlik No"
-          >
-        </div>
-        <div class="col-md-2">
-          <button class="btn btn-primary w-100" id="btnAra">
-            Ara
-          </button>
-        </div>
-      </div>
-    </div>
-</div>
-
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-      <h3 class="mb-0">Personel Detay</h3>
-      <div class="d-flex gap-2">
-        <button class="btn btn-outline-secondary btn-sm" onclick="window.history.back()">
-          Geri Dön
-        </button>
-        <button class="btn btn-primary btn-sm">
-          Düzenle
-        </button>
-        <button class="btn btn-danger btn-sm">
-          Sil
-        </button>
-      </div>
-    </div>
-
-   <div class="row g-4">
-  <!-- SOL: PROFİL KARTI -->
-  <div class="col-md-4">
-    <!-- Mevcut profil kartı -->
-    <div class="card mb-4">
-      <div class="card-body text-center">
-        <img
-          id="detayFoto"
-          src="https://via.placeholder.com/120"
-          alt="Personel Fotoğrafı"
-          class="profile-avatar mb-3 rounded-circle"
-          width="120" height="120"
-        />
-
-        <h5 id="detayAdSoyad" class="mb-1">@Model.Ad @Model.Soyad</h5>
-        <p id="detayUnvan" class="text-muted mb-2">@Model.Brans</p>
-
-        <span id="detayDurum" class="badge bg-success">Aktif</span>
-
-        <hr />
-
-        <p class="mb-1">
-          <strong>Cinsiyet: </strong>
-          <span id="detayCinsiyet">@Model.CinsiyetAdi</span>
-        </p>
-        <p class="mb-1">
-          <strong>Görevli İl: </strong>
-          <span id="detayGorevliIl">@Model.GorevliIl</span>
-        </p>
-        <p class="mb-0">
-          <strong>Kadro Kurum: </strong>
-          <span id="detayKadroKurum">@Model.KadroKurum</span>
-        </p>
-      </div>
-    </div>
-
-    <!-- Görevlendirme Bilgileri -->
-    <div class="card">
-      <div class="card-header">
-        <h6 class="mb-0">Görevlendirme Bilgileri</h6>
-      </div>
-      <div class="card-body">
-         <!-- Mock data field placeholders -->
-        <p class="mb-1"><strong>Koordinatörlük: </strong> <span>-</span></p>
-        <p class="mb-1"><strong>Komisyon: </strong> <span>-</span></p>
-      </div>
-    </div>
-  </div>
-
-
-      <!-- SAĞ: TEMEL BİLGİLER TABLOSU -->
-      <div class="col-md-8">
-        <div class="card mb-4">
-          <div class="card-header">
-            <h5 class="mb-0">Temel Bilgiler</h5>
-          </div>
-          <div class="card-body">
-            <table class="table table-sm mb-0">
-              <tbody>
-                <tr>
-                  <th style="width: 30%;">Ad Soyad</th>
-                  <td id="tbAdSoyad">@Model.Ad @Model.Soyad</td>
-                </tr>
-                <tr>
-                  <th>TC Kimlik No</th>
-                  <td id="tbTc">@Model.TcKimlikNo</td>
-                </tr>
-                <tr>
-                  <th>Telefon</th>
-                  <td id="tbTelefon">@Model.Telefon</td>
-                </tr>
-                <tr>
-                  <th>E-posta</th>
-                  <td id="tbEmail">@Model.Eposta</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- ALT: ÖZET KARTLAR -->
-        <div class="row g-3">
-          <div class="col-md-6">
-            <div class="card h-100">
-              <div class="card-header">
-                <h6 class="mb-0">Kullandığı Yazılımlar</h6>
-              </div>
-              <div class="card-body">
-                <ul>
-                    @foreach(var item in Model.KullanilanYazilimlar)
-                    {
-                        <li>@item</li>
-                    }
-                </ul>
-              </div>
+        <div class="row">
+            <div class="col-md-4 text-center">
+                @if (!string.IsNullOrEmpty(Model.FotografYolu))
+                {
+                    <img src="@Model.FotografYolu" alt="@Model.Ad @Model.Soyad" class="img-fluid rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
+                }
+                else
+                {
+                    <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 150px; height: 150px;">
+                        <i class="bx bx-user fs-1"></i>
+                    </div>
+                }
+                <h4>@Model.Ad @Model.Soyad</h4>
+                <p class="text-muted">@Model.Brans</p>
+                <div class="badge bg-@(Model.AktifMi ? "success" : "danger")">
+                    @(Model.AktifMi ? "Aktif Görevde" : "Pasif")
+                </div>
             </div>
-          </div>
-
-          <div class="col-md-6">
-             <div class="card h-100">
-              <div class="card-header">
-                <h6 class="mb-0">Uzmanlık Alanları</h6>
-              </div>
-              <div class="card-body">
-                <ul>
-                    @foreach(var item in Model.UzmanlikAlanlari)
-                    {
-                        <li>@item</li>
-                    }
-                </ul>
-              </div>
+            <div class="col-md-8">
+                <table class="table table-borderless">
+                    <tbody>
+                        <tr>
+                            <th style="width: 30%">TC Kimlik No</th>
+                            <td>@Model.TcKimlikNo</td>
+                        </tr>
+                        <tr>
+                            <th>Telefon</th>
+                            <td>@Model.Telefon</td>
+                        </tr>
+                        <tr>
+                            <th>E-posta</th>
+                            <td>@Model.Eposta</td>
+                        </tr>
+                        <tr>
+                            <th>Cinsiyet</th>
+                            <td>@Model.Cinsiyet</td>
+                        </tr>
+                        <tr>
+                            <th>Görevli İl</th>
+                            <td>@Model.GorevliIl</td>
+                        </tr>
+                        <tr>
+                            <th>Kadro Kurum</th>
+                            <td>@Model.KadroKurum</td>
+                        </tr>
+                        <tr>
+                            <th>Kayıt Tarihi</th>
+                            <td>@Model.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-          </div>
         </div>
-      </div> 
-    </div> 
+
+        <hr class="my-4">
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <h6 class="fw-bold">Yazılım Bilgisi</h6>
+                @if(Model.Yazilimlar != null && Model.Yazilimlar.Any())
+                {
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach(var item in Model.Yazilimlar)
+                        {
+                            <span class="badge bg-label-primary">@item</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <span class="text-muted">Yazılım bilgisi girilmemiş.</span>
+                }
+            </div>
+            <div class="col-md-6 mb-4">
+                <h6 class="fw-bold">Uzmanlık Alanları</h6>
+                @if(Model.Uzmanliklar != null && Model.Uzmanliklar.Any())
+                {
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach(var item in Model.Uzmanliklar)
+                        {
+                            <span class="badge bg-label-info">@item</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <span class="text-muted">Uzmanlık bilgisi girilmemiş.</span>
+                }
+            </div>
+             <div class="col-md-6 mb-4">
+                <h6 class="fw-bold">Görev Türleri</h6>
+                @if(Model.GorevTurleri != null && Model.GorevTurleri.Any())
+                {
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach(var item in Model.GorevTurleri)
+                        {
+                            <span class="badge bg-label-warning">@item</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <span class="text-muted">Görev türü seçilmemiş.</span>
+                }
+            </div>
+             <div class="col-md-6 mb-4">
+                <h6 class="fw-bold">İş Nitelikleri</h6>
+                @if(Model.IsNitelikleri != null && Model.IsNitelikleri.Any())
+                {
+                    <div class="d-flex flex-wrap gap-2">
+                        @foreach(var item in Model.IsNitelikleri)
+                        {
+                            <span class="badge bg-label-success">@item</span>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <span class="text-muted">İş niteliği seçilmemiş.</span>
+                }
+            </div>
+        </div>
+    </div>
 </div>

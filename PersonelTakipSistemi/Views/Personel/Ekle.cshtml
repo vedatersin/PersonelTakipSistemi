@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="~/sevilay-tema/css/personel-ekle.css" />
 }
 
-
 <div class="tabs-container">
 
   <!-- TAB BUTONLARI -->
@@ -18,14 +17,15 @@
     <button class="tab-btn" data-tab="tab4">Görev Türü</button>
     <button class="tab-btn" data-tab="tab5">Yapılan İş Niteliği</button>
     <button class="tab-btn" data-tab="tab6">Kontrol</button>
-
   </div>
 
- <!-- TAB1 KİŞİSEL BİLGİLER -->
-<div id="tab1" class="tab-content active">
+  <form asp-controller="Personel" asp-action="Ekle" method="post" enctype="multipart/form-data">
+  @Html.AntiForgeryToken()
+
+  <!-- TAB1 KİŞİSEL BİLGİLER -->
+  <div id="tab1" class="tab-content active">
   <h2>Kişisel Bilgiler</h2>
 
-  <form id="personelGorevlendirForm" method="post" action="#">
     <!-- Personel Fotoğrafı -->
     <div class="mb-4 d-flex align-items-center gap-4">
       <!-- Fotoğraf Önizleme -->
@@ -40,6 +40,7 @@
       <div>
         <label class="form-label d-block">Personel Fotoğrafı</label>
         <input type="file" id="personelFoto" name="personelFoto" accept="image/*" class="form-control" >
+        <input type="hidden" id="FotografBase64" name="FotografBase64" asp-for="FotografBase64" />
         <small class="text-muted">JPG, PNG yükleyebilirsiniz.</small>
       </div>
     </div>
@@ -47,11 +48,13 @@
     <div class="mb-4">
       <label asp-for="Ad" class="form-label">Personel Adı:</label>
       <input type="text" id="personelAdi" asp-for="Ad" class="form-control" placeholder="Personel adını girin" >
+      <span asp-validation-for="Ad" class="text-danger"></span>
     </div>
 
     <div class="mb-4">
       <label asp-for="Soyad" class="form-label">Personel Soyadı:</label>
       <input  type="text"  id="personelSoyadi" asp-for="Soyad" class="form-control" placeholder="Personel soyadını girin" >
+      <span asp-validation-for="Soyad" class="text-danger"></span>
     </div>
 
     <!-- Cinsiyet (RADIO) -->
@@ -72,39 +75,41 @@
     <div class="mb-4">
       <label asp-for="TcKimlikNo" class="form-label">Personel TC KİMLİK NO:</label>
       <input type="text" id="personelTcKimlik" asp-for="TcKimlikNo" class="form-control" placeholder="Personel TC Kimlik Numarasını girin" maxlength="11" >
+      <span asp-validation-for="TcKimlikNo" class="text-danger"></span>
     </div>
 
     <div class="mb-4">
-      <label for="sifre" class="form-label">Şifre</label>
-      <input type="password" class="form-control" id="sifre" name="personelsifre" maxlength="6" title="Şifre en az 6 karakter olmalıdır." required >
+      <label asp-for="Sifre" class="form-label">Şifre</label>
+      <input type="password" class="form-control" id="sifre" asp-for="Sifre" maxlength="6" title="Şifre en az 6 karakter olmalıdır." >
+      <span asp-validation-for="Sifre" class="text-danger"></span>
     </div>
 
     <div class="mb-4">
       <label asp-for="Telefon" class="form-label">Telefon</label>
-      <input  type="tel" class="form-control" id="personeltelefon" asp-for="Telefon" placeholder="0555 555 55 55" pattern="^0[0-9]{10}$"  maxlength="11"  title="Telefon numarası 11 haneli olmalıdır. Örnek: 05551234567"
-      >
+      <input  type="tel" class="form-control" id="personeltelefon" asp-for="Telefon" placeholder="0555 555 55 55" maxlength="11" >
     </div>
 
     <div class="mb-4">
       <label asp-for="Eposta" class="form-label">E-posta</label>
-      <input type="email" class="form-control"  id="personelemail"  asp-for="Eposta" placeholder="ornek@mail.com" required >
+      <input type="email" class="form-control"  id="personelemail"  asp-for="Eposta" placeholder="ornek@mail.com" >
+      <span asp-validation-for="Eposta" class="text-danger"></span>
     </div>
 
     <div class="mb-4">
       <label asp-for="GorevliIl" class="form-label">Görevli İl</label>
-      <select
-        class="form-select"  id="personelgorevli_il"  asp-for="GorevliIl"  required >
+      <select class="form-select"  id="personelgorevli_il"  asp-for="GorevliIl" >
         <option value="">İl Seçiniz...</option>
         <option value="Adana">Adana</option>
         <option value="Adıyaman">Adıyaman</option>
         <option value="Afyonkarahisar">Afyonkarahisar</option>
         <option value="Ağrı">Ağrı</option>
         <option value="Amasya">Amasya</option>
+        <!-- Diğer iller eklenebilir -->
       </select>
     </div>
 
-  <!-- ✅ BRANŞ ALANI -->
-  <div class="mb-4">
+    <!-- ✅ BRANŞ ALANI -->
+    <div class="mb-4">
     <label asp-for="Brans" class="form-label">Branş</label>
     <select id="personelBrans" asp-for="Brans" class="form-select">
       <option value="">Branş Seçiniz...</option>
@@ -118,9 +123,9 @@
       <option value="Rehberlik">Rehberlik</option>
       <option value="Diğer">Diğer</option>
     </select>
-  </div>
+    </div>
 
-      <div class="mb-4">
+    <div class="mb-4">
       <label asp-for="KadroKurum" class="form-label">Kadro Kurum</label>
       <input  type="text" id="personelKadroKurum" asp-for="KadroKurum" class="form-control"  placeholder="Personelin Kadrosunun Bulunduğu Kurumu Giriniz"  >
     </div>
@@ -130,63 +135,55 @@
       <label for="gorevAktif" class="form-check-label">Görev Aktiflik</label>
     </div>
 
-    <button type="reset" class="btn btn-outline-secondary me-2">Temizle</button>
     <button type="button" class="btn btn-primary" id="next1">İlerle</button>
-  </form>
-</div>
+  </div> <!-- /Tab1 -->
 
   <!-- TAB2 BECERİLER -->
   <div id="tab2" class="tab-content">
     <h2>Personelin Becerileri</h2>
-
     <div class="mb-4">
-
-
-    <div class="row">
-
-        <div class="col-md-3">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="photoshop" value="Photoshop" name="yazilimlar">
-                <label class="form-check-label" for="photoshop">Photoshop</label>
-            </div>
-
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="illustrator" value="Illustrator" name="yazilimlar">
-                <label class="form-check-label" for="illustrator">İllüstrator</label>
-            </div>
-             <!-- ... diğer checkboxlar ... -->
-             <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="dotnet" value=".NET" name="yazilimlar">
-                <label class="form-check-label" for="dotnet">.NET</label>
-            </div>
+        <div class="row">
+        @if(Model.Yazilimlar != null)
+        {
+            @foreach(var item in Model.Yazilimlar)
+            {
+                <div class="col-md-3 mb-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="yazilim_@item.Id" value="@item.Id" name="SeciliYazilimIdleri" @(Model.SeciliYazilimIdleri != null && Model.SeciliYazilimIdleri.Contains(item.Id) ? "checked" : "")>
+                        <label class="form-check-label" for="yazilim_@item.Id">@item.Ad</label>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <p>Kayıtlı yazılım bulunamadı.</p>
+        }
         </div>
-        <!-- Diğer sütunlar burada devam etmeli ancak kısa tutuyoruz -->
-        </div>
-
-
- <button type="reset" class="btn btn-outline-secondary me-2">Temizle</button>
-<button type="button" class="btn btn-primary" id="next2">İlerle</button>
-
-</div>
-
+        <button type="button" class="btn btn-primary mt-3" id="next2">İlerle</button>
+    </div>
   </div>
 
   <!-- TAB3 UZMANLIK -->
   <div id="tab3" class="tab-content">
-        <h2>Personelin Uzmanlığı</h2>
-     <div class="mb-4">
-    <div class="row">
-        <!-- Checkboxlar -->
-         <div class="col-md-3">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" id="bilisimUzmani" value="Bilişim Uzmanı" name="uzmanliklar">
-                <label class="form-check-label" for="bilisimUzmani">Bilişim Uzmanı</label>
-            </div>
-         </div>
+    <h2>Personelin Uzmanlığı</h2>
+    <div class="mb-4">
+        <div class="row">
+         @if(Model.Uzmanliklar != null)
+        {
+            @foreach(var item in Model.Uzmanliklar)
+            {
+                <div class="col-md-3 mb-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="uzmanlik_@item.Id" value="@item.Id" name="SeciliUzmanlikIdleri" @(Model.SeciliUzmanlikIdleri != null && Model.SeciliUzmanlikIdleri.Contains(item.Id) ? "checked" : "")>
+                        <label class="form-check-label" for="uzmanlik_@item.Id">@item.Ad</label>
+                    </div>
+                </div>
+            }
+        }
+        </div>
+        <button type="button" class="btn btn-primary mt-3" id="next3">İlerle</button>
     </div>
-<button type="reset" class="btn btn-outline-secondary me-2">Temizle</button>
-<button type="button" class="btn btn-primary" id="next3">İlerle</button>
-</div>
   </div>
 
 <!-- TAB4 GÖREVİ-->
@@ -194,10 +191,20 @@
     <h2>Personelin Görev Türü</h2>
     <div class="mb-4">
       <div class="row">
-         <!-- Görev Checkboxlar -->
+         @if(Model.GorevTurleri != null)
+        {
+            @foreach(var item in Model.GorevTurleri)
+            {
+                <div class="col-md-3 mb-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="gorev_@item.Id" value="@item.Id" name="SeciliGorevTuruIdleri" @(Model.SeciliGorevTuruIdleri != null && Model.SeciliGorevTuruIdleri.Contains(item.Id) ? "checked" : "")>
+                        <label class="form-check-label" for="gorev_@item.Id">@item.Ad</label>
+                    </div>
+                </div>
+            }
+        }
       </div>
-     <button type="reset" class="btn btn-outline-secondary me-2 mt-3">Temizle</button>
-<button type="button" class="btn btn-primary mt-3" id="next4">İlerle</button>
+      <button type="button" class="btn btn-primary mt-3" id="next4">İlerle</button>
     </div>
   </div>
 
@@ -205,9 +212,21 @@
   <div id="tab5" class="tab-content">
     <h2>Yapılan İş Niteliği</h2>
     <div class="mb-4">
-       <!-- İş Niteliği Checkboxlar -->
-      <button type="reset" class="btn btn-outline-secondary me-2 mt-3">Temizle</button>
-<button type="button" class="btn btn-primary mt-3" id="next5">İlerle</button>
+        <div class="row">
+         @if(Model.IsNitelikleri != null)
+        {
+            @foreach(var item in Model.IsNitelikleri)
+            {
+                <div class="col-md-3 mb-2">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="is_@item.Id" value="@item.Id" name="SeciliIsNiteligiIdleri" @(Model.SeciliIsNiteligiIdleri != null && Model.SeciliIsNiteligiIdleri.Contains(item.Id) ? "checked" : "")>
+                        <label class="form-check-label" for="is_@item.Id">@item.Ad</label>
+                    </div>
+                </div>
+            }
+        }
+        </div>
+      <button type="button" class="btn btn-primary mt-3" id="next5">İlerle</button>
     </div>
   </div>
 
@@ -235,16 +254,127 @@
     </tbody>
   </table>
 
+  <div class="d-grid gap-2 mt-4">
+    <button type="submit" class="btn btn-success btn-lg">Kaydet</button>
   </div>
-</div>
+
+  </div>
+
+  </form>
+  <!-- Modal: Duplicate Error (TC & Email) -->
+  <div class="modal fade" id="tcDuplicateModal" tabindex="-1" aria-labelledby="tcDuplicateModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="tcDuplicateModalLabel">
+              @if(TempData["ModalTitle"] != null) { @TempData["ModalTitle"] } 
+              else { <text>Kayıt Hatası</text> }
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            @if(TempData["ModalItems"] != null)
+            {
+                <ul>
+                    @foreach(var item in TempData["ModalItems"].ToString().Split('|'))
+                    {
+                        <li>@item</li>
+                    }
+                </ul>
+            }
+            else if(TempData["TcDuplicateError"] != null)
+            {
+                 <p>@TempData["TcDuplicateError"]</p>
+            }
+            else
+            {
+                 <p>Benzer bir kayıt sistemde zaten mevcut.</p>
+            }
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="btnFixTc">Tamam (Düzelt)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div> <!-- /tabs-container -->
 
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
-      // Basitleştirilmiş JS, orijinal dosyadaki mantığı korur
       document.addEventListener("DOMContentLoaded", function () {
         const buttons = document.querySelectorAll(".tab-btn");
         const contents = document.querySelectorAll(".tab-content");
+
+        // --- YENİ EKLENEN FONKSİYON: Özet Tablosunu Doldur ---
+        function fillKontrolOzet() {
+            const tbody = document.getElementById("kontrolTableBody");
+            if (!tbody) return;
+            tbody.innerHTML = ""; // Temizle
+
+            const addRow = (label, value) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `<td>${label}</td><td>${value && value.trim() !== "" ? value : "-"}</td>`;
+                tbody.appendChild(tr);
+            };
+
+            // 1. Text Değerler
+            const ad = document.getElementById("personelAdi")?.value || "";
+            const soyad = document.getElementById("personelSoyadi")?.value || "";
+            addRow("Ad Soyad", `${ad} ${soyad}`);
+
+            addRow("TcKimlikNo", document.getElementById("personelTcKimlik")?.value);
+            addRow("Telefon", document.getElementById("personeltelefon")?.value);
+            addRow("Eposta", document.getElementById("personelemail")?.value);
+            addRow("KadroKurum", document.getElementById("personelKadroKurum")?.value);
+
+            // 2. Select Değerler
+            const gorevliIl = document.getElementById("personelgorevli_il");
+            if (gorevliIl && gorevliIl.selectedIndex > 0) {
+                 addRow("GorevliIl", gorevliIl.options[gorevliIl.selectedIndex].text);
+            } else {
+                 addRow("GorevliIl", "-");
+            }
+
+            const brans = document.getElementById("personelBrans");
+            if (brans && brans.selectedIndex > 0) {
+                addRow("Brans", brans.options[brans.selectedIndex].text);
+            } else {
+                 addRow("Brans", "-");
+            }
+
+            // 3. Checkbox / Radio
+            const aktifMi = document.getElementById("gorevAktif")?.checked ? "Aktif" : "Pasif";
+            addRow("Görev Aktiflik", aktifMi);
+
+            let cinsiyet = "-";
+            if (document.getElementById("cinsiyetKadin")?.checked) cinsiyet = "Kadın";
+            else if (document.getElementById("cinsiyetErkek")?.checked) cinsiyet = "Erkek";
+            addRow("PersonelCinsiyet", cinsiyet);
+
+            // 4. Çoklu Checkbox Listeleri (Label okuma)
+            const getLabels_ = (name) => {
+                const checkedInputs = document.querySelectorAll(`input[name="${name}"]:checked`);
+                if (checkedInputs.length === 0) return "-";
+                
+                const labels = [];
+                checkedInputs.forEach(input => {
+                    const id = input.id;
+                    // Label'ı bul (for attr ile)
+                    const labelEl = document.querySelector(`label[for="${id}"]`);
+                    if (labelEl) {
+                        labels.push(labelEl.textContent.trim());
+                    }
+                });
+                return labels.join(", ");
+            };
+
+            addRow("Seçili Yazılımlar", getLabels_("SeciliYazilimIdleri"));
+            addRow("Seçili Uzmanlıklar", getLabels_("SeciliUzmanlikIdleri"));
+            addRow("Seçili Görev Türleri", getLabels_("SeciliGorevTuruIdleri"));
+            addRow("Seçili İş Nitelikleri", getLabels_("SeciliIsNiteligiIdleri"));
+        }
 
         function activateTab(tabId) {
           buttons.forEach((b) => {
@@ -254,6 +384,11 @@
           contents.forEach((c) => {
             c.classList.toggle("active", c.id === tabId);
           });
+
+          // Eğer kontrol sekmesine geçildiyse tabloyu doldur
+          if (tabId === "tab6") {
+              fillKontrolOzet();
+          }
         }
 
         buttons.forEach((btn) => {
@@ -263,7 +398,23 @@
           });
         });
 
-        // İlerle butonu eventleri (basit geçişler)
+        // Form elemanlarında değişiklik olduğunda eğer tab6 aktifse anında güncelle
+        const formElements = document.querySelectorAll("input, select, textarea");
+        formElements.forEach(el => {
+            // Hem input (yazarken) hem change (değişince) dinleyelim
+            el.addEventListener("input", () => {
+                if(document.getElementById("tab6").classList.contains("active")) {
+                    fillKontrolOzet();
+                }
+            });
+            el.addEventListener("change", () => {
+                if(document.getElementById("tab6").classList.contains("active")) {
+                    fillKontrolOzet();
+                }
+            });
+        });
+
+
         const nextBtns = [1, 2, 3, 4, 5];
         nextBtns.forEach(i => {
             const btn = document.getElementById("next" + i);
@@ -281,6 +432,9 @@
         // Control tab elements
         const controlImg = document.getElementById("kontrolFoto");
 
+        // Hidden input for Base64 Persistence
+        const hiddenBase64 = document.getElementById("FotografBase64");
+        
         function updateContainer(imgElement) {
             if(!imgElement) return;
             // Kardeş icon elementini bul ve gizle
@@ -291,7 +445,25 @@
             // Resmi göster
             imgElement.style.display = "block";
         }
+
+        // Fotoğraf Restore Fonksiyonu (Base64'ten)
+        function restorePhotoFromHidden() {
+            if(hiddenBase64 && hiddenBase64.value) {
+                const base64 = hiddenBase64.value;
+                if(previewImg) {
+                    previewImg.src = base64;
+                    updateContainer(previewImg);
+                }
+                if(controlImg) {
+                    controlImg.src = base64;
+                    updateContainer(controlImg);
+                }
+            }
+        }
         
+        // Sayfa yüklendiğinde (örn validation hatası sonrası) fotoyu geri yükle
+        restorePhotoFromHidden();
+
         if(photoInput) {
             photoInput.addEventListener("change", function(e) {
                 const file = e.target.files[0];
@@ -299,6 +471,11 @@
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const result = e.target.result;
+
+                        // Base64'ü hidden input'a kaydet (Persistence için)
+                        if(hiddenBase64) {
+                            hiddenBase64.value = result;
+                        }
                         
                         if(previewImg) {
                             previewImg.src = result;
@@ -314,6 +491,76 @@
                 }
             });
         }
+
+        // --- DUPLICATE TC / MODAL LOGIC ---
+        // Backend'den gelen ShowErrorModal bayrağı kontrol ediliyor
+        const showErrorModal = '@TempData["ShowUserExistsModal"]'; // Updated key
+        // Backward compatibility for basic check
+        const oldShowModal = '@TempData["ShowErrorModal"]';
+        
+        const openTab = '@TempData["OpenTab"]';
+        const focusId = '@TempData["FocusId"]';
+
+        if (showErrorModal === '1' || oldShowModal === '1') {
+            const modalEl = document.getElementById('tcDuplicateModal');
+            if (modalEl) {
+                // Bootstrap modal varsa kullan
+                // Projede bootstrap.js yüklü kabul ediyoruz
+                try {
+                    const modal = new bootstrap.Modal(modalEl, {
+                        backdrop: 'static',
+                        keyboard: false
+                    });
+                    modal.show();
+
+                    // "Tamam (Düzelt)" butonu
+                    const btnFix = document.getElementById('btnFixTc');
+                    if(btnFix){
+                        btnFix.addEventListener('click', () => {
+                            modal.hide();
+                            
+                            // Modal animasyonu bitince odaklan
+                            setTimeout(() => {
+                                handleTabAndFocus();
+                            }, 500); 
+                        });
+                    }
+                    
+                    // Modal manuel kapanırsa da aynı işlemi yap
+                    modalEl.addEventListener('hidden.bs.modal', function () {
+                        handleTabAndFocus();
+                    });
+
+                } catch (e) {
+                    // Fallback: Bootstrap JS yoksa veya hata olursa manuel göster (Overlay)
+                    console.warn("Bootstrap modal yüklenemedi, fallback kullanılıyor.", e);
+                    alert("Kayıt Hatası: Bu kullanıcı sistemde zaten mevcut.");
+                    handleTabAndFocus();
+                }
+            } else {
+                handleTabAndFocus();
+            }
+        } 
+        else if (openTab) {
+            // Modal yok ama tab set edilmişse
+            activateTab(openTab);
+        }
+
+        function handleTabAndFocus() {
+            if (openTab) {
+                activateTab(openTab);
+            }
+            if (focusId) {
+                const el = document.getElementById(focusId);
+                if (el) {
+                    el.focus();
+                    if(el.select) el.select(); // Değeri seç
+                }
+            }
+            // Fotoğrafı tekrar çiz (önlem olarak, tab geçişi bazen bozabilir)
+            restorePhotoFromHidden();
+        }
+
       });
     </script>
 }

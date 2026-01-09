@@ -1,7 +1,18 @@
+using Microsoft.EntityFrameworkCore;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddMemoryCache();
+
+// Connection String
+string connectionString = builder.Configuration.GetConnectionString("TegmPersonelTakipDB") ?? "";
+Console.WriteLine($"[DB INIT] Using Connection String: {connectionString}");
+
+builder.Services.AddDbContext<PersonelTakipSistemi.Data.TegmPersonelTakipDbContext>(options => 
+    options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure(3)));
 
 var app = builder.Build();
 

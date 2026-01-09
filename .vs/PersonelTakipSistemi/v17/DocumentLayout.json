@@ -1,12 +1,71 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\",
-  "Documents": [],
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|c:\\users\\vedat\\source\\repos\\personeltakipsistemi\\personeltakipsistemi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|solutionrelative:personeltakipsistemi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|c:\\users\\vedat\\source\\repos\\personeltakipsistemi\\personeltakipsistemi\\views\\personel\\detay.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|solutionrelative:personeltakipsistemi\\views\\personel\\detay.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|c:\\users\\vedat\\source\\repos\\personeltakipsistemi\\personeltakipsistemi\\views\\personel\\ekle.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|solutionrelative:personeltakipsistemi\\views\\personel\\ekle.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Detay.cshtml",
+              "DocumentMoniker": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\Views\\Personel\\Detay.cshtml",
+              "RelativeDocumentMoniker": "PersonelTakipSistemi\\Views\\Personel\\Detay.cshtml",
+              "ToolTip": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\Views\\Personel\\Detay.cshtml",
+              "RelativeToolTip": "PersonelTakipSistemi\\Views\\Personel\\Detay.cshtml",
+              "ViewState": "AQIAAG4AAAAAAAAAAAAmwIcAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-01-09T10:56:00.469Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Ekle.cshtml",
+              "DocumentMoniker": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\Views\\Personel\\Ekle.cshtml",
+              "RelativeDocumentMoniker": "PersonelTakipSistemi\\Views\\Personel\\Ekle.cshtml",
+              "ToolTip": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\Views\\Personel\\Ekle.cshtml",
+              "RelativeToolTip": "PersonelTakipSistemi\\Views\\Personel\\Ekle.cshtml",
+              "ViewState": "AQIAACgCAAAAAAAAAAAIwDUCAAABAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-01-08T22:06:49.941Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\appsettings.json",
+              "RelativeDocumentMoniker": "PersonelTakipSistemi\\appsettings.json",
+              "ToolTip": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\appsettings.json",
+              "RelativeToolTip": "PersonelTakipSistemi\\appsettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAAAcAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-01-08T11:52:14.502Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }
