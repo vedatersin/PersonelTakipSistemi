@@ -5,6 +5,18 @@
 
 @section Styles {
   <link rel="stylesheet" href="~/sevilay-tema/css/personel-ekle.css" />
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <style>
+      .select2-container .select2-selection--single {
+          height: 38px;
+          border: 1px solid #ced4da;
+          display: flex;
+          align-items: center;
+      }
+      .select2-container--default .select2-selection--single .select2-selection__arrow {
+          top: 6px;
+      }
+  </style>
 }
 
 <div class="tabs-container">
@@ -48,7 +60,7 @@
     <i class='bx bx-info-circle'></i> * ile işaretli alanlar zorunludur.
   </div>
 
-    <!-- Personel Fotoğrafı -->
+    <!-- Personel Fotoğrafı: Row'un üstünde veya sol kolonda kalabilir. Burada en üste (row dışına) alıyoruz. -->
     <div class="mb-4 d-flex align-items-center gap-4">
       <!-- Fotoğraf Önizleme -->
       <div>
@@ -67,94 +79,100 @@
       </div>
     </div>
 
-    <div class="mb-4">
-      <label asp-for="Ad" class="form-label">Personel Adı: <span class="text-danger">*</span></label>
-      <input type="text" id="personelAdi" asp-for="Ad" class="form-control" placeholder="Personel adını girin" >
-      <span asp-validation-for="Ad" class="text-danger"></span>
-    </div>
+    <div class="row">
+        <!-- SOL KOLON -->
+        <div class="col-md-6">
+            <div class="mb-3">
+              <label asp-for="Ad" class="form-label">Personel Adı: <span class="text-danger">*</span></label>
+              <input type="text" id="personelAdi" asp-for="Ad" class="form-control" placeholder="Personel adını girin" >
+              <span asp-validation-for="Ad" class="text-danger"></span>
+            </div>
 
-    <div class="mb-4">
-      <label asp-for="Soyad" class="form-label">Personel Soyadı: <span class="text-danger">*</span></label>
-      <input  type="text"  id="personelSoyadi" asp-for="Soyad" class="form-control" placeholder="Personel soyadını girin" >
-      <span asp-validation-for="Soyad" class="text-danger"></span>
-    </div>
+            <div class="mb-3">
+              <label asp-for="Soyad" class="form-label">Personel Soyadı: <span class="text-danger">*</span></label>
+              <input  type="text"  id="personelSoyadi" asp-for="Soyad" class="form-control" placeholder="Personel soyadını girin" >
+              <span asp-validation-for="Soyad" class="text-danger"></span>
+            </div>
 
-    <!-- Cinsiyet (RADIO) -->
-    <div class="mb-4">
-      <label class="form-label d-block">Personel Cinsiyet: <span class="text-danger">*</span></label>
+            <!-- Cinsiyet (RADIO) -->
+            <div class="mb-3">
+              <label class="form-label d-block">Personel Cinsiyet: <span class="text-danger">*</span></label>
 
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" asp-for="PersonelCinsiyet" id="cinsiyetKadin" value="1" >
-        <label class="form-check-label" for="cinsiyetKadin">Kadın</label>
-      </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" asp-for="PersonelCinsiyet" id="cinsiyetKadin" value="1" >
+                <label class="form-check-label" for="cinsiyetKadin">Kadın</label>
+              </div>
 
-      <div class="form-check form-check-inline">
-        <input class="form-check-input" type="radio" asp-for="PersonelCinsiyet" id="cinsiyetErkek" value="0"         >
-        <label class="form-check-label" for="cinsiyetErkek">Erkek</label>
-      </div>
-    </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" asp-for="PersonelCinsiyet" id="cinsiyetErkek" value="0"         >
+                <label class="form-check-label" for="cinsiyetErkek">Erkek</label>
+              </div>
+            </div>
 
-    <div class="mb-4">
-      <label asp-for="TcKimlikNo" class="form-label">Personel TC KİMLİK NO: <span class="text-danger">*</span></label>
-      <input type="text" id="personelTcKimlik" asp-for="TcKimlikNo" class="form-control" placeholder="Personel TC Kimlik Numarasını girin" maxlength="11" inputmode="numeric" pattern="\d{11}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-      <span asp-validation-for="TcKimlikNo" class="text-danger"></span>
-    </div>
+            <div class="mb-3">
+              <label asp-for="TcKimlikNo" class="form-label">Personel TC KİMLİK NO: <span class="text-danger">*</span></label>
+              <input type="text" id="personelTcKimlik" asp-for="TcKimlikNo" class="form-control" placeholder="Personel TC Kimlik Numarasını girin" maxlength="11" inputmode="numeric" pattern="\d{11}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+              <span asp-validation-for="TcKimlikNo" class="text-danger"></span>
+            </div>
+            
+             <div class="mb-3">
+              <label asp-for="DogumTarihi" class="form-label">Doğum Tarihi: <span class="text-danger">*</span></label>
+              <input type="date" asp-for="DogumTarihi" class="form-control" >
+              <span asp-validation-for="DogumTarihi" class="text-danger"></span>
+            </div>
+        </div>
 
-    <!-- Şifre Alanı Kaldırıldı (Otomatik Oluşturulur veya Düzenle Modunda Ayrı Tab'da Değiştirilir) -->
+        <!-- SAĞ KOLON -->
+        <div class="col-md-6">
+             <div class="mb-3">
+              <label asp-for="Telefon" class="form-label">Telefon <span class="text-danger">*</span></label>
+              <input  type="tel" class="form-control" id="personeltelefon" asp-for="Telefon" placeholder="0555 555 55 55" maxlength="11" >
+            </div>
 
-    <div class="mb-4">
-      <label asp-for="Telefon" class="form-label">Telefon <span class="text-danger">*</span></label>
-      <input  type="tel" class="form-control" id="personeltelefon" asp-for="Telefon" placeholder="0555 555 55 55" maxlength="11" >
-    </div>
+            <div class="mb-3">
+              <label asp-for="Eposta" class="form-label">E-posta <span class="text-danger">*</span></label>
+              <input type="email" class="form-control"  id="personelemail"  asp-for="Eposta" placeholder="ornek@mail.com" >
+              <span asp-validation-for="Eposta" class="text-danger"></span>
+            </div>
+            
+            <div class="mb-3">
+              <label asp-for="GorevliIlId" class="form-label">Görevli İl <span class="text-danger">*</span></label>
+              <select class="form-select select2" id="personelgorevli_il" asp-for="GorevliIlId">
+                <option value="">İl Seçiniz...</option>
+                @if(Model.Iller != null) {
+                    foreach(var item in Model.Iller) {
+                        <option value="@item.Id">@item.Ad</option>
+                    }
+                }
+              </select>
+              <span asp-validation-for="GorevliIlId" class="text-danger"></span>
+            </div>
+            
+             <!-- ✅ BRANŞ ALANI (Select2) -->
+            <div class="mb-3">
+            <label asp-for="BransId" class="form-label">Branş <span class="text-danger">*</span></label>
+            <select id="personelBrans" asp-for="BransId" class="form-select select2">
+              <option value="">Branş Seçiniz...</option>
+              @if(Model.Branslar != null) {
+                  foreach(var item in Model.Branslar) {
+                      <option value="@item.Id">@item.Ad</option>
+                  }
+              }
+            </select>
+            <span asp-validation-for="BransId" class="text-danger"></span>
+            </div>
+            
+            <div class="mb-3">
+              <label asp-for="KadroKurum" class="form-label">Kadro Kurum <span class="text-danger">*</span></label>
+              <input  type="text" id="personelKadroKurum" asp-for="KadroKurum" class="form-control"  placeholder="Personelin Kadrosunun Bulunduğu Kurumu Giriniz"  >
+              <span asp-validation-for="KadroKurum" class="text-danger"></span>
+            </div>
 
-    <div class="mb-4">
-      <label asp-for="Eposta" class="form-label">E-posta <span class="text-danger">*</span></label>
-      <input type="email" class="form-control"  id="personelemail"  asp-for="Eposta" placeholder="ornek@mail.com" >
-      <span asp-validation-for="Eposta" class="text-danger"></span>
-    </div>
-
-    <div class="mb-4">
-      <label asp-for="DogumTarihi" class="form-label">Doğum Tarihi: <span class="text-danger">*</span></label>
-      <input type="date" asp-for="DogumTarihi" class="form-control" >
-      <span asp-validation-for="DogumTarihi" class="text-danger"></span>
-    </div>
-
-    <div class="mb-4">
-      <label asp-for="GorevliIlId" class="form-label">Görevli İl <span class="text-danger">*</span></label>
-      <select class="form-select" id="personelgorevli_il" asp-for="GorevliIlId">
-        <option value="">İl Seçiniz...</option>
-        @if(Model.Iller != null) {
-            foreach(var item in Model.Iller) {
-                <option value="@item.Id">@item.Ad</option>
-            }
-        }
-      </select>
-      <span asp-validation-for="GorevliIlId" class="text-danger"></span>
-    </div>
-
-    <!-- ✅ BRANŞ ALANI -->
-    <div class="mb-4">
-    <label asp-for="BransId" class="form-label">Branş <span class="text-danger">*</span></label>
-    <select id="personelBrans" asp-for="BransId" class="form-select">
-      <option value="">Branş Seçiniz...</option>
-      @if(Model.Branslar != null) {
-          foreach(var item in Model.Branslar) {
-              <option value="@item.Id">@item.Ad</option>
-          }
-      }
-    </select>
-    <span asp-validation-for="BransId" class="text-danger"></span>
-    </div>
-
-    <div class="mb-4">
-      <label asp-for="KadroKurum" class="form-label">Kadro Kurum <span class="text-danger">*</span></label>
-      <input  type="text" id="personelKadroKurum" asp-for="KadroKurum" class="form-control"  placeholder="Personelin Kadrosunun Bulunduğu Kurumu Giriniz"  >
-      <span asp-validation-for="KadroKurum" class="text-danger"></span>
-    </div>
-
-    <div class="form-check mb-4">
-      <input  type="checkbox" id="gorevAktif" asp-for="AktifMi" class="form-check-input"  >
-      <label for="gorevAktif" class="form-check-label">Görev Aktiflik <span class="text-danger">*</span></label>
+            <div class="form-check mb-3">
+              <input  type="checkbox" id="gorevAktif" asp-for="AktifMi" class="form-check-input"  >
+              <label for="gorevAktif" class="form-check-label">Görev Aktiflik <span class="text-danger">*</span></label>
+            </div>
+        </div>
     </div>
 
     <button type="button" class="btn btn-primary" id="next1">İlerle</button>
@@ -347,7 +365,28 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
+      $(document).ready(function() {
+          $('.select2').select2({
+              width: '100%',
+              placeholder: 'Seçiniz...',
+              allowClear: true,
+              language: {
+                    noResults: function () {
+                        return "Sonuç bulunamadı";
+                    }
+                }
+          });
+
+          // Unobtrusive validation entegrasyonu: Select2 değişince validasyonu tetikle
+          $('.select2').on('change', function() {
+              $(this).valid(); 
+          });
+      });
+      
+      // ... existing code ...
+
       document.addEventListener("DOMContentLoaded", function () {
         const buttons = document.querySelectorAll(".tab-btn");
         const contents = document.querySelectorAll(".tab-content");
