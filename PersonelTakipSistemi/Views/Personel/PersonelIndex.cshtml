@@ -3,20 +3,40 @@
     ViewData["Title"] = "Personel Listesi";
 }
 
+@section Styles {
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <style>
+      .select2-container .select2-selection--single {
+          height: 38px;
+          border: 1px solid #ced4da;
+          display: flex;
+          align-items: center;
+      }
+      .select2-container--default .select2-selection--single .select2-selection__arrow {
+          top: 6px;
+      }
+  </style>
+}
+
 <div class="card mb-4">
     <div class="card-body">
         <form asp-action="Index" method="get" id="filterForm">
             <!-- Üst Bölüm: Arama -->
             <div class="row g-3 mb-4">
-                <div class="col-md-4">
+                <!-- Üst Bölüm: Arama -->
+                <div class="col-md-3">
                     <label class="form-label">Ad / Soyad</label>
                     <input type="text" class="form-control" asp-for="Filter.SearchName" placeholder="Ad veya Soyad ara..." />
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label">TC Kimlik No</label>
-                    <input type="text" class="form-control" asp-for="Filter.TcKimlikNo" placeholder="TC Kimlik No..." />
+                <div class="col-md-3">
+                     <label class="form-label">TC Kimlik No</label>
+                     <input type="text" class="form-control" asp-for="Filter.TcKimlikNo" placeholder="TC Kimlik No..." />
                 </div>
-                <div class="col-md-4 d-flex align-items-end">
+                <div class="col-md-3">
+                     <label class="form-label">Doğum Tarihi (Başlangıç)</label>
+                     <input type="date" class="form-control" asp-for="Filter.DogumBaslangic" />
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
                     <button type="submit" class="btn btn-primary w-100">Filtrele</button>
                 </div>
             </div>
@@ -24,21 +44,21 @@
             <!-- Alt Bölüm: Filtreler (Dropdown Checkbox) -->
             <div class="row g-3">
                 
-                <!-- Branş (Tekil) -->
+                <!-- Branş (Select2) -->
                 <div class="col-md-2">
                     <label class="form-label">Branş</label>
-                    <select class="form-select" asp-for="Filter.Brans">
-                        <option value="">Tümü</option>
-                        @foreach (var x in Model.Lookups.Branslar) { <option value="@x">@x</option> }
+                    <select class="form-select select2" asp-for="Filter.BransId">
+                        <option value="">Branş Seçiniz...</option>
+                        @foreach (var x in Model.Lookups.Branslar) { <option value="@x.Id">@x.Ad</option> }
                     </select>
                 </div>
 
-                <!-- Görevli İl (Tekil) -->
+                <!-- Görevli İl (Select2) -->
                 <div class="col-md-2">
                     <label class="form-label">Görevli İl</label>
-                    <select class="form-select" asp-for="Filter.GorevliIl">
-                        <option value="">Tümü</option>
-                        @foreach (var x in Model.Lookups.Iller) { <option value="@x">@x</option> }
+                    <select class="form-select select2" asp-for="Filter.GorevliIlId">
+                        <option value="">İl Seçiniz...</option>
+                        @foreach (var x in Model.Lookups.Iller) { <option value="@x.Id">@x.Ad</option> }
                     </select>
                 </div>
 
@@ -120,7 +140,8 @@
                             }
                         </ul>
                     </div>
-                </div>
+
+
 
                 <div class="col-12 text-end">
                     <!-- Filtrele butonu yukarı taşındı -->
@@ -142,7 +163,6 @@
                     <th>Ad Soyad</th>
                     <th>Branş</th>
                     <th>Görevli İl</th>
-                    <th>E-posta</th>
                     <th>Durum</th>
                 </tr>
             </thead>
@@ -165,7 +185,6 @@
                         <td><strong>@item.AdSoyad</strong></td>
                         <td>@item.Brans</td>
                         <td>@item.GorevliIl</td>
-                        <td>@item.Eposta</td>
                         <td>
                             @if (item.AktifMi)
                             {
@@ -227,3 +246,21 @@
         });
     });
 </script>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script>
+      $(document).ready(function() {
+          $('.select2').select2({
+              width: '100%',
+              placeholder: 'Seçiniz...',
+              allowClear: true,
+              language: {
+                    noResults: function () {
+                        return "Sonuç bulunamadı";
+                    }
+                }
+          });
+      });
+    </script>
+}

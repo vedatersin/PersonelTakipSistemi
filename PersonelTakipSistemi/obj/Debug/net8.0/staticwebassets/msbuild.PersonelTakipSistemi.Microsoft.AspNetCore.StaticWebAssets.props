@@ -4112,6 +4112,22 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\sevilay-tema\yetkili_ekle.html))</OriginalItemSpec>
     </StaticWebAsset>
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\uploads\personeller\5cef4d36-1061-457c-b973-c8a692a84280.jpg))">
+      <SourceType>Package</SourceType>
+      <SourceId>PersonelTakipSistemi</SourceId>
+      <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
+      <BasePath>_content/PersonelTakipSistemi</BasePath>
+      <RelativePath>uploads/personeller/5cef4d36-1061-457c-b973-c8a692a84280.jpg</RelativePath>
+      <AssetKind>All</AssetKind>
+      <AssetMode>All</AssetMode>
+      <AssetRole>Primary</AssetRole>
+      <RelatedAsset></RelatedAsset>
+      <AssetTraitName></AssetTraitName>
+      <AssetTraitValue></AssetTraitValue>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\uploads\personeller\5cef4d36-1061-457c-b973-c8a692a84280.jpg))</OriginalItemSpec>
+    </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath($(MSBuildThisFileDirectory)..\staticwebassets\uploads\personeller\80a3cbf6-89ed-40b0-9ebc-e5f359012e9b.jpg))">
       <SourceType>Package</SourceType>
       <SourceId>PersonelTakipSistemi</SourceId>

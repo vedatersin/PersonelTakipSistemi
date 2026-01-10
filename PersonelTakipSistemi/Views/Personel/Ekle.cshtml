@@ -37,7 +37,7 @@
   <!-- TAB BUTONLARI -->
   <div class="tabs">
     <button class="tab-btn active" data-tab="tab1">Kişisel Bilgiler</button>
-    <button class="tab-btn" data-tab="tab2">Personelin Becerileri (Kullandığı Yazılımlar)</button>
+    <button class="tab-btn" data-tab="tab2">Beceriler (Kullanılan Yazılımlar)</button>
     <button class="tab-btn" data-tab="tab3">Uzmanlık</button>
     <button class="tab-btn" data-tab="tab4">Görev Türü</button>
     <button class="tab-btn" data-tab="tab5">Yapılan İş Niteliği</button>
@@ -124,9 +124,9 @@
 
         <!-- SAĞ KOLON -->
         <div class="col-md-6">
-             <div class="mb-3">
+            <div class="mb-3">
               <label asp-for="Telefon" class="form-label">Telefon <span class="text-danger">*</span></label>
-              <input  type="tel" class="form-control" id="personeltelefon" asp-for="Telefon" placeholder="0555 555 55 55" maxlength="11" >
+              <input  type="tel" class="form-control" id="personeltelefon" asp-for="Telefon" placeholder="0 (5__) ___ __ __" >
             </div>
 
             <div class="mb-3">
@@ -180,7 +180,7 @@
 
   <!-- TAB2 BECERİLER -->
   <div id="tab2" class="tab-content">
-    <h2>Personelin Becerileri (Kullandığı Yazılımlar)</h2>
+    <h2>Beceriler (Kullanılan Yazılımlar)</h2>
     <div class="mb-4">
         <div class="row">
         @if(Model.Yazilimlar != null)
@@ -366,8 +366,10 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.8/jquery.inputmask.min.js"></script>
     <script>
       $(document).ready(function() {
+          // Select2 Init
           $('.select2').select2({
               width: '100%',
               placeholder: 'Seçiniz...',
@@ -379,9 +381,22 @@
                 }
           });
 
-          // Unobtrusive validation entegrasyonu: Select2 değişince validasyonu tetikle
+          // Phone Mask Init
+          $('#personeltelefon').inputmask({
+              mask: "0 (999) 999 99 99",
+              placeholder: "_",
+              showMaskOnHover: false,
+              showMaskOnFocus: true,
+              clearIncomplete: false // Don't clear, let validation handle it
+          });
+
+          // Unobtrusive validation entegrasyonu: Select2 ve Inputmask değişince validasyonu tetikle
           $('.select2').on('change', function() {
               $(this).valid(); 
+          });
+
+          $('#personeltelefon').on('change', function() {
+              $(this).valid();
           });
       });
       
@@ -454,7 +469,7 @@
                 return labels.join(", ");
             };
 
-            addRow("Seçili Yazılımlar", getLabels_("SeciliYazilimIdleri"));
+            addRow("Seçili Beceriler (Kullanılan Yazılımlar)", getLabels_("SeciliYazilimIdleri"));
             addRow("Seçili Uzmanlıklar", getLabels_("SeciliUzmanlikIdleri"));
             addRow("Seçili Görev Türleri", getLabels_("SeciliGorevTuruIdleri"));
             addRow("Seçili İş Nitelikleri", getLabels_("SeciliIsNiteligiIdleri"));
@@ -645,6 +660,13 @@
             photoInput.addEventListener("change", function(e) {
                 const file = e.target.files[0];
                 if (file) {
+                    // 2MB Size Check (2 * 1024 * 1024 = 2097152 bytes)
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert("Fotoğraf 2MB’dan büyük olamaz.");
+                        this.value = ""; // Clear input
+                        return; // Stop processing
+                    }
+
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         const result = e.target.result;

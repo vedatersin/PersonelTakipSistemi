@@ -45,15 +45,20 @@ namespace PersonelTakipSistemi.Controllers
                 query = query.Where(p => p.TcKimlikNo.StartsWith(filter.TcKimlikNo));
             }
 
-            // Note: Filters still use strings for now, adapting to entity
-            if (!string.IsNullOrEmpty(filter.Brans))
+            // Note: Filters updated to use IDs
+            if (filter.BransId.HasValue)
             {
-                query = query.Where(p => p.Brans.Ad == filter.Brans);
+                query = query.Where(p => p.BransId == filter.BransId.Value);
             }
 
-            if (!string.IsNullOrEmpty(filter.GorevliIl))
+            if (filter.GorevliIlId.HasValue)
             {
-                query = query.Where(p => p.GorevliIl.Ad == filter.GorevliIl);
+                query = query.Where(p => p.GorevliIlId == filter.GorevliIlId.Value);
+            }
+
+            if (filter.DogumBaslangic.HasValue)
+            {
+                query = query.Where(p => p.DogumTarihi >= filter.DogumBaslangic.Value);
             }
 
             if (filter.SeciliYazilimIdleri != null && filter.SeciliYazilimIdleri.Any())
@@ -192,6 +197,31 @@ namespace PersonelTakipSistemi.Controllers
         {
             if (ModelState.IsValid)
             {
+                // TELEFON NORMALİZASYONU
+                if (!string.IsNullOrEmpty(model.Telefon))
+                {
+                    // Sadece rakamları al
+                    string cleanPhone = new string(model.Telefon.Where(char.IsDigit).ToArray());
+                    
+                    // Başta 0 varsa kaldır
+                    if (cleanPhone.StartsWith("0"))
+                    {
+                        cleanPhone = cleanPhone.Substring(1);
+                    }
+
+                    // 10 hane kontrolü
+                    if (cleanPhone.Length != 10)
+                    {
+                        ModelState.AddModelError("Telefon", "Telefon numarası 10 haneli olmalıdır (Örn: 5551234567).");
+                        // Hata durumunda dropdownları tekrar doldurup view'a dön
+                        await FillLookupLists(model);
+                        return View(model);
+                    }
+
+                    // Modele geri ata (DB'ye bu formatta gidecek)
+                    model.Telefon = cleanPhone;
+                }
+
                 // 1. Logic Separation
                 bool isUpdate = model.IsEditMode && model.PersonelId.HasValue && model.PersonelId.Value > 0;
 
@@ -486,8 +516,8 @@ namespace PersonelTakipSistemi.Controllers
              }) ?? new List<LookupItemVm>();
 
              // Refactored Lookups for new Entities
-             model.Branslar = await _context.Branslar.AsNoTracking().Select(b => b.Ad).ToListAsync();
-             model.Iller = await _context.Iller.AsNoTracking().Select(i => i.Ad).ToListAsync();
+             model.Branslar = await _context.Branslar.AsNoTracking().Select(b => new LookupItemVm { Id = b.BransId, Ad = b.Ad }).ToListAsync();
+             model.Iller = await _context.Iller.AsNoTracking().Select(i => new LookupItemVm { Id = i.IlId, Ad = i.Ad }).ToListAsync();
         }
 
         // Helper Method: Lookup Listelerini Doldurma
