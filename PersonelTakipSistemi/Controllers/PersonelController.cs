@@ -27,7 +27,11 @@ namespace PersonelTakipSistemi.Controllers
         public async Task<IActionResult> Index(PersonelIndexFilterViewModel filter)
         {
             var sw = Stopwatch.StartNew();
-            var query = _context.Personeller.AsNoTracking().AsQueryable();
+            var query = _context.Personeller
+                .Include(p => p.GorevliIl)
+                .Include(p => p.Brans)
+                .AsNoTracking()
+                .AsQueryable();
 
             // 1. Filtreleme
             if (!string.IsNullOrEmpty(filter.SearchName))
@@ -41,14 +45,15 @@ namespace PersonelTakipSistemi.Controllers
                 query = query.Where(p => p.TcKimlikNo.StartsWith(filter.TcKimlikNo));
             }
 
+            // Note: Filters still use strings for now, adapting to entity
             if (!string.IsNullOrEmpty(filter.Brans))
             {
-                query = query.Where(p => p.Brans == filter.Brans);
+                query = query.Where(p => p.Brans.Ad == filter.Brans);
             }
 
             if (!string.IsNullOrEmpty(filter.GorevliIl))
             {
-                query = query.Where(p => p.GorevliIl == filter.GorevliIl);
+                query = query.Where(p => p.GorevliIl.Ad == filter.GorevliIl);
             }
 
             if (filter.SeciliYazilimIdleri != null && filter.SeciliYazilimIdleri.Any())
@@ -81,8 +86,8 @@ namespace PersonelTakipSistemi.Controllers
                 {
                     PersonelId = p.PersonelId,
                     AdSoyad = p.Ad + " " + p.Soyad,
-                    Brans = p.Brans,
-                    GorevliIl = p.GorevliIl,
+                    Brans = p.Brans.Ad,
+                    GorevliIl = p.GorevliIl.Ad,
                     Eposta = p.Eposta,
                     AktifMi = p.AktifMi,
                     FotografYolu = p.FotografYolu
@@ -123,12 +128,12 @@ namespace PersonelTakipSistemi.Controllers
             // 1. Yeni Kayıt Modu (Insert)
             if (id == null || id == 0)
             {
-                // "Yapışma" sorununu önlemek için ModelState ve ViewModel'i temizle
                 ModelState.Clear();
                 var cleanModel = new PersonelEkleViewModel
                 {
                     IsEditMode = false,
                     PersonelId = 0,
+                    DogumTarihi = new DateTime(1990, 1, 1), // Default date
                     SeciliYazilimIdleri = new List<int>(),
                     SeciliUzmanlikIdleri = new List<int>(),
                     SeciliGorevTuruIdleri = new List<int>(),
@@ -145,7 +150,7 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.PersonelUzmanliklar)
                 .Include(p => p.PersonelGorevTurleri)
                 .Include(p => p.PersonelIsNitelikleri)
-                .AsNoTracking() // Önemli: Tracking kapatılabilir, sadece okuma yapıyoruz
+                .AsNoTracking() 
                 .FirstOrDefaultAsync(p => p.PersonelId == id.Value);
 
             if (personel == null)
@@ -163,11 +168,12 @@ namespace PersonelTakipSistemi.Controllers
                 Telefon = personel.Telefon,
                 Eposta = personel.Eposta,
                 PersonelCinsiyet = personel.PersonelCinsiyet ? 1 : 0,
-                GorevliIl = personel.GorevliIl,
-                Brans = personel.Brans,
+                DogumTarihi = personel.DogumTarihi,
+                GorevliIlId = personel.GorevliIlId,
+                BransId = personel.BransId,
                 KadroKurum = personel.KadroKurum,
                 AktifMi = personel.AktifMi,
-                FotografBase64 = personel.FotografYolu, // Mevcut fotoğraf yolu
+                FotografBase64 = personel.FotografYolu,
                 
                 // İlişkili tabloları seçili olarak işaretle
                 SeciliYazilimIdleri = personel.PersonelYazilimlar.Select(x => x.YazilimId).ToList(),
@@ -186,8 +192,7 @@ namespace PersonelTakipSistemi.Controllers
         {
             if (ModelState.IsValid)
             {
-                // 1. Logic Separation: Determine Insert vs Update strictly
-                // Check IsEditMode AND PersonelId for Update
+                // 1. Logic Separation
                 bool isUpdate = model.IsEditMode && model.PersonelId.HasValue && model.PersonelId.Value > 0;
 
                 // 2. Duplicate Check Strategy
@@ -195,7 +200,7 @@ namespace PersonelTakipSistemi.Controllers
 
                 if (isUpdate)
                 {
-                    // UPDATE: Check OTHER records (exclude current ID)
+                    // UPDATE: Check OTHER records
                     var duplicateTc = await _context.Personeller.AnyAsync(p => p.TcKimlikNo == model.TcKimlikNo && p.PersonelId != model.PersonelId.Value);
                     if (duplicateTc) conflicts.Add($"TC Kimlik No ({model.TcKimlikNo}) kullanımda.");
 
@@ -215,7 +220,6 @@ namespace PersonelTakipSistemi.Controllers
                 if (conflicts.Any())
                 {
                     TempData["Error"] = "Kayıt Uyarı: " + string.Join(" | ", conflicts);
-                    // Modal logic
                     TempData["ShowUserExistsModal"] = "1";
                     TempData["ModalTitle"] = "Kayıt Çakışması";
                     TempData["ModalItems"] = string.Join("|", conflicts);
@@ -228,7 +232,7 @@ namespace PersonelTakipSistemi.Controllers
                     return View(model);
                 }
 
-                // 3. Fotoğraf İşlemi (Ortak)
+                // 3. Fotoğraf İşlemi
                 string? yeniFotoYolu = null;
                 if (personelFoto != null && personelFoto.Length > 0)
                 {
@@ -266,8 +270,9 @@ namespace PersonelTakipSistemi.Controllers
                         personel.Telefon = model.Telefon ?? "";
                         personel.Eposta = model.Eposta;
                         personel.PersonelCinsiyet = model.PersonelCinsiyet == 1;
-                        personel.GorevliIl = model.GorevliIl ?? "";
-                        personel.Brans = model.Brans ?? "";
+                        personel.DogumTarihi = model.DogumTarihi;
+                        personel.GorevliIlId = model.GorevliIlId;
+                        personel.BransId = model.BransId;
                         personel.KadroKurum = model.KadroKurum ?? "";
                         personel.AktifMi = model.AktifMi;
                         
@@ -319,8 +324,9 @@ namespace PersonelTakipSistemi.Controllers
                             Telefon = model.Telefon ?? "",
                             Eposta = model.Eposta,
                             PersonelCinsiyet = model.PersonelCinsiyet == 1,
-                            GorevliIl = model.GorevliIl ?? "",
-                            Brans = model.Brans ?? "",
+                            DogumTarihi = model.DogumTarihi,
+                            GorevliIlId = model.GorevliIlId,
+                            BransId = model.BransId,
                             KadroKurum = model.KadroKurum ?? "",
                             AktifMi = model.AktifMi,
                             FotografYolu = yeniFotoYolu,
@@ -342,14 +348,12 @@ namespace PersonelTakipSistemi.Controllers
                 }
                 catch (Exception ex)
                 {
-                     // Genel hata yakalama
                      ModelState.AddModelError("", $"İşlem sırasında beklenmeyen bir hata oluştu: {ex.Message}");
                      TempData["Error"] = "İşlem hatası.";
                 }
             }
             else 
             {
-               // Validation Errors
                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
                TempData["Error"] = "Formda hatalar var: " + string.Join(", ", errors.Take(3)) + "...";
             }
@@ -379,9 +383,8 @@ namespace PersonelTakipSistemi.Controllers
 
             try 
             {
-                // path "/uploads/..." şeklinde geliyor, bunu fiziksel yola çevir
                 string webRootPath = _hostEnvironment.WebRootPath;
-                string relativePath = path.TrimStart('/'); // baştaki / işaretini kaldır
+                string relativePath = path.TrimStart('/'); 
                 string fullPath = Path.Combine(webRootPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
 
                 if (System.IO.File.Exists(fullPath))
@@ -391,7 +394,6 @@ namespace PersonelTakipSistemi.Controllers
             }
             catch(Exception ex)
             {
-                // Loglama yapılabilir ama işlem akışını kesmemeli
                 Debug.WriteLine($"Fotoğraf silinemedi: {ex.Message}");
             }
         }
@@ -403,10 +405,8 @@ namespace PersonelTakipSistemi.Controllers
             var personel = await _context.Personeller.FindAsync(id);
             if (personel != null)
             {
-                // Fotoğrafı fiziksel olarak sil
                 DeletePhotoFile(personel.FotografYolu);
                 
-                // Relations are cascade delete due to DbContext configuration
                 _context.Personeller.Remove(personel);
                 await _context.SaveChangesAsync();
                 TempData["Success"] = "Personel silindi.";
@@ -418,6 +418,8 @@ namespace PersonelTakipSistemi.Controllers
         public async Task<IActionResult> Detay(int id)
         {
             var personel = await _context.Personeller
+                .Include(p => p.GorevliIl)
+                .Include(p => p.Brans)
                 .Include(p => p.PersonelYazilimlar).ThenInclude(py => py.Yazilim)
                 .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
                 .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
@@ -439,8 +441,8 @@ namespace PersonelTakipSistemi.Controllers
                 Telefon = personel.Telefon,
                 Eposta = personel.Eposta,
                 Cinsiyet = personel.PersonelCinsiyet ? "Kadın" : "Erkek",
-                GorevliIl = personel.GorevliIl,
-                Brans = personel.Brans,
+                GorevliIl = personel.GorevliIl.Ad,
+                Brans = personel.Brans.Ad,
                 KadroKurum = personel.KadroKurum,
                 AktifMi = personel.AktifMi,
                 FotografYolu = personel.FotografYolu,
@@ -483,8 +485,9 @@ namespace PersonelTakipSistemi.Controllers
                  return await _context.IsNitelikleri.AsNoTracking().Select(x => new LookupItemVm { Id = x.IsNiteligiId, Ad = x.Ad }).ToListAsync();
              }) ?? new List<LookupItemVm>();
 
-            model.Branslar = await _context.Personeller.AsNoTracking().Select(p => p.Brans).Distinct().Where(x => !string.IsNullOrEmpty(x)).ToListAsync();
-            model.Iller = await _context.Personeller.AsNoTracking().Select(p => p.GorevliIl).Distinct().Where(x => !string.IsNullOrEmpty(x)).ToListAsync();
+             // Refactored Lookups for new Entities
+             model.Branslar = await _context.Branslar.AsNoTracking().Select(b => b.Ad).ToListAsync();
+             model.Iller = await _context.Iller.AsNoTracking().Select(i => i.Ad).ToListAsync();
         }
 
         // Helper Method: Lookup Listelerini Doldurma
@@ -530,10 +533,16 @@ namespace PersonelTakipSistemi.Controllers
                         .ToListAsync();
                 });
 
+                // Fetch new lists (can be cached too if desired)
+                var iller = await _context.Iller.AsNoTracking().OrderBy(i => i.Ad).Select(x => new LookupItemVm { Id = x.IlId, Ad = x.Ad }).ToListAsync();
+                var branslar = await _context.Branslar.AsNoTracking().OrderBy(b => b.Ad).Select(x => new LookupItemVm { Id = x.BransId, Ad = x.Ad }).ToListAsync();
+
                 model.Yazilimlar = yazilimlar ?? new List<LookupItemVm>();
                 model.Uzmanliklar = uzmanliklar ?? new List<LookupItemVm>();
                 model.GorevTurleri = gorevTurleri ?? new List<LookupItemVm>();
                 model.IsNitelikleri = isNitelikleri ?? new List<LookupItemVm>();
+                model.Iller = iller;
+                model.Branslar = branslar;
             }
             catch (Exception ex)
             {

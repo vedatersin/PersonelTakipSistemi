@@ -19,18 +19,29 @@ namespace PersonelTakipSistemi.ViewModels
         [RegularExpression(@"^\d{11}$", ErrorMessage = "TC Kimlik No 11 haneli olmalıdır.")]
         public string TcKimlikNo { get; set; } = null!;
 
-        public string? Telefon { get; set; }
+        [Required(ErrorMessage = "Telefon alanı zorunludur.")]
+        public string Telefon { get; set; } = null!;
 
         [Required(ErrorMessage = "E-posta alanı zorunludur.")]
         [EmailAddress(ErrorMessage = "Geçerli bir e-posta adresi giriniz.")]
         public string Eposta { get; set; } = null!;
 
         public int PersonelCinsiyet { get; set; } // 0: Erkek, 1: Kadın
+        
+        [Required(ErrorMessage = "Doğum Tarihi zorunludur.")]
+        public DateTime DogumTarihi { get; set; }
 
-        public string? GorevliIl { get; set; }
-        public string? Brans { get; set; }
-        public string? KadroKurum { get; set; }
-        public bool AktifMi { get; set; }
+        [Required(ErrorMessage = "İl seçimi zorunludur.")]
+        [Range(1, int.MaxValue, ErrorMessage = "İl seçimi zorunludur.")]
+        public int GorevliIlId { get; set; }
+        
+        [Required(ErrorMessage = "Branş seçimi zorunludur.")]
+        [Range(1, int.MaxValue, ErrorMessage = "Branş seçimi zorunludur.")]
+        public int BransId { get; set; }
+        
+        [Required(ErrorMessage = "Kadro/Kurum zorunludur.")]
+        public string KadroKurum { get; set; } = null!;
+        public bool AktifMi { get; set; } = true;
         public string? FotografBase64 { get; set; } // Keep photo on validation error
 
         // Şifre artık sadece Insert'te otomatik, Update'te isteğe bağlı.
@@ -55,6 +66,8 @@ namespace PersonelTakipSistemi.ViewModels
         public List<LookupItemVm> Uzmanliklar { get; set; } = new List<LookupItemVm>();
         public List<LookupItemVm> GorevTurleri { get; set; } = new List<LookupItemVm>();
         public List<LookupItemVm> IsNitelikleri { get; set; } = new List<LookupItemVm>();
+        public List<LookupItemVm> Iller { get; set; } = new List<LookupItemVm>();
+        public List<LookupItemVm> Branslar { get; set; } = new List<LookupItemVm>();
     }
 
     public class LookupItemVm

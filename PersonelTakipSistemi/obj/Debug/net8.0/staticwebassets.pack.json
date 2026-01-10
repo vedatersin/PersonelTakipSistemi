@@ -1029,12 +1029,20 @@
       "PackagePath": "staticwebassets\\sevilay-tema\\yetkili_ekle.html"
     },
     {
-      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\20ed19b6-313c-401b-90e7-bf7068ffbee8.png",
-      "PackagePath": "staticwebassets\\uploads\\personeller\\20ed19b6-313c-401b-90e7-bf7068ffbee8.png"
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\80a3cbf6-89ed-40b0-9ebc-e5f359012e9b.jpg",
+      "PackagePath": "staticwebassets\\uploads\\personeller\\80a3cbf6-89ed-40b0-9ebc-e5f359012e9b.jpg"
     },
     {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\87939613-b3de-44d3-b106-74212fadeb46.jpg",
       "PackagePath": "staticwebassets\\uploads\\personeller\\87939613-b3de-44d3-b106-74212fadeb46.jpg"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\a88b3582-fd6c-4afd-b078-bc93ef139625.png",
+      "PackagePath": "staticwebassets\\uploads\\personeller\\a88b3582-fd6c-4afd-b078-bc93ef139625.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\ac187178-f252-4a83-b786-b8008cb121bc.jpg",
+      "PackagePath": "staticwebassets\\uploads\\personeller\\ac187178-f252-4a83-b786-b8008cb121bc.jpg"
     },
     {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.PersonelTakipSistemi.Microsoft.AspNetCore.StaticWebAssets.props",

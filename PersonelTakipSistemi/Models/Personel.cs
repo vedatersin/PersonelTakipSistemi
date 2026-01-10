@@ -12,11 +12,21 @@ namespace PersonelTakipSistemi.Models
         public string Telefon { get; set; } = null!;
         public string Eposta { get; set; } = null!;
         public bool PersonelCinsiyet { get; set; } // false: Erkek, true: Kadın
-        public string GorevliIl { get; set; } = null!;
-        public string Brans { get; set; } = null!;
+        
+        // New FKs
+        public int GorevliIlId { get; set; }
+        public Il GorevliIl { get; set; } = null!;
+
+        public int BransId { get; set; }
+        public Brans Brans { get; set; } = null!;
+        
         public string KadroKurum { get; set; } = null!;
         public bool AktifMi { get; set; }
         public string? FotografYolu { get; set; }
+        
+        // New Field
+        public DateTime DogumTarihi { get; set; }
+
         public byte[] SifreHash { get; set; } = null!;
         public byte[] SifreSalt { get; set; } = null!;
         public DateTime CreatedAt { get; set; } = DateTime.Now;

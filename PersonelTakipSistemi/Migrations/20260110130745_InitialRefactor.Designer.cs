@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PersonelTakipSistemi.Data;
 
@@ -11,9 +12,11 @@ using PersonelTakipSistemi.Data;
 namespace PersonelTakipSistemi.Migrations
 {
     [DbContext(typeof(TegmPersonelTakipDbContext))]
-    partial class TegmPersonelTakipDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260110130745_InitialRefactor")]
+    partial class InitialRefactor
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -46,382 +49,72 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 1,
-                            Ad = "Adalet"
-                        },
-                        new
-                        {
-                            BransId = 2,
-                            Ad = "Aile ve Tüketici Hizmetleri"
-                        },
-                        new
-                        {
-                            BransId = 3,
-                            Ad = "Almanca"
-                        },
-                        new
-                        {
-                            BransId = 4,
-                            Ad = "Arapça"
-                        },
-                        new
-                        {
-                            BransId = 5,
-                            Ad = "Ayakkabı ve Saraciye Teknolojisi"
-                        },
-                        new
-                        {
-                            BransId = 6,
-                            Ad = "Beden Eğitimi"
-                        },
-                        new
-                        {
-                            BransId = 7,
-                            Ad = "Bilgisayar ve Öğretim Teknolojileri"
-                        },
-                        new
-                        {
-                            BransId = 8,
                             Ad = "Bilişim Teknolojileri"
                         },
                         new
                         {
-                            BransId = 9,
-                            Ad = "Biyoloji"
-                        },
-                        new
-                        {
-                            BransId = 10,
-                            Ad = "Büro Yönetimi / Büro Yönetimi ve Yönetici Asistanlığı"
-                        },
-                        new
-                        {
-                            BransId = 11,
-                            Ad = "Coğrafya"
-                        },
-                        new
-                        {
-                            BransId = 12,
-                            Ad = "Çocuk Gelişimi ve Eğitimi"
-                        },
-                        new
-                        {
-                            BransId = 13,
-                            Ad = "Denizcilik / Gemi Makineleri"
-                        },
-                        new
-                        {
-                            BransId = 14,
-                            Ad = "Denizcilik / Gemi Yönetimi"
-                        },
-                        new
-                        {
-                            BransId = 15,
-                            Ad = "Din Kültürü ve Ahlâk Bilgisi"
-                        },
-                        new
-                        {
-                            BransId = 16,
-                            Ad = "El Sanatları Teknolojisi / El Sanatları"
-                        },
-                        new
-                        {
-                            BransId = 17,
-                            Ad = "El Sanatları Teknolojisi / Nakış"
-                        },
-                        new
-                        {
-                            BransId = 18,
-                            Ad = "Elektrik-Elektronik Teknolojisi / Elektrik"
-                        },
-                        new
-                        {
-                            BransId = 19,
-                            Ad = "Elektrik-Elektronik Teknolojisi / Elektronik"
-                        },
-                        new
-                        {
-                            BransId = 20,
-                            Ad = "Endüstriyel Otomasyon Teknolojileri"
-                        },
-                        new
-                        {
-                            BransId = 21,
-                            Ad = "Farsça"
-                        },
-                        new
-                        {
-                            BransId = 22,
-                            Ad = "Felsefe"
-                        },
-                        new
-                        {
-                            BransId = 23,
-                            Ad = "Fen Bilimleri"
-                        },
-                        new
-                        {
-                            BransId = 24,
-                            Ad = "Fizik"
-                        },
-                        new
-                        {
-                            BransId = 25,
-                            Ad = "Gemi Yapımı / Yat İnşa"
-                        },
-                        new
-                        {
-                            BransId = 26,
-                            Ad = "Gıda Teknolojisi"
-                        },
-                        new
-                        {
-                            BransId = 27,
-                            Ad = "Giyim Üretim Teknolojisi / Moda Tasarım Teknolojileri"
-                        },
-                        new
-                        {
-                            BransId = 28,
-                            Ad = "Görsel Sanatlar"
-                        },
-                        new
-                        {
-                            BransId = 29,
-                            Ad = "Grafik ve Fotoğraf / Grafik"
-                        },
-                        new
-                        {
-                            BransId = 30,
-                            Ad = "Harita-Tapu-Kadastro / Harita Kadastro"
-                        },
-                        new
-                        {
-                            BransId = 31,
-                            Ad = "Hasta ve Yaşlı Hizmetleri"
-                        },
-                        new
-                        {
-                            BransId = 32,
-                            Ad = "Hayvan Sağlığı / Hayvan Yetiştiriciliği ve Sağlığı / Hayvan Sağlığı"
-                        },
-                        new
-                        {
-                            BransId = 33,
-                            Ad = "Hayvan Sağlığı / Hayvan Yetiştiriciliği ve Sağlığı / Hayvan Yetiştiriciliği"
-                        },
-                        new
-                        {
-                            BransId = 34,
-                            Ad = "İlköğretim Matematik"
-                        },
-                        new
-                        {
-                            BransId = 35,
-                            Ad = "İmam-Hatip Lisesi Meslek Dersleri"
-                        },
-                        new
-                        {
-                            BransId = 36,
-                            Ad = "İngilizce"
-                        },
-                        new
-                        {
-                            BransId = 37,
-                            Ad = "İnşaat Teknolojisi / Yapı Dekorasyon"
-                        },
-                        new
-                        {
-                            BransId = 38,
-                            Ad = "İnşaat Teknolojisi / Yapı Tasarım"
-                        },
-                        new
-                        {
-                            BransId = 39,
-                            Ad = "İtfaiyecilik ve Yangın Güvenliği"
-                        },
-                        new
-                        {
-                            BransId = 40,
-                            Ad = "Kimya / Kimya Teknolojisi"
-                        },
-                        new
-                        {
-                            BransId = 41,
-                            Ad = "Konaklama ve Seyahat Hizmetleri / Konaklama ve Seyahat"
-                        },
-                        new
-                        {
-                            BransId = 42,
-                            Ad = "Kuyumculuk Teknolojisi"
-                        },
-                        new
-                        {
-                            BransId = 43,
-                            Ad = "Makine Teknolojisi / Makine ve Tasarım Teknolojisi / Makine Model"
-                        },
-                        new
-                        {
-                            BransId = 44,
-                            Ad = "Makine Teknolojisi / Makine ve Tasarım Teknolojisi / Makine Ressamlığı"
-                        },
-                        new
-                        {
-                            BransId = 45,
-                            Ad = "Makine Teknolojisi / Makine ve Tasarım Teknolojisi / Makine ve Kalıp"
-                        },
-                        new
-                        {
-                            BransId = 46,
-                            Ad = "Matbaa / Matbaa Teknolojisi"
-                        },
-                        new
-                        {
-                            BransId = 47,
+                            BransId = 2,
                             Ad = "Matematik"
                         },
                         new
                         {
-                            BransId = 48,
-                            Ad = "Metal Teknolojisi"
+                            BransId = 3,
+                            Ad = "Fen Bilimleri"
                         },
                         new
                         {
-                            BransId = 49,
-                            Ad = "Mobilya ve İç Mekan Tasarımı"
-                        },
-                        new
-                        {
-                            BransId = 50,
-                            Ad = "Motorlu Araçlar Teknolojisi"
-                        },
-                        new
-                        {
-                            BransId = 51,
-                            Ad = "Muhasebe ve Finansman"
-                        },
-                        new
-                        {
-                            BransId = 52,
-                            Ad = "Müzik"
-                        },
-                        new
-                        {
-                            BransId = 53,
-                            Ad = "Okul Öncesi"
-                        },
-                        new
-                        {
-                            BransId = 54,
-                            Ad = "Özel Eğitim"
-                        },
-                        new
-                        {
-                            BransId = 55,
-                            Ad = "Pazarlama ve Perakende"
-                        },
-                        new
-                        {
-                            BransId = 56,
-                            Ad = "Plastik Teknolojisi"
-                        },
-                        new
-                        {
-                            BransId = 57,
-                            Ad = "Raylı Sistemler Teknolojisi / Raylı Sistemler Elektrik-Elektronik"
-                        },
-                        new
-                        {
-                            BransId = 58,
-                            Ad = "Rehberlik"
-                        },
-                        new
-                        {
-                            BransId = 59,
-                            Ad = "Rusça"
-                        },
-                        new
-                        {
-                            BransId = 60,
-                            Ad = "Sağlık / Sağlık Hizmetleri"
-                        },
-                        new
-                        {
-                            BransId = 61,
-                            Ad = "Sağlık Bilgisi"
-                        },
-                        new
-                        {
-                            BransId = 62,
-                            Ad = "Seramik ve Cam Teknolojisi"
-                        },
-                        new
-                        {
-                            BransId = 63,
-                            Ad = "Sınıf Öğretmenliği"
-                        },
-                        new
-                        {
-                            BransId = 64,
-                            Ad = "Sosyal Bilgiler"
-                        },
-                        new
-                        {
-                            BransId = 65,
-                            Ad = "Tarım Teknolojileri/Tarım"
-                        },
-                        new
-                        {
-                            BransId = 66,
-                            Ad = "Tarih"
-                        },
-                        new
-                        {
-                            BransId = 67,
-                            Ad = "Teknoloji ve Tasarım"
-                        },
-                        new
-                        {
-                            BransId = 68,
-                            Ad = "Tesisat Teknolojisi ve İklimlendirme"
-                        },
-                        new
-                        {
-                            BransId = 69,
-                            Ad = "Tiyatro"
-                        },
-                        new
-                        {
-                            BransId = 70,
-                            Ad = "Türk Dili ve Edebiyatı"
-                        },
-                        new
-                        {
-                            BransId = 71,
+                            BransId = 4,
                             Ad = "Türkçe"
                         },
                         new
                         {
-                            BransId = 72,
-                            Ad = "Ulaştırma Hizmetleri / Lojistik"
+                            BransId = 5,
+                            Ad = "İngilizce"
                         },
                         new
                         {
-                            BransId = 73,
-                            Ad = "Yaşayan Diller ve Lehçeler (Kürtçe / Kurmançi)"
+                            BransId = 6,
+                            Ad = "Sosyal Bilgiler"
                         },
                         new
                         {
-                            BransId = 74,
-                            Ad = "Yaşayan Diller ve Lehçeler (Kürtçe / Zazaki)"
+                            BransId = 7,
+                            Ad = "Din Kültürü ve Ahlak Bilgisi"
                         },
                         new
                         {
-                            BransId = 75,
-                            Ad = "Yenilenebilir Enerji Teknolojileri"
+                            BransId = 8,
+                            Ad = "Görsel Sanatlar"
                         },
                         new
                         {
-                            BransId = 76,
-                            Ad = "Yiyecek İçecek Hizmetleri"
+                            BransId = 9,
+                            Ad = "Müzik"
+                        },
+                        new
+                        {
+                            BransId = 10,
+                            Ad = "Beden Eğitimi"
+                        },
+                        new
+                        {
+                            BransId = 11,
+                            Ad = "Okul Öncesi"
+                        },
+                        new
+                        {
+                            BransId = 12,
+                            Ad = "Rehberlik"
+                        },
+                        new
+                        {
+                            BransId = 13,
+                            Ad = "Sınıf Öğretmenliği"
+                        },
+                        new
+                        {
+                            BransId = 14,
+                            Ad = "Diğer"
                         });
                 });
 

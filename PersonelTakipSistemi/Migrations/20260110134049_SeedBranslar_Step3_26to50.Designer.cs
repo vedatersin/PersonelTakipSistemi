@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PersonelTakipSistemi.Data;
 
@@ -11,9 +12,11 @@ using PersonelTakipSistemi.Data;
 namespace PersonelTakipSistemi.Migrations
 {
     [DbContext(typeof(TegmPersonelTakipDbContext))]
-    partial class TegmPersonelTakipDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260110134049_SeedBranslar_Step3_26to50")]
+    partial class SeedBranslar_Step3_26to50
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -292,136 +295,6 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             BransId = 50,
                             Ad = "Motorlu Araçlar Teknolojisi"
-                        },
-                        new
-                        {
-                            BransId = 51,
-                            Ad = "Muhasebe ve Finansman"
-                        },
-                        new
-                        {
-                            BransId = 52,
-                            Ad = "Müzik"
-                        },
-                        new
-                        {
-                            BransId = 53,
-                            Ad = "Okul Öncesi"
-                        },
-                        new
-                        {
-                            BransId = 54,
-                            Ad = "Özel Eğitim"
-                        },
-                        new
-                        {
-                            BransId = 55,
-                            Ad = "Pazarlama ve Perakende"
-                        },
-                        new
-                        {
-                            BransId = 56,
-                            Ad = "Plastik Teknolojisi"
-                        },
-                        new
-                        {
-                            BransId = 57,
-                            Ad = "Raylı Sistemler Teknolojisi / Raylı Sistemler Elektrik-Elektronik"
-                        },
-                        new
-                        {
-                            BransId = 58,
-                            Ad = "Rehberlik"
-                        },
-                        new
-                        {
-                            BransId = 59,
-                            Ad = "Rusça"
-                        },
-                        new
-                        {
-                            BransId = 60,
-                            Ad = "Sağlık / Sağlık Hizmetleri"
-                        },
-                        new
-                        {
-                            BransId = 61,
-                            Ad = "Sağlık Bilgisi"
-                        },
-                        new
-                        {
-                            BransId = 62,
-                            Ad = "Seramik ve Cam Teknolojisi"
-                        },
-                        new
-                        {
-                            BransId = 63,
-                            Ad = "Sınıf Öğretmenliği"
-                        },
-                        new
-                        {
-                            BransId = 64,
-                            Ad = "Sosyal Bilgiler"
-                        },
-                        new
-                        {
-                            BransId = 65,
-                            Ad = "Tarım Teknolojileri/Tarım"
-                        },
-                        new
-                        {
-                            BransId = 66,
-                            Ad = "Tarih"
-                        },
-                        new
-                        {
-                            BransId = 67,
-                            Ad = "Teknoloji ve Tasarım"
-                        },
-                        new
-                        {
-                            BransId = 68,
-                            Ad = "Tesisat Teknolojisi ve İklimlendirme"
-                        },
-                        new
-                        {
-                            BransId = 69,
-                            Ad = "Tiyatro"
-                        },
-                        new
-                        {
-                            BransId = 70,
-                            Ad = "Türk Dili ve Edebiyatı"
-                        },
-                        new
-                        {
-                            BransId = 71,
-                            Ad = "Türkçe"
-                        },
-                        new
-                        {
-                            BransId = 72,
-                            Ad = "Ulaştırma Hizmetleri / Lojistik"
-                        },
-                        new
-                        {
-                            BransId = 73,
-                            Ad = "Yaşayan Diller ve Lehçeler (Kürtçe / Kurmançi)"
-                        },
-                        new
-                        {
-                            BransId = 74,
-                            Ad = "Yaşayan Diller ve Lehçeler (Kürtçe / Zazaki)"
-                        },
-                        new
-                        {
-                            BransId = 75,
-                            Ad = "Yenilenebilir Enerji Teknolojileri"
-                        },
-                        new
-                        {
-                            BransId = 76,
-                            Ad = "Yiyecek İçecek Hizmetleri"
                         });
                 });
 

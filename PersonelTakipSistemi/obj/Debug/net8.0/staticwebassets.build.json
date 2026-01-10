@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "OG5UC1F5UZoSZDW8C3DQotOcsZreA4J7tMhL2h/M3t8=",
+  "Hash": "5iyY9pq6hIFBK4NF00CGu3zcG5WfKJ0gILiEJtFNjKU=",
   "Source": "PersonelTakipSistemi",
   "BasePath": "_content/PersonelTakipSistemi",
   "Mode": "Default",
@@ -4919,12 +4919,12 @@
       "OriginalItemSpec": "wwwroot\\sevilay-tema\\yetkili_ekle.html"
     },
     {
-      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\20ed19b6-313c-401b-90e7-bf7068ffbee8.png",
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\80a3cbf6-89ed-40b0-9ebc-e5f359012e9b.jpg",
       "SourceId": "PersonelTakipSistemi",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
       "BasePath": "_content/PersonelTakipSistemi",
-      "RelativePath": "uploads/personeller/20ed19b6-313c-401b-90e7-bf7068ffbee8.png",
+      "RelativePath": "uploads/personeller/80a3cbf6-89ed-40b0-9ebc-e5f359012e9b.jpg",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -4935,7 +4935,7 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\uploads\\personeller\\20ed19b6-313c-401b-90e7-bf7068ffbee8.png"
+      "OriginalItemSpec": "wwwroot\\uploads\\personeller\\80a3cbf6-89ed-40b0-9ebc-e5f359012e9b.jpg"
     },
     {
       "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\87939613-b3de-44d3-b106-74212fadeb46.jpg",
@@ -4955,6 +4955,44 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\uploads\\personeller\\87939613-b3de-44d3-b106-74212fadeb46.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\a88b3582-fd6c-4afd-b078-bc93ef139625.png",
+      "SourceId": "PersonelTakipSistemi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
+      "BasePath": "_content/PersonelTakipSistemi",
+      "RelativePath": "uploads/personeller/a88b3582-fd6c-4afd-b078-bc93ef139625.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\personeller\\a88b3582-fd6c-4afd-b078-bc93ef139625.png"
+    },
+    {
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\ac187178-f252-4a83-b786-b8008cb121bc.jpg",
+      "SourceId": "PersonelTakipSistemi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
+      "BasePath": "_content/PersonelTakipSistemi",
+      "RelativePath": "uploads/personeller/ac187178-f252-4a83-b786-b8008cb121bc.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\personeller\\ac187178-f252-4a83-b786-b8008cb121bc.jpg"
     }
   ]
 }
