@@ -234,13 +234,14 @@
   <p class="text-muted">
     Diğer sekmelerde kaydedilen bilgiler aşağıdaki tabloda özetlenir.
   </p>
-  <div class="text-center mb-4">
-  <div class="photo-preview-container mx-auto" id="controlContainer">
-      <i class='bx bx-user'></i>
-      <img id="kontrolFoto" src="" alt="Personel Fotoğrafı" />
-  </div>
-  <p class="mt-2 fw-bold">Personel Fotoğrafı</p>
-</div>
+    <!-- Control Tab Photo Section: Simplified to single image source -->
+    <div class="text-center mb-4">
+        <div class="photo-preview-container mx-auto" id="controlContainer">
+            <i class='bx bx-user' id="controlIcon"></i>
+            <img id="kontrolFoto" src="" alt="Personel Fotoğrafı" style="display:none;" />
+        </div>
+        <p class="mt-2 fw-bold">Personel Fotoğrafı</p>
+    </div>
 
   <table class="table table-bordered table-sm">
     <thead>
@@ -255,7 +256,7 @@
   </table>
 
   <div class="d-grid gap-2 mt-4">
-    <button type="submit" class="btn btn-success btn-lg">Kaydet</button>
+    <button type="submit" class="btn btn-success btn-lg">@(Model.IsEditMode ? "Bilgileri Güncelle" : "Bilgileri Kaydet")</button>
   </div>
 
   </div>
@@ -388,6 +389,9 @@
           // Eğer kontrol sekmesine geçildiyse tabloyu doldur
           if (tabId === "tab6") {
               fillKontrolOzet();
+              if (typeof updateControlPhoto === "function") {
+                  updateControlPhoto();
+              }
           }
         }
 
@@ -431,33 +435,64 @@
         
         // Control tab elements
         const controlImg = document.getElementById("kontrolFoto");
+        const controlIcon = document.getElementById("controlIcon");
 
         // Hidden input for Base64 Persistence
         const hiddenBase64 = document.getElementById("FotografBase64");
         
-        function updateContainer(imgElement) {
+        function updateContainer(imgElement, isControl = false) {
             if(!imgElement) return;
-            // Kardeş icon elementini bul ve gizle
-            const container = imgElement.parentElement;
-            const icon = container.querySelector("i");
-            if(icon) icon.style.display = "none";
             
-            // Resmi göster
-            imgElement.style.display = "block";
+            if (isControl) {
+                // Control tab logic: only show img if src is valid, otherwise show icon
+                if (imgElement.src && imgElement.src !== window.location.href && imgElement.src !== "") {
+                    imgElement.style.display = "block";
+                    if(controlIcon) controlIcon.style.display = "none";
+                } else {
+                    imgElement.style.display = "none";
+                     if(controlIcon) controlIcon.style.display = "block";
+                }
+            } else {
+                // Regular preview logic
+                const container = imgElement.parentElement;
+                const icon = container.querySelector("i");
+                if(icon) icon.style.display = "none";
+                imgElement.style.display = "block";
+            }
         }
 
-        // Fotoğraf Restore Fonksiyonu (Base64'ten)
+        // Logic to determine which photo to show in Control Tab
+        function updateControlPhoto() {
+            if (!controlImg) return;
+            
+            // Priority 1: New File Selected (File Reader Result)
+            // Priority 2: Existing Photo (Hidden Input)
+            // Priority 3: None (Show Icon)
+            
+            // Check if we have a file reader result stored (could be in previewImg.src if set)
+            if (previewImg && previewImg.src && previewImg.src.startsWith("data:image")) {
+                 controlImg.src = previewImg.src;
+                 updateContainer(controlImg, true);
+            } 
+            else if (hiddenBase64 && hiddenBase64.value) {
+                 controlImg.src = hiddenBase64.value;
+                 updateContainer(controlImg, true);
+            } 
+            else {
+                 controlImg.style.display = "none";
+                 if(controlIcon) controlIcon.style.display = "block";
+            }
+        }
+
+        // Fotoğraf Restore Fonksiyonu (Base64 veya URL'den)
         function restorePhotoFromHidden() {
             if(hiddenBase64 && hiddenBase64.value) {
-                const base64 = hiddenBase64.value;
+                const src = hiddenBase64.value;
                 if(previewImg) {
-                    previewImg.src = base64;
+                    previewImg.src = src;
                     updateContainer(previewImg);
                 }
-                if(controlImg) {
-                    controlImg.src = base64;
-                    updateContainer(controlImg);
-                }
+                // Control photo update handled by updateControlPhoto call or tab switch
             }
         }
         
@@ -474,7 +509,7 @@
 
                         // Base64'ü hidden input'a kaydet (Persistence için)
                         if(hiddenBase64) {
-                            hiddenBase64.value = result;
+                            hiddenBase64.value = result; // Note: For new uploads, we might not want to submit this as text, but for preview persistence logic matches
                         }
                         
                         if(previewImg) {
@@ -482,15 +517,25 @@
                             updateContainer(previewImg);
                         }
                         
-                        if(controlImg) {
-                            controlImg.src = result;
-                            updateContainer(controlImg);
-                        }
+                        // Update control immediately if active
+                         if(document.getElementById("tab6").classList.contains("active")) {
+                             updateControlPhoto();
+                         }
                     }
                     reader.readAsDataURL(file);
                 }
             });
         }
+        
+        // Tab Activation Hook Update
+        // Override activateTab inside listener scope or modify existing if possible.
+        // Since we cannot easily modify inside DOMContentLoaded scope without replacing everything, 
+        // we rely on the existing click listeners calling the *original* activateTab if it wasn't exposed.
+        // Wait, I am replacing the script block. I need tomake sure I hook into tab switching.
+        
+        // Re-attaching tab listeners or injecting logic into fillKontrolOzet which is called by tab switch
+        // The original `fillKontrolOzet` is called when tab6 is activated. Let's add photo update there.
+
 
         // --- DUPLICATE TC / MODAL LOGIC ---
         // Backend'den gelen ShowErrorModal bayrağı kontrol ediliyor
