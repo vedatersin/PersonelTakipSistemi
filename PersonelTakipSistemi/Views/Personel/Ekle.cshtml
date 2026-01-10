@@ -9,6 +9,19 @@
 
 <div class="tabs-container">
 
+  @if (TempData["Success"] != null)
+  {
+      <div class="alert alert-success" role="alert">
+          <i class='bx bx-check-circle'></i> @TempData["Success"]
+      </div>
+  }
+  @if (TempData["Error"] != null)
+  {
+      <div class="alert alert-danger" role="alert">
+          <i class='bx bx-error'></i> @TempData["Error"]
+      </div>
+  }
+
   <!-- TAB BUTONLARI -->
   <div class="tabs">
     <button class="tab-btn active" data-tab="tab1">Kişisel Bilgiler</button>
@@ -16,11 +29,17 @@
     <button class="tab-btn" data-tab="tab3">Uzmanlık</button>
     <button class="tab-btn" data-tab="tab4">Görev Türü</button>
     <button class="tab-btn" data-tab="tab5">Yapılan İş Niteliği</button>
+    @if(Model.IsEditMode)
+    {
+         <button class="tab-btn" data-tab="tab_password">Şifre Değiştir</button>
+    }
     <button class="tab-btn" data-tab="tab6">Kontrol</button>
   </div>
 
   <form asp-controller="Personel" asp-action="Ekle" method="post" enctype="multipart/form-data">
   @Html.AntiForgeryToken()
+  <input type="hidden" asp-for="PersonelId" />
+  <input type="hidden" asp-for="IsEditMode" />
 
   <!-- TAB1 KİŞİSEL BİLGİLER -->
   <div id="tab1" class="tab-content active">
@@ -74,15 +93,11 @@
 
     <div class="mb-4">
       <label asp-for="TcKimlikNo" class="form-label">Personel TC KİMLİK NO:</label>
-      <input type="text" id="personelTcKimlik" asp-for="TcKimlikNo" class="form-control" placeholder="Personel TC Kimlik Numarasını girin" maxlength="11" >
+      <input type="text" id="personelTcKimlik" asp-for="TcKimlikNo" class="form-control" placeholder="Personel TC Kimlik Numarasını girin" maxlength="11" inputmode="numeric" pattern="\d{11}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
       <span asp-validation-for="TcKimlikNo" class="text-danger"></span>
     </div>
 
-    <div class="mb-4">
-      <label asp-for="Sifre" class="form-label">Şifre</label>
-      <input type="password" class="form-control" id="sifre" asp-for="Sifre" maxlength="6" title="Şifre en az 6 karakter olmalıdır." >
-      <span asp-validation-for="Sifre" class="text-danger"></span>
-    </div>
+    <!-- Şifre Alanı Kaldırıldı (Otomatik Oluşturulur veya Düzenle Modunda Ayrı Tab'da Değiştirilir) -->
 
     <div class="mb-4">
       <label asp-for="Telefon" class="form-label">Telefon</label>
@@ -229,6 +244,28 @@
       <button type="button" class="btn btn-primary mt-3" id="next5">İlerle</button>
     </div>
   </div>
+
+  <!-- TAB6 Şifre Değiştir (Sadece Edit Modunda) -->
+  @if(Model.IsEditMode)
+  {
+      <div id="tab_password" class="tab-content">
+        <h2>Şifre Değiştir</h2>
+        <div class="alert alert-warning">
+            <i class="bx bx-info-circle"></i> Şifreyi değiştirmek istemiyorsanız bu alanı <strong>boş bırakın</strong>.
+        </div>
+        <div class="mb-4">
+            <label asp-for="NewPassword" class="form-label">Yeni Şifre</label>
+            <input type="password" asp-for="NewPassword" class="form-control" placeholder="Yeni şifrenizi girin (min 6 karakter)">
+            <span asp-validation-for="NewPassword" class="text-danger"></span>
+        </div>
+        <div class="mb-4">
+            <label asp-for="NewPasswordConfirm" class="form-label">Yeni Şifre (Tekrar)</label>
+            <input type="password" asp-for="NewPasswordConfirm" class="form-control" placeholder="Yeni şifreyi tekrar girin">
+            <span asp-validation-for="NewPasswordConfirm" class="text-danger"></span>
+        </div>
+         <button type="button" class="btn btn-primary mt-3" id="next_pass">İlerle</button>
+      </div>
+  }
 
   <div id="tab6" class="tab-content">
   <p class="text-muted">
@@ -377,11 +414,42 @@
             addRow("Seçili İş Nitelikleri", getLabels_("SeciliIsNiteligiIdleri"));
         }
 
+        // TAB LOCKING & NAVIGATION LOGIC
+        const tabOrder = ["tab1", "tab2", "tab3", "tab4", "tab5"];
+        // Edit modunda araya şifre tabı girer
+        const isEditMode = '@Model.IsEditMode' === 'True'; 
+        if(isEditMode) {
+            tabOrder.push("tab_password");
+        }
+        tabOrder.push("tab6"); // Control tab (always last)
+
+        // Hangi tablar açıldı (unlocked)
+        // Edit modunda tüm tablar baştan açık olsun
+        const unlockedTabs = new Set(["tab1"]); 
+        if(isEditMode) {
+            tabOrder.forEach(t => unlockedTabs.add(t));
+        }
+
         function activateTab(tabId) {
+          // Kilit kontrolü: Eğer tab unlocked değilse geçiş yapma 
+          // (Edit modunda hepsi unlocked olduğu için serbest geçiş olur)
+          if (!unlockedTabs.has(tabId)) return;
+
           buttons.forEach((b) => {
             const isActive = b.getAttribute("data-tab") === tabId;
             b.classList.toggle("active", isActive);
+            // Disabled görsel yönetimi
+            if(unlockedTabs.has(b.getAttribute("data-tab"))) {
+                b.classList.remove("disabled-tab"); 
+                b.style.opacity = "1";
+                b.style.cursor = "pointer";
+            } else {
+                b.classList.add("disabled-tab");
+                b.style.opacity = "0.5";
+                b.style.cursor = "not-allowed";
+            }
           });
+          
           contents.forEach((c) => {
             c.classList.toggle("active", c.id === tabId);
           });
@@ -396,38 +464,59 @@
         }
 
         buttons.forEach((btn) => {
+          // Başlangıç stili
+          const tId = btn.getAttribute("data-tab");
+          if(!unlockedTabs.has(tId)) {
+               btn.style.opacity = "0.5";
+               btn.style.cursor = "not-allowed";
+          } else {
+               // Edit modunda baştan hepsi aktif görünsün
+               btn.style.opacity = "1";
+               btn.style.cursor = "pointer";
+          }
+          
           btn.addEventListener("click", () => {
             const tabId = btn.getAttribute("data-tab");
             activateTab(tabId);
           });
         });
 
-        // Form elemanlarında değişiklik olduğunda eğer tab6 aktifse anında güncelle
-        const formElements = document.querySelectorAll("input, select, textarea");
-        formElements.forEach(el => {
-            // Hem input (yazarken) hem change (değişince) dinleyelim
-            el.addEventListener("input", () => {
-                if(document.getElementById("tab6").classList.contains("active")) {
-                    fillKontrolOzet();
+        // "İlerle" Butonları
+        // next1 -> tab2, next2 -> tab3 ...
+        // Mantık: nextX butonu bir sonraki tabı unlock eder ve oraya geçer.
+        const setupNextBtn = (btnId, currentTabId) => {
+            const btn = document.getElementById(btnId);
+            if(!btn) return;
+            
+            btn.addEventListener("click", () => {
+                // Validation kontrolü (HTML5 veya ASP.NET Unobtrusive)
+                // KABUL KRİTERİ: İlerlemeden önce basit validasyon? 
+                // Şimdilik sadece geçiş yapıyoruz, form submit'te full validasyon var.
+                // İstenirse burada $('#form').valid() kontrolü eklenebilir.
+                
+                const currentIndex = tabOrder.indexOf(currentTabId);
+                if(currentIndex >= 0 && currentIndex < tabOrder.length - 1) {
+                    const nextTabId = tabOrder[currentIndex + 1];
+                    unlockedTabs.add(nextTabId);
+                    activateTab(nextTabId);
                 }
             });
-            el.addEventListener("change", () => {
-                if(document.getElementById("tab6").classList.contains("active")) {
-                    fillKontrolOzet();
-                }
-            });
-        });
+        };
 
-
-        const nextBtns = [1, 2, 3, 4, 5];
-        nextBtns.forEach(i => {
-            const btn = document.getElementById("next" + i);
-            if(btn) {
-                btn.addEventListener("click", () => {
-                    activateTab("tab" + (i+1));
-                });
-            }
-        });
+        setupNextBtn("next1", "tab1");
+        setupNextBtn("next2", "tab2");
+        setupNextBtn("next3", "tab3");
+        setupNextBtn("next4", "tab4");
+        setupNextBtn("next5", "tab5");
+        
+        if(isEditMode) {
+            setupNextBtn("next_pass", "tab_password");
+        } else {
+            // Edit modu değilse tab5'ten sonra direkt tab6(kontrol) gelir, 
+            // ama yukarıdaki dinamik tabOrder bunu zaten çözdü.
+            // Sadece tab5 butonu bir sonrakine (tab6) gidecek.
+            // Ancak tab5 butonunu manuel setup yaparken index mantığı kullandık, sorun yok.
+        }
 
         // Fotoğraf Önizleme
         const photoInput = document.getElementById("personelFoto");

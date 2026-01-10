@@ -5,7 +5,7 @@ namespace PersonelTakipSistemi.ViewModels
 {
     public class PersonelEkleViewModel
     {
-        public int PersonelId { get; set; } // For Edit Mode
+        public int? PersonelId { get; set; } // For Edit Mode
         public bool IsEditMode { get; set; } // Explicit Mode Flag
 
         [Required(ErrorMessage = "Ad alanı zorunludur.")]
@@ -16,6 +16,7 @@ namespace PersonelTakipSistemi.ViewModels
 
         [Required(ErrorMessage = "TC Kimlik No zorunludur.")]
         [StringLength(11, MinimumLength = 11, ErrorMessage = "TC Kimlik No 11 karakter olmalıdır.")]
+        [RegularExpression(@"^\d{11}$", ErrorMessage = "TC Kimlik No 11 haneli olmalıdır.")]
         public string TcKimlikNo { get; set; } = null!;
 
         public string? Telefon { get; set; }
@@ -32,9 +33,16 @@ namespace PersonelTakipSistemi.ViewModels
         public bool AktifMi { get; set; }
         public string? FotografBase64 { get; set; } // Keep photo on validation error
 
-        [Required(ErrorMessage = "Şifre zorunludur.")]
-        [StringLength(6, MinimumLength = 6, ErrorMessage = "Şifre tam 6 karakter olmalıdır.")]
-        public string Sifre { get; set; } = null!;
+        // Şifre artık sadece Insert'te otomatik, Update'te isteğe bağlı.
+        // Bu yüzden Required değil, nullable.
+        public string? Sifre { get; set; } 
+
+        // Şifre Değiştirme (Sadece Edit Modunda Görünür/Kullanılır)
+        [StringLength(20, MinimumLength = 6, ErrorMessage = "Şifre en az 6 karakter olmalıdır.")]
+        public string? NewPassword { get; set; }
+
+        [Compare("NewPassword", ErrorMessage = "Şifreler eşleşmiyor.")]
+        public string? NewPasswordConfirm { get; set; }
 
         // Seçilen Checkbox ID'leri
         public List<int> SeciliYazilimIdleri { get; set; } = new List<int>();

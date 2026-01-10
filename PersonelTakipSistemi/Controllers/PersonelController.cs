@@ -182,45 +182,54 @@ namespace PersonelTakipSistemi.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Ekle(PersonelEkleViewModel model, IFormFile personelFoto)
+        public async Task<IActionResult> Ekle(PersonelEkleViewModel model, IFormFile? personelFoto)
         {
             if (ModelState.IsValid)
             {
-                // 0. Çakışma Kontrolü (TC ve E-posta) - Kendi ID'si hariç
+                // 1. Logic Separation: Determine Insert vs Update strictly
+                // Check IsEditMode AND PersonelId for Update
+                bool isUpdate = model.IsEditMode && model.PersonelId.HasValue && model.PersonelId.Value > 0;
+
+                // 2. Duplicate Check Strategy
                 var conflicts = new List<string>();
-                var existingUsers = await _context.Personeller
-                    .Where(p => (p.TcKimlikNo == model.TcKimlikNo || p.Eposta == model.Eposta) && p.PersonelId != model.PersonelId)
-                    .Select(p => new { p.TcKimlikNo, p.Eposta })
-                    .ToListAsync();
 
-                if (existingUsers.Any())
+                if (isUpdate)
                 {
-                    foreach (var user in existingUsers)
-                    {
-                        if (user.TcKimlikNo == model.TcKimlikNo && !conflicts.Contains("TC Kimlik No zaten kayıtlı: " + model.TcKimlikNo))
-                            conflicts.Add("TC Kimlik No zaten kayıtlı: " + model.TcKimlikNo);
-                        
-                        if (user.Eposta == model.Eposta && !conflicts.Contains("E-posta zaten kayıtlı: " + model.Eposta))
-                            conflicts.Add("E-posta zaten kayıtlı: " + model.Eposta);
-                    }
+                    // UPDATE: Check OTHER records (exclude current ID)
+                    var duplicateTc = await _context.Personeller.AnyAsync(p => p.TcKimlikNo == model.TcKimlikNo && p.PersonelId != model.PersonelId.Value);
+                    if (duplicateTc) conflicts.Add($"TC Kimlik No ({model.TcKimlikNo}) kullanımda.");
 
-                    if (conflicts.Any())
-                    {
-                        TempData["ShowUserExistsModal"] = "1";
-                        TempData["ModalTitle"] = "Böyle bir kullanıcı zaten var";
-                        TempData["ModalItems"] = string.Join("|", conflicts);
-                        TempData["OpenTab"] = "tab1";
-                        
-                        var tcConflict = conflicts.Any(c => c.Contains("TC Kimlik No"));
-                        TempData["FocusId"] = tcConflict ? "personelTcKimlik" : "personelemail";
-                        
-                        await FillLookupLists(model);
-                        return View(model);
-                    }
+                    var duplicateEmail = await _context.Personeller.AnyAsync(p => p.Eposta == model.Eposta && p.PersonelId != model.PersonelId.Value);
+                    if (duplicateEmail) conflicts.Add($"E-posta ({model.Eposta}) kullanımda.");
+                }
+                else
+                {
+                    // INSERT: Check ANY record
+                    var duplicateTc = await _context.Personeller.AnyAsync(p => p.TcKimlikNo == model.TcKimlikNo);
+                    if (duplicateTc) conflicts.Add($"TC Kimlik No ({model.TcKimlikNo}) kayıtlı.");
+
+                    var duplicateEmail = await _context.Personeller.AnyAsync(p => p.Eposta == model.Eposta);
+                    if (duplicateEmail) conflicts.Add($"E-posta ({model.Eposta}) kayıtlı.");
                 }
 
-                // 1. Fotoğraf İşlemi (Ortak)
-                string? fotoYolu = null;
+                if (conflicts.Any())
+                {
+                    TempData["Error"] = "Kayıt Uyarı: " + string.Join(" | ", conflicts);
+                    // Modal logic
+                    TempData["ShowUserExistsModal"] = "1";
+                    TempData["ModalTitle"] = "Kayıt Çakışması";
+                    TempData["ModalItems"] = string.Join("|", conflicts);
+                    TempData["OpenTab"] = "tab1";
+                    
+                    var tcConflict = conflicts.Any(c => c.Contains("TC"));
+                    TempData["FocusId"] = tcConflict ? "personelTcKimlik" : "personelemail";
+                    
+                    await FillLookupLists(model);
+                    return View(model);
+                }
+
+                // 3. Fotoğraf İşlemi (Ortak)
+                string? yeniFotoYolu = null;
                 if (personelFoto != null && personelFoto.Length > 0)
                 {
                     string uploadsFolder = Path.Combine(_hostEnvironment.WebRootPath, "uploads", "personeller");
@@ -233,21 +242,20 @@ namespace PersonelTakipSistemi.Controllers
                     {
                         await personelFoto.CopyToAsync(fileStream);
                     }
-                    fotoYolu = "/uploads/personeller/" + uniqueFileName;
+                    yeniFotoYolu = "/uploads/personeller/" + uniqueFileName;
                 }
                 
                 try 
                 {
-                    // 2. Logic Separation: Update vs Insert
-                    if (model.IsEditMode && model.PersonelId > 0)
+                    if (isUpdate)
                     {
-                        // --- UPDATE ---
+                        // --- UPDATE EXECUTION ---
                         var personel = await _context.Personeller
                             .Include(p => p.PersonelYazilimlar)
                             .Include(p => p.PersonelUzmanliklar)
                             .Include(p => p.PersonelGorevTurleri)
                             .Include(p => p.PersonelIsNitelikleri)
-                            .FirstOrDefaultAsync(p => p.PersonelId == model.PersonelId);
+                            .FirstOrDefaultAsync(p => p.PersonelId == model.PersonelId.Value);
 
                         if (personel == null) return NotFound();
 
@@ -263,17 +271,22 @@ namespace PersonelTakipSistemi.Controllers
                         personel.KadroKurum = model.KadroKurum ?? "";
                         personel.AktifMi = model.AktifMi;
                         
-                        if (fotoYolu != null) personel.FotografYolu = fotoYolu; // Sadece yeni foto varsa güncelle
+                        // Fotoğraf Güncelleme
+                        if (yeniFotoYolu != null) 
+                        {
+                            DeletePhotoFile(personel.FotografYolu); // Eskiyi sil
+                            personel.FotografYolu = yeniFotoYolu;   // Yeniyi ata
+                        }
                         
                         personel.UpdatedAt = DateTime.Now;
 
-                        // Şifre Logic: Sadece doluysa güncelle, yoksa eski şifre kalsın
-                        // Not: ViewModel'de [Required] olduğu için şu an şifre girmek zorunlu.
-                        // Eğer Edit modunda şifre opsiyonel olacaksa ViewModel'de değişiklik gerekir veya ModelState hatasını manuel kaldırmak gerekir.
-                        // Mevcut yapıda şifre her zaman giriliyor kabul ediyoruz.
-                        CreatePasswordHash(model.Sifre, out byte[] passwordHash, out byte[] passwordSalt);
-                        personel.SifreHash = passwordHash;
-                        personel.SifreSalt = passwordSalt;
+                        // Şifre Güncelleme (Sadece doluysa)
+                        if (!string.IsNullOrEmpty(model.NewPassword))
+                        {
+                             CreatePasswordHash(model.NewPassword, out byte[] passwordHash, out byte[] passwordSalt);
+                             personel.SifreHash = passwordHash;
+                             personel.SifreSalt = passwordSalt;
+                        }
 
                         // İlişkileri Temizle
                         _context.PersonelYazilimlar.RemoveRange(personel.PersonelYazilimlar);
@@ -283,29 +296,20 @@ namespace PersonelTakipSistemi.Controllers
 
                         // Main Update
                         _context.Personeller.Update(personel);
-                        await _context.SaveChangesAsync(); // IDs cleared, main entity updated
+                        await _context.SaveChangesAsync(); 
 
                         // İlişkileri Yeniden Ekle
-                        if (model.SeciliYazilimIdleri != null)
-                            foreach (var id in model.SeciliYazilimIdleri) _context.PersonelYazilimlar.Add(new PersonelYazilim { PersonelId = personel.PersonelId, YazilimId = id });
-                        
-                        if (model.SeciliUzmanlikIdleri != null)
-                            foreach (var id in model.SeciliUzmanlikIdleri) _context.PersonelUzmanliklar.Add(new PersonelUzmanlik { PersonelId = personel.PersonelId, UzmanlikId = id });
-
-                        if (model.SeciliGorevTuruIdleri != null)
-                            foreach (var id in model.SeciliGorevTuruIdleri) _context.PersonelGorevTurleri.Add(new PersonelGorevTuru { PersonelId = personel.PersonelId, GorevTuruId = id });
-
-                        if (model.SeciliIsNiteligiIdleri != null)
-                            foreach (var id in model.SeciliIsNiteligiIdleri) _context.PersonelIsNitelikleri.Add(new PersonelIsNiteligi { PersonelId = personel.PersonelId, IsNiteligiId = id });
-
+                        AddRelations(personel.PersonelId, model);
                         await _context.SaveChangesAsync();
+
                         TempData["Success"] = "Personel bilgileri güncellendi.";
                         return RedirectToAction("Detay", new { id = personel.PersonelId });
                     }
                     else
                     {
-                        // --- INSERT ---
-                        CreatePasswordHash(model.Sifre, out byte[] passwordHash, out byte[] passwordSalt);
+                        // --- INSERT EXECUTION ---
+                        string autoPasword = model.TcKimlikNo.Length >= 6 ? model.TcKimlikNo.Substring(0, 6) : "123456";
+                        CreatePasswordHash(autoPasword, out byte[] passwordHash, out byte[] passwordSalt);
 
                         var personel = new Personel
                         {
@@ -319,7 +323,7 @@ namespace PersonelTakipSistemi.Controllers
                             Brans = model.Brans ?? "",
                             KadroKurum = model.KadroKurum ?? "",
                             AktifMi = model.AktifMi,
-                            FotografYolu = fotoYolu,
+                            FotografYolu = yeniFotoYolu,
                             SifreHash = passwordHash,
                             SifreSalt = passwordSalt,
                             CreatedAt = DateTime.Now,
@@ -329,39 +333,67 @@ namespace PersonelTakipSistemi.Controllers
                         _context.Personeller.Add(personel);
                         await _context.SaveChangesAsync(); // Get ID
 
-                        // İlişkileri Ekle
-                        if (model.SeciliYazilimIdleri != null)
-                            foreach (var id in model.SeciliYazilimIdleri) _context.PersonelYazilimlar.Add(new PersonelYazilim { PersonelId = personel.PersonelId, YazilimId = id });
-                        
-                        if (model.SeciliUzmanlikIdleri != null)
-                            foreach (var id in model.SeciliUzmanlikIdleri) _context.PersonelUzmanliklar.Add(new PersonelUzmanlik { PersonelId = personel.PersonelId, UzmanlikId = id });
-
-                        if (model.SeciliGorevTuruIdleri != null)
-                            foreach (var id in model.SeciliGorevTuruIdleri) _context.PersonelGorevTurleri.Add(new PersonelGorevTuru { PersonelId = personel.PersonelId, GorevTuruId = id });
-
-                        if (model.SeciliIsNiteligiIdleri != null)
-                            foreach (var id in model.SeciliIsNiteligiIdleri) _context.PersonelIsNitelikleri.Add(new PersonelIsNiteligi { PersonelId = personel.PersonelId, IsNiteligiId = id });
-
+                        AddRelations(personel.PersonelId, model);
                         await _context.SaveChangesAsync();
-                        TempData["Success"] = "Yeni personel başarıyla kaydedildi.";
+
+                        TempData["Success"] = $"Yeni personel kaydedildi. Başlangıç şifresi: {autoPasword}";
                         return RedirectToAction("Detay", new { id = personel.PersonelId });
                     }
                 }
-                catch (DbUpdateException ex)
-                {
-                    // Hata yönetimi
-                    var msg = ex.InnerException?.Message ?? ex.Message;
-                    if (msg.Contains("UX_Personeller_TcKimlikNo")) ModelState.AddModelError("", "TC Kimlik No kullanımda.");
-                    else ModelState.AddModelError("", "Veritabanı hatası: " + msg);
-                }
                 catch (Exception ex)
                 {
-                     ModelState.AddModelError("", $"Hata: {ex.Message}");
+                     // Genel hata yakalama
+                     ModelState.AddModelError("", $"İşlem sırasında beklenmeyen bir hata oluştu: {ex.Message}");
+                     TempData["Error"] = "İşlem hatası.";
                 }
+            }
+            else 
+            {
+               // Validation Errors
+               var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+               TempData["Error"] = "Formda hatalar var: " + string.Join(", ", errors.Take(3)) + "...";
             }
 
             await FillLookupLists(model);
             return View(model);
+        }
+
+        private void AddRelations(int personelId, PersonelEkleViewModel model)
+        {
+            if (model.SeciliYazilimIdleri != null)
+                foreach (var id in model.SeciliYazilimIdleri) _context.PersonelYazilimlar.Add(new PersonelYazilim { PersonelId = personelId, YazilimId = id });
+            
+            if (model.SeciliUzmanlikIdleri != null)
+                foreach (var id in model.SeciliUzmanlikIdleri) _context.PersonelUzmanliklar.Add(new PersonelUzmanlik { PersonelId = personelId, UzmanlikId = id });
+
+            if (model.SeciliGorevTuruIdleri != null)
+                foreach (var id in model.SeciliGorevTuruIdleri) _context.PersonelGorevTurleri.Add(new PersonelGorevTuru { PersonelId = personelId, GorevTuruId = id });
+
+            if (model.SeciliIsNiteligiIdleri != null)
+                foreach (var id in model.SeciliIsNiteligiIdleri) _context.PersonelIsNitelikleri.Add(new PersonelIsNiteligi { PersonelId = personelId, IsNiteligiId = id });
+        }
+
+        private void DeletePhotoFile(string? path)
+        {
+            if (string.IsNullOrEmpty(path)) return;
+
+            try 
+            {
+                // path "/uploads/..." şeklinde geliyor, bunu fiziksel yola çevir
+                string webRootPath = _hostEnvironment.WebRootPath;
+                string relativePath = path.TrimStart('/'); // baştaki / işaretini kaldır
+                string fullPath = Path.Combine(webRootPath, relativePath.Replace('/', Path.DirectorySeparatorChar));
+
+                if (System.IO.File.Exists(fullPath))
+                {
+                    System.IO.File.Delete(fullPath);
+                }
+            }
+            catch(Exception ex)
+            {
+                // Loglama yapılabilir ama işlem akışını kesmemeli
+                Debug.WriteLine($"Fotoğraf silinemedi: {ex.Message}");
+            }
         }
 
         [HttpPost]
@@ -371,6 +403,9 @@ namespace PersonelTakipSistemi.Controllers
             var personel = await _context.Personeller.FindAsync(id);
             if (personel != null)
             {
+                // Fotoğrafı fiziksel olarak sil
+                DeletePhotoFile(personel.FotografYolu);
+                
                 // Relations are cascade delete due to DbContext configuration
                 _context.Personeller.Remove(personel);
                 await _context.SaveChangesAsync();

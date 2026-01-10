@@ -1037,10 +1037,6 @@
       "PackagePath": "staticwebassets\\uploads\\personeller\\87939613-b3de-44d3-b106-74212fadeb46.jpg"
     },
     {
-      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\b9b9d590-1352-4f8a-8d27-286079a17706.jpg",
-      "PackagePath": "staticwebassets\\uploads\\personeller\\b9b9d590-1352-4f8a-8d27-286079a17706.jpg"
-    },
-    {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.PersonelTakipSistemi.Microsoft.AspNetCore.StaticWebAssets.props",
       "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
     },
