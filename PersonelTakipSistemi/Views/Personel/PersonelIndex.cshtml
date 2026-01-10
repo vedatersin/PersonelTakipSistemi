@@ -21,133 +21,117 @@
 <div class="card mb-4">
     <div class="card-body">
         <form asp-action="Index" method="get" id="filterForm">
-            <!-- Üst Bölüm: Arama -->
-            <div class="row g-3 mb-4">
-                <!-- Üst Bölüm: Arama -->
-                <div class="col-md-3">
+            
+            <!-- SATIR 1: Ad/Soyad, TC, İl, Branş -->
+            <div class="row g-3">
+                <div class="col-12 col-lg-3">
                     <label class="form-label">Ad / Soyad</label>
                     <input type="text" class="form-control" asp-for="Filter.SearchName" placeholder="Ad veya Soyad ara..." />
                 </div>
-                <div class="col-md-3">
+                <div class="col-12 col-lg-3">
                      <label class="form-label">TC Kimlik No</label>
                      <input type="text" class="form-control" asp-for="Filter.TcKimlikNo" placeholder="TC Kimlik No..." />
                 </div>
-                <div class="col-md-3">
-                     <label class="form-label">Doğum Tarihi (Başlangıç)</label>
-                     <input type="date" class="form-control" asp-for="Filter.DogumBaslangic" />
-                </div>
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary w-100">Filtrele</button>
-                </div>
-            </div>
-
-            <!-- Alt Bölüm: Filtreler (Dropdown Checkbox) -->
-            <div class="row g-3">
-                
-                <!-- Branş (Select2) -->
-                <div class="col-md-2">
-                    <label class="form-label">Branş</label>
-                    <select class="form-select select2" asp-for="Filter.BransId">
-                        <option value="">Branş Seçiniz...</option>
-                        @foreach (var x in Model.Lookups.Branslar) { <option value="@x.Id">@x.Ad</option> }
-                    </select>
-                </div>
-
-                <!-- Görevli İl (Select2) -->
-                <div class="col-md-2">
+                <div class="col-12 col-lg-3">
                     <label class="form-label">Görevli İl</label>
                     <select class="form-select select2" asp-for="Filter.GorevliIlId">
                         <option value="">İl Seçiniz...</option>
                         @foreach (var x in Model.Lookups.Iller) { <option value="@x.Id">@x.Ad</option> }
                     </select>
                 </div>
-
-                <!-- Yazılımlar (Çoklu) -->
-                <div class="col-md-2">
-                     <label class="form-label">Yazılımlar</label>
-                     <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Seçiniz
-                        </button>
-                        <ul class="dropdown-menu p-3" style="max-height: 250px; overflow-y: auto;">
-                            @foreach (var item in Model.Lookups.Yazilimlar)
-                            {
-                                <li class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="Filter.SeciliYazilimIdleri" value="@item.Id" id="yazilim_@item.Id" 
-                                           @(Model.Filter.SeciliYazilimIdleri != null && Model.Filter.SeciliYazilimIdleri.Contains(item.Id) ? "checked" : "")>
-                                    <label class="form-check-label" for="yazilim_@item.Id">@item.Ad</label>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Uzmanlıklar (Çoklu) -->
-                <div class="col-md-2">
-                     <label class="form-label">Uzmanlıklar</label>
-                     <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Seçiniz
-                        </button>
-                        <ul class="dropdown-menu p-3" style="max-height: 250px; overflow-y: auto;">
-                            @foreach (var item in Model.Lookups.Uzmanliklar)
-                            {
-                                <li class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="Filter.SeciliUzmanlikIdleri" value="@item.Id" id="uzmanlik_@item.Id"
-                                           @(Model.Filter.SeciliUzmanlikIdleri != null && Model.Filter.SeciliUzmanlikIdleri.Contains(item.Id) ? "checked" : "")>
-                                    <label class="form-check-label" for="uzmanlik_@item.Id">@item.Ad</label>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- Görev Türü (Çoklu) -->
-                <div class="col-md-2">
-                     <label class="form-label">Görev Türü</label>
-                     <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Seçiniz
-                        </button>
-                        <ul class="dropdown-menu p-3" style="max-height: 250px; overflow-y: auto;">
-                            @foreach (var item in Model.Lookups.GorevTurleri)
-                            {
-                                <li class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="Filter.SeciliGorevTuruIdleri" value="@item.Id" id="gorev_@item.Id"
-                                           @(Model.Filter.SeciliGorevTuruIdleri != null && Model.Filter.SeciliGorevTuruIdleri.Contains(item.Id) ? "checked" : "")>
-                                    <label class="form-check-label" for="gorev_@item.Id">@item.Ad</label>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- İş Niteliği (Çoklu) -->
-                <div class="col-md-2">
-                     <label class="form-label">İş Niteliği</label>
-                     <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            Seçiniz
-                        </button>
-                        <ul class="dropdown-menu p-3" style="max-height: 250px; overflow-y: auto;">
-                            @foreach (var item in Model.Lookups.IsNitelikleri)
-                            {
-                                <li class="form-check">
-                                    <input class="form-check-input" type="checkbox" name="Filter.SeciliIsNiteligiIdleri" value="@item.Id" id="is_@item.Id"
-                                            @(Model.Filter.SeciliIsNiteligiIdleri != null && Model.Filter.SeciliIsNiteligiIdleri.Contains(item.Id) ? "checked" : "")>
-                                    <label class="form-check-label" for="is_@item.Id">@item.Ad</label>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-
-
-
-                <div class="col-12 text-end">
-                    <!-- Filtrele butonu yukarı taşındı -->
+                <div class="col-12 col-lg-3">
+                    <label class="form-label">Branş</label>
+                    <select class="form-select select2" asp-for="Filter.BransId">
+                        <option value="">Branş Seçiniz...</option>
+                        @foreach (var x in Model.Lookups.Branslar) { <option value="@x.Id">@x.Ad</option> }
+                    </select>
                 </div>
             </div>
-            
+
+            <!-- SATIR 2: Yazılımlar, Uzmanlıklar, Görev Türü, İş Niteliği -->
+            <div class="row g-3 mt-1">
+                <div class="col-12 col-lg-3">
+                     <label class="form-label">Yazılımlar</label>
+                     <select class="form-select select2" name="Filter.SeciliYazilimIdleri" multiple="multiple">
+                        @foreach (var item in Model.Lookups.Yazilimlar)
+                        {
+                            if (Model.Filter.SeciliYazilimIdleri != null && Model.Filter.SeciliYazilimIdleri.Contains(item.Id))
+                            {
+                                <option value="@item.Id" selected="selected">@item.Ad</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Id">@item.Ad</option>
+                            }
+                        }
+                     </select>
+                </div>
+                <div class="col-12 col-lg-3">
+                     <label class="form-label">Uzmanlıklar</label>
+                     <select class="form-select select2" name="Filter.SeciliUzmanlikIdleri" multiple="multiple">
+                        @foreach (var item in Model.Lookups.Uzmanliklar)
+                        {
+                            if (Model.Filter.SeciliUzmanlikIdleri != null && Model.Filter.SeciliUzmanlikIdleri.Contains(item.Id))
+                            {
+                                <option value="@item.Id" selected="selected">@item.Ad</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Id">@item.Ad</option>
+                            }
+                        }
+                     </select>
+                </div>
+                <div class="col-12 col-lg-3">
+                     <label class="form-label">Görev Türü</label>
+                     <select class="form-select select2" name="Filter.SeciliGorevTuruIdleri" multiple="multiple">
+                        @foreach (var item in Model.Lookups.GorevTurleri)
+                        {
+                            if (Model.Filter.SeciliGorevTuruIdleri != null && Model.Filter.SeciliGorevTuruIdleri.Contains(item.Id))
+                            {
+                                <option value="@item.Id" selected="selected">@item.Ad</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Id">@item.Ad</option>
+                            }
+                        }
+                     </select>
+                </div>
+                <div class="col-12 col-lg-3">
+                     <label class="form-label">İş Niteliği</label>
+                     <select class="form-select select2" name="Filter.SeciliIsNiteligiIdleri" multiple="multiple">
+                        @foreach (var item in Model.Lookups.IsNitelikleri)
+                        {
+                            if (Model.Filter.SeciliIsNiteligiIdleri != null && Model.Filter.SeciliIsNiteligiIdleri.Contains(item.Id))
+                            {
+                                <option value="@item.Id" selected="selected">@item.Ad</option>
+                            }
+                            else
+                            {
+                                <option value="@item.Id">@item.Ad</option>
+                            }
+                        }
+                     </select>
+                </div>
+            </div>
+
+            <!-- SATIR 3: Doğum Tarihi + Butonlar -->
+            <div class="row g-3 mt-1 align-items-end">
+                <div class="col-12 col-lg-3">
+                     <label class="form-label">Doğum Tarihi (Başlangıç)</label>
+                     <input type="date" class="form-control" asp-for="Filter.DogumBaslangic" />
+                </div>
+                <div class="col-12 col-lg-auto">
+                    <label class="form-label d-block">&nbsp;</label>
+                    <a href="/Personel/Index" class="btn btn-outline-secondary w-100">Temizle</a>
+                </div>
+                <div class="col-12 col-lg-auto">
+                    <label class="form-label d-block">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">Filtrele</button>
+                </div>
+            </div>
+
             <input type="hidden" name="Filter.Page" value="1" id="pageInput" />
             <input type="hidden" name="Filter.PageSize" value="@Model.Filter.PageSize" />
         </form>

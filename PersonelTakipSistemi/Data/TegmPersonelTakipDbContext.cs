@@ -122,6 +122,35 @@ namespace PersonelTakipSistemi.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
+            // Yazilim/Uzmanlik/GorevTuru/IsNiteligi Constraints & Seeding
+            modelBuilder.Entity<Yazilim>(entity => {
+                entity.HasKey(e => e.YazilimId);
+                entity.Property(e => e.Ad).IsRequired();
+                entity.HasIndex(e => e.Ad).IsUnique();
+                entity.HasData(GetYazilimSeed());
+            });
+
+            modelBuilder.Entity<Uzmanlik>(entity => {
+                entity.HasKey(e => e.UzmanlikId);
+                entity.Property(e => e.Ad).IsRequired();
+                entity.HasIndex(e => e.Ad).IsUnique();
+                entity.HasData(GetUzmanlikSeed());
+            });
+
+            modelBuilder.Entity<GorevTuru>(entity => {
+                entity.HasKey(e => e.GorevTuruId);
+                entity.Property(e => e.Ad).IsRequired();
+                entity.HasIndex(e => e.Ad).IsUnique();
+                entity.HasData(GetGorevTuruSeed());
+            });
+
+            modelBuilder.Entity<IsNiteligi>(entity => {
+                entity.HasKey(e => e.IsNiteligiId);
+                entity.Property(e => e.Ad).IsRequired();
+                entity.HasIndex(e => e.Ad).IsUnique();
+                entity.HasData(GetIsNiteligiSeed());
+            });
+
             // Join Tables Configuration
 
             // PersonelYazilim
@@ -192,6 +221,7 @@ namespace PersonelTakipSistemi.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
         }
+
         private static IEnumerable<Brans> GetBransSeed()
         {
             return new List<Brans>
@@ -272,6 +302,77 @@ namespace PersonelTakipSistemi.Data
                 new Brans { BransId = 74, Ad = "Yaşayan Diller ve Lehçeler (Kürtçe / Zazaki)" },
                 new Brans { BransId = 75, Ad = "Yenilenebilir Enerji Teknolojileri" },
                 new Brans { BransId = 76, Ad = "Yiyecek İçecek Hizmetleri" }
+            };
+        }
+
+        private static IEnumerable<Yazilim> GetYazilimSeed()
+        {
+            return new List<Yazilim>
+            {
+                new Yazilim { YazilimId = 1, Ad = "Photoshop" },
+                new Yazilim { YazilimId = 2, Ad = "İllüstrator" },
+                new Yazilim { YazilimId = 3, Ad = "InDesign" },
+                new Yazilim { YazilimId = 4, Ad = "Camtasia" },
+                new Yazilim { YazilimId = 5, Ad = "Premiere" },
+                new Yazilim { YazilimId = 6, Ad = "After Effects" },
+                new Yazilim { YazilimId = 7, Ad = "Cinema 4D" },
+                new Yazilim { YazilimId = 8, Ad = "Blender" },
+                new Yazilim { YazilimId = 9, Ad = "Maya" },
+                new Yazilim { YazilimId = 10, Ad = "Procreate" },
+                new Yazilim { YazilimId = 11, Ad = "Construct" },
+                new Yazilim { YazilimId = 12, Ad = "Articulate" },
+                new Yazilim { YazilimId = 13, Ad = "Unity" },
+                new Yazilim { YazilimId = 14, Ad = "Unreal Engine" },
+                new Yazilim { YazilimId = 15, Ad = "PHP" },
+                new Yazilim { YazilimId = 16, Ad = "Java" },
+                new Yazilim { YazilimId = 17, Ad = ".NET" },
+                new Yazilim { YazilimId = 18, Ad = "Diğer" }
+            };
+        }
+
+        private static IEnumerable<Uzmanlik> GetUzmanlikSeed()
+        {
+            return new List<Uzmanlik>
+            {
+                new Uzmanlik { UzmanlikId = 1, Ad = "Bilişim Uzmanı" },
+                new Uzmanlik { UzmanlikId = 2, Ad = "Görsel Tasarım Uzmanı" },
+                new Uzmanlik { UzmanlikId = 3, Ad = "Yazar" },
+                new Uzmanlik { UzmanlikId = 4, Ad = "Dil Uzmanı" },
+                new Uzmanlik { UzmanlikId = 5, Ad = "Rehberlik" }
+            };
+        }
+
+        private static IEnumerable<GorevTuru> GetGorevTuruSeed()
+        {
+            return new List<GorevTuru>
+            {
+                new GorevTuru { GorevTuruId = 1, Ad = "Dizgi" },
+                new GorevTuru { GorevTuruId = 2, Ad = "Görsel Üretim" },
+                new GorevTuru { GorevTuruId = 3, Ad = "Çizer" },
+                new GorevTuru { GorevTuruId = 4, Ad = "Çizgi Roman Renklendirme" },
+                new GorevTuru { GorevTuruId = 5, Ad = "Görsel Kontrolü" },
+                new GorevTuru { GorevTuruId = 6, Ad = "Çoklu Ortam Tasarımı" },
+                new GorevTuru { GorevTuruId = 7, Ad = "Video/Kurgu" },
+                new GorevTuru { GorevTuruId = 8, Ad = "Fotoğraf Çekimi" },
+                new GorevTuru { GorevTuruId = 9, Ad = "Açıklama" }
+            };
+        }
+
+        private static IEnumerable<IsNiteligi> GetIsNiteligiSeed()
+        {
+            return new List<IsNiteligi>
+            {
+                new IsNiteligi { IsNiteligiId = 1, Ad = "Ders Kitabı" },
+                new IsNiteligi { IsNiteligiId = 2, Ad = "Çalışma Kitabı" },
+                new IsNiteligi { IsNiteligiId = 3, Ad = "Hikâye Kitabı" },
+                new IsNiteligi { IsNiteligiId = 4, Ad = "Çizgi Roman" },
+                new IsNiteligi { IsNiteligiId = 5, Ad = "Çoklu Ortam" },
+                new IsNiteligi { IsNiteligiId = 6, Ad = "MEBİ Mümtaz Şahsiyetler" },
+                new IsNiteligi { IsNiteligiId = 7, Ad = "Dergi" },
+                new IsNiteligi { IsNiteligiId = 8, Ad = "E Bülten" },
+                new IsNiteligi { IsNiteligiId = 9, Ad = "E Dergi" },
+                new IsNiteligi { IsNiteligiId = 10, Ad = "Öğretim Programı" },
+                new IsNiteligi { IsNiteligiId = 11, Ad = "Açıklama" }
             };
         }
     }

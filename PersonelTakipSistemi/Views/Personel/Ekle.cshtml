@@ -545,22 +545,35 @@
         // "İlerle" Butonları
         // next1 -> tab2, next2 -> tab3 ...
         // Mantık: nextX butonu bir sonraki tabı unlock eder ve oraya geçer.
-        const setupNextBtn = (btnId, currentTabId) => {
+        const setupNextBtn = (btnId, currentTabId, checkBoxName = null) => {
             const btn = document.getElementById(btnId);
             if(!btn) return;
             
             btn.addEventListener("click", () => {
-                // Validation kontrolü (HTML5 veya ASP.NET Unobtrusive)
+                // 1. Standart Input Validasyonu (HTML5 veya ASP.NET Unobtrusive)
                 const $currentTabInputs = $('#' + currentTabId).find(':input');
                 let isValid = true;
                 
                 $currentTabInputs.each(function() {
-                    if (!$(this).valid()) {
+                    // Checkbox'lar unobtrusive ile bazen sorunlu olabilir, onları aşağıda manuel kontrol edeceğiz
+                    // Sadece text/select inputlar için standart validasyon:
+                    if(this.type !== 'checkbox' && !$(this).valid()) {
                         isValid = false;
                     }
                 });
 
                 if (!isValid) return;
+
+                // 2. Checkbox Validasyonu (Faz 2A Zorunluluk)
+                if (checkBoxName) {
+                    const checkedCount = document.querySelectorAll(`input[name="${checkBoxName}"]:checked`).length;
+                    if (checkedCount === 0) {
+                        // Basit bir uyarı mekanizması (SweetAlert yoksa standart alert)
+                        // Daha şık olması için tab içine bir hata divi eklenebilir ama şu an alert yeterli.
+                        alert("Lütfen en az bir seçenek seçiniz.");
+                        return; // İlerlemeyi durdur
+                    }
+                }
 
                 const currentIndex = tabOrder.indexOf(currentTabId);
                 if(currentIndex >= 0 && currentIndex < tabOrder.length - 1) {
@@ -571,11 +584,11 @@
             });
         };
 
-        setupNextBtn("next1", "tab1");
-        setupNextBtn("next2", "tab2");
-        setupNextBtn("next3", "tab3");
-        setupNextBtn("next4", "tab4");
-        setupNextBtn("next5", "tab5");
+        setupNextBtn("next1", "tab1"); // Tab1'de checkbox grubu yok
+        setupNextBtn("next2", "tab2", "SeciliYazilimIdleri");
+        setupNextBtn("next3", "tab3", "SeciliUzmanlikIdleri");
+        setupNextBtn("next4", "tab4", "SeciliGorevTuruIdleri");
+        setupNextBtn("next5", "tab5", "SeciliIsNiteligiIdleri");
         
         if(isEditMode) {
             setupNextBtn("next_pass", "tab_password");
@@ -768,6 +781,40 @@
             }
             // Fotoğrafı tekrar çiz (önlem olarak, tab geçişi bazen bozabilir)
             restorePhotoFromHidden();
+        }
+
+        // --- FORM SUBMIT VALIDATION (Faz 2B) ---
+        // Edit modunda kullanıcı tab başlıklarına tıklayarak "İlerle" butonlarını pas geçebilir.
+        // Bu yüzden son aşamada tekrar kontrol ediyoruz.
+        const form = document.querySelector("form");
+        if(form) {
+            form.addEventListener("submit", function(e) {
+                // Checkbox gruplarının isimleri
+                const groups = [
+                    { name: "SeciliYazilimIdleri", label: "Beceriler" },
+                    { name: "SeciliUzmanlikIdleri", label: "Uzmanlık" },
+                    { name: "SeciliGorevTuruIdleri", label: "Görev Türü" },
+                    { name: "SeciliIsNiteligiIdleri", label: "İş Niteliği" }
+                ];
+                
+                let hasError = false;
+                let errorMsg = "";
+
+                // Her grubu kontrol et
+                groups.forEach(g => {
+                    const checkedCount = document.querySelectorAll(`input[name="${g.name}"]:checked`).length;
+                    if(checkedCount === 0) {
+                        hasError = true;
+                        errorMsg += `- ${g.label} sekmesinde en az bir seçim yapmalısınız.\n`;
+                    }
+                });
+
+                if(hasError) {
+                    e.preventDefault(); // Submit'i durdur
+                    alert("Lütfen aşağıdaki eksikleri tamamlayınız:\n\n" + errorMsg);
+                }
+                // Hata yoksa form normal gönderilir
+            });
         }
 
       });

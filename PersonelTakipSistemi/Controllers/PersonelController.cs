@@ -222,6 +222,35 @@ namespace PersonelTakipSistemi.Controllers
                     model.Telefon = cleanPhone;
                 }
 
+                // --- FAZ 2A: Zorunlu Alan Kontrolleri (Multi-Select) ---
+                if (model.SeciliYazilimIdleri == null || !model.SeciliYazilimIdleri.Any())
+                {
+                    ModelState.AddModelError("SeciliYazilimIdleri", "En az bir yazılım seçilmelidir.");
+                }
+                if (model.SeciliUzmanlikIdleri == null || !model.SeciliUzmanlikIdleri.Any())
+                {
+                     ModelState.AddModelError("SeciliUzmanlikIdleri", "En az bir uzmanlık seçilmelidir.");
+                }
+                if (model.SeciliGorevTuruIdleri == null || !model.SeciliGorevTuruIdleri.Any())
+                {
+                     ModelState.AddModelError("SeciliGorevTuruIdleri", "En az bir görev türü seçilmelidir.");
+                }
+                if (model.SeciliIsNiteligiIdleri == null || !model.SeciliIsNiteligiIdleri.Any())
+                {
+                     ModelState.AddModelError("SeciliIsNiteligiIdleri", "En az bir iş niteliği seçilmelidir.");
+                }
+                
+                // Eğer manuel eklediğimiz hatalar varsa IsValid false dönecek (state check needed potentially, or re-check)
+                if(!ModelState.IsValid)
+                {
+                     var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                     TempData["Error"] = "Lütfen tüm zorunlu seçimleri yapınız.";
+                     await FillLookupLists(model);
+                     return View(model);
+                }
+                // --- END FAZ 2A ---
+
+
                 // 1. Logic Separation
                 bool isUpdate = model.IsEditMode && model.PersonelId.HasValue && model.PersonelId.Value > 0;
 
