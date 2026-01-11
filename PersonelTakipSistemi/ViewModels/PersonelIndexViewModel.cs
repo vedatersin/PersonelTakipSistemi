@@ -39,6 +39,11 @@ namespace PersonelTakipSistemi.ViewModels
         public string Eposta { get; set; } = null!;
         public bool AktifMi { get; set; }
         public string? FotografYolu { get; set; }
+        
+        public List<string> Yazilimlar { get; set; } = new List<string>();
+        public List<string> Uzmanliklar { get; set; } = new List<string>();
+        public List<string> GorevTurleri { get; set; } = new List<string>();
+        public List<string> IsNitelikleri { get; set; } = new List<string>();
     }
 
     public class PaginationInfoViewModel

@@ -51,7 +51,7 @@
             <!-- SATIR 2: Yazılımlar, Uzmanlıklar, Görev Türü, İş Niteliği -->
             <div class="row g-3 mt-1">
                 <div class="col-12 col-lg-3">
-                     <label class="form-label">Yazılımlar</label>
+                     <label class="form-label">Kullanılan Yazılımlar</label>
                      <select class="form-select select2" name="Filter.SeciliYazilimIdleri" multiple="multiple">
                         @foreach (var item in Model.Lookups.Yazilimlar)
                         {
@@ -67,7 +67,7 @@
                      </select>
                 </div>
                 <div class="col-12 col-lg-3">
-                     <label class="form-label">Uzmanlıklar</label>
+                     <label class="form-label">Uzmanlık</label>
                      <select class="form-select select2" name="Filter.SeciliUzmanlikIdleri" multiple="multiple">
                         @foreach (var item in Model.Lookups.Uzmanliklar)
                         {
@@ -145,7 +145,10 @@
                 <tr>
                     <th>Foto</th>
                     <th>Ad Soyad</th>
-                    <th>Branş</th>
+                    <th>Kullanılan Yazılımlar</th>
+                    <th>Uzmanlık</th>
+                    <th>Görev Türü</th>
+                    <th>İş Niteliği</th> 
                     <th>Görevli İl</th>
                     <th>Durum</th>
                 </tr>
@@ -167,7 +170,89 @@
                             }
                         </td>
                         <td><strong>@item.AdSoyad</strong></td>
-                        <td>@item.Brans</td>
+                        <td>
+                            @if(item.Yazilimlar != null && item.Yazilimlar.Any())
+                            {
+                                var visibleCount = 3;
+                                var all = item.Yazilimlar;
+                                
+                                if (all.Count <= visibleCount)
+                                {
+                                    foreach(var y in all)
+                                    {
+                                        <span class="badge bg-label-primary me-1">@y</span>
+                                    }
+                                }
+                                else
+                                {
+                                    // İlk 3 kayıt
+                                    for(int i = 0; i < visibleCount; i++)
+                                    {
+                                        <span class="badge bg-label-primary me-1">@all[i]</span>
+                                    }
+                                    
+                                    // AÇMA BUTONU (...) - Başlangıçta görünür
+                                    <span class="badge bg-label-primary cursor-pointer show-more-btn" 
+                                          style="cursor:pointer;" 
+                                          onclick="toggleSoftwareContainer(this)">...</span>
+                                          
+                                    // GİZLİ KISIM
+                                    <div class="d-none mt-1 software-extended-container" style="line-height: 2;">
+                                        @for(int i = visibleCount; i < all.Count; i++)
+                                        {
+                                            <span class="badge bg-label-primary me-1">@all[i]</span>
+                                        }
+                                        
+                                        <span class="badge bg-secondary cursor-pointer" 
+                                              style="cursor:pointer;" 
+                                              onclick="toggleSoftwareContainer(this)">X</span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td>
+                            @if(item.Uzmanliklar != null && item.Uzmanliklar.Any())
+                            {
+                                foreach(var u in item.Uzmanliklar)
+                                {
+                                    <span class="badge bg-label-info me-1">@u</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td>
+                            @if(item.GorevTurleri != null && item.GorevTurleri.Any())
+                            {
+                                foreach(var g in item.GorevTurleri)
+                                {
+                                    <span class="badge bg-label-secondary me-1">@g</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
+                        <td>
+                            @if(item.IsNitelikleri != null && item.IsNitelikleri.Any())
+                            {
+                                foreach(var n in item.IsNitelikleri)
+                                {
+                                    <span class="badge bg-label-warning me-1">@n</span>
+                                }
+                            }
+                            else
+                            {
+                                <span class="text-muted">-</span>
+                            }
+                        </td>
                         <td>@item.GorevliIl</td>
                         <td>
                             @if (item.AktifMi)
@@ -221,6 +306,29 @@
     function changePage(page) {
         document.getElementById('pageInput').value = page;
         document.getElementById('filterForm').submit();
+    }
+    
+    function toggleSoftwareContainer(element) {
+        if (event) event.stopPropagation();
+        
+        // Eğer tıklanan element "..." (show-more-btn) ise:
+        if (element.classList.contains('show-more-btn')) {
+            var container = element.nextElementSibling; // div.software-extended-container
+            if(container) {
+                element.classList.add('d-none'); // "..." gizle
+                container.classList.remove('d-none'); // Listeyi aç
+            }
+        } 
+        // Eğer tıklanan element "X" ise (kapatma butonu):
+        else {
+            var container = element.parentElement; // div.software-extended-container
+            var showBtn = container.previousElementSibling; // span.show-more-btn
+            
+            container.classList.add('d-none'); // Listeyi gizle
+            if(showBtn) {
+                showBtn.classList.remove('d-none'); // "..." göster
+            }
+        }
     }
     
     // Dropdown checkbox'larına tıklandığında dropdown kapanmasın

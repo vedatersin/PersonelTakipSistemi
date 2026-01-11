@@ -30,6 +30,10 @@ namespace PersonelTakipSistemi.Controllers
             var query = _context.Personeller
                 .Include(p => p.GorevliIl)
                 .Include(p => p.Brans)
+                .Include(p => p.PersonelYazilimlar).ThenInclude(py => py.Yazilim)
+                .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
+                .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
+                .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
                 .AsNoTracking()
                 .AsQueryable();
 
@@ -95,7 +99,11 @@ namespace PersonelTakipSistemi.Controllers
                     GorevliIl = p.GorevliIl.Ad,
                     Eposta = p.Eposta,
                     AktifMi = p.AktifMi,
-                    FotografYolu = p.FotografYolu
+                    FotografYolu = p.FotografYolu,
+                    Yazilimlar = p.PersonelYazilimlar.Select(py => py.Yazilim.Ad).ToList(),
+                    Uzmanliklar = p.PersonelUzmanliklar.Select(pu => pu.Uzmanlik.Ad).ToList(),
+                    GorevTurleri = p.PersonelGorevTurleri.Select(pg => pg.GorevTuru.Ad).ToList(),
+                    IsNitelikleri = p.PersonelIsNitelikleri.Select(pi => pi.IsNiteligi.Ad).ToList()
                 })
                 .ToListAsync();
 
