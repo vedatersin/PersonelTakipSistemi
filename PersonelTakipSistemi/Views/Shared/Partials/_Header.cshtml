@@ -10,43 +10,58 @@
   <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
     <ul class="navbar-nav flex-row align-items-center ms-auto">
       <!-- User -->
-      <li class="nav-item navbar-dropdown dropdown-user dropdown">
-        <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
-          <div class="avatar avatar-online">
-            <img src="~/sevilay-tema/assets/img/avatars/4.png" alt class="w-px-40 h-auto rounded-circle" />
-          </div>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-end">
-          <li>
-            <a class="dropdown-item" href="#">
-              <div class="d-flex">
-                <div class="flex-shrink-0 me-3">
-                  <div class="avatar avatar-online">
-                    <img src="~/sevilay-tema/assets/img/avatars/4.png" alt class="w-px-40 h-auto rounded-circle" />
-                  </div>
-                </div>
-                <div class="flex-grow-1">
-                  <h6 class="mb-0">John Doe</h6>
-                  <small class="text-body-secondary">Admin</small>
-                </div>
+      @if (User.Identity!.IsAuthenticated)
+      {
+          var photoUrl = User.FindFirst("PhotoUrl")?.Value;
+          var displayName = User.Identity.Name ?? "Kullanıcı";
+          var role = "Personel"; // Or fetch role claim if available
+
+          <li class="nav-item navbar-dropdown dropdown-user dropdown">
+            <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
+              <div class="avatar avatar-online">
+                <img src="@(string.IsNullOrEmpty(photoUrl) ? "/sevilay-tema/assets/img/avatars/1.png" : photoUrl)" alt class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
               </div>
             </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item" href="#">
+                  <div class="d-flex">
+                    <div class="flex-shrink-0 me-3">
+                      <div class="avatar avatar-online">
+                        <img src="@(string.IsNullOrEmpty(photoUrl) ? "/sevilay-tema/assets/img/avatars/1.png" : photoUrl)" alt class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
+                      </div>
+                    </div>
+                    <div class="flex-grow-1">
+                      <h6 class="mb-0">@displayName</h6>
+                      <small class="text-body-secondary">@role</small>
+                    </div>
+                  </div>
+                </a>
+              </li>
+              <li>
+                <div class="dropdown-divider my-1"></div>
+              </li>
+              <li>
+                <a class="dropdown-item" asp-controller="Personel" asp-action="BenimDetay">
+                  <i class="icon-base bx bx-user icon-md me-3"></i><span>Profil</span>
+                </a>
+              </li>
+              <li>
+                  <form asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="d-inline">
+                    <a class="dropdown-item" href="javascript:document.getElementById('logoutForm').submit();">
+                      <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Çıkış</span>
+                    </a>
+                  </form>
+              </li>
+            </ul>
           </li>
-          <li>
-            <div class="dropdown-divider my-1"></div>
-          </li>
-          <li>
-            <a class="dropdown-item" href="#">
-              <i class="icon-base bx bx-user icon-md me-3"></i><span>Profil</span>
-            </a>
-          </li>
-          <li>
-            <a class="dropdown-item" href="javascript:void(0);">
-              <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Çıkış</span>
-            </a>
-          </li>
-        </ul>
-      </li>
+      }
+      else
+      {
+           <li class="nav-item">
+              <a class="nav-link" asp-controller="Account" asp-action="Login">Giriş Yap</a>
+           </li>
+      }
       <!--/ User -->
     </ul>
   </div>

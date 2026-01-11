@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using PersonelTakipSistemi; // For ApplicationState
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +16,43 @@ Console.WriteLine($"[DB INIT] Using Connection String: {connectionString}");
 
 builder.Services.AddDbContext<PersonelTakipSistemi.Data.TegmPersonelTakipDbContext>(options => 
     options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure(3)));
+
+// Authentication & Data Protection
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "dp_keys")))
+    .SetApplicationName("PersonelTakipSistemi");
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.SlidingExpiration = true;
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+        
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnValidatePrincipal = async context =>
+            {
+                var user = context.Principal;
+                if (user != null)
+                {
+                    // "InstanceId" claim'i var mı kontrol et
+                    var instanceIdClaim = user.FindFirst("InstanceId");
+                    
+                    // Eğer claim varsa (demek ki RememberMe seçilmemiş),
+                    // Ve bu claim şu anki sunucu InstanceId'si ile eşleşmiyorsa (demek ki sunucu restart yemiş)
+                    if (instanceIdClaim != null && instanceIdClaim.Value != ApplicationState.InstanceId)
+                    {
+                        // Oturumu reddet (Logout)
+                        context.RejectPrincipal();
+                        await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    }
+                }
+            }
+        };
+    });
 
 var app = builder.Build();
 
@@ -29,10 +69,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.Run();

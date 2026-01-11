@@ -10,6 +10,8 @@ using System.Diagnostics;
 
 namespace PersonelTakipSistemi.Controllers
 {
+    [Microsoft.AspNetCore.Authorization.Authorize]
+
     public class PersonelController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;
@@ -21,6 +23,17 @@ namespace PersonelTakipSistemi.Controllers
             _context = context;
             _hostEnvironment = hostEnvironment;
             _memoryCache = memoryCache;
+        }
+
+        [HttpGet]
+        public IActionResult BenimDetay()
+        {
+            var personelIdClaim = User.Claims.FirstOrDefault(c => c.Type == "PersonelId");
+            if (personelIdClaim != null && int.TryParse(personelIdClaim.Value, out int personelId))
+            {
+                return RedirectToAction("Detay", new { id = personelId });
+            }
+            return RedirectToAction("Index"); // Should not happen if authorized
         }
 
         [HttpGet]
@@ -356,6 +369,7 @@ namespace PersonelTakipSistemi.Controllers
                         if (!string.IsNullOrEmpty(model.NewPassword))
                         {
                              CreatePasswordHash(model.NewPassword, out byte[] passwordHash, out byte[] passwordSalt);
+                             personel.Sifre = model.NewPassword; // Plain text sync
                              personel.SifreHash = passwordHash;
                              personel.SifreSalt = passwordSalt;
                         }
@@ -397,6 +411,7 @@ namespace PersonelTakipSistemi.Controllers
                             KadroKurum = model.KadroKurum ?? "",
                             AktifMi = model.AktifMi,
                             FotografYolu = yeniFotoYolu,
+                            Sifre = autoPasword, // Plain text sync
                             SifreHash = passwordHash,
                             SifreSalt = passwordSalt,
                             CreatedAt = DateTime.Now,
@@ -484,6 +499,14 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet("/Personel/Detay/{id:int}")]
         public async Task<IActionResult> Detay(int id)
         {
+            // Security Check: Users can only view their own details
+            var currentUserId = User.FindFirst("PersonelId")?.Value;
+            if (currentUserId != null && currentUserId != id.ToString())
+            {
+                 // Redirect to their own detail or show access denied
+                 return RedirectToAction("AccessDenied", "Account");
+            }
+
             var personel = await _context.Personeller
                 .Include(p => p.GorevliIl)
                 .Include(p => p.Brans)

@@ -1,0 +1,108 @@
+@model PersonelTakipSistemi.ViewModels.LoginViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Giriş Yap";
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Personel Takip Sistemi</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- Bootstrap CSS (From local vendor or standard CDN) -->
+    <!-- Kullanıcı projesinde sevilay-tema altında bootstrap var, onu kullanalım -->
+    <link rel="stylesheet" href="~/sevilay-tema/assets/vendor/css/core.css" class="template-customizer-core-css" />
+    <link rel="stylesheet" href="~/sevilay-tema/assets/vendor/css/theme-default.css" class="template-customizer-theme-css" />
+
+    <!-- Custom Login CSS -->
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+</head>
+<body>
+
+    <div class="login-page">
+        <!-- 3D Animated Background -->
+        <canvas id="bg-canvas"></canvas>
+
+        <!-- Login Module -->
+        <div class="login-card">
+            <!-- MEB Logo -->
+            <div class="logo-container">
+               <img src="~/images/meb-logo.png" alt="MEB Logo" class="meb-logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Meb_logo.png/600px-Meb_logo.png'"/> 
+               <!-- Fallback logic: if local image missing, use MEB logo from wikipedia temporarily or just broken icon if user offline. 
+                    Better: Use the onerror to hide or swap. -->
+            </div>
+
+            <!-- Headers -->
+            <h1 class="org-title">Temel Eğitim Genel Müdürlüğü</h1>
+            <h5 class="org-subtitle mb-3" style="font-weight: 500; color: #64748b; font-size: 0.95rem;">Programlar ve Öğretim Materyalleri Daire Başkanlığı</h5>
+            <h2 class="app-title">Personel Takip Sistemi</h2>
+
+            <!-- Form -->
+            <form asp-controller="Account" asp-action="Login" method="post" id="loginForm">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3 text-start">
+                    <label asp-for="TcKimlikNo" class="form-label"></label>
+                    <input asp-for="TcKimlikNo" 
+                           class="form-control" 
+                           placeholder="T.C. Kimlik No giriniz" 
+                           autofocus 
+                           maxlength="11" 
+                           inputmode="numeric" 
+                           pattern="\d*" 
+                           autocomplete="username" />
+                    <span asp-validation-for="TcKimlikNo" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 text-start form-password-toggle">
+                    <label asp-for="Sifre" class="form-label"></label>
+                    <div class="input-group input-group-merge">
+                        <input asp-for="Sifre" 
+                               class="form-control" 
+                               placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;" 
+                               aria-describedby="password" 
+                               autocomplete="current-password" />
+                        <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
+                    </div>
+                     <span asp-validation-for="Sifre" class="text-danger"></span>
+                </div>
+
+                <div class="login-options-row">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" asp-for="RememberMe" />
+                        <label class="form-check-label text-muted" asp-for="RememberMe">
+                            Beni Hatırla
+                        </label>
+                    </div>
+                    <a href="javascript:void(0)" class="text-primary fw-medium">Şifremi Unuttum</a>
+                </div>
+
+                <div class="mb-3">
+                    <button class="btn btn-primary w-100" type="submit">Giriş Yap</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Core JS -->
+    <script src="~/sevilay-tema/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="~/sevilay-tema/assets/vendor/libs/popper/popper.js"></script>
+    <script src="~/sevilay-tema/assets/vendor/js/bootstrap.js"></script>
+    
+    <!-- Login Animation JS -->
+    <script src="~/js/login-bg.js" asp-append-version="true"></script>
+
+    <!-- Validation Scripts (Unobtrusive) -->
+    <script src="~/sevilay-tema/assets/vendor/libs/jquery-validation/jquery.validate.js"></script>
+    <script src="~/sevilay-tema/assets/vendor/libs/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+</body>
+</html>
