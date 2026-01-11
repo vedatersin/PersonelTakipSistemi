@@ -3,18 +3,156 @@
     ViewData["Title"] = "Personel Ekle";
 }
 
+
 @section Styles {
   <link rel="stylesheet" href="~/sevilay-tema/css/personel-ekle.css" />
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <style>
-      .select2-container .select2-selection--single {
-          height: 38px;
-          border: 1px solid #ced4da;
+      /* Stepper Reset */
+      .tabs { display: none; } /* Hide old tabs */
+      
+      .stepper-wrapper {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+        background: #fff;
+        padding: 1rem;
+        border-radius: 50px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        overflow-x: auto;
+      }
+      
+      .step-item {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        flex: 1;
+        cursor: pointer;
+        min-width: 100px;
+        transition: all 0.3s ease;
+        opacity: 0.6;
+      }
+      
+      .step-item.active { opacity: 1; }
+      .step-item.completed { opacity: 1; }
+      
+      .step-counter {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #f5f5f9;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        font-weight: bold;
+        color: #697a8d;
+        font-size: 1.2rem;
+        z-index: 2;
+        transition: all 0.3s;
+      }
+      
+      /* Active State (Blue) */
+      .step-item.active .step-counter {
+        background-color: #0d6efd; /* Bootstrap Primary */
+        color: #fff;
+        box-shadow: 0 4px 10px rgba(13, 110, 253, 0.4);
+      }
+      
+      /* Completed State (Green) */
+      .step-item.completed .step-counter {
+        background-color: #198754; /* Bootstrap Success */
+        color: #fff;
+      }
+
+      .step-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #566a7f;
+        text-align: center;
+      }
+      .step-sub {
+        font-size: 0.7rem;
+        color: #a1acb8;
+        text-align: center;
+        display: block;
+      }
+
+      /* Line Connector */
+      .step-item::after {
+        content: '';
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        width: 100%;
+        height: 2px;
+        background-color: #e7e7e8;
+        z-index: 1;
+      }
+      .step-item:last-child::after { display: none; }
+      
+      /* Active Connector */
+      .step-item.completed::after {
+        background-color: #198754; 
+      }
+      
+      /* Form Layout Fixes */
+      .form-label { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; color: #566a7f; }
+      .form-control, .form-select { border-radius: 0.375rem; padding: 0.5rem 0.875rem; }
+      .select2-container .select2-selection--single { height: 38px; border-color: #d9dee3; }
+      .select2-container--default .select2-selection--single .select2-selection__arrow { top: 6px; }
+      
+      /* Photo Upload Area */
+      .photo-upload-area {
           display: flex;
           align-items: center;
+          gap: 20px;
+          padding: 1.5rem;
+          background: #f8f9fa;
+          border-radius: 0.5rem;
+          margin-bottom: 2rem;
       }
-      .select2-container--default .select2-selection--single .select2-selection__arrow {
-          top: 6px;
+      .photo-circle {
+          width: 100px;
+          height: 100px;
+          border-radius: 50%;
+          background: #e9ecef;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 2.5rem;
+          color: #adb5bd;
+          object-fit: cover;
+          overflow: hidden;
+      }
+      .photo-circle img { width: 100%; height: 100%; object-fit: cover; }
+      
+      /* Custom Checkbox Grid */
+      .checkbox-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 1rem;
+      }
+      .custom-checkbox-card {
+          padding: 0.75rem;
+          border: 1px solid #e7e7e8;
+          border-radius: 0.375rem;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+      }
+      .custom-checkbox-card:hover { background-color: #f8f9fa; border-color: #d9dee3; }
+      
+      /* Action Buttons */
+      .action-bar {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 2rem;
+          padding-top: 1rem;
+          border-top: 1px solid #e7e7e8;
       }
   </style>
 }
@@ -34,18 +172,52 @@
       </div>
   }
 
-  <!-- TAB BUTONLARI -->
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="tab1">Kişisel Bilgiler</button>
-    <button class="tab-btn" data-tab="tab2">Beceriler (Kullanılan Yazılımlar)</button>
-    <button class="tab-btn" data-tab="tab3">Uzmanlık</button>
-    <button class="tab-btn" data-tab="tab4">Görev Türü</button>
-    <button class="tab-btn" data-tab="tab5">Yapılan İş Niteliği</button>
+  <!-- STEPPER -->
+  <div class="stepper-wrapper">
+    <!-- 1. Kişisel -->
+    <div class="step-item active" data-step="tab1" onclick="handleStepClick('tab1')">
+      <div class="step-counter"><i class='bx bx-user'></i></div>
+      <div class="step-name">Kişisel Bilgiler</div>
+    </div>
+    
+    <!-- 2. Beceriler -->
+    <div class="step-item" data-step="tab2" onclick="handleStepClick('tab2')">
+      <div class="step-counter"><i class='bx bx-grid-alt'></i></div>
+      <div class="step-name">Beceriler</div>
+      <span class="step-sub">Yazılımlar</span>
+    </div>
+
+    <!-- 3. Uzmanlık -->
+    <div class="step-item" data-step="tab3" onclick="handleStepClick('tab3')">
+      <div class="step-counter"><i class='bx bx-briefcase'></i></div>
+      <div class="step-name">Uzmanlık</div>
+    </div>
+
+    <!-- 4. Görev Türü -->
+    <div class="step-item" data-step="tab4" onclick="handleStepClick('tab4')">
+      <div class="step-counter"><i class='bx bx-task'></i></div>
+      <div class="step-name">Görev Türü</div>
+    </div>
+
+    <!-- 5. İş Niteliği -->
+    <div class="step-item" data-step="tab5" onclick="handleStepClick('tab5')">
+      <div class="step-counter"><i class='bx bx-file'></i></div>
+      <div class="step-name">İş Niteliği</div>
+    </div>
+
     @if(Model.IsEditMode)
     {
-         <button class="tab-btn" data-tab="tab_password">Şifre Değiştir</button>
+         <div class="step-item" data-step="tab_password" onclick="handleStepClick('tab_password')">
+           <div class="step-counter"><i class='bx bx-key'></i></div>
+           <div class="step-name">Şifre</div>
+         </div>
     }
-    <button class="tab-btn" data-tab="tab6">Kontrol</button>
+
+    <!-- 6. Kontrol -->
+    <div class="step-item" data-step="tab6" onclick="handleStepClick('tab6')">
+      <div class="step-counter"><i class='bx bx-search'></i></div>
+      <div class="step-name">Kontrol</div>
+    </div>
   </div>
 
   <form asp-controller="Personel" asp-action="Ekle" method="post" enctype="multipart/form-data">
@@ -55,218 +227,211 @@
 
   <!-- TAB1 KİŞİSEL BİLGİLER -->
   <div id="tab1" class="tab-content active">
-  <h2>Kişisel Bilgiler</h2>
-  <div class="alert alert-info py-2 mb-3">
-    <i class='bx bx-info-circle'></i> * ile işaretli alanlar zorunludur.
-  </div>
-
-    <!-- Personel Fotoğrafı: Row'un üstünde veya sol kolonda kalabilir. Burada en üste (row dışına) alıyoruz. -->
-    <div class="mb-4 d-flex align-items-center gap-4">
-      <!-- Fotoğraf Önizleme -->
-      <div>
-        <div class="photo-preview-container" id="previewContainer">
-            <i class='bx bx-user'></i>
-            <img id="photoPreview" src="" alt="Personel Fotoğrafı" />
-        </div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0">Kişisel Bilgiler</h5>
+        <div class="text-muted small">* ile işaretli alanlar zorunludur.</div>
       </div>
 
-      <!-- Fotoğraf Yükleme -->
-      <div>
-        <label class="form-label d-block">Personel Fotoğrafı</label>
-        <input type="file" id="personelFoto" name="personelFoto" accept="image/*" class="form-control" >
-        <input type="hidden" id="FotografBase64" name="FotografBase64" asp-for="FotografBase64" />
-        <small class="text-muted">JPG, PNG yükleyebilirsiniz.</small>
-      </div>
-    </div>
-
-    <div class="row">
-        <!-- SOL KOLON -->
-        <div class="col-md-6">
-            <div class="mb-3">
-              <label asp-for="Ad" class="form-label">Personel Adı: <span class="text-danger">*</span></label>
-              <input type="text" id="personelAdi" asp-for="Ad" class="form-control" placeholder="Personel adını girin" >
-              <span asp-validation-for="Ad" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-              <label asp-for="Soyad" class="form-label">Personel Soyadı: <span class="text-danger">*</span></label>
-              <input  type="text"  id="personelSoyadi" asp-for="Soyad" class="form-control" placeholder="Personel soyadını girin" >
-              <span asp-validation-for="Soyad" class="text-danger"></span>
-            </div>
-
-            <!-- Cinsiyet (RADIO) -->
-            <div class="mb-3">
-              <label class="form-label d-block">Personel Cinsiyet: <span class="text-danger">*</span></label>
-
-              <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" asp-for="PersonelCinsiyet" id="cinsiyetKadin" value="1" >
-                <label class="form-check-label" for="cinsiyetKadin">Kadın</label>
-              </div>
-
-              <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" asp-for="PersonelCinsiyet" id="cinsiyetErkek" value="0"         >
-                <label class="form-check-label" for="cinsiyetErkek">Erkek</label>
-              </div>
-            </div>
-
-            <div class="mb-3">
-              <label asp-for="TcKimlikNo" class="form-label">Personel TC KİMLİK NO: <span class="text-danger">*</span></label>
-              <input type="text" id="personelTcKimlik" asp-for="TcKimlikNo" class="form-control" placeholder="Personel TC Kimlik Numarasını girin" maxlength="11" inputmode="numeric" pattern="\d{11}" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
-              <span asp-validation-for="TcKimlikNo" class="text-danger"></span>
-            </div>
-            
-             <div class="mb-3">
-              <label asp-for="DogumTarihi" class="form-label">Doğum Tarihi: <span class="text-danger">*</span></label>
-              <input type="date" asp-for="DogumTarihi" class="form-control" >
-              <span asp-validation-for="DogumTarihi" class="text-danger"></span>
-            </div>
-        </div>
-
-        <!-- SAĞ KOLON -->
-        <div class="col-md-6">
-            <div class="mb-3">
-              <label asp-for="Telefon" class="form-label">Telefon <span class="text-danger">*</span></label>
-              <input  type="tel" class="form-control" id="personeltelefon" asp-for="Telefon" placeholder="0 (5__) ___ __ __" >
-            </div>
-
-            <div class="mb-3">
-              <label asp-for="Eposta" class="form-label">E-posta <span class="text-danger">*</span></label>
-              <input type="email" class="form-control"  id="personelemail"  asp-for="Eposta" placeholder="ornek@mail.com" >
-              <span asp-validation-for="Eposta" class="text-danger"></span>
-            </div>
-            
-            <div class="mb-3">
-              <label asp-for="GorevliIlId" class="form-label">Görevli İl <span class="text-danger">*</span></label>
-              <select class="form-select select2" id="personelgorevli_il" asp-for="GorevliIlId">
-                <option value="">İl Seçiniz...</option>
-                @if(Model.Iller != null) {
-                    foreach(var item in Model.Iller) {
-                        <option value="@item.Id">@item.Ad</option>
-                    }
-                }
-              </select>
-              <span asp-validation-for="GorevliIlId" class="text-danger"></span>
-            </div>
-            
-             <!-- ✅ BRANŞ ALANI (Select2) -->
-            <div class="mb-3">
-            <label asp-for="BransId" class="form-label">Branş <span class="text-danger">*</span></label>
-            <select id="personelBrans" asp-for="BransId" class="form-select select2">
-              <option value="">Branş Seçiniz...</option>
-              @if(Model.Branslar != null) {
-                  foreach(var item in Model.Branslar) {
-                      <option value="@item.Id">@item.Ad</option>
-                  }
+      <!-- PHOTO AREA -->
+      <div class="photo-upload-area">
+          <div class="photo-circle" id="previewContainer">
+              @if(!string.IsNullOrEmpty(Model.FotografBase64))
+              {
+                   <img id="photoPreview" src="@Model.FotografBase64" />
+                   <i class='bx bx-user' style="display:none"></i>
               }
-            </select>
-            <span asp-validation-for="BransId" class="text-danger"></span>
-            </div>
-            
-            <div class="mb-3">
-              <label asp-for="KadroKurum" class="form-label">Kadro Kurum <span class="text-danger">*</span></label>
-              <input  type="text" id="personelKadroKurum" asp-for="KadroKurum" class="form-control"  placeholder="Personelin Kadrosunun Bulunduğu Kurumu Giriniz"  >
-              <span asp-validation-for="KadroKurum" class="text-danger"></span>
-            </div>
+              else
+              {
+                   <img id="photoPreview" src="" style="display:none" />
+                   <i class='bx bx-user'></i>
+              }
+          </div>
+          <div class="flex-grow-1">
+               <label class="form-label">Personel Fotoğrafı</label>
+               <input type="file" id="personelFoto" name="personelFoto" accept="image/*" class="form-control" >
+               <input type="hidden" id="FotografBase64" name="FotografBase64" asp-for="FotografBase64" />
+               <small class="text-muted d-block mt-1">JPG veya PNG formatında, maksimum 2MB.</small>
+          </div>
+      </div>
 
-            <div class="form-check mb-3">
-              <input  type="checkbox" id="gorevAktif" asp-for="AktifMi" class="form-check-input"  >
-              <label for="gorevAktif" class="form-check-label">Görev Aktiflik <span class="text-danger">*</span></label>
-            </div>
-        </div>
-    </div>
+      <div class="row g-3">
+          <!-- LEFT COL -->
+          <div class="col-md-6">
+               <div class="mb-3">
+                   <label asp-for="Ad" class="form-label">Personel Adı *</label>
+                   <input type="text" asp-for="Ad" class="form-control" placeholder="Ad" id="personelAdi">
+                   <span asp-validation-for="Ad" class="text-danger"></span>
+               </div>
+               
+               <div class="mb-3">
+                   <label asp-for="Soyad" class="form-label">Personel Soyadı *</label>
+                   <input type="text" asp-for="Soyad" class="form-control" placeholder="Soyad" id="personelSoyadi">
+                   <span asp-validation-for="Soyad" class="text-danger"></span>
+               </div>
 
-    <button type="button" class="btn btn-primary" id="next1">İlerle</button>
+               <div class="mb-3">
+                   <label class="form-label">Cinsiyet *</label>
+                   <div class="d-flex gap-3 mt-1">
+                       <div class="form-check">
+                           <input class="form-check-input" type="radio" asp-for="PersonelCinsiyet" id="cinsiyetKadin" value="1">
+                           <label class="form-check-label" for="cinsiyetKadin">Kadın</label>
+                       </div>
+                       <div class="form-check">
+                           <input class="form-check-input" type="radio" asp-for="PersonelCinsiyet" id="cinsiyetErkek" value="0">
+                           <label class="form-check-label" for="cinsiyetErkek">Erkek</label>
+                       </div>
+                   </div>
+               </div>
+
+               <div class="mb-3">
+                   <label asp-for="TcKimlikNo" class="form-label">TC Kimlik No *</label>
+                   <input type="text" asp-for="TcKimlikNo" class="form-control" maxlength="11" oninput="this.value = this.value.replace(/[^0-9]/g, '')" id="personelTcKimlik">
+                   <span asp-validation-for="TcKimlikNo" class="text-danger"></span>
+               </div>
+
+               <div class="mb-3">
+                   <label asp-for="DogumTarihi" class="form-label">Doğum Tarihi *</label>
+                   <input type="date" asp-for="DogumTarihi" class="form-control">
+                   <span asp-validation-for="DogumTarihi" class="text-danger"></span>
+               </div>
+               
+               <!-- AktifMi Rule: Only Show in Edit Mode -->
+               @if(Model.IsEditMode)
+               {
+                   <div class="form-check mt-4">
+                       <input class="form-check-input" type="checkbox" asp-for="AktifMi" id="gorevAktif">
+                       <label class="form-check-label" for="gorevAktif">Görev Kaydı Aktif</label>
+                   </div>
+               }
+          </div>
+
+          <!-- RIGHT COL -->
+          <div class="col-md-6">
+              <div class="mb-3">
+                  <label asp-for="Telefon" class="form-label">Telefon *</label>
+                  <input type="tel" asp-for="Telefon" class="form-control" id="personeltelefon">
+                  <span asp-validation-for="Telefon" class="text-danger"></span>
+              </div>
+
+              <div class="mb-3">
+                  <label asp-for="Eposta" class="form-label">E-posta *</label>
+                  <input type="email" asp-for="Eposta" class="form-control" id="personelemail">
+                  <span asp-validation-for="Eposta" class="text-danger"></span>
+              </div>
+
+               <div class="mb-3">
+                  <label asp-for="GorevliIlId" class="form-label">Görevli İl *</label>
+                  <select class="form-select select2" asp-for="GorevliIlId" id="personelgorevli_il">
+                      <option value="">Seçiniz...</option>
+                      @if(Model.Iller != null) { 
+                          foreach(var item in Model.Iller) { <option value="@item.Id">@item.Ad</option> } 
+                      }
+                  </select>
+                  <span asp-validation-for="GorevliIlId" class="text-danger"></span>
+              </div>
+
+              <div class="mb-3">
+                  <label asp-for="BransId" class="form-label">Branş *</label>
+                  <select class="form-select select2" asp-for="BransId" id="personelBrans">
+                      <option value="">Seçiniz...</option>
+                      @if(Model.Branslar != null) { 
+                          foreach(var item in Model.Branslar) { <option value="@item.Id">@item.Ad</option> } 
+                      }
+                  </select>
+                  <span asp-validation-for="BransId" class="text-danger"></span>
+              </div>
+
+              <div class="mb-3">
+                  <label asp-for="KadroKurum" class="form-label">Kadro Kurum *</label>
+                  <input type="text" asp-for="KadroKurum" class="form-control" id="personelKadroKurum">
+                  <span asp-validation-for="KadroKurum" class="text-danger"></span>
+              </div>
+          </div>
+      </div>
+
+      <div class="action-bar">
+          <button type="button" class="btn btn-outline-secondary" onclick="clearTab1()">Temizle</button>
+          <button type="button" class="btn btn-primary px-4" id="next1">İlerle</button>
+      </div>
   </div> <!-- /Tab1 -->
 
   <!-- TAB2 BECERİLER -->
   <div id="tab2" class="tab-content">
-    <h2>Beceriler (Kullanılan Yazılımlar)</h2>
-    <div class="mb-4">
-        <div class="row">
+    <div class="checkbox-grid">
         @if(Model.Yazilimlar != null)
         {
             @foreach(var item in Model.Yazilimlar)
             {
-                <div class="col-md-3 mb-2">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="yazilim_@item.Id" value="@item.Id" name="SeciliYazilimIdleri" @(Model.SeciliYazilimIdleri != null && Model.SeciliYazilimIdleri.Contains(item.Id) ? "checked" : "")>
-                        <label class="form-check-label" for="yazilim_@item.Id">@item.Ad</label>
-                    </div>
-                </div>
+                <label class="custom-checkbox-card" for="yazilim_@item.Id">
+                    <input class="form-check-input m-0" type="checkbox" id="yazilim_@item.Id" value="@item.Id" name="SeciliYazilimIdleri" @(Model.SeciliYazilimIdleri != null && Model.SeciliYazilimIdleri.Contains(item.Id) ? "checked" : "")>
+                    <span>@item.Ad</span>
+                </label>
             }
         }
-        else
-        {
-            <p>Kayıtlı yazılım bulunamadı.</p>
-        }
-        </div>
-        <button type="button" class="btn btn-primary mt-3" id="next2">İlerle</button>
+    </div>
+    <div class="action-bar">
+        <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab2')">Temizle</button>
+        <button type="button" class="btn btn-primary px-4" id="next2">İlerle</button>
     </div>
   </div>
 
   <!-- TAB3 UZMANLIK -->
   <div id="tab3" class="tab-content">
-    <h2>Personelin Uzmanlığı</h2>
-    <div class="mb-4">
-        <div class="row">
+    <div class="checkbox-grid">
          @if(Model.Uzmanliklar != null)
         {
             @foreach(var item in Model.Uzmanliklar)
             {
-                <div class="col-md-3 mb-2">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="uzmanlik_@item.Id" value="@item.Id" name="SeciliUzmanlikIdleri" @(Model.SeciliUzmanlikIdleri != null && Model.SeciliUzmanlikIdleri.Contains(item.Id) ? "checked" : "")>
-                        <label class="form-check-label" for="uzmanlik_@item.Id">@item.Ad</label>
-                    </div>
-                </div>
+                <label class="custom-checkbox-card" for="uzmanlik_@item.Id">
+                    <input class="form-check-input m-0" type="checkbox" id="uzmanlik_@item.Id" value="@item.Id" name="SeciliUzmanlikIdleri" @(Model.SeciliUzmanlikIdleri != null && Model.SeciliUzmanlikIdleri.Contains(item.Id) ? "checked" : "")>
+                    <span>@item.Ad</span>
+                </label>
             }
         }
-        </div>
-        <button type="button" class="btn btn-primary mt-3" id="next3">İlerle</button>
+    </div>
+    <div class="action-bar">
+        <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab3')">Temizle</button>
+        <button type="button" class="btn btn-primary px-4" id="next3">İlerle</button>
     </div>
   </div>
 
 <!-- TAB4 GÖREVİ-->
   <div id="tab4" class="tab-content">
-    <h2>Personelin Görev Türü</h2>
-    <div class="mb-4">
-      <div class="row">
+    <div class="checkbox-grid">
          @if(Model.GorevTurleri != null)
         {
             @foreach(var item in Model.GorevTurleri)
             {
-                <div class="col-md-3 mb-2">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="gorev_@item.Id" value="@item.Id" name="SeciliGorevTuruIdleri" @(Model.SeciliGorevTuruIdleri != null && Model.SeciliGorevTuruIdleri.Contains(item.Id) ? "checked" : "")>
-                        <label class="form-check-label" for="gorev_@item.Id">@item.Ad</label>
-                    </div>
-                </div>
+                <label class="custom-checkbox-card" for="gorev_@item.Id">
+                    <input class="form-check-input m-0" type="checkbox" id="gorev_@item.Id" value="@item.Id" name="SeciliGorevTuruIdleri" @(Model.SeciliGorevTuruIdleri != null && Model.SeciliGorevTuruIdleri.Contains(item.Id) ? "checked" : "")>
+                    <span>@item.Ad</span>
+                </label>
             }
         }
-      </div>
-      <button type="button" class="btn btn-primary mt-3" id="next4">İlerle</button>
+    </div>
+    <div class="action-bar">
+        <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab4')">Temizle</button>
+        <button type="button" class="btn btn-primary px-4" id="next4">İlerle</button>
     </div>
   </div>
 
   <!-- TAB5 Yapılan İş Niteliği -->
   <div id="tab5" class="tab-content">
-    <h2>Yapılan İş Niteliği</h2>
-    <div class="mb-4">
-        <div class="row">
+    <div class="checkbox-grid">
          @if(Model.IsNitelikleri != null)
         {
             @foreach(var item in Model.IsNitelikleri)
             {
-                <div class="col-md-3 mb-2">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="is_@item.Id" value="@item.Id" name="SeciliIsNiteligiIdleri" @(Model.SeciliIsNiteligiIdleri != null && Model.SeciliIsNiteligiIdleri.Contains(item.Id) ? "checked" : "")>
-                        <label class="form-check-label" for="is_@item.Id">@item.Ad</label>
-                    </div>
-                </div>
+                <label class="custom-checkbox-card" for="is_@item.Id">
+                     <input class="form-check-input m-0" type="checkbox" id="is_@item.Id" value="@item.Id" name="SeciliIsNiteligiIdleri" @(Model.SeciliIsNiteligiIdleri != null && Model.SeciliIsNiteligiIdleri.Contains(item.Id) ? "checked" : "")>
+                     <span>@item.Ad</span>
+                </label>
             }
         }
-        </div>
-      <button type="button" class="btn btn-primary mt-3" id="next5">İlerle</button>
+    </div>
+    <div class="action-bar">
+        <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab5')">Temizle</button>
+        <button type="button" class="btn btn-primary px-4" id="next5">İlerle</button>
     </div>
   </div>
 
@@ -293,9 +458,7 @@
   }
 
   <div id="tab6" class="tab-content">
-  <p class="text-muted">
-    Diğer sekmelerde kaydedilen bilgiler aşağıdaki tabloda özetlenir.
-  </p>
+
     <!-- Control Tab Photo Section: Simplified to single image source -->
     <div class="text-center mb-4">
         <div class="photo-preview-container mx-auto" id="controlContainer">
@@ -403,32 +566,36 @@
       // ... existing code ...
 
       document.addEventListener("DOMContentLoaded", function () {
-        const buttons = document.querySelectorAll(".tab-btn");
+        const buttons = document.querySelectorAll(".step-item");
         const contents = document.querySelectorAll(".tab-content");
 
         // --- YENİ EKLENEN FONKSİYON: Özet Tablosunu Doldur ---
         function fillKontrolOzet() {
-            const tbody = document.getElementById("kontrolTableBody");
-            if (!tbody) return;
-            tbody.innerHTML = ""; // Temizle
+             // ... existing implementation ...
+             const tbody = document.getElementById("kontrolTableBody");
+             if (!tbody) return;
+             tbody.innerHTML = ""; 
 
-            const addRow = (label, value) => {
-                const tr = document.createElement("tr");
-                tr.innerHTML = `<td>${label}</td><td>${value && value.trim() !== "" ? value : "-"}</td>`;
-                tbody.appendChild(tr);
-            };
+             const addRow = (label, value) => {
+                 const tr = document.createElement("tr");
+                 tr.innerHTML = `<td>${label}</td><td>${value && value.trim() !== "" ? value : "-"}</td>`;
+                 tbody.appendChild(tr);
+             };
 
-            // 1. Text Değerler
-            const ad = document.getElementById("personelAdi")?.value || "";
-            const soyad = document.getElementById("personelSoyadi")?.value || "";
-            addRow("Ad Soyad", `${ad} ${soyad}`);
-
+             const ad = document.getElementById("personelAdi")?.value || "";
+             const soyad = document.getElementById("personelSoyadi")?.value || "";
+             addRow("Ad Soyad", `${ad} ${soyad}`);
+             
+             // ... rest of the existing fillKontrolOzet logic ...
+             // Re-implementing parts for completeness if needed or just assuming user meant to keep existing fill logic
+             // But to be safe and clean, I will just call the existing logic if I hadn't overwritten it, 
+             // but I am replacing the block where it was defined. So I must re-include it.
+             
             addRow("TcKimlikNo", document.getElementById("personelTcKimlik")?.value);
             addRow("Telefon", document.getElementById("personeltelefon")?.value);
             addRow("Eposta", document.getElementById("personelemail")?.value);
             addRow("KadroKurum", document.getElementById("personelKadroKurum")?.value);
 
-            // 2. Select Değerler
             const gorevliIl = document.getElementById("personelgorevli_il");
             if (gorevliIl && gorevliIl.selectedIndex > 0) {
                  addRow("GorevliIl", gorevliIl.options[gorevliIl.selectedIndex].text);
@@ -443,7 +610,6 @@
                  addRow("Brans", "-");
             }
 
-            // 3. Checkbox / Radio
             const aktifMi = document.getElementById("gorevAktif")?.checked ? "Aktif" : "Pasif";
             addRow("Görev Aktiflik", aktifMi);
 
@@ -452,95 +618,136 @@
             else if (document.getElementById("cinsiyetErkek")?.checked) cinsiyet = "Erkek";
             addRow("PersonelCinsiyet", cinsiyet);
 
-            // 4. Çoklu Checkbox Listeleri (Label okuma)
             const getLabels_ = (name) => {
                 const checkedInputs = document.querySelectorAll(`input[name="${name}"]:checked`);
                 if (checkedInputs.length === 0) return "-";
-                
                 const labels = [];
                 checkedInputs.forEach(input => {
-                    const id = input.id;
-                    // Label'ı bul (for attr ile)
-                    const labelEl = document.querySelector(`label[for="${id}"]`);
-                    if (labelEl) {
-                        labels.push(labelEl.textContent.trim());
-                    }
+                     // Checkbox card span content
+                     const parent = input.closest('.custom-checkbox-card');
+                     if(parent) {
+                         labels.push(parent.querySelector('span').innerText);
+                     } else {
+                         // Fallback
+                         const labelEl = document.querySelector(`label[for="${input.id}"]`);
+                         if(labelEl) labels.push(labelEl.textContent.trim());
+                     }
                 });
                 return labels.join(", ");
             };
 
-            addRow("Seçili Beceriler (Kullanılan Yazılımlar)", getLabels_("SeciliYazilimIdleri"));
+            addRow("Seçili Beceriler", getLabels_("SeciliYazilimIdleri"));
             addRow("Seçili Uzmanlıklar", getLabels_("SeciliUzmanlikIdleri"));
             addRow("Seçili Görev Türleri", getLabels_("SeciliGorevTuruIdleri"));
             addRow("Seçili İş Nitelikleri", getLabels_("SeciliIsNiteligiIdleri"));
         }
 
-        // TAB LOCKING & NAVIGATION LOGIC
         const tabOrder = ["tab1", "tab2", "tab3", "tab4", "tab5"];
-        // Edit modunda araya şifre tabı girer
         const isEditMode = '@Model.IsEditMode' === 'True'; 
         if(isEditMode) {
             tabOrder.push("tab_password");
         }
-        tabOrder.push("tab6"); // Control tab (always last)
+        tabOrder.push("tab6"); 
 
-        // Hangi tablar açıldı (unlocked)
-        // Edit modunda tüm tablar baştan açık olsun
         const unlockedTabs = new Set(["tab1"]); 
         if(isEditMode) {
             tabOrder.forEach(t => unlockedTabs.add(t));
         }
 
-        function activateTab(tabId) {
-          // Kilit kontrolü: Eğer tab unlocked değilse geçiş yapma 
-          // (Edit modunda hepsi unlocked olduğu için serbest geçiş olur)
-          if (!unlockedTabs.has(tabId)) return;
-
-          buttons.forEach((b) => {
-            const isActive = b.getAttribute("data-tab") === tabId;
-            b.classList.toggle("active", isActive);
-            // Disabled görsel yönetimi
-            if(unlockedTabs.has(b.getAttribute("data-tab"))) {
-                b.classList.remove("disabled-tab"); 
-                b.style.opacity = "1";
-                b.style.cursor = "pointer";
-            } else {
-                b.classList.add("disabled-tab");
-                b.style.opacity = "0.5";
-                b.style.cursor = "not-allowed";
-            }
-          });
-          
-          contents.forEach((c) => {
-            c.classList.toggle("active", c.id === tabId);
-          });
-
-          // Eğer kontrol sekmesine geçildiyse tabloyu doldur
-          if (tabId === "tab6") {
-              fillKontrolOzet();
-              if (typeof updateControlPhoto === "function") {
-                  updateControlPhoto();
-              }
-          }
+        // --- STEPPER VISUAL UPDATE ---
+        function updateStepperUI(activeTabId) {
+            buttons.forEach(btn => {
+                const stepId = btn.getAttribute("data-step");
+                
+                // Reset
+                btn.classList.remove("active", "completed");
+                
+                // Edit Mode Rule: All steps look completed (green) always, but active gets blue border/highlight?
+                // User said: "Edit mod: TÜM adımlar completed gibi yeşil. Aktif adım yeşil kalsın."
+                // My CSS: .completed { opacity: 1; } .step-item.completed .step-counter { bg: green }
+                
+                if (isEditMode) {
+                    btn.classList.add("completed");
+                    // Active step gets extra highlight if needed, or just let it be green.
+                    // If active, maybe just underline or same green. 
+                    // Let's stick to "completed" style for all, and maybe "active" just ensures opacity 1.
+                    if (stepId === activeTabId) {
+                        btn.style.opacity = "1";
+                        // Optional: differentiating active step in edit mode
+                        btn.querySelector('.step-counter').style.boxShadow = "0 0 0 3px rgba(25, 135, 84, 0.3)";
+                    } else {
+                        btn.querySelector('.step-counter').style.boxShadow = "none";
+                    }
+                } 
+                else {
+                    // Create Mode
+                    if (stepId === activeTabId) {
+                        btn.classList.add("active");
+                    } else if (unlockedTabs.has(stepId) && tabOrder.indexOf(stepId) < tabOrder.indexOf(activeTabId)) {
+                        btn.classList.add("completed");
+                    } else if (unlockedTabs.has(stepId)) {
+                         // Unlocked but ahead? Usually doesn't happen in seq flow but if user clicked back
+                         // Treat as unlocked (opacity 1) but not active/completed color? 
+                         // Or just completed if we passed it? 
+                         // Simple rule: If we are past it, it's completed.
+                         btn.classList.add("completed");
+                    }
+                }
+            });
         }
 
-        buttons.forEach((btn) => {
-          // Başlangıç stili
-          const tId = btn.getAttribute("data-tab");
-          if(!unlockedTabs.has(tId)) {
-               btn.style.opacity = "0.5";
-               btn.style.cursor = "not-allowed";
-          } else {
-               // Edit modunda baştan hepsi aktif görünsün
-               btn.style.opacity = "1";
-               btn.style.cursor = "pointer";
-          }
-          
-          btn.addEventListener("click", () => {
-            const tabId = btn.getAttribute("data-tab");
+        function activateTab(tabId) {
+           if (!unlockedTabs.has(tabId)) return;
+           
+           contents.forEach((c) => {
+             c.classList.toggle("active", c.id === tabId);
+           });
+           
+           updateStepperUI(tabId);
+
+           if (tabId === "tab6") {
+               fillKontrolOzet();
+               if (typeof updateControlPhoto === "function") {
+                   updateControlPhoto();
+               }
+           }
+        }
+
+        // Global function for onclick in HTML
+        window.handleStepClick = function(tabId) {
             activateTab(tabId);
-          });
-        });
+        };
+        
+        // --- CLEAR HELPERS ---
+        window.clearTab1 = function() {
+            // Inputs
+            const inputs = document.querySelectorAll('#tab1 input:not([type="hidden"]):not([type="radio"])');
+            inputs.forEach(i => i.value = "");
+            
+            // Select2
+            $('#personelgorevli_il').val(null).trigger('change');
+            $('#personelBrans').val(null).trigger('change');
+            
+            // Radios (Optional: maybe don't clear gender?)
+            // document.querySelectorAll('input[name="PersonelCinsiyet"]').forEach(r => r.checked = false);
+            
+            // Photo - clear preview
+            const preview = document.getElementById("photoPreview");
+            const icon = document.querySelector("#previewContainer i");
+            if(preview) { preview.src = ""; preview.style.display = 'none'; }
+            if(icon) icon.style.display = 'block';
+            document.getElementById("personelFoto").value = "";
+        };
+
+        window.clearCheckboxes = function(tabId) {
+             const container = document.getElementById(tabId);
+             if(!container) return;
+             const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+             checkboxes.forEach(cb => cb.checked = false);
+        };
+
+        // Initialize UI
+        updateStepperUI("tab1");
 
         // "İlerle" Butonları
         // next1 -> tab2, next2 -> tab3 ...

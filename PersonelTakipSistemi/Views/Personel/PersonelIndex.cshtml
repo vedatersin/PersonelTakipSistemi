@@ -173,7 +173,7 @@
                         <td>
                             @if(item.Yazilimlar != null && item.Yazilimlar.Any())
                             {
-                                var visibleCount = 3;
+                                var visibleCount = 2;
                                 var all = item.Yazilimlar;
                                 
                                 if (all.Count <= visibleCount)
@@ -194,10 +194,10 @@
                                     // AÇMA BUTONU (...) - Başlangıçta görünür
                                     <span class="badge bg-label-primary cursor-pointer show-more-btn" 
                                           style="cursor:pointer;" 
-                                          onclick="toggleSoftwareContainer(this)">...</span>
+                                          onclick="toggleContainer(this)">...</span>
                                           
                                     // GİZLİ KISIM
-                                    <div class="d-none mt-1 software-extended-container" style="line-height: 2;">
+                                    <div class="d-none mt-1 extended-container" style="line-height: 2;">
                                         @for(int i = visibleCount; i < all.Count; i++)
                                         {
                                             <span class="badge bg-label-primary me-1">@all[i]</span>
@@ -205,7 +205,7 @@
                                         
                                         <span class="badge bg-secondary cursor-pointer" 
                                               style="cursor:pointer;" 
-                                              onclick="toggleSoftwareContainer(this)">X</span>
+                                              onclick="toggleContainer(this)">X</span>
                                     </div>
                                 }
                             }
@@ -217,9 +217,35 @@
                         <td>
                             @if(item.Uzmanliklar != null && item.Uzmanliklar.Any())
                             {
-                                foreach(var u in item.Uzmanliklar)
+                                var visibleCount = 1;
+                                var all = item.Uzmanliklar;
+                                if (all.Count <= visibleCount)
                                 {
-                                    <span class="badge bg-label-info me-1">@u</span>
+                                    foreach(var u in all)
+                                    {
+                                        <span class="badge bg-label-info me-1">@u</span>
+                                    }
+                                }
+                                else
+                                {
+                                    for(int i = 0; i < visibleCount; i++)
+                                    {
+                                        <span class="badge bg-label-info me-1">@all[i]</span>
+                                    }
+                                    
+                                    <span class="badge bg-label-info cursor-pointer show-more-btn" 
+                                          style="cursor:pointer;" 
+                                          onclick="toggleContainer(this)">...</span>
+                                          
+                                    <div class="d-none mt-1 extended-container" style="line-height: 2;">
+                                        @for(int i = visibleCount; i < all.Count; i++)
+                                        {
+                                            <span class="badge bg-label-info me-1">@all[i]</span>
+                                        }
+                                        <span class="badge bg-secondary cursor-pointer" 
+                                              style="cursor:pointer;" 
+                                              onclick="toggleContainer(this)">X</span>
+                                    </div>
                                 }
                             }
                             else
@@ -230,9 +256,35 @@
                         <td>
                             @if(item.GorevTurleri != null && item.GorevTurleri.Any())
                             {
-                                foreach(var g in item.GorevTurleri)
+                                var visibleCount = 1;
+                                var all = item.GorevTurleri;
+                                if (all.Count <= visibleCount)
                                 {
-                                    <span class="badge bg-label-secondary me-1">@g</span>
+                                    foreach(var g in all)
+                                    {
+                                        <span class="badge bg-label-secondary me-1">@g</span>
+                                    }
+                                }
+                                else
+                                {
+                                    for(int i = 0; i < visibleCount; i++)
+                                    {
+                                        <span class="badge bg-label-secondary me-1">@all[i]</span>
+                                    }
+                                    
+                                    <span class="badge bg-label-secondary cursor-pointer show-more-btn" 
+                                          style="cursor:pointer;" 
+                                          onclick="toggleContainer(this)">...</span>
+                                          
+                                    <div class="d-none mt-1 extended-container" style="line-height: 2;">
+                                        @for(int i = visibleCount; i < all.Count; i++)
+                                        {
+                                            <span class="badge bg-label-secondary me-1">@all[i]</span>
+                                        }
+                                        <span class="badge bg-secondary cursor-pointer" 
+                                              style="cursor:pointer;" 
+                                              onclick="toggleContainer(this)">X</span>
+                                    </div>
                                 }
                             }
                             else
@@ -243,9 +295,35 @@
                         <td>
                             @if(item.IsNitelikleri != null && item.IsNitelikleri.Any())
                             {
-                                foreach(var n in item.IsNitelikleri)
+                                var visibleCount = 1;
+                                var all = item.IsNitelikleri;
+                                if (all.Count <= visibleCount)
                                 {
-                                    <span class="badge bg-label-warning me-1">@n</span>
+                                    foreach(var n in all)
+                                    {
+                                        <span class="badge bg-label-warning me-1">@n</span>
+                                    }
+                                }
+                                else
+                                {
+                                    for(int i = 0; i < visibleCount; i++)
+                                    {
+                                        <span class="badge bg-label-warning me-1">@all[i]</span>
+                                    }
+                                    
+                                    <span class="badge bg-label-warning cursor-pointer show-more-btn" 
+                                          style="cursor:pointer;" 
+                                          onclick="toggleContainer(this)">...</span>
+                                          
+                                    <div class="d-none mt-1 extended-container" style="line-height: 2;">
+                                        @for(int i = visibleCount; i < all.Count; i++)
+                                        {
+                                            <span class="badge bg-label-warning me-1">@all[i]</span>
+                                        }
+                                        <span class="badge bg-secondary cursor-pointer" 
+                                              style="cursor:pointer;" 
+                                              onclick="toggleContainer(this)">X</span>
+                                    </div>
                                 }
                             }
                             else
@@ -261,7 +339,7 @@
                             }
                             else
                             {
-                                <span class="badge bg-label-secondary me-1">Pasif</span>
+                                <span class="badge status-passive me-1">Pasif</span>
                             }
                         </td>
                     </tr>
@@ -308,12 +386,12 @@
         document.getElementById('filterForm').submit();
     }
     
-    function toggleSoftwareContainer(element) {
+    function toggleContainer(element) {
         if (event) event.stopPropagation();
         
         // Eğer tıklanan element "..." (show-more-btn) ise:
         if (element.classList.contains('show-more-btn')) {
-            var container = element.nextElementSibling; // div.software-extended-container
+            var container = element.nextElementSibling; // div.extended-container
             if(container) {
                 element.classList.add('d-none'); // "..." gizle
                 container.classList.remove('d-none'); // Listeyi aç
@@ -321,7 +399,7 @@
         } 
         // Eğer tıklanan element "X" ise (kapatma butonu):
         else {
-            var container = element.parentElement; // div.software-extended-container
+            var container = element.parentElement; // div.extended-container
             var showBtn = container.previousElementSibling; // span.show-more-btn
             
             container.classList.add('d-none'); // Listeyi gizle

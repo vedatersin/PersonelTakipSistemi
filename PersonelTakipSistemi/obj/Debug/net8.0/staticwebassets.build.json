@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "Sx4L3BjqhXj6yMqcrwKL2+qQ12cr1Wo9AUo9xDI6MOg=",
+  "Hash": "t8ea2eVTbZTbJsmZnYQxln9E6zPT566sLYnnj5PmJPQ=",
   "Source": "PersonelTakipSistemi",
   "BasePath": "_content/PersonelTakipSistemi",
   "Mode": "Default",
@@ -4936,6 +4936,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\uploads\\personeller\\5cef4d36-1061-457c-b973-c8a692a84280.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\7ba0f15f-8b16-4428-9215-60dd1f7f75d1.jpg",
+      "SourceId": "PersonelTakipSistemi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
+      "BasePath": "_content/PersonelTakipSistemi",
+      "RelativePath": "uploads/personeller/7ba0f15f-8b16-4428-9215-60dd1f7f75d1.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\personeller\\7ba0f15f-8b16-4428-9215-60dd1f7f75d1.jpg"
     },
     {
       "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\80a3cbf6-89ed-40b0-9ebc-e5f359012e9b.jpg",
