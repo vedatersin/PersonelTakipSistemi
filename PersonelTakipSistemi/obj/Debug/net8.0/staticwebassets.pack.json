@@ -469,6 +469,10 @@
       "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\layouts\\layout-without-navbar-light.png"
     },
     {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\img\\meb_logo.png",
+      "PackagePath": "staticwebassets\\sevilay-tema\\assets\\img\\meb_logo.png"
+    },
+    {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\assets\\js\\config.js",
       "PackagePath": "staticwebassets\\sevilay-tema\\assets\\js\\config.js"
     },

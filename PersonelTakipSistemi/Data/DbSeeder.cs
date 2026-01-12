@@ -62,6 +62,22 @@ namespace PersonelTakipSistemi.Data
                         yazilimlar, uzmanliklar, gorevTurleri, isNitelikleri);
                 }
             }
+
+
+            // Fix specifically for "Deniz Şimşek" if they exist 
+            var targetUsers = context.Personeller
+                .Include(p => p.PersonelYazilimlar)
+                .Include(p => p.PersonelUzmanliklar)
+                .Include(p => p.PersonelGorevTurleri)
+                .Include(p => p.PersonelIsNitelikleri)
+                .Where(p => p.Ad == "Deniz" && p.Soyad == "Şimşek")
+                .ToList();
+
+            foreach(var u in targetUsers)
+            {
+                 EnsureRelations(context, u, rand, yazilimlar, uzmanliklar, gorevTurleri, isNitelikleri);
+                 context.SaveChanges();
+            }
         }
 
         private static void CreatePersonel(

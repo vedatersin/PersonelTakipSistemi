@@ -1,6 +1,6 @@
 
 
-<nav class="layout-navbar navbar navbar-expand-xl align-items-center bg-navbar-theme" id="layout-navbar">
+<nav class="layout-navbar navbar navbar-expand-xl align-items-center bg-white ms-0 me-0 mt-5 rounded shadow" id="layout-navbar" style="min-height: 80px; padding-right: 2rem;">
   <div class="layout-menu-toggle navbar-nav align-items-xl-center me-4 me-xl-0 d-xl-none">
     <a class="nav-item nav-link px-0 me-xl-6" href="javascript:void(0)">
       <i class="icon-base bx bx-menu icon-md"></i>
@@ -9,6 +9,51 @@
 
   <div class="navbar-nav-right d-flex align-items-center" id="navbar-collapse">
     <ul class="navbar-nav flex-row align-items-center ms-auto">
+      
+      <!-- Notification Dropdown -->
+      <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
+        <a class="nav-link dropdown-toggle hide-arrow position-relative" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="display: inline-block;">
+          <i class="bx bx-bell" style="font-size: 2.25rem !important; color: #566a7f !important;"></i>
+          <span id="notificationBadge" class="badge rounded-pill bg-danger" style="position: absolute; bottom: -1px; right: -1px; font-size: 0.75rem; padding: 0.3em 0.5em;">1</span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-end py-0">
+          <li class="dropdown-menu-header border-bottom">
+            <div class="dropdown-header d-flex align-items-center py-3">
+              <h5 class="text-body mb-0 me-auto">Bildirimler</h5>
+              <a href="javascript:void(0)" class="dropdown-notifications-all text-body" data-bs-toggle="tooltip" data-bs-placement="top" title="Tümünü Okundu İşaretle" onclick="markAllRead()">
+                <i class="bx bx-envelope-open fs-4"></i>
+              </a>
+            </div>
+          </li>
+          <li class="dropdown-notifications-list scrollable-container">
+            <ul class="list-group list-group-flush" id="notificationList">
+              <!-- Mock Notification Item -->
+              <li class="list-group-item list-group-item-action dropdown-notifications-item" id="notif-1" onclick="markAsRead(this)">
+                <div class="d-flex">
+                  <div class="flex-shrink-0 me-3">
+                    <div class="avatar">
+                      <span class="avatar-initial rounded-circle bg-label-primary"><i class="bx bx-cog"></i></span>
+                    </div>
+                  </div>
+                  <div class="flex-grow-1">
+                    <h6 class="mb-1">Sistem Mesajı</h6>
+                    <p class="mb-0">Sisteme hoşgeldiniz!</p>
+                    <small class="text-muted">Şimdi</small>
+                  </div>
+                  <div class="flex-shrink-0 dropdown-notifications-actions">
+                    <a href="javascript:void(0)" class="dropdown-notifications-read"><span class="badge badge-dot"></span></a>
+                    <a href="javascript:void(0)" class="dropdown-notifications-archive" onclick="deleteNotification(event, 'notif-1')"><span class="bx bx-x"></span></a>
+                  </div>
+                </div>
+              </li>
+            </ul>
+          </li>
+          <li class="dropdown-menu-footer border-top p-3">
+            <button class="btn btn-primary text-uppercase w-100">Tüm Bildirimleri Gör</button>
+          </li>
+        </ul>
+      </li>
+
       <!-- User -->
       @if (User.Identity!.IsAuthenticated)
       {
@@ -17,9 +62,9 @@
           var role = "Personel"; // Or fetch role claim if available
 
           <li class="nav-item navbar-dropdown dropdown-user dropdown">
-            <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
-              <div class="avatar avatar-online">
-                <img src="@(string.IsNullOrEmpty(photoUrl) ? "/sevilay-tema/assets/img/avatars/1.png" : photoUrl)" alt class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
+            <a class="nav-link dropdown-toggle hide-arrow p-0 d-flex align-items-center" href="javascript:void(0);" data-bs-toggle="dropdown">
+              <div class="avatar avatar-online" style="width: 50px; height: 50px;">
+                <img src="@(string.IsNullOrEmpty(photoUrl) ? "/sevilay-tema/assets/img/avatars/1.png" : photoUrl)" alt class="w-px-50 h-auto rounded-circle" style="object-fit: cover; width: 50px; height: 50px;" />
               </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
@@ -27,8 +72,8 @@
                 <a class="dropdown-item" href="#">
                   <div class="d-flex">
                     <div class="flex-shrink-0 me-3">
-                      <div class="avatar avatar-online">
-                        <img src="@(string.IsNullOrEmpty(photoUrl) ? "/sevilay-tema/assets/img/avatars/1.png" : photoUrl)" alt class="w-px-40 h-auto rounded-circle" style="object-fit: cover;" />
+                      <div class="avatar avatar-online" style="width: 50px; height: 50px;">
+                        <img src="@(string.IsNullOrEmpty(photoUrl) ? "/sevilay-tema/assets/img/avatars/1.png" : photoUrl)" alt class="w-px-50 h-auto rounded-circle" style="object-fit: cover; width: 50px; height: 50px;" />
                       </div>
                     </div>
                     <div class="flex-grow-1">

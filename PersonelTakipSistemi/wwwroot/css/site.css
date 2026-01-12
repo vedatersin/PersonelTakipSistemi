@@ -1,29 +1,61 @@
-html {
-  font-size: 14px;
+/* Navbar Overrides - Matching Active Item Color */
+.layout-navbar.bg-navbar-theme {
+  background-color: #5a7995 !important;
+  /* Active Menu Item Color (Slate Blue) */
+  color: #fff !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+.layout-navbar .navbar-nav .nav-link,
+.layout-navbar .navbar-nav .nav-item .nav-link i {
+  color: rgba(255, 255, 255, 0.9) !important;
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.layout-navbar .navbar-nav .nav-link:hover,
+.layout-navbar .navbar-nav .nav-item .nav-link:hover i {
+  color: #fff !important;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+
+/* Sidebar Styling */
+
+/* Active Sub-Menu Item Styling (Big Blue Box) */
+.menu-inner .menu-sub>.menu-item.active>.menu-link {
+  background-color: #5a7995 !important;
+  /* Same as Topbar */
+  color: #fff !important;
+  font-weight: 500;
+  border-radius: 0.375rem;
+  /* Medium rounding */
 }
 
-body {
-  margin-bottom: 60px;
+/* Ensure bullet or icon inside active item is white */
+.menu-inner .menu-sub>.menu-item.active>.menu-link:before {
+  background-color: #fff !important;
 }
 
-/* Custom Passive Status Badge */
-.status-passive {
-    background-color: #fde2e2 !important;
-    color: #b42318 !important;
-    border: 1px solid #f8b4b4 !important;
+.menu-inner .menu-sub>.menu-item.active>.menu-link div {
+  color: #fff !important;
+}
+
+/* Parent Menu Item (Personel Modulü) Styling */
+/* User asked for "%50 darker". The sidebar is already dark (bg-menu-theme). 
+   If "Personel Modülü" is active/open, let's make it darker than the sidebar bg. 
+*/
+.menu-vertical .menu-item.active.open>.menu-link {
+  background-color: rgba(0, 0, 0, 0.25) !important;
+  /* Darken the background */
+  color: #fff !important;
+}
+
+
+/* Sidebar Brand Text Sizing */
+.app-brand-text span {
+  display: block;
+}
+
+/* Ensure dropdowns on navbar have proper z-index and styles if needed */
+.layout-navbar .dropdown-menu {
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
