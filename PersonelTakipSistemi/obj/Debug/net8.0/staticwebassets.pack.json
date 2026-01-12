@@ -9,6 +9,10 @@
       "PackagePath": "staticwebassets\\css\\login.css"
     },
     {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\personel-yetkilendir.css",
+      "PackagePath": "staticwebassets\\css\\personel-yetkilendir.css"
+    },
+    {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\site.css",
       "PackagePath": "staticwebassets\\css\\site.css"
     },
@@ -23,6 +27,10 @@
     {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\login-bg.js",
       "PackagePath": "staticwebassets\\js\\login-bg.js"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\personel-yetkilendir.js",
+      "PackagePath": "staticwebassets\\js\\personel-yetkilendir.js"
     },
     {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\site.js",

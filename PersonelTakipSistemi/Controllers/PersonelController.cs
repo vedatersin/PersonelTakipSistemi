@@ -37,6 +37,12 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
+        public IActionResult Yetkilendir()
+        {
+            return View();
+        }
+
+        [HttpGet]
         public async Task<IActionResult> Index(PersonelIndexFilterViewModel filter)
         {
             var sw = Stopwatch.StartNew();

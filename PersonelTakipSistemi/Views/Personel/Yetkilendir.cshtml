@@ -1,0 +1,169 @@
+@{
+    ViewData["Title"] = "Personel Yetkilendir";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/personel-yetkilendir.css" />
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="row">
+        <div class="col-12 mb-3">
+            <h4 class="fw-bold py-3 mb-1"><span class="text-muted fw-light">Personel /</span> Yetkilendir</h4>
+            <p class="text-muted">Personelleri yetkilendirmek ve atamalarını düzenlemek için arama yapabilir ve hızlı düzenleme yapabilirsiniz.</p>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <input type="text" id="searchFilter" class="filter-input" placeholder="Ad Soyad Ara..." style="flex: 2;">
+        
+        <select id="teskilatFilter" class="filter-input">
+            <option value="">Teşkilat: Tümü</option>
+            <option value="Merkez">Merkez</option>
+            <option value="Taşra">Taşra</option>
+        </select>
+
+        <select id="sistemRolFilter" class="filter-input">
+            <option value="">Sistem Rolü: Tümü</option>
+            <option value="Admin">Admin</option>
+            <option value="Kullanıcı">Kullanıcı</option>
+        </select>
+
+        <select id="kurumsalRolFilter" class="filter-input">
+            <option value="">Kurumsal Rol: Tümü</option>
+            <option value="İl Koordinatörü">İl Koordinatörü</option>
+            <option value="Komisyon Başkanı">Komisyon Başkanı</option>
+            <option value="Personel">Personel</option>
+        </select>
+
+        <select id="komisyonFilter" class="filter-input">
+            <option value="">Komisyon: Tümü</option>
+            <option value="Türkçe Komisyonu">Türkçe Komisyonu</option>
+            <option value="Matematik Komisyonu">Matematik Komisyonu</option>
+            <option value="Fen Bilimleri Komisyonu">Fen Bilimleri Komisyonu</option>
+        </select>
+
+        <div style="flex: 1; text-align: right;">
+            <button id="clearFiltersBtn" class="btn-filter-clear">Filtreleri Temizle</button>
+        </div>
+    </div>
+
+    <!-- Main Content: Table + Drawer -->
+    <div class="auth-page-container">
+        
+        <!-- Center Table Area -->
+        <div class="auth-table-wrapper" id="authTableWrapper">
+            <table class="auth-table">
+                <thead>
+                    <tr>
+                        <th width="60">Foto</th>
+                        <th>Ad Soyad</th>
+                        <th>Teşkilat</th>
+                        <th>Koordinatörlük</th>
+                        <th>Komisyonlar</th>
+                        <th>Sistem Rolü</th>
+                        <th>Kurumsal Rol</th>
+                    </tr>
+                </thead>
+                <tbody id="personelTableBody">
+                    <!-- JS will populate rows here -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Right Side Drawer -->
+        <div class="auth-drawer-wrapper open" id="authDrawer">
+            <div class="drawer-header">
+                <div class="drawer-profile">
+                    <img id="drawerAvatar" src="" class="auth-avatar" style="width: 48px; height: 48px; display: none;">
+                    <div class="auth-avatar" id="drawerAvatarPlaceholder" style="width: 48px; height: 48px;"></div>
+                    <div class="drawer-profile-info">
+                        <h4 id="drawerName">Deniz Şimşek</h4>
+                        <small id="drawerTeskilat">Merkez</small>
+                    </div>
+                </div>
+                <button class="drawer-close-btn" id="drawerCloseBtn">&times;</button>
+            </div>
+
+            <div class="drawer-body">
+                <div class="drawer-tabs">
+                    <button class="drawer-tab-btn active" data-tab="kurumsal">Kurumsal Atamalar</button>
+                    <button class="drawer-tab-btn" data-tab="sistemsel">Sistemsel Yetki</button>
+                </div>
+
+                <!-- Tab Kurumsal -->
+                <div id="tabKurumsal" class="tab-content">
+                    <div class="form-group">
+                        <label class="form-label">Teşkilat</label>
+                        <select id="drawerTeskilatSelect" class="form-control-custom" disabled>
+                            <option value="Merkez">Merkez</option>
+                            <option value="Taşra">Taşra</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Koordinatörlük</label>
+                        <input type="text" id="drawerKoordinatorluk" class="form-control-custom" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Komisyonlar</label>
+                        <select id="drawerKomisyonAdd" class="form-control-custom mb-1">
+                            <option value="">+ Komisyon Ekle...</option>
+                            <option value="Türkçe Komisyonu">Türkçe Komisyonu</option>
+                            <option value="Matematik Komisyonu">Matematik Komisyonu</option>
+                            <option value="Fen Bilimleri Komisyonu">Fen Bilimleri Komisyonu</option>
+                        </select>
+                        <div class="chip-list" id="drawerKomisyonChips">
+                            <!-- Chips will go here -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Kurumsal Rol</label>
+                        <select id="drawerKurumsalRol" class="form-control-custom">
+                            <option value="Personel">Personel</option>
+                            <option value="Komisyon Başkanı">Komisyon Başkanı</option>
+                            <option value="İl Koordinatörü">İl Koordinatörü</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tab Sistemsel -->
+                <div id="tabSistemsel" class="tab-content" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Sistem Rolü</label>
+                        <select id="drawerSistemRol" class="form-control-custom">
+                            <option value="Kullanıcı">Kullanıcı</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Yetki Kapsamı</label>
+                        <div class="radio-group">
+                            <label class="radio-item">
+                                <input type="radio" name="scope" value="Self" checked> Sadece Kendisi
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="scope" value="Komisyon"> Komisyonları
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="scope" value="Koordinatorluk"> Koordinatörlüğü
+                            </label>
+                            <label class="radio-item">
+                                <input type="radio" name="scope" value="All"> Tüm Sistem
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="drawer-footer">
+                <button type="button" class="btn btn-label-secondary" id="drawerCancelBtn">İptal</button>
+                <button type="button" class="btn btn-primary" id="drawerSaveBtn">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/personel-yetkilendir.js"></script>
+}

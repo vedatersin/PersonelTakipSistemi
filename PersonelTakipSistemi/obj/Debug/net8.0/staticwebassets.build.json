@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "yc1yDGVCJcaLzcash+ydNNacAO9re9pOLBlUTq36qI8=",
+  "Hash": "qiXDDfZn1Glh9/z6zVJaW21COmnrEPGa8DaMsQUZ4M8=",
   "Source": "PersonelTakipSistemi",
   "BasePath": "_content/PersonelTakipSistemi",
   "Mode": "Default",
@@ -72,6 +72,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\login.css"
+    },
+    {
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\personel-yetkilendir.css",
+      "SourceId": "PersonelTakipSistemi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
+      "BasePath": "_content/PersonelTakipSistemi",
+      "RelativePath": "css/personel-yetkilendir.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\personel-yetkilendir.css"
     },
     {
       "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\site.css",
@@ -148,6 +167,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\login-bg.js"
+    },
+    {
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\personel-yetkilendir.js",
+      "SourceId": "PersonelTakipSistemi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
+      "BasePath": "_content/PersonelTakipSistemi",
+      "RelativePath": "js/personel-yetkilendir.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\personel-yetkilendir.js"
     },
     {
       "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\site.js",

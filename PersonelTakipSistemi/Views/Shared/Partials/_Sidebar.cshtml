@@ -78,6 +78,11 @@
             <div class="text-truncate" data-i18n="Yeni Personel Ekle">Yeni Personel Ekle</div>
           </a>
         </li>
+        <li class="menu-item @(ViewContext.RouteData.Values["Action"]?.ToString() == "Yetkilendir" ? "active" : "")">
+          <a asp-controller="Personel" asp-action="Yetkilendir" class="menu-link">
+            <div class="text-truncate" data-i18n="Personel Yetkilendir">Personel Yetkilendir</div>
+          </a>
+        </li>
       </ul>
     </li>
 
