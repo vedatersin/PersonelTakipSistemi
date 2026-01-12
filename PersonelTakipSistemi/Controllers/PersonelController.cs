@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PersonelTakipSistemi.Data;
 using PersonelTakipSistemi.Models;
 using PersonelTakipSistemi.ViewModels;
+using PersonelTakipSistemi.Models.ViewModels;
 using System.Security.Cryptography;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.Extensions.Caching.Memory;
@@ -37,9 +39,360 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        public IActionResult Yetkilendir()
+        [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Yönetici")] // Only Admin/Manager
+        public async Task<IActionResult> Yetkilendirme()
         {
-            return View();
+            // 1. Fetch Personnel with Relations
+            var personeller = await _context.Personeller
+                .Include(p => p.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
+                .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk)
+                .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon)
+                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.KurumsalRol)
+                .Where(p => p.AktifMi)
+                .OrderBy(p => p.Ad).ThenBy(p => p.Soyad)
+                .ToListAsync();
+
+            // 2. Map to ViewModel
+            var rowViewModels = personeller.Select(p => new PersonelYetkiRowViewModel
+            {
+                PersonelId = p.PersonelId,
+                AdSoyad = $"{p.Ad} {p.Soyad}",
+                FotografYolu = p.FotografYolu,
+                SistemRol = p.SistemRol,
+                
+                // Extract Names for Chips
+                TeskilatAdlari = p.PersonelTeskilatlar.Select(pt => pt.Teskilat.Ad).ToList(),
+                KoordinatorlukAdlari = p.PersonelKoordinatorlukler.Select(pk => pk.Koordinatorluk.Ad).ToList(),
+                KomisyonAdlari = p.PersonelKomisyonlar.Select(pk => pk.Komisyon.Ad).ToList(),
+                KurumsalRolAdlari = p.PersonelKurumsalRolAtamalari.Select(ra => ra.KurumsalRol.Ad).Distinct().ToList()
+            }).ToList();
+
+            // 3. Prepare View Model
+            var model = new YetkilendirmeIndexViewModel
+            {
+                Personeller = rowViewModels,
+                TeskilatList = await _context.Teskilatlar.Select(t => new SelectListItem { Value = t.TeskilatId.ToString(), Text = t.Ad }).ToListAsync(),
+                KurumsalRolList = await _context.KurumsalRoller.Select(r => new SelectListItem { Value = r.KurumsalRolId.ToString(), Text = r.Ad }).ToListAsync(),
+                SistemRolList = new List<SelectListItem>
+                {
+                    new SelectListItem { Value = "Admin", Text = "Admin" },
+                    new SelectListItem { Value = "Yönetici", Text = "Yönetici" },
+                    new SelectListItem { Value = "Editör", Text = "Editör" },
+                    new SelectListItem { Value = "Kullanıcı", Text = "Kullanıcı" }
+                },
+                KomisyonList = await _context.Komisyonlar.Select(k => new SelectListItem { Value = k.Ad, Text = k.Ad }).Distinct().ToListAsync()
+            };
+
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetYetkilendirmeData(int id)
+        {
+            var p = await _context.Personeller
+                .Include(x => x.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
+                .Include(x => x.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk)
+                .Include(x => x.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon)
+                .Include(x => x.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.KurumsalRol)
+                // Include Contexts for RolAtamalari Display
+                .Include(x => x.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Koordinatorluk)
+                .Include(x => x.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Komisyon)
+                .FirstOrDefaultAsync(x => x.PersonelId == id);
+
+            if (p == null) return NotFound();
+
+            var model = new PersonelYetkiDetailViewModel
+            {
+                PersonelId = p.PersonelId,
+                AdSoyad = $"{p.Ad} {p.Soyad}",
+                FotografYolu = p.FotografYolu,
+                SistemRol = p.SistemRol,
+
+                // Selected IDs
+                SelectedTeskilatIds = p.PersonelTeskilatlar.Select(x => x.TeskilatId).ToList(),
+                SelectedKoordinatorlukIds = p.PersonelKoordinatorlukler.Select(x => x.KoordinatorlukId).ToList(),
+                SelectedKomisyonIds = p.PersonelKomisyonlar.Select(x => x.KomisyonId).ToList(),
+
+                // Assignments for Chips
+                TeskilatAssignments = p.PersonelTeskilatlar.Select(x => new AssignmentViewModel { Id = x.TeskilatId, Ad = x.Teskilat.Ad }).ToList(),
+                KoordinatorlukAssignments = p.PersonelKoordinatorlukler.Select(x => new AssignmentViewModel { Id = x.KoordinatorlukId, Ad = x.Koordinatorluk.Ad }).ToList(),
+                KomisyonAssignments = p.PersonelKomisyonlar.Select(x => new AssignmentViewModel { Id = x.KomisyonId, Ad = x.Komisyon.Ad }).ToList(),
+                KurumsalRolAssignments = p.PersonelKurumsalRolAtamalari.Select(x => new RoleAssignmentViewModel
+                {
+                    AssignmentId = x.Id,
+                    KurumsalRolId = x.KurumsalRolId,
+                    RolAd = x.KurumsalRol.Ad,
+                    ContextAd = x.Koordinatorluk != null ? x.Koordinatorluk.Ad : (x.Komisyon != null ? x.Komisyon.Ad : "Genel")
+                }).ToList(),
+
+                // Populate Lookups
+                AllTeskilatlar = await _context.Teskilatlar.Select(x => new LookupItemViewModel { Id = x.TeskilatId, Ad = x.Ad }).ToListAsync(),
+                AllKoordinatorlukler = await _context.Koordinatorlukler.Select(x => new LookupItemViewModel { Id = x.KoordinatorlukId, Ad = x.Ad, ParentId = x.TeskilatId }).ToListAsync(),
+                AllKomisyonlar = await _context.Komisyonlar.Select(x => new LookupItemViewModel { Id = x.KomisyonId, Ad = x.Ad, ParentId = x.KoordinatorlukId }).ToListAsync()
+            };
+
+            return Json(model);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SetSistemRol(int id, string rol)
+        {
+            var personel = await _context.Personeller.FindAsync(id);
+            if (personel == null) return NotFound();
+
+            if (!new[] { "Admin", "Yönetici", "Editör", "Kullanıcı" }.Contains(rol))
+            {
+                return BadRequest("Geçersiz rol.");
+            }
+
+            personel.SistemRol = rol;
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddTeskilat(int personelId, int teskilatId)
+        {
+            if (await _context.PersonelTeskilatlar.AnyAsync(x => x.PersonelId == personelId && x.TeskilatId == teskilatId)) return Ok();
+
+            _context.PersonelTeskilatlar.Add(new PersonelTeskilat { PersonelId = personelId, TeskilatId = teskilatId });
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveTeskilat(int personelId, int teskilatId)
+        {
+            var pt = await _context.PersonelTeskilatlar.FirstOrDefaultAsync(x => x.PersonelId == personelId && x.TeskilatId == teskilatId);
+            if (pt != null)
+            {
+                _context.PersonelTeskilatlar.Remove(pt);
+                
+                // Cleanup: Remove Coordinators and Commissions belonging to this Teskilat
+                var koordsToRemove = await _context.PersonelKoordinatorlukler
+                    .Where(x => x.PersonelId == personelId && x.Koordinatorluk.TeskilatId == teskilatId)
+                    .ToListAsync();
+                
+                foreach (var k in koordsToRemove)
+                {
+                    // Call logic to remove coordinator (which handles commissions and roles)
+                    await RemoveKoordinatorlukLogic(personelId, k.KoordinatorlukId);
+                }
+                
+                await _context.SaveChangesAsync();
+            }
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddKoordinatorluk(int personelId, int koordinatorlukId)
+        {
+            if (await _context.PersonelKoordinatorlukler.AnyAsync(x => x.PersonelId == personelId && x.KoordinatorlukId == koordinatorlukId)) return Ok();
+            
+            // Ensure Parent Teskilat is added?
+            // Optionally we can auto-add the parent Teskilat if missing, or assume UI handles it.
+            // Let's safe-guard:
+            var koord = await _context.Koordinatorlukler.FindAsync(koordinatorlukId);
+            if (koord != null)
+            {
+                if (!await _context.PersonelTeskilatlar.AnyAsync(x => x.PersonelId == personelId && x.TeskilatId == koord.TeskilatId))
+                {
+                    _context.PersonelTeskilatlar.Add(new PersonelTeskilat { PersonelId = personelId, TeskilatId = koord.TeskilatId });
+                }
+            }
+
+            _context.PersonelKoordinatorlukler.Add(new PersonelKoordinatorluk { PersonelId = personelId, KoordinatorlukId = koordinatorlukId });
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveKoordinatorluk(int personelId, int koordinatorlukId)
+        {
+            await RemoveKoordinatorlukLogic(personelId, koordinatorlukId);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        private async Task RemoveKoordinatorlukLogic(int personelId, int koordinatorlukId)
+        {
+            var pk = await _context.PersonelKoordinatorlukler.FirstOrDefaultAsync(x => x.PersonelId == personelId && x.KoordinatorlukId == koordinatorlukId);
+            if (pk != null)
+            {
+                _context.PersonelKoordinatorlukler.Remove(pk);
+
+                // Cleanup: Remove Commissions belonging to this Coordinator
+                var komsToRemove = await _context.PersonelKomisyonlar
+                    .Where(x => x.PersonelId == personelId && x.Komisyon.KoordinatorlukId == koordinatorlukId)
+                    .ToListAsync();
+
+                foreach (var k in komsToRemove)
+                {
+                    await RemoveKomisyonLogic(personelId, k.KomisyonId);
+                }
+
+                // Cleanup: Remove Roles assigned to this context
+                var rolesToRemove = await _context.PersonelKurumsalRolAtamalari
+                    .Where(x => x.PersonelId == personelId && x.KoordinatorlukId == koordinatorlukId)
+                    .ToListAsync();
+                _context.PersonelKurumsalRolAtamalari.RemoveRange(rolesToRemove);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddKomisyon(int personelId, int komisyonId)
+        {
+            if (await _context.PersonelKomisyonlar.AnyAsync(x => x.PersonelId == personelId && x.KomisyonId == komisyonId)) return Ok();
+
+            // Ensure Parent Coordinator (and Teskilat) exists?
+            var kom = await _context.Komisyonlar.Include(k => k.Koordinatorluk).FirstOrDefaultAsync(k => k.KomisyonId == komisyonId);
+            if (kom != null)
+            {
+                // Add Koordinatorluk if missing
+                if (!await _context.PersonelKoordinatorlukler.AnyAsync(x => x.PersonelId == personelId && x.KoordinatorlukId == kom.KoordinatorlukId))
+                {
+                     // Add Teskilat if missing (Logic inside AddKoord logic repeated or explicit)
+                     // Let's just add the Koord entry, and checking Teskilat is done via recursion if we called the controller method, but here we are inside.
+                     // Cleanest: Check Teskilat too.
+                     if (!await _context.PersonelTeskilatlar.AnyAsync(x => x.PersonelId == personelId && x.TeskilatId == kom.Koordinatorluk.TeskilatId))
+                     {
+                         _context.PersonelTeskilatlar.Add(new PersonelTeskilat { PersonelId = personelId, TeskilatId = kom.Koordinatorluk.TeskilatId });
+                     }
+                     _context.PersonelKoordinatorlukler.Add(new PersonelKoordinatorluk { PersonelId = personelId, KoordinatorlukId = kom.KoordinatorlukId });
+                }
+            }
+
+            _context.PersonelKomisyonlar.Add(new PersonelKomisyon { PersonelId = personelId, KomisyonId = komisyonId });
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveKomisyon(int personelId, int komisyonId)
+        {
+            await RemoveKomisyonLogic(personelId, komisyonId);
+            await _context.SaveChangesAsync();
+            return Ok();
+        }
+
+        private async Task RemoveKomisyonLogic(int personelId, int komisyonId)
+        {
+            var pk = await _context.PersonelKomisyonlar.FirstOrDefaultAsync(x => x.PersonelId == personelId && x.KomisyonId == komisyonId);
+            if (pk != null)
+            {
+                _context.PersonelKomisyonlar.Remove(pk);
+
+                // Cleanup: Remove Roles assigned to this context
+                var rolesToRemove = await _context.PersonelKurumsalRolAtamalari
+                    .Where(x => x.PersonelId == personelId && x.KomisyonId == komisyonId)
+                    .ToListAsync();
+                _context.PersonelKurumsalRolAtamalari.RemoveRange(rolesToRemove);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddKurumsalRol(int personelId, int kurumsalRolId, int? koordinatorlukId, int? komisyonId, bool force = false)
+        {
+            var rol = await _context.KurumsalRoller.FindAsync(kurumsalRolId);
+            if (rol == null) return BadRequest("Rol bulunamadı.");
+
+            // Context Validation
+            if (rol.Ad == "Komisyon Başkanı" && komisyonId == null) return BadRequest("Komisyon seçilmedi.");
+            if ((rol.Ad == "İl Koordinatörü" || rol.Ad == "Genel Koordinatör") && koordinatorlukId == null) return BadRequest("Koordinatörlük seçilmedi.");
+
+            // President Logic
+            if (rol.Ad == "Komisyon Başkanı" && komisyonId.HasValue)
+            {
+                var kom = await _context.Komisyonlar.FindAsync(komisyonId.Value);
+                if (kom.BaskanPersonelId != null && kom.BaskanPersonelId != personelId)
+                {
+                    if (!force)
+                    {
+                        var baskan = await _context.Personeller.FindAsync(kom.BaskanPersonelId);
+                        return Json(new { success = false, warning = $"Bu komisyonun başkanı zaten {baskan?.Ad} {baskan?.Soyad}. Değiştirmek istiyor musunuz?" });
+                    }
+                    else
+                    {
+                        // Demote old president
+                        var oldRole = await _context.PersonelKurumsalRolAtamalari
+                            .FirstOrDefaultAsync(x => x.PersonelId == kom.BaskanPersonelId && x.KurumsalRolId == kurumsalRolId && x.KomisyonId == komisyonId);
+                        if (oldRole != null) _context.PersonelKurumsalRolAtamalari.Remove(oldRole);
+                    }
+                }
+                kom.BaskanPersonelId = personelId;
+            }
+            else if ((rol.Ad == "İl Koordinatörü" || rol.Ad == "Genel Koordinatör") && koordinatorlukId.HasValue)
+            {
+                var koord = await _context.Koordinatorlukler.FindAsync(koordinatorlukId.Value);
+                 if (koord.BaskanPersonelId != null && koord.BaskanPersonelId != personelId)
+                {
+                    if (!force)
+                    {
+                        var baskan = await _context.Personeller.FindAsync(koord.BaskanPersonelId);
+                         return Json(new { success = false, warning = $"Bu koordinatörlüğün başkanı zaten {baskan?.Ad} {baskan?.Soyad}. Değiştirmek istiyor musunuz?" });
+                    }
+                     else
+                    {
+                        // Demote old president
+                        var oldRole = await _context.PersonelKurumsalRolAtamalari
+                             .FirstOrDefaultAsync(x => x.PersonelId == koord.BaskanPersonelId && x.KurumsalRolId == kurumsalRolId && x.KoordinatorlukId == koordinatorlukId);
+                        if (oldRole != null) _context.PersonelKurumsalRolAtamalari.Remove(oldRole);
+                    }
+                }
+                 koord.BaskanPersonelId = personelId;
+            }
+
+            // Create Role Assignment
+            var assignment = new PersonelKurumsalRolAtama
+            {
+                PersonelId = personelId,
+                KurumsalRolId = kurumsalRolId,
+                KoordinatorlukId = koordinatorlukId,
+                KomisyonId = komisyonId,
+                CreatedAt = DateTime.Now
+            };
+
+            // Avoid Duplicate Generic Roles?
+            // "Personel" role for same context? Maybe allow duplicates or check unique?
+            // Let's assume Unique (PersonelId, RolId, Context)
+            if (!await _context.PersonelKurumsalRolAtamalari.AnyAsync(x => 
+                x.PersonelId == personelId && 
+                x.KurumsalRolId == kurumsalRolId && 
+                x.KoordinatorlukId == koordinatorlukId && 
+                x.KomisyonId == komisyonId))
+            {
+                _context.PersonelKurumsalRolAtamalari.Add(assignment);
+            }
+            
+            await _context.SaveChangesAsync();
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RemoveKurumsalRol(int assignmentId)
+        {
+            var assignment = await _context.PersonelKurumsalRolAtamalari
+                .Include(x => x.KurumsalRol)
+                .FirstOrDefaultAsync(x => x.Id == assignmentId);
+            
+            if (assignment != null)
+            {
+                // Update Parent Table BaskanId if needed
+                if (assignment.KurumsalRol.Ad == "Komisyon Başkanı" && assignment.KomisyonId.HasValue)
+                {
+                    var kom = await _context.Komisyonlar.FindAsync(assignment.KomisyonId.Value);
+                    if (kom.BaskanPersonelId == assignment.PersonelId) kom.BaskanPersonelId = null;
+                }
+                else if ((assignment.KurumsalRol.Ad == "İl Koordinatörü" || assignment.KurumsalRol.Ad == "Genel Koordinatör") && assignment.KoordinatorlukId.HasValue)
+                {
+                     var koord = await _context.Koordinatorlukler.FindAsync(assignment.KoordinatorlukId.Value);
+                     if (koord.BaskanPersonelId == assignment.PersonelId) koord.BaskanPersonelId = null;
+                }
+
+                _context.PersonelKurumsalRolAtamalari.Remove(assignment);
+                await _context.SaveChangesAsync();
+            }
+            return Ok();
         }
 
         [HttpGet]

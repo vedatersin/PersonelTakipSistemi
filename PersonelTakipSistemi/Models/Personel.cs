@@ -33,10 +33,19 @@ namespace PersonelTakipSistemi.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
 
+        // Sistem Rolü (Admin, Yönetici, Editör, Kullanıcı)
+        public string SistemRol { get; set; } = "Kullanıcı";
+
         // Navigation Properties
         public ICollection<PersonelYazilim> PersonelYazilimlar { get; set; } = new List<PersonelYazilim>();
         public ICollection<PersonelUzmanlik> PersonelUzmanliklar { get; set; } = new List<PersonelUzmanlik>();
         public ICollection<PersonelGorevTuru> PersonelGorevTurleri { get; set; } = new List<PersonelGorevTuru>();
         public ICollection<PersonelIsNiteligi> PersonelIsNitelikleri { get; set; } = new List<PersonelIsNiteligi>();
+
+        // Authorization Module Relations
+        public ICollection<PersonelTeskilat> PersonelTeskilatlar { get; set; } = new List<PersonelTeskilat>();
+        public ICollection<PersonelKoordinatorluk> PersonelKoordinatorlukler { get; set; } = new List<PersonelKoordinatorluk>();
+        public ICollection<PersonelKomisyon> PersonelKomisyonlar { get; set; } = new List<PersonelKomisyon>();
+        public ICollection<PersonelKurumsalRolAtama> PersonelKurumsalRolAtamalari { get; set; } = new List<PersonelKurumsalRolAtama>();
     }
 }

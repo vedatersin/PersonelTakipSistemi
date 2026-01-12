@@ -20,7 +20,18 @@ namespace PersonelTakipSistemi.Data
         public DbSet<PersonelYazilim> PersonelYazilimlar { get; set; }
         public DbSet<PersonelUzmanlik> PersonelUzmanliklar { get; set; }
         public DbSet<PersonelGorevTuru> PersonelGorevTurleri { get; set; }
+
         public DbSet<PersonelIsNiteligi> PersonelIsNitelikleri { get; set; }
+
+        // Authorization Module DbSets
+        public DbSet<Teskilat> Teskilatlar { get; set; }
+        public DbSet<Koordinatorluk> Koordinatorlukler { get; set; }
+        public DbSet<Komisyon> Komisyonlar { get; set; }
+        public DbSet<KurumsalRol> KurumsalRoller { get; set; }
+        public DbSet<PersonelTeskilat> PersonelTeskilatlar { get; set; }
+        public DbSet<PersonelKoordinatorluk> PersonelKoordinatorlukler { get; set; }
+        public DbSet<PersonelKomisyon> PersonelKomisyonlar { get; set; }
+        public DbSet<PersonelKurumsalRolAtama> PersonelKurumsalRolAtamalari { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -219,6 +230,132 @@ namespace PersonelTakipSistemi.Data
                     .WithMany(i => i.PersonelIsNitelikleri)
                     .HasForeignKey(e => e.IsNiteligiId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ============================================================
+            // Authorization Module Configuration
+            // ============================================================
+
+            // 1. Teskilat
+            modelBuilder.Entity<Teskilat>(entity => {
+                entity.ToTable("Teskilatlar");
+                entity.HasKey(e => e.TeskilatId);
+                entity.HasData(
+                    new Teskilat { TeskilatId = 1, Ad = "Merkez" },
+                    new Teskilat { TeskilatId = 2, Ad = "Taşra" }
+                );
+            });
+
+            // 2. Koordinatorluk
+            modelBuilder.Entity<Koordinatorluk>(entity => {
+                entity.ToTable("Koordinatorlukler");
+                entity.HasKey(e => e.KoordinatorlukId);
+                
+                entity.HasOne(d => d.Teskilat)
+                    .WithMany(p => p.Koordinatorlukler)
+                    .HasForeignKey(d => d.TeskilatId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.BaskanPersonel)
+                    .WithMany()
+                    .HasForeignKey(d => d.BaskanPersonelId)
+                    .OnDelete(DeleteBehavior.SetNull); // Başkan silinirse koordinatörlük silinmesin
+
+                entity.HasData(
+                    new Koordinatorluk { KoordinatorlukId = 1, Ad = "Ankara TEGM Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 2, Ad = "Mardin İl Koordinatörlüğü", TeskilatId = 2 },
+                    new Koordinatorluk { KoordinatorlukId = 3, Ad = "İzmir İl Koordinatörlüğü", TeskilatId = 2 }
+                );
+            });
+
+            // 3. Komisyon
+            modelBuilder.Entity<Komisyon>(entity => {
+                entity.ToTable("Komisyonlar");
+                entity.HasKey(e => e.KomisyonId);
+
+                entity.HasOne(d => d.Koordinatorluk)
+                    .WithMany(p => p.Komisyonlar)
+                    .HasForeignKey(d => d.KoordinatorlukId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.BaskanPersonel)
+                    .WithMany()
+                    .HasForeignKey(d => d.BaskanPersonelId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasData(
+                    // Ankara TEGM
+                    new Komisyon { KomisyonId = 1, Ad = "Türkçe Komisyonu", KoordinatorlukId = 1 },
+                    new Komisyon { KomisyonId = 2, Ad = "Matematik Komisyonu", KoordinatorlukId = 1 },
+                    new Komisyon { KomisyonId = 3, Ad = "Fen Bilimleri Komisyonu", KoordinatorlukId = 1 },
+                    // Mardin İl
+                    new Komisyon { KomisyonId = 4, Ad = "Türkçe Komisyonu", KoordinatorlukId = 2 },
+                    new Komisyon { KomisyonId = 5, Ad = "Matematik Komisyonu", KoordinatorlukId = 2 }
+                );
+            });
+
+            // 4. KurumsalRol
+            modelBuilder.Entity<KurumsalRol>(entity => {
+                entity.ToTable("KurumsalRoller");
+                entity.HasKey(e => e.KurumsalRolId);
+                entity.HasData(
+                    new KurumsalRol { KurumsalRolId = 1, Ad = "Personel" },
+                    new KurumsalRol { KurumsalRolId = 2, Ad = "Komisyon Başkanı" },
+                    new KurumsalRol { KurumsalRolId = 3, Ad = "İl Koordinatörü" },
+                    new KurumsalRol { KurumsalRolId = 4, Ad = "Genel Koordinatör" }
+                );
+            });
+
+            // 5. M2M Tables
+            
+            // PersonelTeskilat
+            modelBuilder.Entity<PersonelTeskilat>(entity => {
+                entity.ToTable("PersonelTeskilatlar");
+                entity.HasKey(e => new { e.PersonelId, e.TeskilatId });
+                entity.HasOne(e => e.Personel).WithMany(p => p.PersonelTeskilatlar).HasForeignKey(e => e.PersonelId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Teskilat).WithMany(t => t.PersonelTeskilatlar).HasForeignKey(e => e.TeskilatId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // PersonelKoordinatorluk
+            modelBuilder.Entity<PersonelKoordinatorluk>(entity => {
+                entity.ToTable("PersonelKoordinatorlukler");
+                entity.HasKey(e => new { e.PersonelId, e.KoordinatorlukId });
+                entity.HasOne(e => e.Personel).WithMany(p => p.PersonelKoordinatorlukler).HasForeignKey(e => e.PersonelId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Koordinatorluk).WithMany(k => k.PersonelKoordinatorlukler).HasForeignKey(e => e.KoordinatorlukId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // PersonelKomisyon
+            modelBuilder.Entity<PersonelKomisyon>(entity => {
+                entity.ToTable("PersonelKomisyonlar");
+                entity.HasKey(e => new { e.PersonelId, e.KomisyonId });
+                entity.HasOne(e => e.Personel).WithMany(p => p.PersonelKomisyonlar).HasForeignKey(e => e.PersonelId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Komisyon).WithMany(k => k.PersonelKomisyonlar).HasForeignKey(e => e.KomisyonId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // 6. PersonelKurumsalRolAtama
+            modelBuilder.Entity<PersonelKurumsalRolAtama>(entity => {
+                entity.ToTable("PersonelKurumsalRolAtamalari");
+                entity.HasKey(e => e.Id);
+                
+                entity.HasOne(e => e.Personel)
+                   .WithMany(p => p.PersonelKurumsalRolAtamalari)
+                   .HasForeignKey(e => e.PersonelId)
+                   .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.KurumsalRol)
+                   .WithMany()
+                   .HasForeignKey(e => e.KurumsalRolId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.Koordinatorluk)
+                   .WithMany()
+                   .HasForeignKey(e => e.KoordinatorlukId)
+                   .OnDelete(DeleteBehavior.Restrict); // Multiple cascade path fix: Restrict
+
+                entity.HasOne(e => e.Komisyon)
+                   .WithMany()
+                   .HasForeignKey(e => e.KomisyonId)
+                   .OnDelete(DeleteBehavior.Restrict); // Multiple cascade path fix: Restrict
             });
         }
 

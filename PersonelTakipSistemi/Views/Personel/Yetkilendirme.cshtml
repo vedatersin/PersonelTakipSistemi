@@ -1,0 +1,665 @@
+@model PersonelTakipSistemi.Models.ViewModels.YetkilendirmeIndexViewModel
+@{
+    ViewData["Title"] = "Personel Yetkilendirme";
+}
+
+<!-- Custom CSS for cleaner look -->
+<style>
+    .filter-bar {
+        background: #fff;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(161, 172, 184, 0.4);
+        margin-bottom: 1.5rem;
+    }
+    .user-avatar { width: 38px; height: 38px; object-fit: cover; }
+    .avatar-initial { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem; }
+    .table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
+    .table td { vertical-align: middle; }
+    .drawer-header-img { width: 64px; height: 64px; object-fit: cover; }
+    .nav-tabs .nav-link.active { border-bottom: 2px solid #696cff; color: #696cff; }
+</style>
+
+<div class="row h-100">
+    <div class="col-md-12">
+        
+        <!-- Filter Bar -->
+        <div class="filter-bar d-flex flex-wrap gap-2 align-items-center justify-content-between">
+            <div class="flex-grow-1" style="min-width: 200px; max-width: 300px;">
+                <input type="text" id="filterSearch" class="form-control" placeholder="Ad Soyad Ara...">
+            </div>
+            
+            <div class="d-flex flex-wrap gap-2">
+                <select id="filterTeskilat" class="form-select" style="width: auto;">
+                    <option value="">Teşkilat: Tümü</option>
+                    @foreach (var item in Model.TeskilatList) { <option value="@item.Text">@item.Text</option> }
+                </select>
+
+                <select id="filterSistemRol" class="form-select" style="width: auto;">
+                    <option value="">Sistem Rolü: Tümü</option>
+                    @foreach (var item in Model.SistemRolList) { <option value="@item.Text">@item.Text</option> }
+                </select>
+
+                <select id="filterKurumsalRol" class="form-select" style="width: auto;">
+                    <option value="">Kurumsal Rol: Tümü</option>
+                    @foreach (var item in Model.KurumsalRolList) { <option value="@item.Text">@item.Text</option> }
+                </select>
+
+                <select id="filterKomisyon" class="form-select" style="width: auto;">
+                    <option value="">Komisyon: Tümü</option>
+                     @foreach (var item in Model.KomisyonList) { <option value="@item.Text">@item.Text</option> }
+                </select>
+            </div>
+
+            <button class="btn btn-outline-secondary" onclick="clearFilters()">
+                Filtreleri Temizle
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="card h-100">
+            <div class="table-responsive text-nowrap" style="min-height: 500px;">
+                <table class="table table-hover" id="personelTable">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Foto</th>
+                            <th>Ad Soyad</th>
+                            <th>Teşkilat</th>
+                            <th>Koordinatörlük</th>
+                            <th>Komisyonlar</th>
+                            <th>Sistem Rolü</th>
+                            <th>Kurumsal Rol</th>
+                        </tr>
+                    </thead>
+                    <tbody class="table-border-bottom-0">
+                        @foreach (var p in Model.Personeller)
+                        {
+                            var teskilatStr = string.Join(",", p.TeskilatAdlari);
+                            var kurumsalStr = string.Join(",", p.KurumsalRolAdlari);
+                            var komisyonStr = string.Join(",", p.KomisyonAdlari);
+                            
+                            <tr class="cursor-pointer" onclick="openDrawer(@p.PersonelId)"
+                                data-search="@p.AdSoyad.ToLower()"
+                                data-teskilat="@teskilatStr"
+                                data-sistem="@p.SistemRol"
+                                data-kurumsal="@kurumsalStr"
+                                data-komisyon="@komisyonStr">
+                                
+                                <td class="ps-4">
+                                     <div class="avatar avatar-sm">
+                                        @if (!string.IsNullOrEmpty(p.FotografYolu))
+                                        {
+                                            <img src="@p.FotografYolu" alt="Avatar" class="rounded-circle user-avatar">
+                                        }
+                                        else
+                                        {
+                                            <span class="avatar-initial rounded-circle bg-label-primary">@GetInitials(p.AdSoyad)</span>
+                                        }
+                                     </div>
+                                </td>
+                                <td>
+                                    <span class="fw-semibold">@p.AdSoyad</span>
+                                </td>
+                                <td>@Html.Raw(RenderChips(p.TeskilatAdlari, "primary"))</td>
+                                <td>@Html.Raw(RenderChips(p.KoordinatorlukAdlari, "secondary"))</td>
+                                <td>@Html.Raw(RenderChips(p.KomisyonAdlari, "info"))</td>
+                                <td>
+                                    <span class="badge bg-label-@(p.SistemRol == "Admin" ? "warning" : "primary")">@p.SistemRol</span>
+                                </td>
+                                <td>@Html.Raw(RenderChips(p.KurumsalRolAdlari, "dark"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <div id="noResults" class="text-center p-5 d-none">
+                    <h5 class="text-muted">Kayıt bulunamadı.</h5>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Panel: Drawer (Offcanvas) -->
+    <div class="offcanvas offcanvas-end shadow-lg" tabindex="-1" id="offcanvasEnd" aria-labelledby="offcanvasEndLabel" style="width: 500px;">
+        <div class="offcanvas-header border-bottom">
+            <h5 id="offcanvasEndLabel" class="offcanvas-title ms-2">Personel Yetkilendirme</h5>
+            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body mx-0 flex-grow-0 p-4">
+            <div id="drawerLoader" class="text-center d-none mt-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Yükleniyor...</span>
+                </div>
+            </div>
+            
+            <div id="drawerContent">
+                <!-- Content will be loaded via JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string RenderChips(List<string> items, string color)
+    {
+        if (items == null || !items.Any()) return "";
+        
+        var visibleCount = 1;
+        var html = "";
+        
+        if (items.Count <= visibleCount)
+        {
+            foreach(var item in items)
+            {
+                html += $"<span class='badge bg-label-{color} me-1'>{item}</span>";
+            }
+        }
+        else
+        {
+            // Visible items
+            for(int i = 0; i < visibleCount; i++)
+            {
+                html += $"<span class='badge bg-label-{color} me-1'>{items[i]}</span>";
+            }
+            
+            // Expand Button (...)
+            html += $"<span class='badge bg-label-{color} cursor-pointer show-more-btn' style='cursor:pointer; opacity:0.8' onclick='toggleContainer(this)'>...</span>";
+            
+            // Hidden Container
+            html += $"<div class='d-none mt-1 extended-container' style='line-height: 2;'>";
+            
+            // Remaining items
+            for(int i = visibleCount; i < items.Count; i++)
+            {
+                html += $"<span class='badge bg-label-{color} me-1'>{items[i]}</span>";
+            }
+            
+            // Collapse Button (X)
+            html += $"<span class='badge bg-secondary cursor-pointer' style='cursor:pointer' onclick='toggleContainer(this)'>X</span>";
+            
+            html += "</div>";
+        }
+        return html;
+    }
+
+    public string GetInitials(string fullName)
+    {
+        if (string.IsNullOrWhiteSpace(fullName)) return "";
+        var parts = fullName.Trim().Split(' ');
+        if (parts.Length == 1) return parts[0].Length > 0 ? parts[0].Substring(0, 1).ToUpper() : "";
+        return (parts[0].Substring(0, 1) + parts[parts.Length - 1].Substring(0, 1)).ToUpper();
+    }
+}
+
+@section Scripts {
+    <script>
+        var allTeskilatOptions = @Json.Serialize(Model.TeskilatList);
+        var allKurumsalRolOptions = @Json.Serialize(Model.KurumsalRolList);
+        var allSistemRolOptions = @Json.Serialize(Model.SistemRolList);
+        
+        // Global variable to hold current drawer data safely
+        var currentDrawerData = null;
+
+        // --- Expandable Chips Logic ---
+        function toggleContainer(element) {
+            if (event) event.stopPropagation(); // Stop row click
+            
+            if (element.classList.contains('show-more-btn')) {
+                // Expanding
+                var container = element.nextElementSibling;
+                if(container) {
+                    element.classList.add('d-none');
+                    container.classList.remove('d-none');
+                }
+            } else {
+                // Collapsing (The 'X' button)
+                var container = element.parentElement;
+                var showBtn = container.previousElementSibling;
+                
+                container.classList.add('d-none');
+                if(showBtn) {
+                    showBtn.classList.remove('d-none');
+                }
+            }
+        }
+
+        // --- Filtering Logic ---
+        $(document).ready(function() {
+            const inputs = ['#filterSearch', '#filterTeskilat', '#filterSistemRol', '#filterKurumsalRol', '#filterKomisyon'];
+            inputs.forEach(id => $(id).on('input change', filterTable));
+        });
+
+        function filterTable() {
+            const search = $('#filterSearch').val().toLowerCase();
+            const teskilat = $('#filterTeskilat').val();
+            const sistem = $('#filterSistemRol').val();
+            const kurumsal = $('#filterKurumsalRol').val();
+            const komisyon = $('#filterKomisyon').val();
+
+            let visibleCount = 0;
+
+            $('#personelTable tbody tr').each(function() {
+                const $row = $(this);
+                const rSearch = $row.data('search');
+                const rTeskilat = $row.data('teskilat'); // Comma sep string
+                const rSistem = $row.data('sistem');
+                const rKurumsal = $row.data('kurumsal');
+                const rKomisyon = $row.data('komisyon');
+
+                const mSearch = !search || rSearch.includes(search);
+                const mTeskilat = !teskilat || rTeskilat.includes(teskilat);
+                const mSistem = !sistem || rSistem === sistem;
+                const mKurumsal = !kurumsal || rKurumsal.includes(kurumsal);
+                const mKomisyon = !komisyon || rKomisyon.includes(komisyon);
+
+                if(mSearch && mTeskilat && mSistem && mKurumsal && mKomisyon) {
+                    $row.show();
+                    visibleCount++;
+                } else {
+                    $row.hide();
+                }
+            });
+
+            if(visibleCount === 0) $('#noResults').removeClass('d-none');
+            else $('#noResults').addClass('d-none');
+        }
+
+        function clearFilters() {
+            $('#filterSearch').val('');
+            $('#filterTeskilat').val('');
+            $('#filterSistemRol').val('');
+            $('#filterKurumsalRol').val('');
+            $('#filterKomisyon').val('');
+            filterTable();
+        }
+
+        // --- Drawer Logic ---
+        function openDrawer(id) {
+            var bsOffcanvas = new bootstrap.Offcanvas(document.getElementById('offcanvasEnd'));
+            bsOffcanvas.show();
+            loadDrawerData(id);
+        }
+
+        async function loadDrawerData(id) {
+            $('#drawerLoader').removeClass('d-none');
+            $('#drawerContent').html('');
+
+            try {
+                const response = await fetch(`/Personel/GetYetkilendirmeData/${id}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const data = await response.json();
+                
+                // Store data globally
+                currentDrawerData = data;
+                
+                renderDrawer(data);
+            } catch (error) {
+                console.error('Error:', error);
+                $('#drawerContent').html('<div class="alert alert-danger">Veri yüklenemedi.</div>');
+            } finally {
+                $('#drawerLoader').addClass('d-none');
+            }
+        }
+
+        function renderDrawer(data) {
+            let photoHtml = '';
+            if (data.fotografYolu) {
+                photoHtml = `<img src="${data.fotografYolu}" class="rounded-circle me-3" width="64" height="64">`;
+            } else {
+                photoHtml = `<span class="badge bg-label-secondary p-3 rounded-circle me-3 d-flex align-items-center justify-content-center" style="width:64px; height:64px; font-size: 1.5rem;">${getInitials(data.adSoyad)}</span>`;
+            }
+
+            let html = `
+                <div class="d-flex align-items-center mb-4">
+                     ${photoHtml}
+                     <div>
+                         <h5 class="mb-1">${data.adSoyad}</h5>
+                         <span class="text-muted small">${data.sistemRol}</span>
+                     </div>
+                </div>
+
+                <ul class="nav nav-tabs nav-fill mb-4 border-bottom" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active border-0" data-bs-toggle="tab" data-bs-target="#navs-atama">Kurumsal Atamalar</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link border-0" data-bs-toggle="tab" data-bs-target="#navs-sistem">Sistemsel Yetki</button>
+                    </li>
+                </ul>
+
+                <div class="tab-content p-0">
+                    <div class="tab-pane fade show active" id="navs-atama">
+                        ${generateFullAssignmentHtml(data)}
+                    </div>
+                    <div class="tab-pane fade" id="navs-sistem">
+                        ${renderSystemRoleSection(data)}
+                    </div>
+                </div>
+            `;
+            $('#drawerContent').html(html);
+        }
+        
+        function getInitials(name) {
+            if(!name) return '';
+            const parts = name.trim().split(' ');
+            if(parts.length === 1) return parts[0][0].toUpperCase();
+            return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+        }
+
+        function renderSystemRoleSection(data) {
+            return `
+                <div class="mb-3">
+                    <label class="form-label text-muted small text-uppercase">Sistem Rolü</label>
+                    <select class="form-select" onchange="updateSistemRol(${data.personelId}, this.value)">
+                        ${allSistemRolOptions.map(o => `<option value="${o.value}" ${o.value === data.sistemRol ? 'selected' : ''}>${o.text}</option>`).join('')}
+                    </select>
+                </div>
+            `;
+        }
+
+        async function updateSistemRol(id, rol) {
+            await fetch(`/Personel/SetSistemRol?id=${id}&rol=${rol}`, { method: 'POST' });
+            location.reload(); 
+        }
+
+        function generateFullAssignmentHtml(data) {
+             let html = '';
+
+             // Helper for sections
+             const renderSection = (title, icon, items, available, addFn, color) => {
+                 let sHtml = `<div class="mb-4">`;
+                 sHtml += `<label class="form-label text-muted small text-uppercase mb-2">${title}</label>`;
+                 
+                 if(items.length > 0) {
+                    sHtml += `<div class="d-flex flex-column gap-2 mb-2">`;
+                    items.forEach(item => {
+                         sHtml += `<div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border">
+                                     <span>${item.ad}</span>
+                                     <i class="bx bx-x text-muted cursor-pointer hover-text-danger" onclick="${item.removeFn}"></i>
+                                   </div>`;
+                    });
+                     sHtml += `</div>`;
+                 }
+                 
+                 if(available.length > 0) {
+                     sHtml += `<select class="form-select form-select-sm mt-1" onchange="${addFn}">
+                                 <option value="" selected disabled>+ ${title} Ekle...</option>
+                                 ${available.map(i => `<option value="${i.id}">${i.ad}</option>`).join('')}
+                               </select>`;
+                 } else {
+                     sHtml += `<div class="small text-muted fst-italic mt-1">Eklenebilir seçenek yok.</div>`;
+                 }
+                 sHtml += `</div>`;
+                 return sHtml;
+             };
+
+             // 1. Teşkilat
+             const availableTes = data.allTeskilatlar.filter(x => !data.selectedTeskilatIds.includes(x.id));
+             data.teskilatAssignments.forEach(i => i.removeFn = `removeTeskilat(${data.personelId}, ${i.id})`);
+             html += renderSection('Teşkilat', 'building', data.teskilatAssignments, availableTes, `addTeskilat(${data.personelId}, this.value)`, 'primary');
+
+             // 2. Koordinatorluk
+             const availableKoord = data.allKoordinatorlukler.filter(x => !data.selectedKoordinatorlukIds.includes(x.id) && data.selectedTeskilatIds.includes(x.parentId));
+             data.koordinatorlukAssignments.forEach(i => i.removeFn = `removeKoordinatorluk(${data.personelId}, ${i.id})`);
+             html += renderSection('Koordinatörlük', 'map-pin', data.koordinatorlukAssignments, availableKoord, `addKoordinatorluk(${data.personelId}, this.value)`, 'info');
+
+             // 3. Komisyon
+             const availableKom = data.allKomisyonlar.filter(x => !data.selectedKomisyonIds.includes(x.id) && data.selectedKoordinatorlukIds.includes(x.parentId));
+             data.komisyonAssignments.forEach(i => i.removeFn = `removeKomisyon(${data.personelId}, ${i.id})`);
+             html += renderSection('Komisyonlar', 'group', data.komisyonAssignments, availableKom, `addKomisyon(${data.personelId}, this.value)`, 'success');
+             
+             // 4. Kurumsal Rol
+             html += `<div class="mb-4"><label class="form-label text-muted small text-uppercase mb-2">Kurumsal Rol</label>`;
+             if(data.kurumsalRolAssignments.length > 0) {
+                  html += `<div class="d-flex flex-column gap-2 mb-2">`;
+                  data.kurumsalRolAssignments.forEach(item => {
+                       html += `<div class="d-flex justify-content-between align-items-center bg-light p-2 rounded border border-start-4 border-danger">
+                                     <div>
+                                        <span class="fw-semibold d-block">${item.rolAd}</span>
+                                        <small class="text-muted">${item.contextAd}</small>
+                                     </div>
+                                     <i class="bx bx-x text-muted cursor-pointer hover-text-danger" onclick="removeKurumsalRol(${data.personelId}, ${item.assignmentId})"></i>
+                                   </div>`;
+                  });
+                   html += `</div>`;
+             }
+             html += renderRoleAddForm(data);
+             html += `</div>`;
+
+             return html;
+        }
+
+        // --- Role Assignment Form Logic ---
+        function renderRoleAddForm(data) {
+            // IDs
+            const TESKILAT_MERKEZ = 1;
+            const KOORD_ANKARA = 1;
+            
+            const ROL_GENEL_KOORD = 4;
+            const ROL_KOMISYON_BASKANI = 2;
+            const ROL_IL_KOORD = 3;
+            const ROL_PERSONEL = 1;
+
+            const hasMerkez = data.selectedTeskilatIds && data.selectedTeskilatIds.includes(TESKILAT_MERKEZ);
+            const hasAnkara = data.selectedKoordinatorlukIds && data.selectedKoordinatorlukIds.includes(KOORD_ANKARA);
+            const hasKomisyon = data.selectedKomisyonIds && data.selectedKomisyonIds.length > 0;
+            // Provincial Coords: All koords EXCEPT Ankara (ID 1)
+            const hasTasraKoord = data.selectedKoordinatorlukIds && data.selectedKoordinatorlukIds.some(id => id !== KOORD_ANKARA);
+            
+            // Allow Personel if any assignment exists (or always, per requirement "Serbest olabilir")
+            // Strict interpretation: "preference: at least one coord/comm selected" -> Let's check generally.
+            const hasAnyAssignment = data.selectedKoordinatorlukIds.length > 0 || hasKomisyon;
+
+            const filteredOptions = allKurumsalRolOptions.filter(r => {
+                const rid = parseInt(r.value);
+                
+                if (rid === ROL_GENEL_KOORD) {
+                    return hasMerkez && hasAnkara;
+                }
+                if (rid === ROL_KOMISYON_BASKANI) {
+                    return hasKomisyon;
+                }
+                if (rid === ROL_IL_KOORD) {
+                    return hasTasraKoord;
+                }
+                if (rid === ROL_PERSONEL) {
+                    return true; // Always allow, or restrict to hasAnyAssignment if simpler. User said "Serbest olabilir".
+                }
+                return true;
+            });
+            
+            const isDisabled = filteredOptions.length === 0 || (filteredOptions.length === 1 && filteredOptions[0].value == ROL_PERSONEL && !hasAnyAssignment); // Optional refinement
+            // Actually, keep it simple. disable if 0.
+            
+            const placeholder = isDisabled ? "Önce teşkilat/koordinatörlük/komisyon seçin" : "+ Rol Seçiniz...";
+
+            return `
+                <div class="p-3 bg-light rounded border">
+                     <div class="mb-2">
+                         <select class="form-select" id="newRoleSelect" onchange="handleRoleChange(this.value)" ${isDisabled ? 'disabled' : ''}>
+                            <option value="">${placeholder}</option>
+                            ${filteredOptions.map(r => `<option value="${r.value}">${r.text}</option>`).join('')}
+                        </select>
+                    </div>
+                    
+                    <div id="roleContextContainer" style="display:none;">
+                        <input type="hidden" id="autoContextValue" />
+                        <div class="mb-2" id="contextSelectWrapper">
+                            <select class="form-select" id="newRoleContext">
+                                <option value="">Kapsam Seçiniz</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2">
+                             <button class="btn btn-sm btn-primary flex-grow-1" onclick="saveRoleAssignment(${data.personelId})"><i class='bx bx-save me-1'></i>Kaydet</button>
+                             <button class="btn btn-sm btn-outline-secondary flex-grow-1" onclick="cancelRoleAssignment()"><i class='bx bx-x me-1'></i>İptal</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function handleRoleChange(roleId) {
+            const container = document.getElementById('roleContextContainer');
+            const contextSelect = document.getElementById('newRoleContext');
+            const wrapper = document.getElementById('contextSelectWrapper');
+            const roleText = allKurumsalRolOptions.find(r => r.value == roleId)?.text;
+            
+            if(!roleId) {
+                container.style.display = 'none';
+                return;
+            }
+
+            if (!currentDrawerData) {
+                console.error("Drawer data missing!");
+                return;
+            }
+
+            contextSelect.innerHTML = '<option value="">Kapsam Seçiniz...</option>';
+            contextSelect.disabled = false;
+            wrapper.style.display = 'block';
+
+            // Constants
+            const KOORD_ANKARA = 1;
+            
+            // Use global data BUT filter by assignments
+            const assignedKoords = currentDrawerData.allKoordinatorlukler.filter(x => currentDrawerData.selectedKoordinatorlukIds.includes(x.id));
+            const assignedKoms = currentDrawerData.allKomisyonlar.filter(x => currentDrawerData.selectedKomisyonIds.includes(x.id));
+            
+            let showContext = false;
+            let contextRequired = true;
+
+            if (roleText === "Komisyon Başkanı") {
+                // Populate ONLY assigned commissions
+                if(assignedKoms.length === 0) {
+                     alert("Hata: Atanmış komisyon bulunamadı."); // Should be prevented by render logic
+                     cancelRoleAssignment();
+                     return;
+                }
+                assignedKoms.forEach(k => {
+                    contextSelect.innerHTML += `<option value="${k.id}" data-type="kom">${k.ad} Başkanlığı</option>`;
+                });
+                showContext = true;
+            } else if (roleText === "İl Koordinatörü") {
+                 // Populate ONLY assigned provincial coords (Not Ankara)
+                 const tasraKoords = assignedKoords.filter(k => k.id !== KOORD_ANKARA);
+                 if(tasraKoords.length === 0) {
+                     alert("Hata: Atanmış il koordinatörlüğü bulunamadı.");
+                     cancelRoleAssignment();
+                     return;
+                 }
+                 tasraKoords.forEach(k => {
+                    contextSelect.innerHTML += `<option value="${k.id}" data-type="koord">${k.ad}</option>`;
+                });
+                showContext = true;
+            } else if (roleText === "Genel Koordinatör") {
+                // FORCE Context to Ankara TEGM (ID 1)
+                // Logic: Must have Ankara TEGM assigned (checked in render)
+                // Add option and auto-select
+                const ankara = assignedKoords.find(k => k.id === KOORD_ANKARA);
+                if (ankara) {
+                    contextSelect.innerHTML = `<option value="${ankara.id}" data-type="koord" selected>${ankara.ad}</option>`;
+                    contextSelect.disabled = true; // User cannot change it, strictly bound
+                } else {
+                     alert("Hata: Ankara TEGM koordinatörlüğü atanmamış.");
+                     cancelRoleAssignment();
+                     return;
+                }
+                showContext = true;
+            } else {
+                 contextRequired = false;
+            }
+            
+            if (showContext) {
+                 container.style.display = 'block';
+            } else if (!contextRequired && roleId) {
+                 // Even if no context, show buttons to Confirm/Cancel
+                 contextSelect.innerHTML = '<option value="" selected>Kapsam gerekmez</option>';
+                 contextSelect.disabled = true;
+                 container.style.display = 'block';
+            } else {
+                 container.style.display = 'none';
+            }
+        }
+        
+        function cancelRoleAssignment() {
+            document.getElementById('newRoleSelect').value = "";
+            document.getElementById('roleContextContainer').style.display = 'none';
+        }
+
+        async function saveRoleAssignment(pid) {
+            const roleId = document.getElementById('newRoleSelect').value;
+            const contextSelect = document.getElementById('newRoleContext');
+            const contextValue = contextSelect.value;
+            const contextType = contextSelect.options[contextSelect.selectedIndex].getAttribute('data-type');
+            const isDisabled = contextSelect.disabled;
+
+            if (!roleId) {
+                alert('Lütfen bir rol seçiniz.');
+                return;
+            }
+            if (!isDisabled && !contextValue) {
+                alert('Lütfen kapsam (hangi birim) seçiniz.');
+                return;
+            }
+
+            let url = `/Personel/AddKurumsalRol?personelId=${pid}&kurumsalRolId=${roleId}`;
+            if (contextType === 'kom' && contextValue) url += `&komisyonId=${contextValue}`;
+            if (contextType === 'koord' && contextValue) url += `&koordinatorlukId=${contextValue}`;
+
+            try {
+                await performRoleAdd(url, pid);
+            } catch (err) {
+                 alert('Bir hata oluştu: ' + err.message);
+            }
+        }
+
+        async function performRoleAdd(url, pid, force = false) {
+            if (force) url += '&force=true';
+            
+            try {
+                const res = await fetch(url, { method: 'POST' });
+                if (!res.ok) throw new Error('Sunucu hatası');
+                
+                const result = await res.json();
+                
+                if (result.success) {
+                    loadDrawerData(pid);
+                } else if (result.warning) {
+                    if(confirm(result.warning)) { // "X kişisinin yerine atansın mı?"
+                        await performRoleAdd(url, pid, true);
+                    } else {
+                         cancelRoleAssignment(); // User cancelled overwrite
+                    }
+                } else {
+                    alert('İşlem başarısız: ' + (result.message || 'Bilinmeyen hata'));
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Bağlantı hatası veya işlem gerçekleştirilemedi.');
+            }
+        }
+
+        async function removeKurumsalRol(pid, assignmentId) {
+             if(confirm('Rolü silmek istediğinize emin misiniz?')) {
+                await fetch(`/Personel/RemoveKurumsalRol?assignmentId=${assignmentId}`, { method: 'POST' });
+                loadDrawerData(pid);
+            }
+        }
+
+        async function addTeskilat(pid, tid) { await fetchPostRefresh(`/Personel/AddTeskilat?personelId=${pid}&teskilatId=${tid}`, pid); }
+        async function removeTeskilat(pid, tid) { if(confirm('Silmek istediğinize emin misiniz? Alt birimler de silinebilir.')) await fetchPostRefresh(`/Personel/RemoveTeskilat?personelId=${pid}&teskilatId=${tid}`, pid); }
+        async function addKoordinatorluk(pid, kid) { await fetchPostRefresh(`/Personel/AddKoordinatorluk?personelId=${pid}&koordinatorlukId=${kid}`, pid); }
+        async function removeKoordinatorluk(pid, kid) { if(confirm('Silmek istediğinize emin misiniz?')) await fetchPostRefresh(`/Personel/RemoveKoordinatorluk?personelId=${pid}&koordinatorlukId=${kid}`, pid); }
+        async function addKomisyon(pid, kid) { await fetchPostRefresh(`/Personel/AddKomisyon?personelId=${pid}&komisyonId=${kid}`, pid); }
+        async function removeKomisyon(pid, kid) { await fetchPostRefresh(`/Personel/RemoveKomisyon?personelId=${pid}&komisyonId=${kid}`, pid); }
+
+        async function fetchPostRefresh(url, pid) {
+            try {
+                const res = await fetch(url, { method: 'POST' });
+                if(res.ok) loadDrawerData(pid);
+                else alert('İşlem sırasında hata oluştu.');
+            } catch(e) {
+                alert('Bağlantı hatası.');
+            }
+        }
+    </script>
+}
