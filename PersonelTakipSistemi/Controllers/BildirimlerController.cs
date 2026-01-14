@@ -23,27 +23,44 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetData(int? selectedId)
         {
-            var userId = int.Parse(User.FindFirst("PersonelId")?.Value ?? "0");
-            if (userId == 0) return Unauthorized();
-
-            var inbox = await _notificationService.GetInboxAsync(userId);
-            
-            object? selectedNotification = null;
-            if (selectedId.HasValue)
+            try
             {
-                var notif = inbox.FirstOrDefault(x => x.BildirimId == selectedId.Value);
-                if (notif != null)
+                var userIdStr = User.FindFirst("PersonelId")?.Value;
+                if (string.IsNullOrEmpty(userIdStr))
                 {
-                    selectedNotification = notif;
-                    if (!notif.OkunduMu)
+                    userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                }
+
+                if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId) || userId == 0)
+                {
+                    // Log here if possible
+                    return Unauthorized(); 
+                }
+
+                var inbox = await _notificationService.GetInboxAsync(userId);
+                
+                object? selectedNotification = null;
+                if (selectedId.HasValue)
+                {
+                    var notif = inbox.FirstOrDefault(x => x.BildirimId == selectedId.Value);
+                    if (notif != null)
                     {
-                        await _notificationService.MarkAsReadAsync(userId, notif.BildirimId);
-                        notif.OkunduMu = true;
+                        selectedNotification = notif;
+                        if (!notif.OkunduMu)
+                        {
+                            await _notificationService.MarkAsReadAsync(userId, notif.BildirimId);
+                            notif.OkunduMu = true;
+                        }
                     }
                 }
-            }
 
-            return Json(new { inbox, selectedNotification });
+                return Json(new { inbox, selectedNotification });
+            }
+            catch (Exception ex)
+            {
+                // Return 500 so the client knows it's an error
+                return StatusCode(500, new { message = "Sunucu hatası: " + ex.Message });
+            }
         }
 
         [HttpGet]

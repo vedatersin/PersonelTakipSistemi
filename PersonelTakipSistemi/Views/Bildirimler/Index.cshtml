@@ -14,11 +14,6 @@
         <div class="flex-grow-1 overflow-auto" id="notification-list-container">
             <div class="list-group list-group-flush" id="notification-list">
                 <!-- Items will be loaded here via JS -->
-                <div class="text-center p-4">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Yükleniyor...</span>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -26,14 +21,70 @@
     <!-- Right Column: Notification Detail -->
     <div class="col-md-9 col-lg-9 h-100 p-0 bg-lighter d-flex flex-column" style="overflow-y: auto;">
         <div id="notification-detail-container" class="p-5 h-100 d-flex align-items-center justify-content-center">
-            <div class="text-center text-muted">
-                <i class="bx bx-envelope-open mb-3" style="font-size: 3rem;"></i>
-                <h5>Bir bildirim seçin</h5>
-                <p>Detayları görmek için soldaki listeden bir bildirime tıklayın.</p>
-            </div>
+             <!-- Content will be loaded here via JS -->
         </div>
     </div>
 </div>
+
+
+<template id="loading-left-template">
+    <div class="text-center p-4 mt-4">
+        <div class="spinner-border text-primary" role="status" style="width: 2rem; height: 2rem;">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+    </div>
+</template>
+
+<template id="loading-right-template">
+    <div class="text-center text-muted fade-in">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div> <!-- Using spinner as requested for right panel too or hourglass icon -->
+        <!-- Trying to match "hourglass or subtle spinner" and "Yükleniyor..." -->
+        <h5>Yükleniyor...</h5>
+        <p>Bildirimler getiriliyor, lütfen bekleyin.</p>
+    </div>
+</template>
+
+<template id="empty-left-template">
+    <div class="text-center p-4 mt-5 text-muted fade-in">
+        <i class="bx bx-bell mb-2" style="font-size: 1.5rem;"></i>
+        <p class="mb-0 fw-semibold">Henüz bildirim yok</p>
+        <small>Yeni bildirimler burada listelenecek.</small>
+    </div>
+</template>
+
+
+<template id="empty-right-template">
+    <div class="text-center text-muted fade-in">
+        <i class="bx bx-bell mb-3 text-primary" style="font-size: 4rem; opacity: 0.5;"></i>
+        <h4 class="mb-2">Henüz hiçbir bildiriminiz yok</h4>
+        <p class="text-muted">Yeni bildiriminiz olduğunda burada görünecek.</p>
+    </div>
+</template>
+
+<template id="error-left-template">
+    <div class="text-center p-4 mt-4 text-danger fade-in">
+        <i class="bx bx-error-circle mb-2" style="font-size: 1.5rem;"></i>
+        <p class="mb-2 fw-semibold">Yükleme hatası</p>
+        <button onclick="loadInbox()" class="btn btn-sm btn-outline-danger">Tekrar Dene</button>
+    </div>
+</template>
+
+<template id="error-right-template">
+    <div class="text-center text-muted fade-in">
+        <i class="bx bx-error mb-3 text-danger" style="font-size: 4rem; opacity: 0.5;"></i>
+        <h4 class="mb-2 text-danger">Bildirimler yüklenemedi</h4>
+        <p class="text-muted mb-4">Lütfen bağlantınızı kontrol edip tekrar deneyin.</p>
+        <button onclick="loadInbox()" class="btn btn-danger"><i class="bx bx-refresh me-2"></i>Tekrar Dene</button>
+    </div>
+</template>
+
+<template id="select-notification-template">
+    <div class="text-center text-muted fade-in">
+        <i class="bx bx-envelope-open mb-3" style="font-size: 3rem;"></i>
+        <h5>Bir bildirim seçin</h5>
+        <p>Detayları görmek için soldaki listeden bir bildirime tıklayın.</p>
+    </div>
+</template>
 
 <template id="notification-item-template">
     <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex align-items-start border-bottom-0 border-top-0 transition-none" onclick="selectNotification(this, '{id}')" id="notif-item-{id}">

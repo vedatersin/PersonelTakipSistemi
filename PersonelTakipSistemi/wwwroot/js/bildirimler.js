@@ -26,30 +26,52 @@ $(document).ready(function () {
 });
 
 function loadInbox() {
+    // 1. STATE: LOADING
+    // Always render loading on left
+    $('#notification-list').html(document.getElementById('loading-left-template').innerHTML);
+
+    // Render loading on right ONLY if we don't have a content to show (e.g. refreshing) OR if we want to blocking-load
+    // For smoother UX, if we already have a selection, maybe we don't wipe right panel?
+    // User requested strict Loading state -> "Loading UI (sol + sağ)" when isLoading=true.
+    // So let's be strict.
+    $('#notification-detail-container').html(document.getElementById('loading-right-template').innerHTML);
+
     $.ajax({
         url: '/Bildirimler/GetData',
         type: 'GET',
         data: { selectedId: selectedNotificationId },
         success: function (response) {
+
+            // 2. STATE: EMPTY (Normal Success but 0 items)
+            if (!response.inbox || response.inbox.length === 0) {
+                $('#notification-list').html(document.getElementById('empty-left-template').innerHTML);
+                $('#notification-detail-container').html(document.getElementById('empty-right-template').innerHTML);
+                return; // Stop processing
+            }
+
+            // 3. STATE: NORMAL (Items exist)
             renderList(response.inbox);
 
             if (response.selectedNotification) {
+                // Case: Item selected
                 renderDetail(response.selectedNotification);
                 // Scroll to item
                 setTimeout(() => {
                     const item = document.getElementById(`notif-item-${response.selectedNotification.bildirimId}`);
                     if (item) item.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }, 100);
-            } else if (response.inbox.length > 0 && !selectedNotificationId) {
-                // Optional: Select first item automatically? 
-                // User requirement: "Sayfa açılınca ilgili bildirim otomatik seçilir... Yoksa placeholder"
-                // So if no param, placeholder is fine.
-            } else if (response.inbox.length === 0) {
-                $('#notification-list').html('<div class="text-center p-4 text-muted">Henüz bildirim yok.</div>');
+            } else {
+                // Case: No item selected (Placeholder)
+                // NOTE: User said "Bir bildirim seçin" must ONLY appear when there ARE notifications.
+                // We are in the notifications.length > 0 block, so this is correct.
+                $('#notification-detail-container').html(document.getElementById('select-notification-template').innerHTML);
             }
         },
         error: function () {
+            // 4. STATE: ERROR
             console.error("Bildirimler yüklenemedi.");
+            $('#notification-list').html(document.getElementById('error-left-template').innerHTML);
+            $('#notification-detail-container').html(document.getElementById('error-right-template').innerHTML);
         }
     });
 }
@@ -163,12 +185,22 @@ function formatDate(dateString) {
 // Topbar Logic (Global)
 function loadTopbarCount() {
     $.get('/Bildirimler/Topbar', function (data) {
+        const badge = $('#notificationBadge');
         if (data.count > 0) {
-            $('#notificationBadge').text(data.count > 99 ? '99+' : data.count).show();
+            badge.removeClass('bg-secondary').addClass('bg-danger');
+            badge.text(data.count > 99 ? '99+' : data.count).show();
         } else {
-            $('#notificationBadge').hide();
+            // User requested: 0 count, gray background, text '0'
+            badge.removeClass('bg-danger').addClass('bg-secondary');
+            badge.text('0').show();
         }
         renderDropdown(data.top);
+    }).fail(function () {
+        console.error("Bildirimler/Topbar failed.");
+        // Fallback: Show 0 gray
+        const badge = $('#notificationBadge');
+        badge.removeClass('bg-danger').addClass('bg-secondary');
+        badge.text('0').show();
     });
 }
 
