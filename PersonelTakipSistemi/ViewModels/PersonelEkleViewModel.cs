@@ -49,6 +49,9 @@ namespace PersonelTakipSistemi.ViewModels
         public string? Sifre { get; set; } 
 
         // Şifre Değiştirme (Sadece Edit Modunda Görünür/Kullanılır)
+        [DataType(DataType.Password)]
+        public string? EskiSifre { get; set; }
+
         [StringLength(20, MinimumLength = 6, ErrorMessage = "Şifre en az 6 karakter olmalıdır.")]
         public string? NewPassword { get; set; }
 

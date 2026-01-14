@@ -530,6 +530,17 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             // 2. Düzenleme Modu (Update)
+            
+            // Security Check for Edit
+            if (id.HasValue && !User.IsInRole("Admin") && !User.IsInRole("Yönetici"))
+            {
+                 var currentUserId = User.FindFirst("PersonelId")?.Value;
+                 if (currentUserId != null && currentUserId != id.Value.ToString())
+                 {
+                      return RedirectToAction("AccessDenied", "Account");
+                 }
+            }
+
             var personel = await _context.Personeller
                 .Include(p => p.PersonelYazilimlar)
                 .Include(p => p.PersonelUzmanliklar)
@@ -724,11 +735,43 @@ namespace PersonelTakipSistemi.Controllers
                         
                         personel.UpdatedAt = DateTime.Now;
 
-                        // Şifre Güncelleme (Sadece doluysa)
+                        // Şifre Güncelleme (Secure Logic)
                         if (!string.IsNullOrEmpty(model.NewPassword))
                         {
+                            bool isAdminOrManager = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+                            
+                            // Kural: Admin/Yönetici değilse Eski Şifre sorulmalı.
+                            // İstisna: İlk şifre değişimi ise (Varsayılan şifre kullanılıyorsa) sorulmaz.
+                            if (!isAdminOrManager)
+                            {
+                                // Varsayılan şifre kontrolü (TC ilk 6 hane)
+                                string defaultPass = personel.TcKimlikNo.Length >= 6 ? personel.TcKimlikNo.Substring(0, 6) : "123456";
+                                bool isDefaultPassword = VerifyPasswordHash(defaultPass, personel.SifreHash, personel.SifreSalt);
+
+                                if (!isDefaultPassword)
+                                {
+                                    if (string.IsNullOrEmpty(model.EskiSifre))
+                                    {
+                                        ModelState.AddModelError("EskiSifre", "Mevcut şifrenizi girmelisiniz.");
+                                        TempData["Error"] = "Şifre değiştirme hatası: Mevcut şifrenizi giriniz.";
+                                        TempData["OpenTab"] = "tab_password"; // Hata durumunda ilgili tabı aç
+                                        await FillLookupLists(model);
+                                        return View(model);
+                                    }
+
+                                    if (!VerifyPasswordHash(model.EskiSifre, personel.SifreHash, personel.SifreSalt))
+                                    {
+                                        ModelState.AddModelError("EskiSifre", "Mevcut şifreniz hatalı.");
+                                        TempData["Error"] = "Şifre değiştirme hatası: Mevcut şifreniz hatalı.";
+                                        TempData["OpenTab"] = "tab_password";
+                                        await FillLookupLists(model);
+                                        return View(model);
+                                    }
+                                }
+                            }
+
                              CreatePasswordHash(model.NewPassword, out byte[] passwordHash, out byte[] passwordSalt);
-                             personel.Sifre = model.NewPassword; // Plain text sync
+                             personel.Sifre = model.NewPassword; 
                              personel.SifreHash = passwordHash;
                              personel.SifreSalt = passwordSalt;
                         }
@@ -858,12 +901,16 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet("/Personel/Detay/{id:int}")]
         public async Task<IActionResult> Detay(int id)
         {
-            // Security Check: Users can only view their own details
-            var currentUserId = User.FindFirst("PersonelId")?.Value;
-            if (currentUserId != null && currentUserId != id.ToString())
+            // Security Check
+            // Admin/Yönetici: All Access
+            // Editör/Kullanıcı: Only Own Data
+            if (!User.IsInRole("Admin") && !User.IsInRole("Yönetici"))
             {
-                 // Redirect to their own detail or show access denied
-                 return RedirectToAction("AccessDenied", "Account");
+                var currentUserId = User.FindFirst("PersonelId")?.Value;
+                if (currentUserId != null && currentUserId != id.ToString())
+                {
+                     return RedirectToAction("AccessDenied", "Account");
+                }
             }
 
             var personel = await _context.Personeller
@@ -1019,15 +1066,48 @@ namespace PersonelTakipSistemi.Controllers
 
         private bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
         {
-            using (var hmac = new HMACSHA512(storedSalt))
+            // Fix: Must use PBKDF2 to match CreatePasswordHash
+            var computedHash = KeyDerivation.Pbkdf2(
+                password: password,
+                salt: storedSalt,
+                prf: KeyDerivationPrf.HMACSHA512,
+                iterationCount: 10000,
+                numBytesRequested: 256 / 8);
+
+            return computedHash.SequenceEqual(storedHash);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckPassword(int id, string password)
+        {
+            var personel = await _context.Personeller.FindAsync(id);
+            if(personel == null) return Json(new { success = false, message = "Personel bulunamadı." });
+
+            // Check correctness
+            bool isValid = VerifyPasswordHash(password, personel.SifreHash, personel.SifreSalt);
+            return Json(new { success = isValid });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckDuplicates(int? id, string tc, string email)
+        {
+            var isTcExists = false;
+            var isEmailExists = false;
+
+            if (id.HasValue && id.Value > 0)
             {
-                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-                for (int i = 0; i < computedHash.Length; i++)
-                {
-                    if (computedHash[i] != storedHash[i]) return false;
-                }
+                // Edit Mode: Exclude current user
+                isTcExists = await _context.Personeller.AnyAsync(x => x.TcKimlikNo == tc && x.PersonelId != id.Value);
+                isEmailExists = await _context.Personeller.AnyAsync(x => x.Eposta == email && x.PersonelId != id.Value);
             }
-            return true;
+            else
+            {
+                // New Mode
+                isTcExists = await _context.Personeller.AnyAsync(x => x.TcKimlikNo == tc);
+                isEmailExists = await _context.Personeller.AnyAsync(x => x.Eposta == email);
+            }
+
+            return Json(new { tcExists = isTcExists, emailExists = isEmailExists });
         }
     }
 }

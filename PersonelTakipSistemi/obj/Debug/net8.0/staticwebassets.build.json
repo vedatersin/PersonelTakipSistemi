@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "OUz2b08Gi86Y2KSYwiL/lC15JZUWrmfvy9da5hosvHA=",
+  "Hash": "gkmY7wIBB+0JBFXt8YTPJvBfy71wWF1hS3PtbdOC2cs=",
   "Source": "PersonelTakipSistemi",
   "BasePath": "_content/PersonelTakipSistemi",
   "Mode": "Default",
@@ -5031,6 +5031,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\sevilay-tema\\yetkili_ekle.html"
+    },
+    {
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\4b34650b-37f4-4e80-b41d-c22a345a7a50.png",
+      "SourceId": "PersonelTakipSistemi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
+      "BasePath": "_content/PersonelTakipSistemi",
+      "RelativePath": "uploads/personeller/4b34650b-37f4-4e80-b41d-c22a345a7a50.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\personeller\\4b34650b-37f4-4e80-b41d-c22a345a7a50.png"
     },
     {
       "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\7ba0f15f-8b16-4428-9215-60dd1f7f75d1.jpg",

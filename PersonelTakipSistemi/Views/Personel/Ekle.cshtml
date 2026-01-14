@@ -157,20 +157,9 @@
   </style>
 }
 
-<div class="tabs-container">
 
-  @if (TempData["Success"] != null)
-  {
-      <div class="alert alert-success" role="alert">
-          <i class='bx bx-check-circle'></i> @TempData["Success"]
-      </div>
-  }
-  @if (TempData["Error"] != null)
-  {
-      <div class="alert alert-danger" role="alert">
-          <i class='bx bx-error'></i> @TempData["Error"]
-      </div>
-  }
+
+<div class="tabs-container">
 
   <!-- STEPPER -->
   <div class="stepper-wrapper">
@@ -309,7 +298,7 @@
           <div class="col-md-6">
               <div class="mb-3">
                   <label asp-for="Telefon" class="form-label">Telefon *</label>
-                  <input type="tel" asp-for="Telefon" class="form-control" id="personeltelefon">
+                  <input type="tel" asp-for="Telefon" class="form-control" id="personeltelefon" placeholder="0 (___) ___ __ __">
                   <span asp-validation-for="Telefon" class="text-danger"></span>
               </div>
 
@@ -443,6 +432,16 @@
         <div class="alert alert-warning">
             <i class="bx bx-info-circle"></i> Şifreyi değiştirmek istemiyorsanız bu alanı <strong>boş bırakın</strong>.
         </div>
+        
+        @if(!User.IsInRole("Admin") && !User.IsInRole("Yönetici"))
+        {
+            <div class="mb-4">
+                <label asp-for="EskiSifre" class="form-label">Eski Şifre</label>
+                <input type="password" asp-for="EskiSifre" class="form-control" placeholder="Mevcut şifrenizi girin">
+                <span asp-validation-for="EskiSifre" class="text-danger"></span>
+                <small class="text-muted">Kendi şifrenizi değiştirirken eski şifrenizi girmeniz gerekmektedir.</small>
+            </div>
+        }
         <div class="mb-4">
             <label asp-for="NewPassword" class="form-label">Yeni Şifre</label>
             <input type="password" asp-for="NewPassword" class="form-control" placeholder="Yeni şifrenizi girin (min 6 karakter)">
@@ -550,17 +549,49 @@
               placeholder: "_",
               showMaskOnHover: false,
               showMaskOnFocus: true,
-              clearIncomplete: false // Don't clear, let validation handle it
+              clearIncomplete: false
           });
 
-          // Unobtrusive validation entegrasyonu: Select2 ve Inputmask değişince validasyonu tetikle
-          $('.select2').on('change', function() {
-              $(this).valid(); 
-          });
+          // Unobtrusive validation entegrasyonu
+          $('.select2').on('change', function() { $(this).valid(); });
+          $('.select2').on('change', function() { $(this).valid(); });
+          // $('#personeltelefon').on('change', function() { $(this).valid(); }); // REMOVED: Bypasses onfocusout and causes premature required error
 
-          $('#personeltelefon').on('change', function() {
-              $(this).valid();
-          });
+          // --- PASSWORD VALIDATION UX TWEAK ---
+          // Şifre alanlarında blur/keyup validasyonunu engelle, sadece butona basınca kontrol etsin.
+          var form = $('form');
+          var validator = form.data('validator');
+          if(validator) {
+               // Backup defaults
+               var defaultOnFocusOut = validator.settings.onfocusout;
+               var defaultOnKeyUp = validator.settings.onkeyup;
+
+               validator.settings.onfocusout = function(element) {
+                   if (element.type === "password") return; // Şifrede blur validasyonu yapma
+                   if (element.id === "personeltelefon") return; // Telefonda blur validasyonu yapma (İlerle butonuna basınca yapacak)
+                   if (defaultOnFocusOut) defaultOnFocusOut.call(this, element);
+               };
+
+               validator.settings.onkeyup = function(element, event) {
+                   if (element.type === "password") {
+                       // Sadece eşleşme kontrolü (Mismatch) için hızlı geri bildirim
+                       var p1 = $('#NewPassword').val();
+                       var p2 = $('#NewPasswordConfirm').val();
+                       if(element.id === "NewPasswordConfirm" && p1 && p2) {
+                           if(p1 !== p2) {
+                               // Manuel hata mesajı göster (Unobtrusive'i bozmadan)
+                               var span = $('span[data-valmsg-for="NewPasswordConfirm"]');
+                               span.removeClass('field-validation-valid').addClass('field-validation-error');
+                               span.text('Şifreler eşleşmiyor.');
+                           } else {
+                               $('span[data-valmsg-for="NewPasswordConfirm"]').text('');
+                           }
+                       }
+                       return; 
+                   }
+                   if (defaultOnKeyUp) defaultOnKeyUp.call(this, element, event);
+               };
+          }
       });
       
       // ... existing code ...
@@ -791,20 +822,190 @@
             });
         };
 
-        setupNextBtn("next1", "tab1"); // Tab1'de checkbox grubu yok
+        // --- TAB 1 CUSTOM VALIDATION (AJAX CHECK) ---
+        const btnNext1 = document.getElementById("next1");
+        if(btnNext1) {
+            btnNext1.addEventListener("click", () => {
+                 // 1. Basic Validation
+                 const $tab1Inputs = $('#tab1').find(':input');
+                 if(!$tab1Inputs.valid()) return;
+
+                 // 2. AJAX Duplicate Check
+                 const tc = $('#personelTcKimlik').val();
+                 const email = $('#personelemail').val();
+                 const pid = '@Model.PersonelId'; 
+
+                 // Disable button temporarily
+                 btnNext1.disabled = true;
+
+                 $.ajax({
+                     url: '@Url.Action("CheckDuplicates", "Personel")',
+                     type: 'GET',
+                     data: { id: pid, tc: tc, email: email },
+                     success: function(res) {
+                         btnNext1.disabled = false;
+                         if(res.tcExists || res.emailExists) {
+                             let msg = "Hata: ";
+                             if(res.tcExists) msg += "Bu TC Kimlik No sistemde kayıtlı. ";
+                             if(res.emailExists) msg += "Bu E-posta adresi sistemde kayıtlı.";
+                             
+                             // Show Error (SweetAlert or Standard)
+                             alert(msg);
+                             return; // STOP HERE
+                         }
+                         
+                         // Success -> Unlock & Move
+                         unlockedTabs.add("tab2");
+                         activateTab("tab2");
+                     },
+                     error: function() {
+                         btnNext1.disabled = false;
+                         alert("Doğrulama sırasında bir hata oluştu.");
+                     }
+                 });
+            });
+        }
+
+        // setupNextBtn("next1", "tab1"); // REPLACED BY CUSTOM AJAX ABOVE
         setupNextBtn("next2", "tab2", "SeciliYazilimIdleri");
         setupNextBtn("next3", "tab3", "SeciliUzmanlikIdleri");
         setupNextBtn("next4", "tab4", "SeciliGorevTuruIdleri");
         setupNextBtn("next5", "tab5", "SeciliIsNiteligiIdleri");
         
         if(isEditMode) {
-            setupNextBtn("next_pass", "tab_password");
-        } else {
-            // Edit modu değilse tab5'ten sonra direkt tab6(kontrol) gelir, 
-            // ama yukarıdaki dinamik tabOrder bunu zaten çözdü.
-            // Sadece tab5 butonu bir sonrakine (tab6) gidecek.
-            // Ancak tab5 butonunu manuel setup yaparken index mantığı kullandık, sorun yok.
+             // setupNextBtn("next_pass", "tab_password"); // REPLACED BY CUSTOM AJAX
+             
+             const btnNextPass = document.getElementById("next_pass");
+             if(btnNextPass) {
+                 btnNextPass.addEventListener("click", () => {
+                     // 1. Basic Validation
+                     const $tabPassInputs = $('#tab_password').find(':input');
+                     if(!$tabPassInputs.valid()) return;
+
+                     // 2. Check Logic
+                     const oldPass = $('#EskiSifre').val();
+                     const newPass = $('#NewPassword').val();
+                     const pid = '@Model.PersonelId';
+
+                     // If not changing password (empty), just go
+                     if(!newPass) {
+                         unlockedTabs.add("tab6");
+                         activateTab("tab6");
+                         return;
+                     }
+
+                     // If changing password...
+                     // Check if Old Password is required/present
+                     if($('#EskiSifre').length > 0) {
+                         // If user didn't enter old pass but entered new pass, Model validation catches it?
+                         // But let's check explicitly if it's there
+                         if(!oldPass) {
+                             // Let unobtrusive validation handle it (it should be required if conditional logic applied)
+                             // But we can force a check.
+                             if(!$tabPassInputs.valid()) return;
+                         }
+
+                         // AJAX Check Old Password
+                         btnNextPass.disabled = true;
+                         $.ajax({
+                             url: '@Url.Action("CheckPassword", "Personel")',
+                             type: 'GET',
+                             data: { id: pid, password: oldPass },
+                             success: function(res) {
+                                 btnNextPass.disabled = false;
+                                 if(!res.success) {
+                                     // Show error on EskiSifre field
+                                     var span = $('span[data-valmsg-for="EskiSifre"]');
+                                     span.removeClass('field-validation-valid').addClass('field-validation-error');
+                                     span.text('Eski şifre hatalı.');
+                                     return;
+                                 } else {
+                                     // Clear error
+                                     $('span[data-valmsg-for="EskiSifre"]').text('');
+                                 }
+
+                                 // Success -> Unlock Control
+                                 unlockedTabs.add("tab6");
+                                 activateTab("tab6");
+                             },
+                             error: function() {
+                                 btnNextPass.disabled = false;
+                                 alert("Şifre kontrolü sırasında hata oluştu.");
+                             }
+                         });
+                     } else {
+                         // No Old Password field (Admin mode or First Time), just go
+                         unlockedTabs.add("tab6");
+                         activateTab("tab6");
+                     }
+                 });
+             }
         }
+        
+        // --- RESTORE WIZARD STATE (Grey Tab Fix) ---
+        function initWizardState() {
+             // Helper to unlock next tab
+             const unlock = (id) => { unlockedTabs.add(id); };
+
+             // Tab 1 valid? (Check Name & ID)
+             let t1Valid = $('#personelAdi').val() && $('#personelTcKimlik').val() && $('#personeltelefon').val() && $('#personelemail').val();
+             if(t1Valid) { unlock("tab2"); }
+
+             // Tab 2 valid? (Checkbox)
+             let t2Valid = $('input[name="SeciliYazilimIdleri"]:checked').length > 0;
+             if(t2Valid) { unlock("tab3"); }
+
+             // Tab 3 valid?
+             let t3Valid = $('input[name="SeciliUzmanlikIdleri"]:checked').length > 0;
+             if(t3Valid) { unlock("tab4"); }
+
+             // Tab 4 valid?
+             let t4Valid = $('input[name="SeciliGorevTuruIdleri"]:checked').length > 0;
+             if(t4Valid) { unlock("tab5"); }
+             
+             // Tab 5 valid?
+             let t5Valid = $('input[name="SeciliIsNiteligiIdleri"]:checked').length > 0;
+             if(t5Valid) { 
+                 if(isEditMode) unlock("tab_password");
+                 unlock("tab6"); 
+             }
+             
+             // Update UI for all unlocked tabs
+             updateStepperUI(tabOrder[0]); // Start update
+             
+             // LOGIC: If form has errors (Server Side), we stay on the invalid tab.
+             // BUT, if we just fixed the error (e.g. Duplicate TC corrected) and re-submitted,
+             // The server might return "OK" logic but we are here.
+             // If ISVALID is technically true for "Required" fields (checked via JS above), we should offer jump to Control.
+             
+             // Check specific field errors from Server to jump to correct tab
+             var openTab = '@TempData["OpenTab"]';
+             
+             // Explicit server instruction takes precedence
+             if(openTab) {
+                 activateTab(openTab);
+             } 
+             else if (t1Valid && t2Valid && t3Valid && t4Valid && t5Valid) {
+                 // ALL VALID? Jump to Control directly!
+                 // This covers the case: User fixes TC, clicks Next. Server validates. 
+                 // If Server sends back View (due to some other non-failing logic or just reload), we check JS state.
+                 // If no specific error tab set, go to Tab 6.
+                 
+                 // However, we must be careful not to skip if there are actual ModelState errors not mapped to tabs.
+                 // If ModelState.IsValid is false, we probably shouldn't jump to 6 unless we are sure.
+                 // Use JS detection: if everything appears filled, go to 6.
+                 activateTab("tab6");
+             }
+             
+             // Allow Direct Access to Control if everything seems ready
+             if(unlockedTabs.has("tab6")) {
+                 document.querySelector('.step-item[data-step="tab6"]').onclick = function() { activateTab("tab6"); };
+             }
+        }
+        
+        // Run init
+        initWizardState();
+
 
         // Fotoğraf Önizleme
         const photoInput = document.getElementById("personelFoto");
