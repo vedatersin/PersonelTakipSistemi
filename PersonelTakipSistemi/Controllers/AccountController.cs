@@ -35,6 +35,7 @@ namespace PersonelTakipSistemi.Controllers
             {
                 // 1. Kullanıcıyı TC ile bul
                 var personel = await _context.Personeller
+                    .Include(p => p.SistemRol) // Include Role
                     .FirstOrDefaultAsync(p => p.TcKimlikNo == model.TcKimlikNo);
 
                 if (personel == null)
@@ -57,7 +58,7 @@ namespace PersonelTakipSistemi.Controllers
                     new Claim(ClaimTypes.Name, $"{personel.Ad} {personel.Soyad}"),
                     new Claim("PersonelId", personel.PersonelId.ToString()), // Custom claim for security checks
                     new Claim("PhotoUrl", personel.FotografYolu ?? ""),
-                    new Claim(ClaimTypes.Role, personel.SistemRol ?? "Kullanıcı")
+                    new Claim(ClaimTypes.Role, personel.SistemRol?.Ad ?? "Kullanıcı")
                 };
 
                 if (!model.RememberMe)

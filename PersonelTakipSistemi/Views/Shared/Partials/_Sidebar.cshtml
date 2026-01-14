@@ -1,4 +1,6 @@
 
+@using System.Security.Claims
+
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
   <div class="app-brand demo pb-6">
       <span class="app-brand-logo demo me-2">
@@ -21,37 +23,88 @@
   <ul class="menu-inner py-1">
 
 
-    <!-- Personel Bilgileri -->
-    <li class="menu-item open">
-      <a href="javascript:void(0);" class="menu-link menu-toggle" style="background-color: rgba(255,255,255,0.05);">
-        <i class="menu-icon tf-icons bx bx-id-card"></i>
-        <div class="text-truncate" data-i18n="Personel Modülü">Personel Modülü</div>
-      </a>
-      <ul class="menu-sub">
-        @{
-            string currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
-            // "Ekle" action is used for both Add and Edit. 
-            // We consider it "Add" (Yeni) only if there is no ID parameter.
-            bool isIdPresent = ViewContext.RouteData.Values.ContainsKey("id") || Context.Request.Query.ContainsKey("id");
-            bool isYeniActive = string.Equals(currentAction, "Yeni", StringComparison.OrdinalIgnoreCase) || 
-                               (string.Equals(currentAction, "Ekle", StringComparison.OrdinalIgnoreCase) && !isIdPresent);
-        }
-        <li class="menu-item @(isYeniActive ? "active" : "")">
-          <a asp-controller="Personel" asp-action="Yeni" class="menu-link">
-            <div class="text-truncate" data-i18n="Yeni Personel Ekle">Yeni Personel Ekle</div>
+    @{
+        var userRole = User.FindFirstValue(ClaimTypes.Role);
+        var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        string currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+        string currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+        bool isIdPresent = ViewContext.RouteData.Values.ContainsKey("id") || Context.Request.Query.ContainsKey("id");
+
+         // Personel Modülü Logic (Controller Check Added)
+        bool isPersonelController = string.Equals(currentController, "Personel", StringComparison.OrdinalIgnoreCase);
+
+        bool isYeniActive = isPersonelController && (string.Equals(currentAction, "Yeni", StringComparison.OrdinalIgnoreCase) || 
+                           (string.Equals(currentAction, "Ekle", StringComparison.OrdinalIgnoreCase) && !isIdPresent));
+        bool isIndexActive = isPersonelController && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
+        bool isYetkilendirmeActive = isPersonelController && string.Equals(currentAction, "Yetkilendirme", StringComparison.OrdinalIgnoreCase);
+        
+        bool isPersonelModuleOpen = isYeniActive || isIndexActive || isYetkilendirmeActive;
+
+        // Profilim Logic
+        bool isProfileActive = (isPersonelController && (
+                                    string.Equals(currentAction, "BenimDetay", StringComparison.OrdinalIgnoreCase) || 
+                                    (string.Equals(currentAction, "Detay", StringComparison.OrdinalIgnoreCase) && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr) ||
+                                    (string.Equals(currentAction, "Ekle", StringComparison.OrdinalIgnoreCase) && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr)
+                                ))
+                                || (string.Equals(currentController, "Bildirimler", StringComparison.OrdinalIgnoreCase));
+        
+        string openClass = isProfileActive ? "open" : ""; 
+    }
+
+    @if (userRole == "Admin" || userRole == "Yönetici" || userRole == "Editör")
+    {
+        <!-- Personel Modülü (Admin, Yönetici, Editör) -->
+        <!-- Removed 'active' class from parent to prevent highlighting -->
+        <li class="menu-item @(isPersonelModuleOpen ? "open" : "")">
+          <a href="javascript:void(0);" class="menu-link menu-toggle" style="background-color: rgba(255,255,255,0.05);">
+            <i class="menu-icon tf-icons bx bx-id-card"></i>
+            <div class="text-truncate" data-i18n="Personel Modülü">Personel Modülü</div>
           </a>
+          <ul class="menu-sub">
+            <li class="menu-item @(isYeniActive ? "active" : "")">
+              <a asp-controller="Personel" asp-action="Yeni" class="menu-link">
+                <div class="text-truncate" data-i18n="Yeni Personel Ekle">Yeni Personel Ekle</div>
+              </a>
+            </li>
+            <li class="menu-item @(isIndexActive ? "active" : "")">
+              <a asp-controller="Personel" asp-action="Index" class="menu-link">
+                <div class="text-truncate" data-i18n="Personel Listesi">Personel Listesi</div>
+              </a>
+            </li>
+            <li class="menu-item @(isYetkilendirmeActive ? "active" : "")">
+              <a asp-controller="Personel" asp-action="Yetkilendirme" class="menu-link">
+                <div class="text-truncate" data-i18n="Personel Yetkilendirme">Personel Yetkilendirme</div>
+              </a>
+            </li>
+          </ul>
         </li>
-        <li class="menu-item @(string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-          <a asp-controller="Personel" asp-action="Index" class="menu-link">
-            <div class="text-truncate" data-i18n="Personel Listesi">Personel Listesi</div>
+    }
+
+    <!-- Profilim & Bildirimler (Tüm Kullanıcılar İçin - En Altta) -->
+    <!-- Removed 'active' class from parent here too -->
+    <li class="menu-item @openClass">
+         <a href="javascript:void(0);" class="menu-link menu-toggle" style="background-color: rgba(255,255,255,0.05);">
+            <i class="menu-icon tf-icons bx bx-user-circle"></i>
+            <div class="text-truncate" data-i18n="Profilim">Profilim</div>
           </a>
-        </li>
-        <li class="menu-item @(string.Equals(currentAction, "Yetkilendirme", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-          <a asp-controller="Personel" asp-action="Yetkilendirme" class="menu-link">
-            <div class="text-truncate" data-i18n="Personel Yetkilendirme">Personel Yetkilendirme</div>
-          </a>
-        </li>
-      </ul>
+          <ul class="menu-sub">
+            <li class="menu-item @(currentAction == "BenimDetay" || (currentAction == "Detay" && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr) ? "active" : "")">
+                <a asp-controller="Personel" asp-action="BenimDetay" class="menu-link">
+                    <div class="text-truncate" data-i18n="Profil Bilgileri">Profil Bilgileri</div>
+                </a>
+            </li>
+             <li class="menu-item @(currentAction == "Ekle" && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr ? "active" : "")">
+                <a asp-controller="Personel" asp-action="Ekle" asp-route-id="@currentUserIdStr" class="menu-link">
+                    <div class="text-truncate" data-i18n="Profili Düzenle">Profili Düzenle</div>
+                </a>
+            </li>
+             <li class="menu-item @(currentController == "Bildirimler" ? "active" : "")">
+                <a asp-controller="Bildirimler" asp-action="Index" class="menu-link">
+                    <div class="text-truncate" data-i18n="Bildirimler">Bildirimler</div>
+                </a>
+            </li>
+          </ul>
     </li>
 
     <!-- Placeholder for other menus -->

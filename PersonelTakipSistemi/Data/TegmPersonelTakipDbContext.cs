@@ -28,6 +28,8 @@ namespace PersonelTakipSistemi.Data
         public DbSet<Koordinatorluk> Koordinatorlukler { get; set; }
         public DbSet<Komisyon> Komisyonlar { get; set; }
         public DbSet<KurumsalRol> KurumsalRoller { get; set; }
+        public DbSet<SistemRol> SistemRoller { get; set; }
+        public DbSet<Bildirim> Bildirimler { get; set; }
         public DbSet<PersonelTeskilat> PersonelTeskilatlar { get; set; }
         public DbSet<PersonelKoordinatorluk> PersonelKoordinatorlukler { get; set; }
         public DbSet<PersonelKomisyon> PersonelKomisyonlar { get; set; }
@@ -130,6 +132,11 @@ namespace PersonelTakipSistemi.Data
                 entity.HasOne(d => d.Brans)
                     .WithMany(p => p.Personeller)
                     .HasForeignKey(d => d.BransId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(d => d.SistemRol)
+                    .WithMany()
+                    .HasForeignKey(d => d.SistemRolId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -304,6 +311,43 @@ namespace PersonelTakipSistemi.Data
                     new KurumsalRol { KurumsalRolId = 3, Ad = "İl Koordinatörü" },
                     new KurumsalRol { KurumsalRolId = 4, Ad = "Genel Koordinatör" }
                 );
+            });
+
+            // 6. SistemRol (New)
+            modelBuilder.Entity<SistemRol>(entity => {
+                entity.ToTable("SistemRoller");
+                entity.HasKey(e => e.SistemRolId);
+                entity.HasData(
+                    new SistemRol { SistemRolId = 1, Ad = "Admin" },
+                    new SistemRol { SistemRolId = 2, Ad = "Yönetici" },
+                    new SistemRol { SistemRolId = 3, Ad = "Editör" },
+                    new SistemRol { SistemRolId = 4, Ad = "Kullanıcı" }
+                );
+            });
+
+            // 7. Bildirimler
+            modelBuilder.Entity<Bildirim>(entity =>
+            {
+                entity.ToTable("Bildirimler");
+                entity.HasKey(e => e.BildirimId);
+
+                entity.Property(e => e.OlusturmaTarihi).HasDefaultValueSql("GETDATE()");
+                entity.Property(e => e.OkunduMu).HasDefaultValue(false);
+
+                // Relationships
+                entity.HasOne(d => d.AliciPersonel)
+                    .WithMany(p => p.GelenBildirimler)
+                    .HasForeignKey(d => d.AliciPersonelId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(d => d.GonderenPersonel)
+                    .WithMany(p => p.GonderilenBildirimler)
+                    .HasForeignKey(d => d.GonderenPersonelId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Indexes
+                entity.HasIndex(e => new { e.AliciPersonelId, e.OkunduMu, e.OlusturmaTarihi });
+                entity.HasIndex(e => new { e.AliciPersonelId, e.OlusturmaTarihi });
             });
 
             // 5. M2M Tables

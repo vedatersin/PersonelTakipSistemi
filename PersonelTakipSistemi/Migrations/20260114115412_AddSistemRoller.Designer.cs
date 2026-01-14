@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PersonelTakipSistemi.Data;
 
@@ -11,9 +12,11 @@ using PersonelTakipSistemi.Data;
 namespace PersonelTakipSistemi.Migrations
 {
     [DbContext(typeof(TegmPersonelTakipDbContext))]
-    partial class TegmPersonelTakipDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260114115412_AddSistemRoller")]
+    partial class AddSistemRoller
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1199,8 +1202,9 @@ namespace PersonelTakipSistemi.Migrations
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
 
-                    b.Property<int>("SistemRolId")
-                        .HasColumnType("int");
+                    b.Property<string>("SistemRol")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Soyad")
                         .IsRequired()
@@ -1228,8 +1232,6 @@ namespace PersonelTakipSistemi.Migrations
                         .IsUnique();
 
                     b.HasIndex("GorevliIlId");
-
-                    b.HasIndex("SistemRolId");
 
                     b.HasIndex("TcKimlikNo")
                         .IsUnique();
@@ -1656,17 +1658,9 @@ namespace PersonelTakipSistemi.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("PersonelTakipSistemi.Models.SistemRol", "SistemRol")
-                        .WithMany()
-                        .HasForeignKey("SistemRolId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.Navigation("Brans");
 
                     b.Navigation("GorevliIl");
-
-                    b.Navigation("SistemRol");
                 });
 
             modelBuilder.Entity("PersonelTakipSistemi.Models.PersonelGorevTuru", b =>

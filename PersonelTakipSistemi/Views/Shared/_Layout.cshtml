@@ -33,6 +33,7 @@
   <!-- Page CSS -->
   @await RenderSectionAsync("Styles", required: false)
   <link rel="stylesheet" href="~/css/site.css" />
+  <link rel="stylesheet" href="~/css/bildirimler.css" />
 
   <!-- Helpers -->
   <script src="~/sevilay-tema/assets/vendor/js/helpers.js"></script>
@@ -100,6 +101,8 @@
   <script src="~/sevilay-tema/assets/vendor/js/bootstrap.js"></script>
   <script src="~/sevilay-tema/assets/vendor/libs/perfect-scrollbar/perfect-scrollbar.js"></script>
   <script src="~/sevilay-tema/assets/vendor/js/menu.js"></script>
+  
+  <script src="~/js/bildirimler.js" asp-append-version="true"></script>
 
   <!-- Vendors JS -->
   @if (ViewData["Title"] != null && ViewData["Title"].ToString() == "Dashboard")

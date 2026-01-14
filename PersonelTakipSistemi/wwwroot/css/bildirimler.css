@@ -1,0 +1,41 @@
+/* Notification List Styles */
+.list-group-item {
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.list-group-item.unread {
+    background-color: #fff !important;
+}
+
+.list-group-item.read {
+    background-color: #f8f9fa !important;
+}
+
+.list-group-item.active-item {
+    background-color: #e7e7ff !important;
+    /* Accent color tint */
+    border-left: 3px solid #696cff !important;
+}
+
+.list-group-item:hover {
+    background-color: #f2f2f2;
+}
+
+.avatar-initial {
+    font-weight: 600;
+}
+
+/* Detail Styles */
+#notification-detail-container {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(161, 172, 184, 0.4);
+    margin: 1.5rem;
+    height: calc(100% - 3rem) !important;
+    overflow-y: auto;
+}
+
+.notification-content {
+    color: #566a7f;
+}

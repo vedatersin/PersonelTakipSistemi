@@ -9,6 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
+builder.Services.AddScoped<PersonelTakipSistemi.Services.INotificationService, PersonelTakipSistemi.Services.NotificationService>();
 
 // Connection String
 string connectionString = builder.Configuration.GetConnectionString("TegmPersonelTakipDB") ?? "";

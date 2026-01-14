@@ -5,12 +5,20 @@
       "PackagePath": "staticwebassets\\PersonelTakipSistemi.bundle.scp.css"
     },
     {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\bildirimler.css",
+      "PackagePath": "staticwebassets\\css\\bildirimler.css"
+    },
+    {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\login.css",
       "PackagePath": "staticwebassets\\css\\login.css"
     },
     {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\personel-yetkilendir.css",
       "PackagePath": "staticwebassets\\css\\personel-yetkilendir.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\sidebar-upward.css",
+      "PackagePath": "staticwebassets\\css\\sidebar-upward.css"
     },
     {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\site.css",
@@ -23,6 +31,10 @@
     {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\images\\meb-logo.png",
       "PackagePath": "staticwebassets\\images\\meb-logo.png"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\bildirimler.js",
+      "PackagePath": "staticwebassets\\js\\bildirimler.js"
     },
     {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\login-bg.js",

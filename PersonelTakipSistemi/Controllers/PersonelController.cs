@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PersonelTakipSistemi.Data;
@@ -10,6 +11,8 @@ using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
 
+using PersonelTakipSistemi.Services;
+
 namespace PersonelTakipSistemi.Controllers
 {
     [Microsoft.AspNetCore.Authorization.Authorize]
@@ -19,13 +22,17 @@ namespace PersonelTakipSistemi.Controllers
         private readonly TegmPersonelTakipDbContext _context;
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly IMemoryCache _memoryCache;
+        private readonly INotificationService _notificationService;
 
-        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, IMemoryCache memoryCache)
+        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, IMemoryCache memoryCache, INotificationService notificationService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
             _memoryCache = memoryCache;
+            _notificationService = notificationService;
         }
+
+        private int CurrentUserId => int.Parse(User.FindFirst("PersonelId")?.Value ?? "0");
 
         [HttpGet]
         public IActionResult BenimDetay()
@@ -47,7 +54,9 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
                 .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk)
                 .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon)
+                .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon)
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.KurumsalRol)
+                .Include(p => p.SistemRol) // Added Include
                 .Where(p => p.AktifMi)
                 .OrderBy(p => p.Ad).ThenBy(p => p.Soyad)
                 .ToListAsync();
@@ -58,7 +67,7 @@ namespace PersonelTakipSistemi.Controllers
                 PersonelId = p.PersonelId,
                 AdSoyad = $"{p.Ad} {p.Soyad}",
                 FotografYolu = p.FotografYolu,
-                SistemRol = p.SistemRol,
+                SistemRol = p.SistemRol?.Ad,
                 
                 // Extract Names for Chips
                 TeskilatAdlari = p.PersonelTeskilatlar.Select(pt => pt.Teskilat.Ad).ToList(),
@@ -73,13 +82,7 @@ namespace PersonelTakipSistemi.Controllers
                 Personeller = rowViewModels,
                 TeskilatList = await _context.Teskilatlar.Select(t => new SelectListItem { Value = t.TeskilatId.ToString(), Text = t.Ad }).ToListAsync(),
                 KurumsalRolList = await _context.KurumsalRoller.Select(r => new SelectListItem { Value = r.KurumsalRolId.ToString(), Text = r.Ad }).ToListAsync(),
-                SistemRolList = new List<SelectListItem>
-                {
-                    new SelectListItem { Value = "Admin", Text = "Admin" },
-                    new SelectListItem { Value = "Yönetici", Text = "Yönetici" },
-                    new SelectListItem { Value = "Editör", Text = "Editör" },
-                    new SelectListItem { Value = "Kullanıcı", Text = "Kullanıcı" }
-                },
+                SistemRolList = await _context.SistemRoller.OrderBy(r => r.Ad).Select(r => new SelectListItem { Value = r.Ad, Text = r.Ad }).ToListAsync(),
                 KomisyonList = await _context.Komisyonlar.Select(k => new SelectListItem { Value = k.Ad, Text = k.Ad }).Distinct().ToListAsync()
             };
 
@@ -94,6 +97,7 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(x => x.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk)
                 .Include(x => x.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon)
                 .Include(x => x.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.KurumsalRol)
+                .Include(x => x.SistemRol) // Added Include
                 // Include Contexts for RolAtamalari Display
                 .Include(x => x.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Koordinatorluk)
                 .Include(x => x.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Komisyon)
@@ -106,7 +110,7 @@ namespace PersonelTakipSistemi.Controllers
                 PersonelId = p.PersonelId,
                 AdSoyad = $"{p.Ad} {p.Soyad}",
                 FotografYolu = p.FotografYolu,
-                SistemRol = p.SistemRol,
+                SistemRol = p.SistemRol?.Ad,
 
                 // Selected IDs
                 SelectedTeskilatIds = p.PersonelTeskilatlar.Select(x => x.TeskilatId).ToList(),
@@ -140,12 +144,10 @@ namespace PersonelTakipSistemi.Controllers
             var personel = await _context.Personeller.FindAsync(id);
             if (personel == null) return NotFound();
 
-            if (!new[] { "Admin", "Yönetici", "Editör", "Kullanıcı" }.Contains(rol))
-            {
-                return BadRequest("Geçersiz rol.");
-            }
+            var targetRole = await _context.SistemRoller.FirstOrDefaultAsync(r => r.Ad == rol);
+            if(targetRole == null) return BadRequest("Geçersiz rol.");
 
-            personel.SistemRol = rol;
+            personel.SistemRolId = targetRole.SistemRolId;
             await _context.SaveChangesAsync();
             return Ok();
         }
@@ -157,6 +159,19 @@ namespace PersonelTakipSistemi.Controllers
 
             _context.PersonelTeskilatlar.Add(new PersonelTeskilat { PersonelId = personelId, TeskilatId = teskilatId });
             await _context.SaveChangesAsync();
+
+            // Notification
+            var t = await _context.Teskilatlar.FindAsync(teskilatId);
+            await _notificationService.CreateAsync(
+                aliciId: personelId,
+                gonderenId: CurrentUserId,
+                baslik: "Teşkilat ataması güncellendi",
+                aciklama: $"{User.Identity?.Name} tarafından {t?.Ad} teşkilatı eklendi.",
+                tip: "KurumsalAtama",
+                refType: "Teskilat",
+                refId: teskilatId
+            );
+
             return Ok();
         }
 
@@ -180,6 +195,18 @@ namespace PersonelTakipSistemi.Controllers
                 }
                 
                 await _context.SaveChangesAsync();
+
+                // Notification
+                var t = await _context.Teskilatlar.FindAsync(teskilatId);
+                await _notificationService.CreateAsync(
+                    aliciId: personelId,
+                    gonderenId: CurrentUserId,
+                    baslik: "Teşkilat ataması güncellendi",
+                    aciklama: $"{User.Identity?.Name} tarafından {t?.Ad} teşkilatı kaldırıldı.",
+                    tip: "KurumsalAtama",
+                    refType: "Teskilat",
+                    refId: teskilatId
+                );
             }
             return Ok();
         }
@@ -203,6 +230,19 @@ namespace PersonelTakipSistemi.Controllers
 
             _context.PersonelKoordinatorlukler.Add(new PersonelKoordinatorluk { PersonelId = personelId, KoordinatorlukId = koordinatorlukId });
             await _context.SaveChangesAsync();
+
+            // Notification
+            var k = await _context.Koordinatorlukler.FindAsync(koordinatorlukId);
+            await _notificationService.CreateAsync(
+                aliciId: personelId,
+                gonderenId: CurrentUserId,
+                baslik: "Koordinatörlük ataması güncellendi",
+                aciklama: $"{k?.Ad} eklendi.",
+                tip: "KurumsalAtama",
+                refType: "Koordinatorluk",
+                refId: koordinatorlukId
+            );
+
             return Ok();
         }
 
@@ -211,6 +251,19 @@ namespace PersonelTakipSistemi.Controllers
         {
             await RemoveKoordinatorlukLogic(personelId, koordinatorlukId);
             await _context.SaveChangesAsync();
+
+            // Notification
+            var k = await _context.Koordinatorlukler.FindAsync(koordinatorlukId);
+            await _notificationService.CreateAsync(
+                aliciId: personelId,
+                gonderenId: CurrentUserId,
+                baslik: "Koordinatörlük ataması güncellendi",
+                aciklama: $"{k?.Ad} kaldırıldı.",
+                tip: "KurumsalAtama",
+                refType: "Koordinatorluk",
+                refId: koordinatorlukId
+            );
+
             return Ok();
         }
 
@@ -252,7 +305,6 @@ namespace PersonelTakipSistemi.Controllers
                 if (!await _context.PersonelKoordinatorlukler.AnyAsync(x => x.PersonelId == personelId && x.KoordinatorlukId == kom.KoordinatorlukId))
                 {
                      // Add Teskilat if missing (Logic inside AddKoord logic repeated or explicit)
-                     // Let's just add the Koord entry, and checking Teskilat is done via recursion if we called the controller method, but here we are inside.
                      // Cleanest: Check Teskilat too.
                      if (!await _context.PersonelTeskilatlar.AnyAsync(x => x.PersonelId == personelId && x.TeskilatId == kom.Koordinatorluk.TeskilatId))
                      {
@@ -264,6 +316,19 @@ namespace PersonelTakipSistemi.Controllers
 
             _context.PersonelKomisyonlar.Add(new PersonelKomisyon { PersonelId = personelId, KomisyonId = komisyonId });
             await _context.SaveChangesAsync();
+            
+            // Notification
+            var k = await _context.Komisyonlar.FindAsync(komisyonId);
+            await _notificationService.CreateAsync(
+                aliciId: personelId,
+                gonderenId: CurrentUserId,
+                baslik: "Komisyon ataması güncellendi",
+                aciklama: $"{k?.Ad} eklendi.",
+                tip: "KurumsalAtama",
+                refType: "Komisyon",
+                refId: komisyonId
+            );
+
             return Ok();
         }
 
@@ -271,7 +336,21 @@ namespace PersonelTakipSistemi.Controllers
         public async Task<IActionResult> RemoveKomisyon(int personelId, int komisyonId)
         {
             await RemoveKomisyonLogic(personelId, komisyonId);
+            await RemoveKomisyonLogic(personelId, komisyonId);
             await _context.SaveChangesAsync();
+
+            // Notification
+            var k = await _context.Komisyonlar.FindAsync(komisyonId);
+            await _notificationService.CreateAsync(
+                aliciId: personelId,
+                gonderenId: CurrentUserId,
+                baslik: "Komisyon ataması güncellendi",
+                aciklama: $"{k?.Ad} kaldırıldı.",
+                tip: "KurumsalAtama",
+                refType: "Komisyon",
+                refId: komisyonId
+            );
+
             return Ok();
         }
 
@@ -365,6 +444,34 @@ namespace PersonelTakipSistemi.Controllers
             }
             
             await _context.SaveChangesAsync();
+
+            // Notification
+            if (rol != null)
+            {
+                 string contextName = "Tanımsız";
+                 if (koordinatorlukId.HasValue) contextName = (await _context.Koordinatorlukler.FindAsync(koordinatorlukId.Value))?.Ad ?? "";
+                 else if (komisyonId.HasValue) contextName = (await _context.Komisyonlar.FindAsync(komisyonId.Value))?.Ad ?? "";
+                 else contextName = "Genel";
+
+                 // Specific President Notification
+                 if (rol.Ad == "Komisyon Başkanı" || rol.Ad == "İl Koordinatörü" || rol.Ad == "Genel Koordinatör")
+                 {
+                     await _notificationService.CreateAsync(personelId, CurrentUserId, "Başkanlık ataması", $"{contextName} için başkan/koordinatör olarak atandınız.", "BaskanDegisimi");
+                     
+                     // Todo: Old president notification could be handled here if we tracked the ID in logic...
+                 }
+                 else
+                 {
+                     await _notificationService.CreateAsync(
+                         personelId, 
+                         CurrentUserId, 
+                         "Kurumsal rol ataması güncellendi", 
+                         $"{rol.Ad} rolü {contextName} için eklendi.", 
+                         "RolAtama"
+                     );
+                 }
+            }
+
             return Json(new { success = true });
         }
 
@@ -391,6 +498,18 @@ namespace PersonelTakipSistemi.Controllers
 
                 _context.PersonelKurumsalRolAtamalari.Remove(assignment);
                 await _context.SaveChangesAsync();
+            }
+            if (assignment != null)
+            {
+                // Logic already removed assignment
+                // Notify
+                await _notificationService.CreateAsync(
+                     aliciId: assignment.PersonelId,
+                     gonderenId: CurrentUserId,
+                     baslik: "Kurumsal rol ataması güncellendi",
+                     aciklama: $"{assignment.KurumsalRol.Ad} rolü kaldırıldı.",
+                     tip: "RolAtama"
+                 );
             }
             return Ok();
         }
@@ -817,7 +936,8 @@ namespace PersonelTakipSistemi.Controllers
                             SifreHash = passwordHash,
                             SifreSalt = passwordSalt,
                             CreatedAt = DateTime.Now,
-                            UpdatedAt = null
+                            UpdatedAt = null,
+                            SistemRolId = 4 // Default to 'Kullanıcı' role
                         };
 
                         _context.Personeller.Add(personel);
@@ -886,15 +1006,64 @@ namespace PersonelTakipSistemi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Sil(int id)
         {
-            var personel = await _context.Personeller.FindAsync(id);
-            if (personel != null)
+            // 1. Mevcut (İşlemi Yapan) Kullanıcıyı Bul
+            var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(currentUserIdStr) || !int.TryParse(currentUserIdStr, out int currentUserId))
             {
-                DeletePhotoFile(personel.FotografYolu);
-                
-                _context.Personeller.Remove(personel);
-                await _context.SaveChangesAsync();
-                TempData["Success"] = "Personel silindi.";
+                return RedirectToAction("Login", "Account");
             }
+
+            // 2. Silinecek Personeli Bul
+            var silinecekPersonel = await _context.Personeller.Include(p => p.SistemRol).FirstOrDefaultAsync(p => p.PersonelId == id); // Include Role
+            if (silinecekPersonel == null)
+            {
+                 TempData["Error"] = "Personel bulunamadı.";
+                 return RedirectToAction("Index");
+            }
+
+            // 3. Yetki Kontrolleri (MATRIX)
+            
+            // Kural 1: Hiç kimse kendini silemez.
+            if (silinecekPersonel.PersonelId == currentUserId)
+            {
+                TempData["Error"] = "Kendi hesabınızı silemezsiniz.";
+                return RedirectToAction("Index");
+            }
+
+            // Rolleri belirle
+            var currentUserRole = User.FindFirstValue(ClaimTypes.Role); // Admin, Yönetici, Editör, Kullanıcı
+            var targetUserRole = silinecekPersonel.SistemRol?.Ad; // Admin, Yönetici, Editör, Kullanıcı
+
+            // Kural 2: Editör ve Kullanıcı kimseyi silemez
+            if (currentUserRole == "Editör" || currentUserRole == "Kullanıcı")
+            {
+                 // Controller seviyesinde ekstra koruma (zaten Authorize ile korunmalı ama view gizleme yetmez)
+                 return Forbid();
+            }
+
+            // Kural 3: Yönetici -> Admin'i SİLEMEZ
+            if (currentUserRole == "Yönetici" && targetUserRole == "Admin")
+            {
+                TempData["Error"] = "Yöneticiler, Admin hesabını silemez.";
+                return RedirectToAction("Index");
+            }
+
+             // Kural 4: Admin -> Başka Admin'i SİLEMEZ
+            if (currentUserRole == "Admin" && targetUserRole == "Admin")
+            {
+                TempData["Error"] = "Adminler diğer Admin hesaplarını silemez.";
+                return RedirectToAction("Index");
+            }
+
+            // Kural 5: Yönetici -> Diğer Yöneticiyi SİLEBİLİR (Engel yok)
+            
+            // --- Silme İşlemi ---
+            DeletePhotoFile(silinecekPersonel.FotografYolu);
+            
+            _context.Personeller.Remove(silinecekPersonel);
+            await _context.SaveChangesAsync();
+            TempData["Success"] = "Personel başarıyla silindi.";
+            
             return RedirectToAction("Index");
         }
 
@@ -920,6 +1089,7 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
                 .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
                 .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
+                .Include(p => p.SistemRol) // Include SistemRol
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.PersonelId == id);
 
@@ -946,7 +1116,8 @@ namespace PersonelTakipSistemi.Controllers
                 Yazilimlar = personel.PersonelYazilimlar.Select(py => py.Yazilim.Ad).ToList(),
                 Uzmanliklar = personel.PersonelUzmanliklar.Select(pu => pu.Uzmanlik.Ad).ToList(),
                 GorevTurleri = personel.PersonelGorevTurleri.Select(pg => pg.GorevTuru.Ad).ToList(),
-                IsNitelikleri = personel.PersonelIsNitelikleri.Select(pi => pi.IsNiteligi.Ad).ToList()
+                IsNitelikleri = personel.PersonelIsNitelikleri.Select(pi => pi.IsNiteligi.Ad).ToList(),
+                SistemRol = personel.SistemRol?.Ad // Updated
             };
 
             return View(model);

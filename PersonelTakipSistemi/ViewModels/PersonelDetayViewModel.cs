@@ -23,5 +23,8 @@ namespace PersonelTakipSistemi.ViewModels
         public List<string> Uzmanliklar { get; set; } = new List<string>();
         public List<string> GorevTurleri { get; set; } = new List<string>();
         public List<string> IsNitelikleri { get; set; } = new List<string>();
+
+        // Rol bazlı UI kontrolü için
+        public string SistemRol { get; set; } = "Kullanıcı";
     }
 }

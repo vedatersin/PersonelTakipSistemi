@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "gkmY7wIBB+0JBFXt8YTPJvBfy71wWF1hS3PtbdOC2cs=",
+  "Hash": "aXYFSSADHQ/rEmFVC1rYJA/NVUNMYRFJ6ZFfpPjc1C4=",
   "Source": "PersonelTakipSistemi",
   "BasePath": "_content/PersonelTakipSistemi",
   "Mode": "Default",
@@ -55,6 +55,25 @@
       "OriginalItemSpec": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\PersonelTakipSistemi.bundle.scp.css"
     },
     {
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\bildirimler.css",
+      "SourceId": "PersonelTakipSistemi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
+      "BasePath": "_content/PersonelTakipSistemi",
+      "RelativePath": "css/bildirimler.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\bildirimler.css"
+    },
+    {
       "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\login.css",
       "SourceId": "PersonelTakipSistemi",
       "SourceType": "Discovered",
@@ -91,6 +110,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\css\\personel-yetkilendir.css"
+    },
+    {
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\sidebar-upward.css",
+      "SourceId": "PersonelTakipSistemi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
+      "BasePath": "_content/PersonelTakipSistemi",
+      "RelativePath": "css/sidebar-upward.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\sidebar-upward.css"
     },
     {
       "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\css\\site.css",
@@ -148,6 +186,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\images\\meb-logo.png"
+    },
+    {
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\bildirimler.js",
+      "SourceId": "PersonelTakipSistemi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
+      "BasePath": "_content/PersonelTakipSistemi",
+      "RelativePath": "js/bildirimler.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\bildirimler.js"
     },
     {
       "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\login-bg.js",

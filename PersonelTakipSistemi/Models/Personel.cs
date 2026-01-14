@@ -33,8 +33,9 @@ namespace PersonelTakipSistemi.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
 
-        // Sistem Rolü (Admin, Yönetici, Editör, Kullanıcı)
-        public string SistemRol { get; set; } = "Kullanıcı";
+        // Sistem Rolü (Foreign Key)
+        public int SistemRolId { get; set; } = 4; // Default: Kullanıcı (Assuming ID 4 is Kullanıcı)
+        public SistemRol SistemRol { get; set; } = null!;
 
         // Navigation Properties
         public ICollection<PersonelYazilim> PersonelYazilimlar { get; set; } = new List<PersonelYazilim>();
@@ -47,5 +48,9 @@ namespace PersonelTakipSistemi.Models
         public ICollection<PersonelKoordinatorluk> PersonelKoordinatorlukler { get; set; } = new List<PersonelKoordinatorluk>();
         public ICollection<PersonelKomisyon> PersonelKomisyonlar { get; set; } = new List<PersonelKomisyon>();
         public ICollection<PersonelKurumsalRolAtama> PersonelKurumsalRolAtamalari { get; set; } = new List<PersonelKurumsalRolAtama>();
+        
+        // Bildirimler
+        public ICollection<Bildirim> GelenBildirimler { get; set; } = new List<Bildirim>();
+        public ICollection<Bildirim> GonderilenBildirimler { get; set; } = new List<Bildirim>();
     }
 }

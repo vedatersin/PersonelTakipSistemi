@@ -1,4 +1,5 @@
 @model PersonelTakipSistemi.ViewModels.PersonelDetayViewModel
+@using System.Security.Claims
 @{
     ViewData["Title"] = "Personel Detay";
 }
@@ -11,9 +12,38 @@
             <span class="text-muted fw-light">Personel /</span> Detay
         </h4>
         <div>
-            <a asp-action="Index" class="btn btn-outline-secondary me-2">Geri Dön</a>
             <a href="@Url.Action("Ekle", new { id = Model.PersonelId })" class="btn btn-primary me-2">Düzenle</a>
-            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Sil</button>
+            
+
+            @{
+                var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                int.TryParse(currentUserIdStr, out int currentUserId);
+                var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
+                
+                bool canDelete = false;
+                
+                if (currentUserRole == "Admin")
+                {
+                    // Admin: Kendi hariç, Diğer Admin Hariç
+                    if (Model.PersonelId != currentUserId && Model.SistemRol != "Admin")
+                    {
+                        canDelete = true;
+                    }
+                }
+                else if (currentUserRole == "Yönetici")
+                {
+                    // Yönetici: Kendi hariç, Admin Hariç
+                    if (Model.PersonelId != currentUserId && Model.SistemRol != "Admin")
+                    {
+                        canDelete = true;
+                    }
+                }
+            }
+
+            @if(canDelete)
+            {
+               <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">Sil</button>
+            }
         </div>
     </div>
 

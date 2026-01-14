@@ -1,0 +1,115 @@
+@{
+    ViewData["Title"] = "Bildirimler";
+}
+
+<div class="row h-100" style="min-height: calc(100vh - 120px);">
+    <!-- Left Column: Notification List -->
+    <div class="col-md-3 col-lg-3 border-end h-100 bg-white p-0 d-flex flex-column" style="overflow-y: hidden;">
+        <div class="p-3 border-bottom">
+            <div class="input-group input-group-merge">
+                <span class="input-group-text" id="basic-addon-search31"><i class="bx bx-search"></i></span>
+                <input type="text" class="form-control" placeholder="Bildirimlerde ara..." id="search-input" aria-label="Bildirimlerde ara..." aria-describedby="basic-addon-search31">
+            </div>
+        </div>
+        <div class="flex-grow-1 overflow-auto" id="notification-list-container">
+            <div class="list-group list-group-flush" id="notification-list">
+                <!-- Items will be loaded here via JS -->
+                <div class="text-center p-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Yükleniyor...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Notification Detail -->
+    <div class="col-md-9 col-lg-9 h-100 p-0 bg-lighter d-flex flex-column" style="overflow-y: auto;">
+        <div id="notification-detail-container" class="p-5 h-100 d-flex align-items-center justify-content-center">
+            <div class="text-center text-muted">
+                <i class="bx bx-envelope-open mb-3" style="font-size: 3rem;"></i>
+                <h5>Bir bildirim seçin</h5>
+                <p>Detayları görmek için soldaki listeden bir bildirime tıklayın.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<template id="notification-item-template">
+    <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex align-items-start border-bottom-0 border-top-0 transition-none" onclick="selectNotification(this, '{id}')" id="notif-item-{id}">
+        <div class="flex-shrink-0 me-3 mt-1">
+            <div class="avatar">
+                <span class="avatar-initial rounded-circle bg-label-primary">{initials}</span>
+                <img src="" alt="" class="d-none w-px-40 h-auto rounded-circle" style="object-fit:cover;">
+            </div>
+        </div>
+        <div class="flex-grow-1 overflow-hidden">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h6 class="mb-0 text-truncate" style="max-width: 180px;">{sender}</h6>
+                <small class="text-muted" style="font-size: 0.75rem;">{date}</small>
+            </div>
+            <p class="mb-1 text-truncate fw-bold text-dark">{title}</p>
+            <p class="mb-0 text-muted small text-truncate-2">{desc}</p>
+        </div>
+        <div class="flex-shrink-0 ms-2">
+            <i class="bx bx-dots-vertical-rounded text-muted"></i>
+        </div>
+        <div class="unread-indicator position-absolute top-50 end-0 translate-middle-y me-2 {unreadClass}">
+            <span class="badge badge-dot bg-primary p-1"></span>
+        </div>
+    </a>
+</template>
+
+<template id="notification-detail-template">
+    <div class="card shadow-none bg-transparent w-100 h-100 border-0">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-4">
+                <div class="avatar avatar-md me-3">
+                     <span class="avatar-initial rounded-circle bg-label-primary fs-3">{initials}</span>
+                     <img src="" alt="" class="d-none w-px-50 h-auto rounded-circle" style="object-fit:cover;">
+                </div>
+                <div>
+                    <h5 class="mb-0">{sender}</h5>
+                    <small class="text-muted d-block">{role}</small>
+                </div>
+                <div class="ms-auto">
+                    <span class="text-muted">{fullDate}</span>
+                </div>
+            </div>
+            
+            <h3 class="mb-4">{title}</h3>
+            
+            <div class="notification-content fs-5 text-dark" style="line-height: 1.8;">
+                {body}
+            </div>
+
+            <div class="mt-5 {linkClass}">
+                <a href="{link}" class="btn btn-primary"><i class="bx bx-link-external me-2"></i>İlgili Kayda Git</a>
+            </div>
+        </div>
+    </div>
+</template>
+
+@section Scripts {
+    <script src="~/js/bildirimler.js"></script>
+}
+@section Styles {
+    <style>
+        .list-group-item.unread {
+            background-color: #fff !important;
+        }
+        .list-group-item.read {
+            background-color: #f5f7fa !important;
+        }
+        .list-group-item.active-item {
+            border-left: 3px solid #696cff !important;
+            background-color: #f0f2f8 !important; 
+        }
+        .text-truncate-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+    </style>
+}
