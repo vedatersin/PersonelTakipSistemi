@@ -25,17 +25,8 @@ namespace PersonelTakipSistemi.Controllers
         {
             try
             {
-                var userIdStr = User.FindFirst("PersonelId")?.Value;
-                if (string.IsNullOrEmpty(userIdStr))
-                {
-                    userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                }
-
-                if (string.IsNullOrEmpty(userIdStr) || !int.TryParse(userIdStr, out int userId) || userId == 0)
-                {
-                    // Log here if possible
-                    return Unauthorized(); 
-                }
+                int userId = GetUserId();
+                if (userId == 0) return Unauthorized();
 
                 var inbox = await _notificationService.GetInboxAsync(userId);
                 
@@ -58,7 +49,6 @@ namespace PersonelTakipSistemi.Controllers
             }
             catch (Exception ex)
             {
-                // Return 500 so the client knows it's an error
                 return StatusCode(500, new { message = "Sunucu hatası: " + ex.Message });
             }
         }
@@ -66,7 +56,7 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> Topbar()
         {
-            var userId = int.Parse(User.FindFirst("PersonelId")?.Value ?? "0");
+            var userId = GetUserId();
             if (userId == 0) return Unauthorized();
 
             var (count, top) = await _notificationService.GetTopUnreadAsync(userId);
@@ -76,7 +66,9 @@ namespace PersonelTakipSistemi.Controllers
         [HttpPost]
         public async Task<IActionResult> Read(int id)
         {
-            var userId = int.Parse(User.FindFirst("PersonelId")?.Value ?? "0");
+            var userId = GetUserId();
+            if (userId == 0) return Unauthorized();
+
             await _notificationService.MarkAsReadAsync(userId, id);
             return Ok();
         }
@@ -84,9 +76,36 @@ namespace PersonelTakipSistemi.Controllers
         [HttpPost]
         public async Task<IActionResult> MarkAllRead()
         {
-            var userId = int.Parse(User.FindFirst("PersonelId")?.Value ?? "0");
+            var userId = GetUserId();
+            if (userId == 0) return Unauthorized();
+
             await _notificationService.MarkAllAsReadAsync(userId);
             return Ok();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            var userId = GetUserId();
+            if (userId == 0) return Unauthorized();
+
+            await _notificationService.DeleteAsync(userId, id);
+            return Ok();
+        }
+
+        private int GetUserId()
+        {
+            var userIdStr = User.FindFirst("PersonelId")?.Value;
+            if (string.IsNullOrEmpty(userIdStr))
+            {
+                userIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            }
+
+            if (int.TryParse(userIdStr, out int userId))
+            {
+                return userId;
+            }
+            return 0;
         }
     }
 }

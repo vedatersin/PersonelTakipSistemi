@@ -937,7 +937,7 @@ namespace PersonelTakipSistemi.Controllers
                             SifreSalt = passwordSalt,
                             CreatedAt = DateTime.Now,
                             UpdatedAt = null,
-                            SistemRolId = 4 // Default to 'Kullanıcı' role
+                            SistemRolId = 4 // Default: Kullanıcı
                         };
 
                         _context.Personeller.Add(personel);
@@ -945,6 +945,15 @@ namespace PersonelTakipSistemi.Controllers
 
                         AddRelations(personel.PersonelId, model);
                         await _context.SaveChangesAsync();
+
+                        // Hoşgeldin Bildirimi (System Sender)
+                        await _notificationService.CreateAsync(
+                            aliciId: personel.PersonelId,
+                            gonderenId: null, // System
+                            baslik: "Hoşgeldiniz!",
+                            aciklama: "Temel Eğitim Genel Müdürlüğü Personel Takip Sistemine Hoşgeldiniz!",
+                            tip: "Sistem"
+                        );
 
                         TempData["Success"] = $"Yeni personel kaydedildi. Başlangıç şifresi: {autoPasword}";
                         return RedirectToAction("Detay", new { id = personel.PersonelId });

@@ -34,8 +34,9 @@ namespace PersonelTakipSistemi.Models
         public DateTime? UpdatedAt { get; set; }
 
         // Sistem Rolü (Foreign Key)
-        public int SistemRolId { get; set; } = 4; // Default: Kullanıcı (Assuming ID 4 is Kullanıcı)
-        public SistemRol SistemRol { get; set; } = null!;
+        // Sistem Rolü (Foreign Key)
+        public int? SistemRolId { get; set; } // Default: Null as per request
+        public SistemRol? SistemRol { get; set; }
 
         // Navigation Properties
         public ICollection<PersonelYazilim> PersonelYazilimlar { get; set; } = new List<PersonelYazilim>();

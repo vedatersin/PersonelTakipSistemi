@@ -13,6 +13,12 @@ namespace PersonelTakipSistemi.Models
         public int? GonderenPersonelId { get; set; }
         public Personel? GonderenPersonel { get; set; }
 
+        public int? BildirimGonderenId { get; set; }
+        public BildirimGonderen? BildirimGonderen { get; set; }
+
+        public int? TopluBildirimId { get; set; }
+        public TopluBildirim? TopluBildirim { get; set; }
+
         [Required]
         [MaxLength(200)]
         public string Baslik { get; set; } = null!;
@@ -36,5 +42,7 @@ namespace PersonelTakipSistemi.Models
 
         [MaxLength(300)]
         public string? Url { get; set; }
+
+        public bool SilindiMi { get; set; } = false;
     }
 }

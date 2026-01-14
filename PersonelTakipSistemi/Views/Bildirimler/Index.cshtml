@@ -87,7 +87,7 @@
 </template>
 
 <template id="notification-item-template">
-    <a href="javascript:void(0);" class="list-group-item list-group-item-action d-flex align-items-start border-bottom-0 border-top-0 transition-none" onclick="selectNotification(this, '{id}')" id="notif-item-{id}">
+    <div class="list-group-item list-group-item-action d-flex align-items-start border-bottom-0 border-top-0 transition-none cursor-pointer" onclick="selectNotification(this, '{id}')" id="notif-item-{id}" role="button">
         <div class="flex-shrink-0 me-3 mt-1">
             <div class="avatar">
                 <span class="avatar-initial rounded-circle bg-label-primary">{initials}</span>
@@ -102,13 +102,13 @@
             <p class="mb-1 text-truncate fw-bold text-dark">{title}</p>
             <p class="mb-0 text-muted small text-truncate-2">{desc}</p>
         </div>
-        <div class="flex-shrink-0 ms-2">
-            <i class="bx bx-dots-vertical-rounded text-muted"></i>
-        </div>
+        
+        <!-- JS will inject actions here -->
+        
         <div class="unread-indicator position-absolute top-50 end-0 translate-middle-y me-2 {unreadClass}">
             <span class="badge badge-dot bg-primary p-1"></span>
         </div>
-    </a>
+    </div>
 </template>
 
 <template id="notification-detail-template">
@@ -142,7 +142,7 @@
 </template>
 
 @section Scripts {
-    <script src="~/js/bildirimler.js"></script>
+    
 }
 @section Styles {
     <style>

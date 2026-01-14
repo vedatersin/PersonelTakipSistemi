@@ -10,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.INotificationService, PersonelTakipSistemi.Services.NotificationService>();
+builder.Services.AddHostedService<PersonelTakipSistemi.Services.NotificationBackgroundService>();
 
 // Connection String
 string connectionString = builder.Configuration.GetConnectionString("TegmPersonelTakipDB") ?? "";

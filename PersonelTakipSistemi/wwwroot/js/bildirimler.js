@@ -76,6 +76,126 @@ function loadInbox() {
     });
 }
 
+// --- ACTIONS ---
+// --- ACTIONS ---
+// Using window assignment to ensure global availability
+window.deleteNotification = function (e, id) {
+    // 1. Log entry immediately with Error level to bypass filters
+    console.error("[DEBUG] deleteNotification ENTERED for ID:", id);
+
+    try {
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        // 2. Check Swal
+        if (typeof Swal === 'undefined') {
+            console.error("[DEBUG] SweetAlert2 (Swal) is NOT defined!");
+            alert("Hata: SweetAlert2 kütüphanesi yüklenemedi. Lütfen sayfayı yenileyiniz.");
+            return;
+        }
+
+        // 3. Show Dialog
+        Swal.fire({
+            title: 'Emin misiniz?',
+            text: "Bu bildirim kalıcı olarak silinecektir!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Evet, Sil!',
+            cancelButtonText: 'Vazgeç'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                console.log("[DEBUG] User confirmed delete. Sending AJAX...");
+
+                $.post('/Bildirimler/Delete', { id: id })
+                    .done(function () {
+                        console.log("[DEBUG] Delete AJAX Success:", id);
+
+                        // UI updates
+                        $(`#notif-item-${id}`).fadeOut(300, function () { $(this).remove(); });
+                        $(`#dropdown-notif-${id}`).fadeOut(300, function () { $(this).remove(); });
+
+                        if (typeof loadTopbarCount === 'function') loadTopbarCount();
+
+                        // If selected was deleted, clear detail
+                        if (typeof selectedNotificationId !== 'undefined' && selectedNotificationId == id) {
+                            selectedNotificationId = null;
+                            const url = new URL(window.location);
+                            url.searchParams.delete('selectedId');
+                            try {
+                                window.history.pushState({}, '', url);
+                            } catch (err) { console.log(err); }
+
+                            // Try references safely
+                            const emptyTemplate = document.getElementById('empty-right-template');
+                            if (emptyTemplate) {
+                                $('#notification-detail-container').html(emptyTemplate.innerHTML);
+                            }
+                        }
+
+                        Swal.fire({
+                            position: 'top-end',
+                            icon: 'success',
+                            title: 'Silindi',
+                            showConfirmButton: false,
+                            timer: 1500,
+                            toast: true
+                        });
+                    })
+                    .fail(function (xhr) {
+                        console.error("[DEBUG] Delete AJAX Failed:", xhr);
+                        Swal.fire('Hata', 'Silme işlemi başarısız: ' + (xhr.responseJSON?.message || xhr.statusText), 'error');
+                    });
+            } else {
+                console.log("[DEBUG] Delete cancelled by user.");
+            }
+        });
+    } catch (err) {
+        console.error("[CRITICAL] Crash in deleteNotification:", err);
+        alert("Beklenmeyen hata: " + err.message);
+    }
+};
+
+window.markRead = function (e, id) {
+    if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    console.log("[JS] markRead called for:", id);
+
+    $.post('/Bildirimler/Read', { id: id })
+        .done(function () {
+            // UI updates
+            $(`#notif-item-${id}`).removeClass('unread').addClass('read');
+            $(`#notif-item-${id} .unread-indicator`).addClass('d-none');
+            $(`#dropdown-notif-${id}`).removeClass('bg-light');
+            if (typeof loadTopbarCount === 'function') loadTopbarCount();
+        })
+        .fail(function (xhr) {
+            console.error("[JS] MarkRead failed:", xhr);
+        });
+};
+
+// --- EVENT DELEGATION (ROBUST) ---
+$(document).on('click', '.btn-mark-read', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = $(this).data('id');
+    console.log("[DELEGATION] MarkRead clicked for:", id);
+    if (id) markRead(null, id);
+});
+
+$(document).on('click', '.btn-delete-notif', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    const id = $(this).data('id');
+    console.log("[DELEGATION] Delete clicked for:", id);
+    if (id) deleteNotification(null, id);
+});
+
 function renderList(inbox) {
     const container = $('#notification-list');
     container.empty();
@@ -85,11 +205,27 @@ function renderList(inbox) {
         const initials = getInitials(n.gonderenAdSoyad);
         const dateStr = formatDate(n.olusturmaTarihi);
         let unreadClass = n.okunduMu ? 'd-none' : '';
-        let bgClass = n.okunduMu ? 'read' : 'unread'; // Using CSS classes
-        if (selectedNotificationId && n.bildirimId == selectedNotificationId) {
+        let bgClass = n.okunduMu ? 'read' : 'unread';
+        if (typeof selectedNotificationId !== 'undefined' && selectedNotificationId == n.bildirimId) {
             bgClass += ' active-item';
-            unreadClass = 'd-none'; // Hide dot if active (assumed read)
+            unreadClass = 'd-none';
         }
+
+        // Direct Action Buttons (No Dropdown, No Inline Onclick)
+        let actions = `
+            <div class="notification-actions" style="position:absolute; top:15px; right:10px; z-index:100; display:flex; gap:5px;">
+                <button type="button" class="btn btn-sm btn-icon btn-outline-primary rounded-pill btn-mark-read" 
+                        data-id="${n.bildirimId}" 
+                        title="Okundu İşaretle" data-bs-toggle="tooltip">
+                    <i class="bx bx-envelope-open"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-icon btn-outline-danger rounded-pill btn-delete-notif" 
+                        data-id="${n.bildirimId}" 
+                        title="Kalıcı Sil" data-bs-toggle="tooltip">
+                    <i class="bx bx-trash"></i>
+                </button>
+            </div>
+        `;
 
         let html = template
             .replace(/{id}/g, n.bildirimId)
@@ -102,12 +238,16 @@ function renderList(inbox) {
 
         const $el = $(html);
         $el.addClass(bgClass);
-        if (!n.okunduMu) {
-            // Specific styles if needed, handled by css class
-        }
+        $el.addClass('position-relative');
+        $el.css('padding-right', '80px'); // Make space for buttons so text doesn't overlap
+        $el.append(actions);
+        $el.attr('id', `notif-item-${n.bildirimId}`);
 
         container.append($el);
     });
+
+    // Initialize tooltips for new elements
+    $('[data-bs-toggle="tooltip"]').tooltip();
 }
 
 function renderDetail(n) {
@@ -146,9 +286,8 @@ function selectNotification(el, id) {
     window.history.pushState({}, '', url);
 
     // Fetch Detail
-    // We can fetch just detail or use stored data if we had it. Use endpoint for simplicity and mark read.
     $.ajax({
-        url: '/Bildirimler/GetData', // Logic handles mark read
+        url: '/Bildirimler/GetData',
         data: { selectedId: id },
         success: function (response) {
             if (response.selectedNotification) {
@@ -197,7 +336,6 @@ function loadTopbarCount() {
         renderDropdown(data.top);
     }).fail(function () {
         console.error("Bildirimler/Topbar failed.");
-        // Fallback: Show 0 gray
         const badge = $('#notificationBadge');
         badge.removeClass('bg-danger').addClass('bg-secondary');
         badge.text('0').show();
@@ -205,7 +343,7 @@ function loadTopbarCount() {
 }
 
 function renderDropdown(list) {
-    const container = $('#notificationList'); // In _Header
+    const container = $('#notificationList');
     if (!container.length) return;
 
     container.empty();
@@ -214,21 +352,26 @@ function renderDropdown(list) {
         return;
     }
 
-    // Similar to list but mini
     list.forEach(n => {
-        const bg = n.okunduMu ? '' : 'bg-light'; // highlight unread
+        const bg = n.okunduMu ? '' : 'bg-light';
+
+        // Using BUTTON for actions to avoid anchor nesting issues
         const html = `
-             <li class="list-group-item list-group-item-action dropdown-notifications-item ${bg}" onclick="window.location.href='/Bildirimler?selectedId=${n.bildirimId}'">
-                <div class="d-flex">
+             <li class="list-group-item list-group-item-action dropdown-notifications-item ${bg}" id="dropdown-notif-${n.bildirimId}" onclick="window.location.href='/Bildirimler/Index?selectedId=${n.bildirimId}'" style="cursor:pointer">
+                <div class="d-flex align-items-center">
                   <div class="flex-shrink-0 me-3">
                     <div class="avatar">
                       <span class="avatar-initial rounded-circle bg-label-primary">${getInitials(n.gonderenAdSoyad)}</span>
                     </div>
                   </div>
                   <div class="flex-grow-1">
-                    <h6 class="mb-1">${n.baslik}</h6>
+                    <h6 class="mb-1 text-truncate" style="max-width:200px;">${n.baslik}</h6>
                     <small class="text-muted">${n.gonderenAdSoyad}</small>
                     <small class="text-muted d-block" style="font-size:0.7em">${formatDate(n.olusturmaTarihi)}</small>
+                  </div>
+                  <div class="flex-shrink-0 dropdown-notifications-actions">
+                    <button type="button" class="btn btn-icon btn-sm btn-text-secondary rounded-pill" onclick="markRead(event, ${n.bildirimId})" title="Okundu İşaretle"><span class="badge badge-dot bg-primary"></span></button>
+                    <button type="button" class="btn btn-icon btn-sm btn-text-danger rounded-pill" onclick="deleteNotification(event, ${n.bildirimId})" title="Sil"><span class="bx bx-x"></span></button>
                   </div>
                 </div>
               </li>
@@ -240,7 +383,7 @@ function renderDropdown(list) {
 function markAllRead() {
     $.post('/Bildirimler/MarkAllRead', function () {
         loadTopbarCount();
-        if (typeof loadInbox === 'function') loadInbox(); // if on page
+        if (typeof loadInbox === 'function') loadInbox();
     });
 }
 

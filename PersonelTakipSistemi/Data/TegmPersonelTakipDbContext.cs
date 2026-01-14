@@ -35,6 +35,9 @@ namespace PersonelTakipSistemi.Data
         public DbSet<PersonelKomisyon> PersonelKomisyonlar { get; set; }
         public DbSet<PersonelKurumsalRolAtama> PersonelKurumsalRolAtamalari { get; set; }
 
+        public DbSet<BildirimGonderen> BildirimGonderenler { get; set; }
+        public DbSet<TopluBildirim> TopluBildirimler { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -47,6 +50,22 @@ namespace PersonelTakipSistemi.Data
             modelBuilder.Entity<IsNiteligi>().ToTable("IsNitelikleri");
             modelBuilder.Entity<Il>().ToTable("Iller");
             modelBuilder.Entity<Brans>().ToTable("Branslar");
+
+            // Notification Module
+            modelBuilder.Entity<BildirimGonderen>(entity => {
+                entity.ToTable("BildirimGonderenler");
+                entity.HasOne(e => e.Personel).WithMany().HasForeignKey(e => e.PersonelId).OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<TopluBildirim>(entity => {
+                entity.ToTable("TopluBildirimler");
+                entity.HasOne(e => e.Gonderen).WithMany().HasForeignKey(e => e.GonderenId).OnDelete(DeleteBehavior.Restrict);
+            });
+            
+            modelBuilder.Entity<Bildirim>(entity => {
+                 entity.HasOne(d => d.BildirimGonderen).WithMany().HasForeignKey(d => d.BildirimGonderenId).OnDelete(DeleteBehavior.Restrict);
+                 entity.HasOne(d => d.TopluBildirim).WithMany().HasForeignKey(d => d.TopluBildirimId).OnDelete(DeleteBehavior.SetNull); // If batch deleted, keep notifications? Or Cascade? SetNull safe.
+            });
 
             // Brans Constraints
             modelBuilder.Entity<Brans>(entity =>

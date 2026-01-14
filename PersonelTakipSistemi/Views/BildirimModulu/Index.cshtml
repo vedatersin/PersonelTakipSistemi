@@ -1,0 +1,416 @@
+@{
+    ViewData["Title"] = "Bildirim Modülü";
+}
+
+@section Styles {
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+    <!-- Flatpickr -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    
+    <style>
+        .personel-table-container {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .personel-card {
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .personel-card:hover {
+            background-color: #f8f9fa;
+        }
+        .personel-card.selected {
+            background-color: #e7f1ff;
+            border-left: 4px solid #0d6efd;
+        }
+        .search-box {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #fff;
+            padding-bottom: 10px;
+        }
+    </style>
+}
+
+<div class="row">
+    <!-- SOL PANEL: Personel Listesi & Filtreler -->
+    <div class="col-md-8">
+        <div class="card h-100">
+            <div class="card-header border-bottom">
+                <h5 class="card-title mb-3">Hedef Kitle Seçimi</h5>
+                
+                <!-- Filtreler -->
+                <div class="row g-2" id="filterArea">
+                    <div class="col-md-4">
+                        <input type="text" id="filterSearch" class="form-control" placeholder="Ad Soyad Ara..." />
+                    </div>
+                    <div class="col-md-4">
+                        <select id="filterSistemRol" class="form-select">
+                            <option value="">Tüm Sistem Rolleri</option>
+                            <option value="1">Admin</option>
+                            <option value="2">Yönetici</option>
+                            <option value="3">Editör</option>
+                            <option value="4">Kullanıcı</option>
+                        </select>
+                    </div>
+                    <!-- Diğer filtreler buraya eklenebilir (Teşkilat vs için API lazım) -->
+                    <!-- Şimdilik hardcode veya Viewbag ile gelebilir, basit tutuyoruz -->
+                    <div class="col-md-2">
+                        <button class="btn btn-primary w-100" onclick="loadPersonelList()">
+                            <i class="bx bx-filter-alt"></i> Filtrele
+                        </button>
+                    </div>
+                    <div class="col-md-2">
+                         <button class="btn btn-outline-secondary w-100" onclick="clearFilters()">
+                            <i class="bx bx-reset"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="selectAll">
+                        <label class="form-check-label" for="selectAll">
+                            Tümünü Seç
+                        </label>
+                    </div>
+                    <span class="text-muted small" id="totalCountBadge">0 kişi listelendi</span>
+                </div>
+            </div>
+            
+            <div class="card-body p-0">
+                <div class="table-responsive personel-table-container">
+                    <table class="table table-hover mb-0" id="personelTable">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th style="width: 40px;"></th>
+                                <th style="width: 60px;"></th> <!-- Avatar -->
+                                <th>Ad Soyad</th>
+                                <th>Roller</th>
+                                <th>Teşkilat/Birim</th>
+                            </tr>
+                        </thead>
+                        <tbody id="personelTableBody">
+                            <!-- JS ile doldurulacak -->
+                            <tr><td colspan="5" class="text-center p-4">Yükleniyor...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAĞ PANEL: Bildirim Formu -->
+    <div class="col-md-4">
+        <div class="card sticky-top" style="top: 20px;">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title text-white mb-0">Bildirim Oluştur</h5>
+            </div>
+            <div class="card-body pt-4">
+                <form id="notificationForm">
+                    <!-- Gönderen -->
+                    <div class="mb-3">
+                        <label class="form-label">Gönderen Kimliği</label>
+                        <select id="senderSelect" class="form-select" style="width: 100%;">
+                            <!-- JS ile dolacak -->
+                        </select>
+                    </div>
+
+                    <!-- Alıcı Özeti -->
+                    <div class="alert alert-info d-flex align-items-center mb-3">
+                        <i class="bx bx-group me-2"></i>
+                        <div>
+                            <span id="selectedCount" class="fw-bold">0</span> kişi seçildi.
+                        </div>
+                    </div>
+
+                    <!-- Başlık -->
+                    <div class="mb-3">
+                        <label class="form-label">Başlık *</label>
+                        <input type="text" class="form-control" id="notifTitle" required placeholder="Bildirim başlığı">
+                    </div>
+
+                    <!-- İçerik -->
+                    <div class="mb-3">
+                        <label class="form-label">Mesaj İçeriği *</label>
+                        <textarea class="form-control" id="notifContent" rows="4" required placeholder="Mesajınız..."></textarea>
+                    </div>
+
+                    <!-- Zamanlama -->
+                    <div class="mb-3">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="scheduleSwitch">
+                            <label class="form-check-label" for="scheduleSwitch">İleri Tarihli Gönderim</label>
+                        </div>
+                        <div id="datePickerContainer" style="display:none;">
+                            <input type="text" class="form-control" id="scheduleDate" placeholder="Tarih ve Saat Seçin">
+                        </div>
+                    </div>
+
+                    <!-- Buton -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary" id="btnSend">
+                            <i class="bx bx-paper-plane me-1"></i> Gönder
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Libs -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        $(document).ready(function() {
+            // Init Components
+            initSenderSelect();
+            initDatePicker();
+            loadPersonelList();
+
+            // Event Listeners
+            $('#scheduleSwitch').change(function() {
+                $('#datePickerContainer').toggle(this.checked);
+            });
+
+            $('#selectAll').change(function() {
+                const isChecked = $(this).is(':checked');
+                $('.personel-checkbox').prop('checked', isChecked).trigger('change');
+            });
+            
+            // Form Submit
+            $('#notificationForm').on('submit', function(e) {
+                e.preventDefault();
+                submitForm();
+            });
+        });
+
+        // --- SENDER SELECT ---
+        function initSenderSelect() {
+            $('#senderSelect').select2({
+                theme: 'bootstrap-5',
+                placeholder: 'Gönderen Seçin',
+                ajax: {
+                    url: '/BildirimModulu/GetSenders',
+                    dataType: 'json',
+                    processResults: function(data) {
+                        return { 
+                            results: formatSenderData(data)
+                        };
+                    }
+                },
+                templateResult: formatSenderTemplate,
+                templateSelection: formatSenderTemplate
+            });
+
+            // Initial Load to select System by default
+            $.get('/BildirimModulu/GetSenders', function(data) {
+                 var formatted = formatSenderData(data);
+                 // Manually add options since Select2 AJAX doesn't auto-init
+                 // Or just use local data logic since list is small
+                 $('#senderSelect').select2('destroy').empty().select2({
+                     theme: 'bootstrap-5',
+                     data: formatted,
+                     templateResult: formatSenderTemplate,
+                     templateSelection: formatSenderTemplate
+                 });
+                 // Select System (ID "System")
+                 $('#senderSelect').val('System').trigger('change');
+            });
+        }
+
+        function formatSenderData(data) {
+            // Group by IsSystem or Roles?
+            // User requested Groups: System | Admin | Manager
+            // Data is flat list with Title.
+            
+            var systemGroup = { text: 'Sistem', children: [] };
+            var adminGroup = { text: 'Yöneticiler', children: [] };
+            
+            data.forEach(item => {
+                var opt = { 
+                    id: item.id, 
+                    text: item.ad, 
+                    avatarUrl: item.avatarUrl,
+                    title: item.title,
+                    isSystem: item.isSystem
+                };
+                
+                if(item.isSystem) systemGroup.children.push(opt);
+                else adminGroup.children.push(opt);
+            });
+            
+            return [systemGroup, adminGroup];
+        }
+
+        function formatSenderTemplate(state) {
+            if (!state.id) return state.text;
+            
+            var avatar = state.avatarUrl || '/img/default-avatar.png';
+            if (state.isSystem) avatar = '/img/system_avatar.png'; // Fallback
+             
+            var $state = $(
+                '<span><img src="' + avatar + '" class="rounded-circle me-2" style="width:20px;height:20px;object-fit:cover;" /> ' + state.text + '</span>'
+            );
+            return $state;
+        }
+
+        // --- DATE PICKER ---
+        function initDatePicker() {
+            flatpickr("#scheduleDate", {
+                enableTime: true,
+                dateFormat: "Y-m-d H:i",
+                minDate: "today",
+                locale: "tr",
+                time_24hr: true
+            });
+        }
+
+        // --- PERSONEL LIST ---
+        function loadPersonelList() {
+            var search = $('#filterSearch').val();
+            var sistemRol = $('#filterSistemRol').val();
+
+            $('#personelTableBody').html('<tr><td colspan="5" class="text-center p-3">Yükleniyor...</td></tr>');
+
+            $.ajax({
+                url: '/BildirimModulu/GetPersonelList',
+                data: { search: search, sistemRolId: sistemRol },
+                success: function(data) {
+                    renderTable(data);
+                },
+                error: function() {
+                    $('#personelTableBody').html('<tr><td colspan="5" class="text-center text-danger">Yükleme hatası!</td></tr>');
+                }
+            });
+        }
+
+        function renderTable(data) {
+            var tbody = $('#personelTableBody');
+            tbody.empty();
+            $('#totalCountBadge').text(data.length + ' kişi listelendi');
+
+            if(data.length === 0) {
+                 tbody.html('<tr><td colspan="5" class="text-center p-3">Kayıt bulunamadı.</td></tr>');
+                 return;
+            }
+
+            // <img src="${p.fotografYolu || '/img/default-avatar.png'}" ...>
+            // Note: need to escape HTML if user input allowed, but internal data mostly safe.
+            data.forEach(p => {
+                var row = `
+                    <tr class="personel-row" onclick="toggleRow(this)">
+                        <td class="text-center">
+                            <input type="checkbox" class="form-check-input personel-checkbox" value="${p.personelId}" onclick="event.stopPropagation(); updateCount();">
+                        </td>
+                        <td>
+                            <div class="avatar avatar-xs">
+                                <img src="${p.fotografYolu || '/sevilay-tema/assets/img/avatars/1.png'}" class="rounded-circle">
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold">${p.adSoyad}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-label-primary me-1">${p.sistemRol}</span>
+                            ${p.kurumsalRoller.map(r => `<span class="badge bg-label-secondary me-1">${r}</span>`).join('')}
+                        </td>
+                        <td>
+                            <small class="text-muted d-block">${p.teskilatlar[0] || '-'}</small>
+                        </td>
+                    </tr>
+                `;
+                tbody.append(row);
+            });
+            updateCount();
+        }
+
+        function toggleRow(tr) {
+            var cb = $(tr).find('.personel-checkbox');
+            cb.prop('checked', !cb.prop('checked'));
+            updateCount();
+        }
+
+        function updateCount() {
+            var count = $('.personel-checkbox:checked').length;
+            $('#selectedCount').text(count);
+            
+            // Highlight Rows
+            $('.personel-checkbox').each(function() {
+                var row = $(this).closest('tr');
+                if ($(this).is(':checked')) row.addClass('table-active');
+                else row.removeClass('table-active');
+            });
+        }
+
+        function clearFilters() {
+            $('#filterSearch').val('');
+            $('#filterSistemRol').val('');
+            loadPersonelList();
+        }
+
+        // --- SUBMIT ---
+        function submitForm() {
+            var recipientIds = [];
+            $('.personel-checkbox:checked').each(function() {
+                recipientIds.push(parseInt($(this).val()));
+            });
+
+            if (recipientIds.length === 0) {
+                Swal.fire('Uyarı', 'Lütfen en az bir kişi seçiniz.', 'warning');
+                return;
+            }
+
+            var senderId = $('#senderSelect').val();
+            var title = $('#notifTitle').val();
+            var content = $('#notifContent').val();
+            var isScheduled = $('#scheduleSwitch').is(':checked');
+            var scheduledTime = isScheduled ? $('#scheduleDate').val() : null;
+
+            if (isScheduled && !scheduledTime) {
+                Swal.fire('Uyarı', 'Planlanan tarihi seçiniz.', 'warning');
+                return;
+            }
+
+            var payload = {
+                RecipientIds: recipientIds,
+                SenderId: senderId,
+                Baslik: title,
+                Icerik: content,
+                ScheduledTime: scheduledTime
+            };
+
+            $('#btnSend').prop('disabled', true).html('<i class="bx bx-loader-alt bx-spin"></i> Gönderiliyor...');
+
+            $.ajax({
+                url: '/BildirimModulu/SendBulk',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(payload),
+                success: function(res) {
+                    Swal.fire('Başarılı', isScheduled ? 'Bildirim planlandı.' : 'Bildirimler gönderildi.', 'success')
+                        .then(() => {
+                           // Reset Form? 
+                           $('#notifTitle').val('');
+                           $('#notifContent').val('');
+                           $('.personel-checkbox').prop('checked', false);
+                           updateCount();
+                           $('#btnSend').prop('disabled', false).html('<i class="bx bx-paper-plane me-1"></i> Gönder');
+                        });
+                },
+                error: function(xhr) {
+                    Swal.fire('Hata', 'Gönderim başarısız: ' + xhr.responseText, 'error');
+                    $('#btnSend').prop('disabled', false).html('<i class="bx bx-paper-plane me-1"></i> Gönder');
+                }
+            });
+        }
+    </script>
+}

@@ -81,6 +81,17 @@
         </li>
     }
 
+    @if (userRole == "Admin" || userRole == "Yönetici")
+    {
+        <!-- Bildirim Modülü (Admin, Yönetici) -->
+        <li class="menu-item @(string.Equals(currentController, "BildirimModulu", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+          <a asp-controller="BildirimModulu" asp-action="Index" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-broadcast"></i>
+            <div class="text-truncate" data-i18n="Bildirim Modülü">Bildirim Modülü</div>
+          </a>
+        </li>
+    }
+
     <!-- Profilim & Bildirimler (Tüm Kullanıcılar İçin - En Altta) -->
     <!-- Removed 'active' class from parent here too -->
     <li class="menu-item @openClass">

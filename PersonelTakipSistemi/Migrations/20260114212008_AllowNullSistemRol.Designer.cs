@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PersonelTakipSistemi.Data;
 
@@ -11,9 +12,11 @@ using PersonelTakipSistemi.Data;
 namespace PersonelTakipSistemi.Migrations
 {
     [DbContext(typeof(TegmPersonelTakipDbContext))]
-    partial class TegmPersonelTakipDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260114212008_AllowNullSistemRol")]
+    partial class AllowNullSistemRol
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,9 +45,6 @@ namespace PersonelTakipSistemi.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<int?>("BildirimGonderenId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("GonderenPersonelId")
                         .HasColumnType("int");
 
@@ -68,15 +68,9 @@ namespace PersonelTakipSistemi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<bool>("SilindiMi")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Tip")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
-
-                    b.Property<int?>("TopluBildirimId")
-                        .HasColumnType("int");
 
                     b.Property<string>("Url")
                         .HasMaxLength(300)
@@ -84,47 +78,13 @@ namespace PersonelTakipSistemi.Migrations
 
                     b.HasKey("BildirimId");
 
-                    b.HasIndex("BildirimGonderenId");
-
                     b.HasIndex("GonderenPersonelId");
-
-                    b.HasIndex("TopluBildirimId");
 
                     b.HasIndex("AliciPersonelId", "OlusturmaTarihi");
 
                     b.HasIndex("AliciPersonelId", "OkunduMu", "OlusturmaTarihi");
 
                     b.ToTable("Bildirimler", (string)null);
-                });
-
-            modelBuilder.Entity("PersonelTakipSistemi.Models.BildirimGonderen", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AvatarUrl")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<string>("GorunenAd")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int?>("PersonelId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Tip")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PersonelId");
-
-                    b.ToTable("BildirimGonderenler", (string)null);
                 });
 
             modelBuilder.Entity("PersonelTakipSistemi.Models.Brans", b =>
@@ -1552,51 +1512,6 @@ namespace PersonelTakipSistemi.Migrations
                         });
                 });
 
-            modelBuilder.Entity("PersonelTakipSistemi.Models.TopluBildirim", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Baslik")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<int>("Durum")
-                        .HasColumnType("int");
-
-                    b.Property<int>("GonderenId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("GonderimZamani")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("HedefKitleJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Icerik")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("OlusturmaTarihi")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("PlanlananZaman")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("RecipientIdsJson")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GonderenId");
-
-                    b.ToTable("TopluBildirimler", (string)null);
-                });
-
             modelBuilder.Entity("PersonelTakipSistemi.Models.Uzmanlik", b =>
                 {
                     b.Property<int>("UzmanlikId")
@@ -1764,38 +1679,14 @@ namespace PersonelTakipSistemi.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("PersonelTakipSistemi.Models.BildirimGonderen", "BildirimGonderen")
-                        .WithMany()
-                        .HasForeignKey("BildirimGonderenId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.HasOne("PersonelTakipSistemi.Models.Personel", "GonderenPersonel")
                         .WithMany("GonderilenBildirimler")
                         .HasForeignKey("GonderenPersonelId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("PersonelTakipSistemi.Models.TopluBildirim", "TopluBildirim")
-                        .WithMany()
-                        .HasForeignKey("TopluBildirimId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.Navigation("AliciPersonel");
 
-                    b.Navigation("BildirimGonderen");
-
                     b.Navigation("GonderenPersonel");
-
-                    b.Navigation("TopluBildirim");
-                });
-
-            modelBuilder.Entity("PersonelTakipSistemi.Models.BildirimGonderen", b =>
-                {
-                    b.HasOne("PersonelTakipSistemi.Models.Personel", "Personel")
-                        .WithMany()
-                        .HasForeignKey("PersonelId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.Navigation("Personel");
                 });
 
             modelBuilder.Entity("PersonelTakipSistemi.Models.Komisyon", b =>
@@ -2024,17 +1915,6 @@ namespace PersonelTakipSistemi.Migrations
                     b.Navigation("Personel");
 
                     b.Navigation("Yazilim");
-                });
-
-            modelBuilder.Entity("PersonelTakipSistemi.Models.TopluBildirim", b =>
-                {
-                    b.HasOne("PersonelTakipSistemi.Models.BildirimGonderen", "Gonderen")
-                        .WithMany()
-                        .HasForeignKey("GonderenId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Gonderen");
                 });
 
             modelBuilder.Entity("PersonelTakipSistemi.Models.Brans", b =>

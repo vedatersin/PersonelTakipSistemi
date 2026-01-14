@@ -33,6 +33,10 @@
       "PackagePath": "staticwebassets\\images\\meb-logo.png"
     },
     {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\img\\system_avatar.png",
+      "PackagePath": "staticwebassets\\img\\system_avatar.png"
+    },
+    {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\bildirimler.js",
       "PackagePath": "staticwebassets\\js\\bildirimler.js"
     },
