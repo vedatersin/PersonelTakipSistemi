@@ -22,9 +22,9 @@
     <div class="card-body">
         <form asp-action="Index" method="get" id="filterForm">
             
-            <!-- SATIR 1: Ad/Soyad, TC, İl, Branş -->
+            <!-- SATIR 1: Ad/Soyad, T.C., İl -->
             <div class="row g-3">
-                <div class="col-12 col-lg-3">
+                 <div class="col-12 col-lg-4">
                     <label class="form-label">Ad / Soyad</label>
                     <input type="text" class="form-control" asp-for="Filter.SearchName" placeholder="Ad veya Soyad ara..." />
                 </div>
@@ -32,7 +32,7 @@
                      <label class="form-label">TC Kimlik No</label>
                      <input type="text" class="form-control" asp-for="Filter.TcKimlikNo" placeholder="TC Kimlik No..." />
                 </div>
-                <div class="col-12 col-lg-3">
+                 <div class="col-12 col-lg-2">
                     <label class="form-label">Görevli İl</label>
                     <select class="form-select select2" asp-for="Filter.GorevliIlId">
                         <option value="">İl Seçiniz...</option>
@@ -40,13 +40,52 @@
                     </select>
                 </div>
                 <div class="col-12 col-lg-3">
-                    <label class="form-label">Branş</label>
+                     <label class="form-label">Branş</label>
                     <select class="form-select select2" asp-for="Filter.BransId">
                         <option value="">Branş Seçiniz...</option>
                         @foreach (var x in Model.Lookups.Branslar) { <option value="@x.Id">@x.Ad</option> }
                     </select>
                 </div>
             </div>
+
+            <!-- SATIR 2: Teşkilat > Koordinatörlük > Komisyon (Cascading) -->
+             <div class="row g-3 mt-1">
+                 <div class="col-12 col-lg-4">
+                    <label class="form-label">Teşkilat</label>
+                    <select class="form-select select2" asp-for="Filter.TeskilatId" id="filterTeskilatId">
+                        <option value="">Teşkilat Seçiniz...</option>
+                        @foreach (var x in Model.Lookups.Teskilatlar) { <option value="@x.Id">@x.Ad</option> }
+                    </select>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <label class="form-label">Koordinatörlük</label>
+                    <select class="form-select select2" asp-for="Filter.KoordinatorlukId" id="filterKoordinatorlukId">
+                        <option value="">Koordinatörlük Seçiniz...</option>
+                        @if(Model.Lookups.Koordinatorlukler != null)
+                        {
+                            foreach(var k in Model.Lookups.Koordinatorlukler)
+                            {
+                                <!-- Only show if matched or all? For cascading, JS handles mostly, 
+                                     but on persistent reload we need to keep selected option valid. -->
+                                <option value="@k.Id">@k.Ad</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-12 col-lg-4">
+                    <label class="form-label">Komisyon</label>
+                    <select class="form-select select2" asp-for="Filter.KomisyonId" id="filterKomisyonId">
+                        <option value="">Komisyon Seçiniz...</option>
+                        @if(Model.Lookups.Komisyonlar != null)
+                        {
+                            foreach(var k in Model.Lookups.Komisyonlar)
+                            {
+                                <option value="@k.Id">@k.Ad</option>
+                            }
+                        }
+                    </select>
+                </div>
+             </div>
 
             <!-- SATIR 2: Yazılımlar, Uzmanlıklar, Görev Türü, İş Niteliği -->
             <div class="row g-3 mt-1">
@@ -431,6 +470,65 @@
                     }
                 }
           });
+
+          // --- Cascading Filter Logic ---
+          
+          // 1. Teşkilat -> Koordinatörlük
+          $('#filterTeskilatId').on('change', function() {
+              var teskilatId = $(this).val();
+              var $koordSelect = $('#filterKoordinatorlukId');
+              var $komSelect = $('#filterKomisyonId');
+              
+              $koordSelect.empty().append('<option value="">Yükleniyor...</option>');
+              $komSelect.empty().append('<option value="">Önce Koordinatörlük Seçiniz...</option>');
+              
+              if(teskilatId) {
+                  $.getJSON('/Personel/GetKoordinatorluklerByTeskilat', { teskilatId: teskilatId }, function(data) {
+                      $koordSelect.empty().append('<option value="">Koordinatörlük Seçiniz...</option>');
+                      $.each(data, function(i, item) {
+                          $koordSelect.append($('<option>', { 
+                              value: item.id,
+                              text: item.text 
+                          }));
+                      });
+                      $koordSelect.trigger('change'); // Notify select2 to update? select2 handles standard change event? 
+                      // Need to trigger select2 update manually or rebuild? 
+                      // Logic usually: Just updating DOM <option> then triggering change is enough for standard selects,
+                      // but Select2 needs to simply read the new DOM options. Usually re-init is NOT needed, just change event.
+                      // Note: trigger('change') might trigger the NEXT cascade (Koordinatorluk->Komisyon).
+                      // If we cleared it, that's fine.
+                  });
+              } else {
+                  $koordSelect.empty().append('<option value="">Önce Teşkilat Seçiniz...</option>');
+                  $komSelect.empty().append('<option value="">Önce Koordinatörlük Seçiniz...</option>');
+              }
+          });
+
+          // 2. Koordinatörlük -> Komisyon
+          $('#filterKoordinatorlukId').on('change', function() {
+              var koordId = $(this).val();
+              var $komSelect = $('#filterKomisyonId');
+              
+              if(koordId) {
+                  $komSelect.empty().append('<option value="">Yükleniyor...</option>');
+                   $.getJSON('/Personel/GetKomisyonlarByKoordinatorluk', { koordinatorlukId: koordId }, function(data) {
+                      $komSelect.empty().append('<option value="">Komisyon Seçiniz...</option>');
+                      $.each(data, function(i, item) {
+                          $komSelect.append($('<option>', { 
+                              value: item.id,
+                              text: item.text 
+                          }));
+                      });
+                  });
+              } else {
+                  // If cleared, clear children?
+                  // Maybe check if Teşkilat is still selected? 
+                  // If Koord cleared but Teskilat selected, Komisyon should be effectively cleared or maybe "All" depending on rule.
+                  // Usually: Clear Komisyon.
+                  $komSelect.empty().append('<option value="">Önce Koordinatörlük Seçiniz...</option>');
+              }
+          });
+
       });
     </script>
 }

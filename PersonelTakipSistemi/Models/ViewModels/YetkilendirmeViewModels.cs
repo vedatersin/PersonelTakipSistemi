@@ -11,6 +11,14 @@ namespace PersonelTakipSistemi.Models.ViewModels
         public List<SelectListItem> SistemRolList { get; set; } = new List<SelectListItem>();
         public List<SelectListItem> KurumsalRolList { get; set; } = new List<SelectListItem>();
         public List<SelectListItem> KomisyonList { get; set; } = new List<SelectListItem>();
+        public List<SelectListItem> KoordinatorlukList { get; set; } = new List<SelectListItem>();
+        
+        // New Filters
+        public List<SelectListItem> BransList { get; set; } = new List<SelectListItem>();
+        public List<SelectListItem> YazilimList { get; set; } = new List<SelectListItem>();
+        public List<SelectListItem> UzmanlikList { get; set; } = new List<SelectListItem>();
+        public List<SelectListItem> GorevTuruList { get; set; } = new List<SelectListItem>();
+        public List<SelectListItem> IsNiteligiList { get; set; } = new List<SelectListItem>();
     }
 
     public class PersonelYetkiRowViewModel
@@ -25,6 +33,13 @@ namespace PersonelTakipSistemi.Models.ViewModels
         public List<string> KoordinatorlukAdlari { get; set; } = new List<string>();
         public List<string> KomisyonAdlari { get; set; } = new List<string>();
         public List<string> KurumsalRolAdlari { get; set; } = new List<string>();
+
+        // New Data for Filtering
+        public string? Brans { get; set; }
+        public List<string> Yazilimlar { get; set; } = new List<string>();
+        public List<string> Uzmanliklar { get; set; } = new List<string>();
+        public List<string> GorevTurleri { get; set; } = new List<string>();
+        public List<string> IsNitelikleri { get; set; } = new List<string>();
     }
 
     public class PersonelYetkiDetailViewModel

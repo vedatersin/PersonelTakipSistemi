@@ -50,13 +50,18 @@ namespace PersonelTakipSistemi.Controllers
         public async Task<IActionResult> Yetkilendirme()
         {
             // 1. Fetch Personnel with Relations
+            // 1. Fetch Personnel with Relations
             var personeller = await _context.Personeller
                 .Include(p => p.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
                 .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk)
                 .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon)
-                .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon)
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.KurumsalRol)
-                .Include(p => p.SistemRol) // Added Include
+                .Include(p => p.SistemRol)
+                .Include(p => p.Brans) // New
+                .Include(p => p.PersonelYazilimlar).ThenInclude(py => py.Yazilim) // New
+                .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik) // New
+                .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru) // New
+                .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi) // New
                 .Where(p => p.AktifMi)
                 .OrderBy(p => p.Ad).ThenBy(p => p.Soyad)
                 .ToListAsync();
@@ -73,7 +78,14 @@ namespace PersonelTakipSistemi.Controllers
                 TeskilatAdlari = p.PersonelTeskilatlar.Select(pt => pt.Teskilat.Ad).ToList(),
                 KoordinatorlukAdlari = p.PersonelKoordinatorlukler.Select(pk => pk.Koordinatorluk.Ad).ToList(),
                 KomisyonAdlari = p.PersonelKomisyonlar.Select(pk => pk.Komisyon.Ad).ToList(),
-                KurumsalRolAdlari = p.PersonelKurumsalRolAtamalari.Select(ra => ra.KurumsalRol.Ad).Distinct().ToList()
+                KurumsalRolAdlari = p.PersonelKurumsalRolAtamalari.Select(ra => ra.KurumsalRol.Ad).Distinct().ToList(),
+                
+                // New Data for Filtering
+                Brans = p.Brans?.Ad,
+                Yazilimlar = p.PersonelYazilimlar.Select(py => py.Yazilim.Ad).ToList(),
+                Uzmanliklar = p.PersonelUzmanliklar.Select(pu => pu.Uzmanlik.Ad).ToList(),
+                GorevTurleri = p.PersonelGorevTurleri.Select(pg => pg.GorevTuru.Ad).ToList(),
+                IsNitelikleri = p.PersonelIsNitelikleri.Select(pi => pi.IsNiteligi.Ad).ToList()
             }).ToList();
 
             // 3. Prepare View Model
@@ -83,7 +95,15 @@ namespace PersonelTakipSistemi.Controllers
                 TeskilatList = await _context.Teskilatlar.Select(t => new SelectListItem { Value = t.TeskilatId.ToString(), Text = t.Ad }).ToListAsync(),
                 KurumsalRolList = await _context.KurumsalRoller.Select(r => new SelectListItem { Value = r.KurumsalRolId.ToString(), Text = r.Ad }).ToListAsync(),
                 SistemRolList = await _context.SistemRoller.OrderBy(r => r.Ad).Select(r => new SelectListItem { Value = r.Ad, Text = r.Ad }).ToListAsync(),
-                KomisyonList = await _context.Komisyonlar.Select(k => new SelectListItem { Value = k.Ad, Text = k.Ad }).Distinct().ToListAsync()
+                KomisyonList = await _context.Komisyonlar.Select(k => new SelectListItem { Value = k.Ad, Text = k.Ad }).Distinct().ToListAsync(),
+                KoordinatorlukList = await _context.Koordinatorlukler.Select(k => new SelectListItem { Value = k.Ad, Text = k.Ad }).Distinct().ToListAsync(),
+                
+                // New Filter Lists
+                BransList = await _context.Branslar.Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad }).ToListAsync(),
+                YazilimList = await _context.Yazilimlar.Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad }).ToListAsync(),
+                UzmanlikList = await _context.Uzmanliklar.Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad }).ToListAsync(),
+                GorevTuruList = await _context.GorevTurleri.Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad }).ToListAsync(),
+                IsNiteligiList = await _context.IsNitelikleri.Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad }).ToListAsync()
             };
 
             return View(model);
@@ -559,6 +579,26 @@ namespace PersonelTakipSistemi.Controllers
             if (filter.SeciliYazilimIdleri != null && filter.SeciliYazilimIdleri.Any())
             {
                 query = query.Where(p => p.PersonelYazilimlar.Any(py => filter.SeciliYazilimIdleri.Contains(py.YazilimId)));
+            }
+
+            if (filter.SeciliYazilimIdleri != null && filter.SeciliYazilimIdleri.Any())
+            {
+                query = query.Where(p => p.PersonelYazilimlar.Any(py => filter.SeciliYazilimIdleri.Contains(py.YazilimId)));
+            }
+
+            if (filter.TeskilatId.HasValue)
+            {
+                query = query.Where(p => p.PersonelTeskilatlar.Any(pt => pt.TeskilatId == filter.TeskilatId.Value));
+            }
+
+            if (filter.KoordinatorlukId.HasValue)
+            {
+                query = query.Where(p => p.PersonelKoordinatorlukler.Any(pk => pk.KoordinatorlukId == filter.KoordinatorlukId.Value));
+            }
+
+            if (filter.KomisyonId.HasValue)
+            {
+                query = query.Where(p => p.PersonelKomisyonlar.Any(pk => pk.KomisyonId == filter.KomisyonId.Value));
             }
 
             if (filter.SeciliUzmanlikIdleri != null && filter.SeciliUzmanlikIdleri.Any())
@@ -1162,8 +1202,26 @@ namespace PersonelTakipSistemi.Controllers
              }) ?? new List<LookupItemVm>();
 
              // Refactored Lookups for new Entities
-             model.Branslar = await _context.Branslar.AsNoTracking().Select(b => new LookupItemVm { Id = b.BransId, Ad = b.Ad }).ToListAsync();
-             model.Iller = await _context.Iller.AsNoTracking().Select(i => new LookupItemVm { Id = i.IlId, Ad = i.Ad }).ToListAsync();
+             model.Branslar = await _context.Branslar.AsNoTracking().OrderBy(b => b.Ad).Select(b => new LookupItemVm { Id = b.BransId, Ad = b.Ad }).ToListAsync();
+             model.Iller = await _context.Iller.AsNoTracking().OrderBy(i => i.Ad).Select(i => new LookupItemVm { Id = i.IlId, Ad = i.Ad }).ToListAsync();
+             
+             // Cascading Filter Lookups (Initial Population)
+             model.Teskilatlar = await _context.Teskilatlar.AsNoTracking().OrderBy(t => t.Ad).Select(t => new LookupItemVm { Id = t.TeskilatId, Ad = t.Ad }).ToListAsync();
+             
+             // Determine if we need to pre-load Koordinatorluk/Komisyon based on implicit context? 
+             // Ideally the View will call JS to load them if a parent is selected?
+             // But for server-side rendering of initial state (persistence), let's populate ALL or just selected parents?
+             // For simplicity in filter dropdowns (like "Select Organization" first), only Teskilat needs to be full initially.
+             // However, to keep selected values visible on post-back/reload, we might need logic in Controller or JS.
+             // We'll populate empty lists here, and let the View/JS or specific controller logic handle specific selection refilling if needed.
+             // ACTUALLY: Let's populate Koordinatorluk and Komisyon ONLY if they are small enough or if requested?
+             // Better strategy: Return ALL for now (small dataset) OR just rely on AJAX.
+             // Decision: Populate Teskilat. The others will be handled via AJAX or explicitly if needed.
+             // But wait, if page reloads with a filter selected, we need the options there!
+             // So let's populate them cleanly.
+             
+             model.Koordinatorlukler = await _context.Koordinatorlukler.AsNoTracking().OrderBy(k => k.Ad).Select(k => new LookupItemVm { Id = k.KoordinatorlukId, Ad = k.Ad }).ToListAsync();
+             model.Komisyonlar = await _context.Komisyonlar.AsNoTracking().OrderBy(k => k.Ad).Select(k => new LookupItemVm { Id = k.KomisyonId, Ad = k.Ad }).ToListAsync();
         }
 
         // Helper Method: Lookup Listelerini Doldurma
@@ -1288,6 +1346,76 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             return Json(new { tcExists = isTcExists, emailExists = isEmailExists });
+        }
+        // --- Cascading Filter APIs ---
+
+        [HttpGet]
+        public async Task<IActionResult> GetKoordinatorlukNames(string teskilatAd)
+        {
+            if (string.IsNullOrEmpty(teskilatAd))
+            {
+                // If "All" selected, return all unique koordinatorluks
+                var all = await _context.Koordinatorlukler
+                    .Select(k => k.Ad)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToListAsync();
+                return Json(all);
+            }
+
+            var list = await _context.Koordinatorlukler
+                .Where(k => k.Teskilat.Ad == teskilatAd)
+                .Select(k => k.Ad)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToListAsync();
+
+            return Json(list);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetKomisyonNames(string koordinatorlukAd)
+        {
+            if (string.IsNullOrEmpty(koordinatorlukAd))
+            {
+                // If "All" selected, return all unique komisyons
+                var all = await _context.Komisyonlar
+                    .Select(k => k.Ad)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToListAsync();
+                return Json(all);
+            }
+
+            var list = await _context.Komisyonlar
+                .Where(k => k.Koordinatorluk.Ad == koordinatorlukAd)
+                .Select(k => k.Ad)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToListAsync();
+
+            return Json(list);
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetKoordinatorluklerByTeskilat(int teskilatId)
+        {
+             var list = await _context.Koordinatorlukler
+                 .Where(k => k.TeskilatId == teskilatId)
+                 .OrderBy(k => k.Ad)
+                 .Select(k => new { id = k.KoordinatorlukId, text = k.Ad })
+                 .ToListAsync();
+             return Json(list);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetKomisyonlarByKoordinatorluk(int koordinatorlukId)
+        {
+             var list = await _context.Komisyonlar
+                 .Where(k => k.KoordinatorlukId == koordinatorlukId)
+                 .OrderBy(k => k.Ad)
+                 .Select(k => new { id = k.KomisyonId, text = k.Ad })
+                 .ToListAsync();
+             return Json(list);
         }
     }
 }

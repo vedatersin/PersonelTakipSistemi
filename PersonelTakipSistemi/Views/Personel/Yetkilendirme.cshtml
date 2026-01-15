@@ -4,56 +4,129 @@
 }
 
 <!-- Custom CSS for cleaner look -->
-<style>
-    .filter-bar {
-        background: #fff;
-        padding: 1rem;
-        border-radius: 0.5rem;
-        box-shadow: 0 0.125rem 0.25rem rgba(161, 172, 184, 0.4);
-        margin-bottom: 1.5rem;
-    }
-    .user-avatar { width: 38px; height: 38px; object-fit: cover; }
-    .avatar-initial { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem; }
-    .table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
-    .table td { vertical-align: middle; }
-    .drawer-header-img { width: 64px; height: 64px; object-fit: cover; }
-    .nav-tabs .nav-link.active { border-bottom: 2px solid #696cff; color: #696cff; }
-</style>
+    <!-- Custom CSS for cleaner look -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
+    <style>
+        .filter-bar {
+            background: #fff;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(161, 172, 184, 0.4);
+            margin-bottom: 1.5rem;
+        }
+        .user-avatar { width: 38px; height: 38px; object-fit: cover; }
+        .avatar-initial { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem; }
+        .table th { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
+        .table td { vertical-align: middle; }
+        .drawer-header-img { width: 64px; height: 64px; object-fit: cover; }
+        .nav-tabs .nav-link.active { border-bottom: 2px solid #696cff; color: #696cff; }
+        
+        /* Select2 Tweaks */
+        .select2-container--bootstrap-5 .select2-selection--single {
+            font-size: 0.9rem;
+            padding-top: 0.3rem; 
+            padding-bottom: 0.3rem;
+            height: 38px;
+        }
+    </style>
 
 <div class="row h-100">
     <div class="col-md-12">
         
         <!-- Filter Bar -->
-        <div class="filter-bar d-flex flex-wrap gap-2 align-items-center justify-content-between">
-            <div class="flex-grow-1" style="min-width: 200px; max-width: 300px;">
-                <input type="text" id="filterSearch" class="form-control" placeholder="Ad Soyad Ara...">
+        <!-- Filter Bar (Grid Layout) -->
+        <div class="filter-bar row row-cols-1 row-cols-md-3 row-cols-xl-6 g-2 align-items-center">
+            <!-- 1. Search -->
+            <div class="col">
+                <input type="text" id="filterSearch" class="form-control w-100" placeholder="Ad Soyad Ara...">
             </div>
             
-            <div class="d-flex flex-wrap gap-2">
-                <select id="filterTeskilat" class="form-select" style="width: auto;">
+            <!-- 2. Teskilat -->
+            <div class="col">
+                <select id="filterTeskilat" class="form-select w-100">
                     <option value="">Teşkilat: Tümü</option>
                     @foreach (var item in Model.TeskilatList) { <option value="@item.Text">@item.Text</option> }
                 </select>
+            </div>
 
-                <select id="filterSistemRol" class="form-select" style="width: auto;">
-                    <option value="">Sistem Rolü: Tümü</option>
-                    @foreach (var item in Model.SistemRolList) { <option value="@item.Text">@item.Text</option> }
-                </select>
-
-                <select id="filterKurumsalRol" class="form-select" style="width: auto;">
-                    <option value="">Kurumsal Rol: Tümü</option>
-                    @foreach (var item in Model.KurumsalRolList) { <option value="@item.Text">@item.Text</option> }
-                </select>
-
-                <select id="filterKomisyon" class="form-select" style="width: auto;">
-                    <option value="">Komisyon: Tümü</option>
-                     @foreach (var item in Model.KomisyonList) { <option value="@item.Text">@item.Text</option> }
+            <!-- 3. Koordinatorluk -->
+            <div class="col">
+                <select id="filterKoordinatorluk" class="form-select w-100" disabled>
+                    <option value="">Önce Teşkilat Seçiniz</option>
                 </select>
             </div>
 
-            <button class="btn btn-outline-secondary" onclick="clearFilters()">
-                Filtreleri Temizle
-            </button>
+            <!-- 4. Komisyon -->
+            <div class="col">
+                <select id="filterKomisyon" class="form-select w-100" disabled>
+                    <option value="">Önce Koordinatörlük Seçiniz</option>
+                </select>
+            </div>
+
+            <!-- 5. Branş -->
+            <div class="col">
+                <select id="filterBrans" class="form-select w-100">
+                    <option value="">Branş: Tümü</option>
+                    @foreach (var item in Model.BransList) { <option value="@item.Text">@item.Text</option> }
+                </select>
+            </div>
+
+            <!-- 6. Kurumsal Rol -->
+            <div class="col">
+                <select id="filterKurumsalRol" class="form-select w-100">
+                    <option value="">Kurumsal Rol: Tümü</option>
+                    @foreach (var item in Model.KurumsalRolList) { <option value="@item.Text">@item.Text</option> }
+                </select>
+            </div>
+
+            <!-- 7. Sistem Rolü (Starts Row 2) -->
+            <div class="col">
+                <select id="filterSistemRol" class="form-select w-100">
+                    <option value="">Sistem Rolü: Tümü</option>
+                    @foreach (var item in Model.SistemRolList) { <option value="@item.Text">@item.Text</option> }
+                </select>
+            </div>
+
+            <!-- 8. Yazılım -->
+            <div class="col">
+                <select id="filterYazilim" class="form-select w-100">
+                    <option value="">Yazılım: Tümü</option>
+                    @foreach (var item in Model.YazilimList) { <option value="@item.Text">@item.Text</option> }
+                </select>
+            </div>
+
+            <!-- 9. Uzmanlık -->
+            <div class="col">
+                <select id="filterUzmanlik" class="form-select w-100">
+                    <option value="">Uzmanlık: Tümü</option>
+                    @foreach (var item in Model.UzmanlikList) { <option value="@item.Text">@item.Text</option> }
+                </select>
+            </div>
+
+            <!-- 10. Görev Türü -->
+            <div class="col">
+                <select id="filterGorevTuru" class="form-select w-100">
+                    <option value="">Görev Türü: Tümü</option>
+                    @foreach (var item in Model.GorevTuruList) { <option value="@item.Text">@item.Text</option> }
+                </select>
+            </div>
+
+            <!-- 11. İş Niteliği -->
+            <div class="col">
+                <select id="filterIsNiteligi" class="form-select w-100">
+                    <option value="">İş Niteliği: Tümü</option>
+                    @foreach (var item in Model.IsNiteligiList) { <option value="@item.Text">@item.Text</option> }
+                </select>
+            </div>
+
+            <!-- 12. Temizle Button (Aligns under Kurumsal Rol) -->
+            <div class="col">
+                <button class="btn btn-outline-secondary w-100" onclick="clearFilters()" title="Filtreleri Temizle">
+                    <i class="bx bx-filter-alt"></i> Temizle
+                </button>
+            </div>
         </div>
 
         <!-- Table -->
@@ -75,15 +148,26 @@
                         @foreach (var p in Model.Personeller)
                         {
                             var teskilatStr = string.Join(",", p.TeskilatAdlari);
+                            var koordinatorlukStr = string.Join(",", p.KoordinatorlukAdlari);
                             var kurumsalStr = string.Join(",", p.KurumsalRolAdlari);
                             var komisyonStr = string.Join(",", p.KomisyonAdlari);
+                            var yazilimStr = string.Join(",", p.Yazilimlar);
+                            var uzmanlikStr = string.Join(",", p.Uzmanliklar);
+                            var gorevStr = string.Join(",", p.GorevTurleri);
+                            var isStr = string.Join(",", p.IsNitelikleri);
                             
                             <tr class="cursor-pointer" onclick="openDrawer(@p.PersonelId)"
                                 data-search="@p.AdSoyad.ToLower()"
                                 data-teskilat="@teskilatStr"
+                                data-koordinatorluk="@koordinatorlukStr"
                                 data-sistem="@p.SistemRol"
                                 data-kurumsal="@kurumsalStr"
-                                data-komisyon="@komisyonStr">
+                                data-komisyon="@komisyonStr"
+                                data-brans="@p.Brans"
+                                data-yazilim="@yazilimStr"
+                                data-uzmanlik="@uzmanlikStr"
+                                data-gorevturu="@gorevStr"
+                                data-isniteligi="@isStr">
                                 
                                 <td class="ps-4">
                                      <div class="avatar avatar-sm">
@@ -191,6 +275,7 @@
 }
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         var allTeskilatOptions = @Json.Serialize(Model.TeskilatList);
         var allKurumsalRolOptions = @Json.Serialize(Model.KurumsalRolList);
@@ -198,6 +283,28 @@
         
         // Global variable to hold current drawer data safely
         var currentDrawerData = null;
+
+        // Initialize Select2
+        $(document).ready(function() {
+             $('#filterKoordinatorluk').select2({
+                 theme: 'bootstrap-5',
+                 allowClear: true,
+                 placeholder: 'Koordinatörlük: Tümü',
+                 width: '100%'
+             });
+             
+             $('#filterBrans').select2({
+                 theme: 'bootstrap-5',
+                 allowClear: true,
+                 placeholder: 'Branş: Tümü',
+                 width: '100%'
+             });
+
+             // Re-trigger change for filter logic when Select2 changes
+             $('#filterKoordinatorluk, #filterBrans').on('select2:select select2:unselect', function (e) {
+                 filterTable();
+             });
+        });
 
         // --- Expandable Chips Logic ---
         function toggleContainer(element) {
@@ -224,34 +331,125 @@
 
         // --- Filtering Logic ---
         $(document).ready(function() {
-            const inputs = ['#filterSearch', '#filterTeskilat', '#filterSistemRol', '#filterKurumsalRol', '#filterKomisyon'];
+            const inputs = [
+                '#filterSearch', '#filterTeskilat', '#filterKoordinatorluk', '#filterSistemRol', '#filterKurumsalRol', '#filterKomisyon',
+                '#filterBrans', '#filterYazilim', '#filterUzmanlik', '#filterGorevTuru', '#filterIsNiteligi'
+            ];
+            
+            // General filtering
             inputs.forEach(id => $(id).on('input change', filterTable));
+
+            // Cascading Logic
+            $('#filterTeskilat').on('change', function() {
+                var val = $(this).val();
+                loadKoordinatorlukler(val);
+            });
+
+            $('#filterKoordinatorluk').on('change', function() {
+                var val = $(this).val();
+                loadKomisyonlar(val);
+            });
         });
+
+        function loadKoordinatorlukler(teskilatAd) {
+            var $dropdown = $('#filterKoordinatorluk');
+            var $childDropdown = $('#filterKomisyon');
+
+            if (!teskilatAd) {
+                // Disable and Reset
+                $dropdown.empty().append('<option value="">Önce Teşkilat Seçiniz</option>').prop('disabled', true);
+                $childDropdown.empty().append('<option value="">Önce Koordinatörlük Seçiniz</option>').prop('disabled', true);
+                
+                // Notify Select2 if initialized
+                $dropdown.trigger('change.select2'); 
+                return;
+            }
+
+            $.ajax({
+                url: '/Personel/GetKoordinatorlukNames',
+                data: { teskilatAd: teskilatAd },
+                success: function(data) {
+                    $dropdown.empty().append('<option value="">Koordinatörlük: Tümü</option>');
+                    
+                    $.each(data, function(i, item) {
+                        $dropdown.append($('<option>', { value: item, text: item }));
+                    });
+                    
+                    $dropdown.prop('disabled', false);
+                    $dropdown.trigger('change.select2'); // Notify Select2
+                }
+            });
+        }
+
+        function loadKomisyonlar(koordinatorlukAd) {
+            var $dropdown = $('#filterKomisyon');
+
+            if (!koordinatorlukAd) {
+                // Disable and Reset
+                $dropdown.empty().append('<option value="">Önce Koordinatörlük Seçiniz</option>').prop('disabled', true);
+                return;
+            }
+
+            $.ajax({
+                url: '/Personel/GetKomisyonNames',
+                data: { koordinatorlukAd: koordinatorlukAd },
+                success: function(data) {
+                    $dropdown.empty().append('<option value="">Komisyon: Tümü</option>');
+                    
+                    $.each(data, function(i, item) {
+                        $dropdown.append($('<option>', { value: item, text: item }));
+                    });
+                    
+                    $dropdown.prop('disabled', false);
+                }
+            });
+        }
 
         function filterTable() {
             const search = $('#filterSearch').val().toLowerCase();
             const teskilat = $('#filterTeskilat').val();
+            const koordinatorluk = $('#filterKoordinatorluk').val();
             const sistem = $('#filterSistemRol').val();
             const kurumsal = $('#filterKurumsalRol').val();
             const komisyon = $('#filterKomisyon').val();
+            
+            const brans = $('#filterBrans').val();
+            const yazilim = $('#filterYazilim').val();
+            const uzmanlik = $('#filterUzmanlik').val();
+            const gorevTuru = $('#filterGorevTuru').val();
+            const isNiteligi = $('#filterIsNiteligi').val();
 
             let visibleCount = 0;
 
             $('#personelTable tbody tr').each(function() {
                 const $row = $(this);
                 const rSearch = $row.data('search');
-                const rTeskilat = $row.data('teskilat'); // Comma sep string
+                const rTeskilat = $row.data('teskilat');
+                const rKoordinatorluk = $row.data('koordinatorluk');
                 const rSistem = $row.data('sistem');
                 const rKurumsal = $row.data('kurumsal');
                 const rKomisyon = $row.data('komisyon');
+                
+                const rBrans = $row.data('brans') || '';
+                const rYazilim = $row.data('yazilim') || '';
+                const rUzmanlik = $row.data('uzmanlik') || '';
+                const rGorevTuru = $row.data('gorevturu') || '';
+                const rIsNiteligi = $row.data('isniteligi') || '';
 
                 const mSearch = !search || rSearch.includes(search);
                 const mTeskilat = !teskilat || rTeskilat.includes(teskilat);
+                const mKoordinatorluk = !koordinatorluk || rKoordinatorluk.includes(koordinatorluk);
                 const mSistem = !sistem || rSistem === sistem;
                 const mKurumsal = !kurumsal || rKurumsal.includes(kurumsal);
                 const mKomisyon = !komisyon || rKomisyon.includes(komisyon);
+                
+                const mBrans = !brans || rBrans === brans;
+                const mYazilim = !yazilim || rYazilim.includes(yazilim);
+                const mUzmanlik = !uzmanlik || rUzmanlik.includes(uzmanlik);
+                const mGorevTuru = !gorevTuru || rGorevTuru.includes(gorevTuru);
+                const mIsNiteligi = !isNiteligi || rIsNiteligi.includes(isNiteligi);
 
-                if(mSearch && mTeskilat && mSistem && mKurumsal && mKomisyon) {
+                if(mSearch && mTeskilat && mKoordinatorluk && mSistem && mKurumsal && mKomisyon && mBrans && mYazilim && mUzmanlik && mGorevTuru && mIsNiteligi) {
                     $row.show();
                     visibleCount++;
                 } else {
@@ -265,10 +463,23 @@
 
         function clearFilters() {
             $('#filterSearch').val('');
-            $('#filterTeskilat').val('');
+            
+            // Clear parents triggers cascading clear
+            $('#filterTeskilat').val('').trigger('change'); 
+            
+            // filterKoordinatorluk is cleared by cascading logic above, but we ensure it
+            // Reset others
             $('#filterSistemRol').val('');
             $('#filterKurumsalRol').val('');
-            $('#filterKomisyon').val('');
+            
+            // Note: filterKomisyon is cleared by cascading logic
+            
+            $('#filterBrans').val('').trigger('change'); // Reset Select2
+            $('#filterYazilim').val('');
+            $('#filterUzmanlik').val('');
+            $('#filterGorevTuru').val('');
+            $('#filterIsNiteligi').val('');
+            
             filterTable();
         }
 

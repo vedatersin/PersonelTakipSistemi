@@ -18,7 +18,11 @@ namespace PersonelTakipSistemi.ViewModels
         // Dropdown selections
         // Dropdown selections
         public int? BransId { get; set; }
+
         public int? GorevliIlId { get; set; }
+        public int? TeskilatId { get; set; }
+        public int? KoordinatorlukId { get; set; }
+        public int? KomisyonId { get; set; }
         public DateTime? DogumBaslangic { get; set; }
         
         public List<int>? SeciliYazilimIdleri { get; set; }
@@ -60,6 +64,9 @@ namespace PersonelTakipSistemi.ViewModels
     public class LookupListsViewModel
     {
         public List<LookupItemVm> Branslar { get; set; } = new List<LookupItemVm>();
+        public List<LookupItemVm> Teskilatlar { get; set; } = new List<LookupItemVm>();
+        public List<LookupItemVm> Koordinatorlukler { get; set; } = new List<LookupItemVm>();
+        public List<LookupItemVm> Komisyonlar { get; set; } = new List<LookupItemVm>();
         public List<LookupItemVm> Iller { get; set; } = new List<LookupItemVm>();
         public List<LookupItemVm> Yazilimlar { get; set; } = new List<LookupItemVm>();
         public List<LookupItemVm> Uzmanliklar { get; set; } = new List<LookupItemVm>();

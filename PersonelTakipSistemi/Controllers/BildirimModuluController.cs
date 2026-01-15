@@ -20,8 +20,17 @@ namespace PersonelTakipSistemi.Controllers
             _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
+            ViewBag.TeskilatList = await _context.Teskilatlar.OrderBy(x => x.Ad).Select(x => new { Value = x.TeskilatId, Text = x.Ad }).ToListAsync();
+            ViewBag.BransList = await _context.Branslar.OrderBy(x => x.Ad).Select(x => new { Value = x.Ad, Text = x.Ad }).ToListAsync(); // Using Name for Brans as per Yetkilendirme
+            ViewBag.SistemRolList = await _context.SistemRoller.OrderBy(x => x.Ad).Select(x => new { Value = x.SistemRolId, Text = x.Ad }).ToListAsync();
+            ViewBag.KurumsalRolList = await _context.KurumsalRoller.OrderBy(x => x.Ad).Select(x => new { Value = x.KurumsalRolId, Text = x.Ad }).ToListAsync();
+            ViewBag.YazilimList = await _context.Yazilimlar.OrderBy(x => x.Ad).Select(x => new { Value = x.Ad, Text = x.Ad }).ToListAsync();
+            ViewBag.UzmanlikList = await _context.Uzmanliklar.OrderBy(x => x.Ad).Select(x => new { Value = x.Ad, Text = x.Ad }).ToListAsync();
+            ViewBag.GorevTuruList = await _context.GorevTurleri.OrderBy(x => x.Ad).Select(x => new { Value = x.Ad, Text = x.Ad }).ToListAsync();
+            ViewBag.IsNiteligiList = await _context.IsNitelikleri.OrderBy(x => x.Ad).Select(x => new { Value = x.Ad, Text = x.Ad }).ToListAsync();
+
             return View();
         }
 
@@ -30,6 +39,18 @@ namespace PersonelTakipSistemi.Controllers
         {
             var senders = await _notificationService.GetAvailableSendersAsync();
             return Json(senders);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetFilterData()
+        {
+            var iller = await _context.Iller.OrderBy(i => i.Ad).Select(i => new { Id = i.IlId, i.Ad }).ToListAsync();
+            var koordinatorlukler = await _context.Koordinatorlukler.OrderBy(k => k.Ad).Select(k => new { k.KoordinatorlukId, k.Ad, k.TeskilatId }).ToListAsync();
+            var komisyonlar = await _context.Komisyonlar.OrderBy(k => k.Ad).Select(k => new { k.KomisyonId, k.Ad, k.KoordinatorlukId }).ToListAsync();
+            var sistemRoller = await _context.SistemRoller.OrderBy(r => r.Ad).Select(r => new { r.SistemRolId, r.Ad }).ToListAsync();
+            var kurumsalRoller = await _context.KurumsalRoller.OrderBy(r => r.Ad).Select(r => new { r.KurumsalRolId, r.Ad }).ToListAsync();
+
+            return Json(new { iller, koordinatorlukler, komisyonlar, sistemRoller, kurumsalRoller });
         }
 
         [HttpGet]
@@ -83,12 +104,16 @@ namespace PersonelTakipSistemi.Controllers
                 query = query.Where(p => p.PersonelKurumsalRolAtamalari.Any(pkr => pkr.KurumsalRolId == kurumsalRolId));
             }
 
+
+
             var list = await query
                 .Include(p => p.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
                 .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk)
                 .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon)
                 .Include(p => p.SistemRol)
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.KurumsalRol)
+                .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
+                .Include(p => p.GorevliIl) 
                 .OrderBy(p => p.Ad)
                 .Select(p => new
                 {
@@ -99,7 +124,9 @@ namespace PersonelTakipSistemi.Controllers
                     KurumsalRoller = p.PersonelKurumsalRolAtamalari.Select(k => k.KurumsalRol.Ad).ToList(),
                     Teskilatlar = p.PersonelTeskilatlar.Select(t => t.Teskilat.Ad).ToList(),
                     Koordinatorlukler = p.PersonelKoordinatorlukler.Select(k => k.Koordinatorluk.Ad).ToList(),
-                    Komisyonlar = p.PersonelKomisyonlar.Select(k => k.Komisyon.Ad).ToList()
+                    Komisyonlar = p.PersonelKomisyonlar.Select(k => k.Komisyon.Ad).ToList(),
+                    Uzmanliklar = p.PersonelUzmanliklar.Select(u => u.Uzmanlik.Ad).ToList(),
+                    Sehir = p.GorevliIl.Ad
                 })
                 .ToListAsync();
 
@@ -152,6 +179,27 @@ namespace PersonelTakipSistemi.Controllers
                 return StatusCode(500, "Gönderim hatası: " + ex.Message);
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> GetKoordinatorlukler(int teskilatId)
+        {
+            var list = await _context.Koordinatorlukler
+                .Where(k => k.TeskilatId == teskilatId)
+                .OrderBy(k => k.Ad)
+                .Select(k => new { Value = k.KoordinatorlukId, Text = k.Ad })
+                .ToListAsync();
+            return Json(list);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetKomisyonlar(int koordinatorlukId)
+        {
+            var list = await _context.Komisyonlar
+                .Where(k => k.KoordinatorlukId == koordinatorlukId)
+                .OrderBy(k => k.Ad)
+                .Select(k => new { Value = k.KomisyonId, Text = k.Ad })
+                .ToListAsync();
+            return Json(list);
+        }
     }
 
     public class BulkSendRequest
@@ -160,6 +208,6 @@ namespace PersonelTakipSistemi.Controllers
         public string SenderId { get; set; } = null!; 
         public string Baslik { get; set; } = null!;
         public string Icerik { get; set; } = null!;
-        public string? ScheduledTime { get; set; } // Changed to string for safer binding
+        public string? ScheduledTime { get; set; } 
     }
 }

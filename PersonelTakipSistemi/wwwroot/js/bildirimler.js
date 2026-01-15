@@ -16,10 +16,12 @@ $(document).ready(function () {
 
         // Search input listener
         $('#search-input').on('keyup', function () {
-            var value = $(this).val().toLowerCase();
-            $("#notification-list a").filter(function () {
-                var text = $(this).text().toLowerCase();
-                $(this).toggle(text.indexOf(value) > -1)
+            var value = $(this).val().toLocaleLowerCase('tr-TR');
+            $("#notification-list .list-group-item").each(function () {
+                var text = $(this).text().toLocaleLowerCase('tr-TR');
+                // d-flex overrides display:none, so we must use d-none class or remove d-flex
+                var isMatch = text.indexOf(value) > -1;
+                $(this).toggleClass('d-none', !isMatch);
             });
         });
     }
