@@ -55,9 +55,8 @@
     @if (userRole == "Admin" || userRole == "Yönetici" || userRole == "Editör")
     {
         <!-- Personel Modülü (Admin, Yönetici, Editör) -->
-        <!-- Removed 'active' class from parent to prevent highlighting -->
-        <li class="menu-item @(isPersonelModuleOpen ? "open" : "")">
-          <a href="javascript:void(0);" class="menu-link menu-toggle" style="background-color: rgba(255,255,255,0.05);">
+        <li class="menu-item @(isPersonelModuleOpen ? "active open" : "")">
+          <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-id-card"></i>
             <div class="text-truncate" data-i18n="Personel Modülü">Personel Modülü</div>
           </a>
@@ -87,15 +86,14 @@
         <li class="menu-item @(string.Equals(currentController, "BildirimModulu", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
           <a asp-controller="BildirimModulu" asp-action="Index" class="menu-link">
             <i class="menu-icon tf-icons bx bx-broadcast"></i>
-            <div class="text-truncate" data-i18n="Bildirim Modülü">Bildirim Modülü</div>
+            <div class="text-truncate fw-bold" data-i18n="Bildirim Modülü">Bildirim Modülü</div>
           </a>
         </li>
     }
 
     <!-- Profilim & Bildirimler (Tüm Kullanıcılar İçin - En Altta) -->
-    <!-- Removed 'active' class from parent here too -->
-    <li class="menu-item @openClass">
-         <a href="javascript:void(0);" class="menu-link menu-toggle" style="background-color: rgba(255,255,255,0.05);">
+    <li class="menu-item @(isProfileActive ? "active open" : "")">
+         <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-user-circle"></i>
             <div class="text-truncate" data-i18n="Profilim">Profilim</div>
           </a>

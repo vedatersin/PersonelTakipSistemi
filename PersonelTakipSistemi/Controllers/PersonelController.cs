@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -1417,5 +1418,120 @@ namespace PersonelTakipSistemi.Controllers
                  .ToListAsync();
              return Json(list);
         }
+        [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
+        public async Task<IActionResult> SaveYetkilendirme([FromBody] DTOs.PersonelYetkilendirmeSaveDto dto)
+        {
+            if (dto == null || dto.PersonelId <= 0) return BadRequest("Geçersiz veri.");
+
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync(async () =>
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    var personel = await _context.Personeller
+                        .Include(p => p.PersonelTeskilatlar)
+                        .Include(p => p.PersonelKoordinatorlukler)
+                        .Include(p => p.PersonelKomisyonlar)
+                        .Include(p => p.PersonelKurumsalRolAtamalari)
+                        .Include(p => p.SistemRol)
+                        .FirstOrDefaultAsync(p => p.PersonelId == dto.PersonelId);
+
+                    if (personel == null) return NotFound("Personel bulunamadı.");
+
+                    // 1. Sistem Rolü Update
+                    if (!string.IsNullOrEmpty(dto.SistemRol))
+                    {
+                        var sistemRol = await _context.SistemRoller.FirstOrDefaultAsync(r => r.Ad == dto.SistemRol);
+                        if (sistemRol != null)
+                        {
+                            personel.SistemRolId = sistemRol.SistemRolId;
+                        }
+                    }
+
+                    // 2. Teşkilat Sync
+                    // Remove deleted
+                    var teskilatsToRemove = personel.PersonelTeskilatlar.Where(pt => !dto.TeskilatIds.Contains(pt.TeskilatId)).ToList();
+                    _context.PersonelTeskilatlar.RemoveRange(teskilatsToRemove);
+                    // Add new
+                    foreach (var tid in dto.TeskilatIds)
+                    {
+                        if (!personel.PersonelTeskilatlar.Any(pt => pt.TeskilatId == tid))
+                        {
+                            _context.PersonelTeskilatlar.Add(new PersonelTeskilat { PersonelId = personel.PersonelId, TeskilatId = tid });
+                        }
+                    }
+
+                    // 3. Koordinatörlük Sync
+                    var koordsToRemove = personel.PersonelKoordinatorlukler.Where(pk => !dto.KoordinatorlukIds.Contains(pk.KoordinatorlukId)).ToList();
+                    _context.PersonelKoordinatorlukler.RemoveRange(koordsToRemove);
+                    foreach (var kid in dto.KoordinatorlukIds)
+                    {
+                        if (!personel.PersonelKoordinatorlukler.Any(pk => pk.KoordinatorlukId == kid))
+                        {
+                            _context.PersonelKoordinatorlukler.Add(new PersonelKoordinatorluk { PersonelId = personel.PersonelId, KoordinatorlukId = kid });
+                        }
+                    }
+
+                    // 4. Komisyon Sync
+                    var komsToRemove = personel.PersonelKomisyonlar.Where(pk => !dto.KomisyonIds.Contains(pk.KomisyonId)).ToList();
+                    _context.PersonelKomisyonlar.RemoveRange(komsToRemove);
+                    foreach (var kid in dto.KomisyonIds)
+                    {
+                        if (!personel.PersonelKomisyonlar.Any(pk => pk.KomisyonId == kid))
+                        {
+                            _context.PersonelKomisyonlar.Add(new PersonelKomisyon { PersonelId = personel.PersonelId, KomisyonId = kid });
+                        }
+                    }
+
+                    // 5. Kurumsal Rol Atamaları Sync
+                    _context.PersonelKurumsalRolAtamalari.RemoveRange(personel.PersonelKurumsalRolAtamalari);
+                    
+                    foreach (var gorev in dto.Gorevler)
+                    {
+                        var atama = new PersonelKurumsalRolAtama
+                        {
+                            PersonelId = personel.PersonelId,
+                            KurumsalRolId = gorev.KurumsalRolId,
+                            KoordinatorlukId = gorev.KoordinatorlukId,
+                            KomisyonId = gorev.KomisyonId,
+                            CreatedAt = DateTime.Now
+                        };
+                        _context.PersonelKurumsalRolAtamalari.Add(atama);
+
+                        if (gorev.KurumsalRolId == 2 && gorev.KomisyonId.HasValue) // Komisyon Başkanı
+                        {
+                            var komisyon = await _context.Komisyonlar.FindAsync(gorev.KomisyonId.Value);
+                            if (komisyon != null)
+                            {
+                                komisyon.BaskanPersonelId = personel.PersonelId;
+                                _context.Komisyonlar.Update(komisyon);
+                            }
+                        }
+                        else if ((gorev.KurumsalRolId == 3 || gorev.KurumsalRolId == 4) && gorev.KoordinatorlukId.HasValue) // İl Koord or Genel Koord
+                        {
+                            var koord = await _context.Koordinatorlukler.FindAsync(gorev.KoordinatorlukId.Value);
+                            if (koord != null)
+                            {
+                                 koord.BaskanPersonelId = personel.PersonelId;
+                                 _context.Koordinatorlukler.Update(koord);
+                            }
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    return await GetYetkilendirmeData(dto.PersonelId);
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, "Kaydetme hatası: " + ex.Message);
+                }
+            });
+        }
+
     }
 }

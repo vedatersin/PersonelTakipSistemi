@@ -49,6 +49,10 @@
       "PackagePath": "staticwebassets\\js\\personel-yetkilendir.js"
     },
     {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\personel-yetkilendirme-draft.js",
+      "PackagePath": "staticwebassets\\js\\personel-yetkilendirme-draft.js"
+    },
+    {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
     },

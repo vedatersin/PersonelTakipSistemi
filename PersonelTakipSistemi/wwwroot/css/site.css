@@ -17,35 +17,14 @@
 }
 
 
-/* Sidebar Styling */
 
-/* Active Sub-Menu Item Styling (Big Blue Box) */
-.menu-inner .menu-sub>.menu-item.active>.menu-link {
-  background-color: #5a7995 !important;
-  /* Same as Topbar */
-  color: #fff !important;
-  font-weight: 500;
-  border-radius: 0.375rem;
-  /* Medium rounding */
-}
 
-/* Ensure bullet or icon inside active item is white */
-.menu-inner .menu-sub>.menu-item.active>.menu-link:before {
-  background-color: #fff !important;
-}
-
-.menu-inner .menu-sub>.menu-item.active>.menu-link div {
-  color: #fff !important;
-}
-
-/* Parent Menu Item (Personel Modulü) Styling */
-/* User asked for "%50 darker". The sidebar is already dark (bg-menu-theme). 
-   If "Personel Modülü" is active/open, let's make it darker than the sidebar bg. 
-*/
-.menu-vertical .menu-item.active.open>.menu-link {
-  background-color: rgba(0, 0, 0, 0.25) !important;
-  /* Darken the background */
-  color: #fff !important;
+/* Remove old conflicting style if present */
+/* Top Level Menu Items - Soft Background */
+#layout-menu .menu-inner>.menu-item>.menu-link {
+  background-color: rgba(255, 255, 255, 0.03);
+  margin-bottom: 0.25rem;
+  /* Slight spacing */
 }
 
 
@@ -58,4 +37,17 @@
 .layout-navbar .dropdown-menu {
   border: none;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* SweetAlert Z-Index Fix */
+.swal2-container {
+  z-index: 9999 !important;
+  /* Maximum Safety */
+}
+
+/* Submenu Active Item - Darker Slate Blue for Contrast - High Specificity */
+#layout-menu .menu-inner .menu-sub>.menu-item.active>.menu-link {
+  background-color: #455e75 !important;
+  /* Darker Slate Blue */
+  color: #ffffff !important;
 }
