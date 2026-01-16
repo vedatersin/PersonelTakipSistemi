@@ -60,7 +60,12 @@ namespace PersonelTakipSistemi.Controllers
             int? koordinatorlukId, 
             int? komisyonId, 
             int? sistemRolId, 
-            int? kurumsalRolId)
+            int? kurumsalRolId,
+            string? bransAd,
+            string? yazilimAd,
+            string? uzmanlikAd,
+            string? gorevTuruAd,
+            string? isNiteligiAd)
         {
             // Filter logic
             var query = _context.Personeller.AsQueryable();
@@ -102,6 +107,36 @@ namespace PersonelTakipSistemi.Controllers
             if (kurumsalRolId.HasValue)
             {
                 query = query.Where(p => p.PersonelKurumsalRolAtamalari.Any(pkr => pkr.KurumsalRolId == kurumsalRolId));
+            }
+
+            // Branş
+            if (!string.IsNullOrEmpty(bransAd))
+            {
+                query = query.Where(p => p.Brans.Ad == bransAd);
+            }
+
+            // Yazılım
+            if (!string.IsNullOrEmpty(yazilimAd))
+            {
+                query = query.Where(p => p.PersonelYazilimlar.Any(py => py.Yazilim.Ad == yazilimAd));
+            }
+
+            // Uzmanlık
+            if (!string.IsNullOrEmpty(uzmanlikAd))
+            {
+                query = query.Where(p => p.PersonelUzmanliklar.Any(pu => pu.Uzmanlik.Ad == uzmanlikAd));
+            }
+
+            // Görev Türü
+            if (!string.IsNullOrEmpty(gorevTuruAd))
+            {
+                query = query.Where(p => p.PersonelGorevTurleri.Any(pg => pg.GorevTuru.Ad == gorevTuruAd));
+            }
+
+            // İş Niteliği
+            if (!string.IsNullOrEmpty(isNiteligiAd))
+            {
+                query = query.Where(p => p.PersonelIsNitelikleri.Any(pi => pi.IsNiteligi.Ad == isNiteligiAd));
             }
 
 
