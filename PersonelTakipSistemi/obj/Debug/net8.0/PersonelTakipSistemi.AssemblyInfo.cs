@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PersonelTakipSistemi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6932751cd8c0a0b73864f140c15195483f43b3c2")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+27804be38b75b55627afff05001ddb8a3b96a553")]
 [assembly: System.Reflection.AssemblyProductAttribute("PersonelTakipSistemi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PersonelTakipSistemi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

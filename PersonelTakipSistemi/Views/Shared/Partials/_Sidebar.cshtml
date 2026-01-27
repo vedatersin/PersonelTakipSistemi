@@ -99,7 +99,6 @@
         bool isGorevListe = isGorevlerController && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase);
         // bool isGorevModuleOpen = isGorevlerController; // This variable is no longer used directly for the parent li's active state
     }
-    <li class="menu-header small text-uppercase"><span class="menu-header-text">Görevler Modülü</span></li>
     <!-- Görevler Modülü -->
     <li class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Gorevler" ? "active open" : "")">
       <a href="javascript:void(0);" class="menu-link menu-toggle">

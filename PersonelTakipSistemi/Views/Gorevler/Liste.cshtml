@@ -139,7 +139,7 @@
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            <tr>
+                            <tr class="cursor-pointer" onclick="openAssignmentDrawer(@item.GorevId, '@item.Ad')">
                                 <td>
                                     <strong>@item.Ad</strong><br/>
                                     <small class="text-muted">@item.Aciklama</small>
@@ -152,16 +152,8 @@
                                         var allAssignments = new List<string>();
                                         if (item.GorevAtamaTeskilatlar != null) allAssignments.AddRange(item.GorevAtamaTeskilatlar.Select(x => $"<i class='bx bxs-building'></i> {x.Teskilat.Ad}"));
                                         if (item.GorevAtamaKoordinatorlukler != null) allAssignments.AddRange(item.GorevAtamaKoordinatorlukler.Select(x => $"<i class='bx bxs-business'></i> {x.Koordinatorluk.Ad}"));
-                                        if (item.GorevAtamaKomisyonlar != null) allAssignments.AddRange(item.GorevAtamaKomisyonlar.Select(x => $"<i class='bx bxs-group'></i> {x.Komisyon.Ad}")); /* Ctx already in name? No, in View it's raw model. View needs helper or accept raw. */
-                                        /* Actually Komisyon.Ad in DB is just "Türkçe". We might want to fix display here too or just accept it. */
-                                        /* User asked for fix. Since I fixed Controller dropdown, Table display is still raw. Ideally include context here too. */
-                                        /* Accessing Navigation Property */
                                         
-                                        // Refetch assignments for precise display? No, Eager Loaded.
-                                        // Let's manually append ctx if available
                                          if (item.GorevAtamaKomisyonlar != null) {
-                                            // Override previous add
-                                            allAssignments.RemoveAll(x => x.Contains("bxs-group"));
                                             allAssignments.AddRange(item.GorevAtamaKomisyonlar.Select(x => $"<i class='bx bxs-group'></i> {x.Komisyon.Ad}" + (x.Komisyon.Koordinatorluk != null ? $" <small class='text-muted'>({x.Komisyon.Koordinatorluk.Ad})</small>" : "")));
                                          }
 
@@ -222,10 +214,10 @@
                                     <span class="badge @badgeClass">@statusText</span>
                                 </td>
                                 <td class="text-end">
-                                    <button class="btn btn-sm btn-icon btn-label-primary" onclick="openAssignmentDrawer(@item.GorevId, '@item.Ad')">
+                                    <button class="btn btn-sm btn-icon btn-label-primary" onclick="event.stopPropagation(); openAssignmentDrawer(@item.GorevId, '@item.Ad')">
                                         <i class="bx bx-user-plus"></i>
                                     </button>
-                                    <a href="/Gorevler/Duzenle/@item.GorevId" class="btn btn-sm btn-icon btn-label-warning"><i class="bx bx-edit"></i></a>
+                                    <a href="/Gorevler/Duzenle/@item.GorevId" class="btn btn-sm btn-icon btn-label-warning" onclick="event.stopPropagation()"><i class="bx bx-edit"></i></a>
                                 </td>
                             </tr>
                         }
