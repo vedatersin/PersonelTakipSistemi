@@ -1073,8 +1073,12 @@
       "PackagePath": "staticwebassets\\sevilay-tema\\yetkili_ekle.html"
     },
     {
-      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\7ba0f15f-8b16-4428-9215-60dd1f7f75d1.jpg",
-      "PackagePath": "staticwebassets\\uploads\\personeller\\7ba0f15f-8b16-4428-9215-60dd1f7f75d1.jpg"
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\48051f59-b495-4e50-bed0-c71959575d43.jpg",
+      "PackagePath": "staticwebassets\\uploads\\personeller\\48051f59-b495-4e50-bed0-c71959575d43.jpg"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\e37094eb-d605-4192-b9d5-1520ae042270.png",
+      "PackagePath": "staticwebassets\\uploads\\personeller\\e37094eb-d605-4192-b9d5-1520ae042270.png"
     },
     {
       "Id": "obj\\Debug\\net8.0\\staticwebassets\\msbuild.PersonelTakipSistemi.Microsoft.AspNetCore.StaticWebAssets.props",

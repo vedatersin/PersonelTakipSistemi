@@ -729,6 +729,7 @@ namespace PersonelTakipSistemi.Controllers
                 BransId = personel.BransId,
                 KadroKurum = personel.KadroKurum,
                 AktifMi = personel.AktifMi,
+                FotografYolu = personel.FotografYolu,
                 FotografBase64 = personel.FotografYolu,
                 
                 // İlişkili tabloları seçili olarak işaretle

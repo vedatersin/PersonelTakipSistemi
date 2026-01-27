@@ -42,6 +42,7 @@ namespace PersonelTakipSistemi.ViewModels
         [Required(ErrorMessage = "Kadro/Kurum zorunludur.")]
         public string KadroKurum { get; set; } = null!;
         public bool AktifMi { get; set; } = true;
+        public string? FotografYolu { get; set; } // Existing photo path
         public string? FotografBase64 { get; set; } // Keep photo on validation error
 
         // Şifre artık sadece Insert'te otomatik, Update'te isteğe bağlı.

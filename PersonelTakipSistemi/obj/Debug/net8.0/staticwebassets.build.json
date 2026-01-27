@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "jYmWliuMtEiKFbSB53qtg99aNRG40blxfNhVl3TfNNU=",
+  "Hash": "cJ+Wv8iZPqW2yQia4Co7v1lNfF7kkiOOYV+Ig9s6CEo=",
   "Source": "PersonelTakipSistemi",
   "BasePath": "_content/PersonelTakipSistemi",
   "Mode": "Default",
@@ -5128,12 +5128,12 @@
       "OriginalItemSpec": "wwwroot\\sevilay-tema\\yetkili_ekle.html"
     },
     {
-      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\7ba0f15f-8b16-4428-9215-60dd1f7f75d1.jpg",
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\48051f59-b495-4e50-bed0-c71959575d43.jpg",
       "SourceId": "PersonelTakipSistemi",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
       "BasePath": "_content/PersonelTakipSistemi",
-      "RelativePath": "uploads/personeller/7ba0f15f-8b16-4428-9215-60dd1f7f75d1.jpg",
+      "RelativePath": "uploads/personeller/48051f59-b495-4e50-bed0-c71959575d43.jpg",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Primary",
@@ -5144,7 +5144,26 @@
       "AssetTraitValue": "",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
-      "OriginalItemSpec": "wwwroot\\uploads\\personeller\\7ba0f15f-8b16-4428-9215-60dd1f7f75d1.jpg"
+      "OriginalItemSpec": "wwwroot\\uploads\\personeller\\48051f59-b495-4e50-bed0-c71959575d43.jpg"
+    },
+    {
+      "Identity": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\uploads\\personeller\\e37094eb-d605-4192-b9d5-1520ae042270.png",
+      "SourceId": "PersonelTakipSistemi",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\",
+      "BasePath": "_content/PersonelTakipSistemi",
+      "RelativePath": "uploads/personeller/e37094eb-d605-4192-b9d5-1520ae042270.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\uploads\\personeller\\e37094eb-d605-4192-b9d5-1520ae042270.png"
     }
   ]
 }

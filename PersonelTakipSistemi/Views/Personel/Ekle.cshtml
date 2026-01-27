@@ -226,12 +226,12 @@
           <div class="photo-circle" id="previewContainer">
               @if(!string.IsNullOrEmpty(Model.FotografBase64))
               {
-                   <img id="photoPreview" src="@Model.FotografBase64" />
+                   <img id="photoPreview" src="@Model.FotografBase64" onerror="this.onerror=null;this.src='/sevilay-tema/assets/img/avatars/1.png';"/>
                    <i class='bx bx-user' style="display:none"></i>
               }
               else
               {
-                   <img id="photoPreview" src="" style="display:none" />
+                   <img id="photoPreview" src="" style="display:none" onerror="this.onerror=null;this.src='/sevilay-tema/assets/img/avatars/1.png';"/>
                    <i class='bx bx-user'></i>
               }
           </div>
@@ -462,22 +462,25 @@
     <div class="text-center mb-4">
         <div class="photo-preview-container mx-auto" id="controlContainer">
             <i class='bx bx-user' id="controlIcon"></i>
-            <img id="kontrolFoto" src="" alt="Personel Fotoğrafı" style="display:none;" />
+            <img id="kontrolFoto" src="" alt="Personel Fotoğrafı" style="display:none;" onerror="this.onerror=null;this.src='/sevilay-tema/assets/img/avatars/1.png';"/>
         </div>
         <p class="mt-2 fw-bold">Personel Fotoğrafı</p>
     </div>
 
-  <table class="table table-bordered table-sm">
-    <thead>
-      <tr>
-        <th>ALANLAR</th>
-        <th>DEĞERLER</th>
-      </tr>
-    </thead>
-    <tbody id="kontrolTableBody">
-      <!-- JS ile doldurulacak -->
-    </tbody>
-  </table>
+    <div class="row">
+        <div class="col-md-6">
+             <h6 class="text-muted border-bottom pb-2 mb-3">Kişisel Bilgiler</h6>
+             <table class="table table-bordered table-sm">
+                <tbody id="kontrolTableBodyLeft"></tbody>
+             </table>
+        </div>
+        <div class="col-md-6">
+             <h6 class="text-muted border-bottom pb-2 mb-3">Yetkinlikler & Görev</h6>
+             <table class="table table-bordered table-sm">
+                <tbody id="kontrolTableBodyRight"></tbody>
+             </table>
+        </div>
+    </div>
 
   <div class="d-grid gap-2 mt-4">
     <button type="submit" class="btn btn-success btn-lg">@(Model.IsEditMode ? "Bilgileri Güncelle" : "Bilgileri Kaydet")</button>
@@ -602,75 +605,73 @@
 
         // --- YENİ EKLENEN FONKSİYON: Özet Tablosunu Doldur ---
         function fillKontrolOzet() {
-             // ... existing implementation ...
-             const tbody = document.getElementById("kontrolTableBody");
-             if (!tbody) return;
-             tbody.innerHTML = ""; 
+             const leftBody = document.getElementById("kontrolTableBodyLeft");
+             const rightBody = document.getElementById("kontrolTableBodyRight");
+             if (!leftBody || !rightBody) return;
+             
+             leftBody.innerHTML = ""; 
+             rightBody.innerHTML = "";
 
-             const addRow = (label, value) => {
+             const addRow = (targetBody, label, value) => {
                  const tr = document.createElement("tr");
-                 tr.innerHTML = `<td>${label}</td><td>${value && value.trim() !== "" ? value : "-"}</td>`;
-                 tbody.appendChild(tr);
+                 tr.innerHTML = `<td style="width:40%; font-weight:600;">${label}</td><td>${value && value.trim() !== "" ? value : "-"}</td>`;
+                 targetBody.appendChild(tr);
              };
 
+             // SOL KOLON: Kişisel
              const ad = document.getElementById("personelAdi")?.value || "";
              const soyad = document.getElementById("personelSoyadi")?.value || "";
-             addRow("Ad Soyad", `${ad} ${soyad}`);
+             addRow(leftBody, "Ad Soyad", `${ad} ${soyad}`);
+             addRow(leftBody, "TC Kimlik No", document.getElementById("personelTcKimlik")?.value);
+             addRow(leftBody, "Telefon", document.getElementById("personeltelefon")?.value);
+             addRow(leftBody, "E-posta", document.getElementById("personelemail")?.value);
              
-             // ... rest of the existing fillKontrolOzet logic ...
-             // Re-implementing parts for completeness if needed or just assuming user meant to keep existing fill logic
-             // But to be safe and clean, I will just call the existing logic if I hadn't overwritten it, 
-             // but I am replacing the block where it was defined. So I must re-include it.
-             
-            addRow("TcKimlikNo", document.getElementById("personelTcKimlik")?.value);
-            addRow("Telefon", document.getElementById("personeltelefon")?.value);
-            addRow("Eposta", document.getElementById("personelemail")?.value);
-            addRow("KadroKurum", document.getElementById("personelKadroKurum")?.value);
+             let cinsiyet = "-";
+             if (document.getElementById("cinsiyetKadin")?.checked) cinsiyet = "Kadın";
+             else if (document.getElementById("cinsiyetErkek")?.checked) cinsiyet = "Erkek";
+             addRow(leftBody, "Cinsiyet", cinsiyet);
 
-            const gorevliIl = document.getElementById("personelgorevli_il");
-            if (gorevliIl && gorevliIl.selectedIndex > 0) {
-                 addRow("GorevliIl", gorevliIl.options[gorevliIl.selectedIndex].text);
-            } else {
-                 addRow("GorevliIl", "-");
-            }
+             const aktifMi = document.getElementById("gorevAktif")?.checked ? "Aktif" : "Pasif";
+             addRow(leftBody, "Durum", aktifMi);
 
-            const brans = document.getElementById("personelBrans");
-            if (brans && brans.selectedIndex > 0) {
-                addRow("Brans", brans.options[brans.selectedIndex].text);
-            } else {
-                 addRow("Brans", "-");
-            }
 
-            const aktifMi = document.getElementById("gorevAktif")?.checked ? "Aktif" : "Pasif";
-            addRow("Görev Aktiflik", aktifMi);
+             // SAĞ KOLON: Görev & Beceriler
+             addRow(rightBody, "Kadro Kurum", document.getElementById("personelKadroKurum")?.value);
 
-            let cinsiyet = "-";
-            if (document.getElementById("cinsiyetKadin")?.checked) cinsiyet = "Kadın";
-            else if (document.getElementById("cinsiyetErkek")?.checked) cinsiyet = "Erkek";
-            addRow("PersonelCinsiyet", cinsiyet);
+             const gorevliIl = document.getElementById("personelgorevli_il");
+             if (gorevliIl && gorevliIl.selectedIndex > 0) {
+                  addRow(rightBody, "Görevli İl", gorevliIl.options[gorevliIl.selectedIndex].text);
+             } else {
+                  addRow(rightBody, "Görevli İl", "-");
+             }
 
-            const getLabels_ = (name) => {
+             const brans = document.getElementById("personelBrans");
+             if (brans && brans.selectedIndex > 0) {
+                 addRow(rightBody, "Branş", brans.options[brans.selectedIndex].text);
+             } else {
+                  addRow(rightBody, "Branş", "-");
+             }
+
+             const getLabels_ = (name) => {
                 const checkedInputs = document.querySelectorAll(`input[name="${name}"]:checked`);
                 if (checkedInputs.length === 0) return "-";
                 const labels = [];
                 checkedInputs.forEach(input => {
-                     // Checkbox card span content
                      const parent = input.closest('.custom-checkbox-card');
                      if(parent) {
                          labels.push(parent.querySelector('span').innerText);
                      } else {
-                         // Fallback
                          const labelEl = document.querySelector(`label[for="${input.id}"]`);
                          if(labelEl) labels.push(labelEl.textContent.trim());
                      }
                 });
                 return labels.join(", ");
-            };
+             };
 
-            addRow("Seçili Beceriler", getLabels_("SeciliYazilimIdleri"));
-            addRow("Seçili Uzmanlıklar", getLabels_("SeciliUzmanlikIdleri"));
-            addRow("Seçili Görev Türleri", getLabels_("SeciliGorevTuruIdleri"));
-            addRow("Seçili İş Nitelikleri", getLabels_("SeciliIsNiteligiIdleri"));
+             addRow(rightBody, "Beceriler", getLabels_("SeciliYazilimIdleri"));
+             addRow(rightBody, "Uzmanlıklar", getLabels_("SeciliUzmanlikIdleri"));
+             addRow(rightBody, "Görev Türü", getLabels_("SeciliGorevTuruIdleri"));
+             addRow(rightBody, "İş Niteliği", getLabels_("SeciliIsNiteligiIdleri"));
         }
 
         const tabOrder = ["tab1", "tab2", "tab3", "tab4", "tab5"];
@@ -1017,6 +1018,8 @@
 
         // Hidden input for Base64 Persistence
         const hiddenBase64 = document.getElementById("FotografBase64");
+        // Hidden input for Server Path
+        const hiddenPath = document.getElementById("FotografYoluHidden");
         
         function updateContainer(imgElement, isControl = false) {
             if(!imgElement) return;
@@ -1041,20 +1044,18 @@
 
         // Logic to determine which photo to show in Control Tab
         function updateControlPhoto() {
+            const previewImg = document.getElementById("photoPreview");
+            const controlImg = document.getElementById("kontrolFoto");
+            const controlIcon = document.getElementById("controlIcon");
+
             if (!controlImg) return;
             
-            // Priority 1: New File Selected (File Reader Result)
-            // Priority 2: Existing Photo (Hidden Input)
-            // Priority 3: None (Show Icon)
-            
-            // Check if we have a file reader result stored (could be in previewImg.src if set)
-            if (previewImg && previewImg.src && previewImg.src.startsWith("data:image")) {
+            // BRUTE FORCE SYNC: If Tab 1 has a visible image, show it in Tab 6.
+            // This works for both base64 (new uploads) and server paths (existing).
+            if (previewImg && previewImg.src && previewImg.style.display !== "none" && previewImg.src !== "" && previewImg.src !== window.location.href) {
                  controlImg.src = previewImg.src;
-                 updateContainer(controlImg, true);
-            } 
-            else if (hiddenBase64 && hiddenBase64.value) {
-                 controlImg.src = hiddenBase64.value;
-                 updateContainer(controlImg, true);
+                 controlImg.style.display = "block";
+                 if(controlIcon) controlIcon.style.display = "none";
             } 
             else {
                  controlImg.style.display = "none";

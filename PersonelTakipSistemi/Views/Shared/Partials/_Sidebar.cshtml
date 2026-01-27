@@ -91,6 +91,40 @@
         </li>
     }
 
+    <!-- Görevler Modülü (Tüm Yetkililer Erişebilir Varsayımı - veya Admin/Yönetici) -->
+    @{
+        bool isGorevlerController = string.Equals(currentController, "Gorevler", StringComparison.OrdinalIgnoreCase);
+        bool isGorevYeni = isGorevlerController && string.Equals(currentAction, "Yeni", StringComparison.OrdinalIgnoreCase);
+        bool isGorevKategori = isGorevlerController && string.Equals(currentAction, "KategoriYeni", StringComparison.OrdinalIgnoreCase);
+        bool isGorevListe = isGorevlerController && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase);
+        // bool isGorevModuleOpen = isGorevlerController; // This variable is no longer used directly for the parent li's active state
+    }
+    <li class="menu-header small text-uppercase"><span class="menu-header-text">Görevler Modülü</span></li>
+    <!-- Görevler Modülü -->
+    <li class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Gorevler" ? "active open" : "")">
+      <a href="javascript:void(0);" class="menu-link menu-toggle">
+        <i class="menu-icon tf-icons bx bx-task"></i>
+        <div class="text-truncate" data-i18n="Görevler Modülü">Görevler Modülü</div>
+      </a>
+      <ul class="menu-sub">
+        <li class="menu-item @(isGorevYeni ? "active" : "")">
+          <a asp-controller="Gorevler" asp-action="Yeni" class="menu-link">
+            <div class="text-truncate" data-i18n="Yeni Görev Ekle">Yeni Görev Ekle</div>
+          </a>
+        </li>
+        <li class="menu-item @(isGorevKategori ? "active" : "")">
+          <a asp-controller="Gorevler" asp-action="KategoriYeni" class="menu-link">
+            <div class="text-truncate" data-i18n="Görev Kategorisi Ekle">Görev Kategorisi Ekle</div>
+          </a>
+        </li>
+        <li class="menu-item @(isGorevListe ? "active" : "")">
+          <a asp-controller="Gorevler" asp-action="Liste" class="menu-link">
+             <div class="text-truncate" data-i18n="Görev Listele">Görev Listele</div>
+          </a>
+        </li>
+      </ul>
+    </li>
+
     <!-- Profilim & Bildirimler (Tüm Kullanıcılar İçin - En Altta) -->
     <li class="menu-item @(isProfileActive ? "active open" : "")">
          <a href="javascript:void(0);" class="menu-link menu-toggle">
