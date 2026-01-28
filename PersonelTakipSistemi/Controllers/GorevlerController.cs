@@ -28,7 +28,7 @@ namespace PersonelTakipSistemi.Controllers
         public async Task<IActionResult> Liste(
             string? q, 
             int? kategoriId, 
-            byte? durum, 
+            int? gorevDurumId, 
             // Assignment Filters
             int? assignedTeskilatId,
             int? assignedKoordinatorlukId,
@@ -43,6 +43,7 @@ namespace PersonelTakipSistemi.Controllers
         {
             var query = _context.Gorevler
                 .Include(g => g.Kategori)
+                .Include(g => g.GorevDurum)
                 // Eager Load Assignments for Display & Filter
                 .Include(g => g.GorevAtamaTeskilatlar).ThenInclude(t => t.Teskilat)
                 .Include(g => g.GorevAtamaKoordinatorlukler).ThenInclude(k => k.Koordinatorluk)
@@ -60,7 +61,7 @@ namespace PersonelTakipSistemi.Controllers
 
             // 2. Standard Filters
             if (kategoriId.HasValue) query = query.Where(x => x.KategoriId == kategoriId.Value);
-            if (durum.HasValue) query = query.Where(x => x.Durum == durum.Value);
+            if (gorevDurumId.HasValue) query = query.Where(x => x.GorevDurumId == gorevDurumId.Value);
             
             if (baslangicTarihi.HasValue) query = query.Where(x => x.BaslangicTarihi >= baslangicTarihi.Value);
             if (bitisTarihi.HasValue) query = query.Where(x => x.BaslangicTarihi <= bitisTarihi.Value);
@@ -95,6 +96,8 @@ namespace PersonelTakipSistemi.Controllers
 
             // Prepare ViewBags for Dropdowns
             ViewBag.Kategoriler = await _context.GorevKategorileri.Where(x => x.IsActive).OrderBy(x => x.Ad).ToListAsync();
+            // Durumlar list
+            ViewBag.GorevDurumlari = await _context.Set<GorevDurum>().OrderBy(x => x.Sira).ToListAsync();
             
             // Assignment Dropdowns for Filter
             ViewBag.Teskilatlar = await _context.Teskilatlar.OrderBy(x => x.Ad).ToListAsync();
@@ -126,7 +129,7 @@ namespace PersonelTakipSistemi.Controllers
             
             ViewBag.Q = q;
             ViewBag.KategoriId = kategoriId;
-            ViewBag.Durum = durum;
+            ViewBag.GorevDurumId = gorevDurumId;
             ViewBag.BaslangicTarihi = baslangicTarihi?.ToString("yyyy-MM-dd");
             ViewBag.BitisTarihi = bitisTarihi?.ToString("yyyy-MM-dd");
             ViewBag.OnlyActive = onlyActive;
@@ -159,6 +162,9 @@ namespace PersonelTakipSistemi.Controllers
             {
                 model.CreatedAt = DateTime.Now;
                 model.IsActive = true; 
+                // Default status if 0 (e.g. not selected or new)
+                if(model.GorevDurumId == 0) model.GorevDurumId = 1; // Atanmayı Bekliyor
+
                 _context.Gorevler.Add(model);
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Görev başarıyla oluşturuldu.";
@@ -197,9 +203,10 @@ namespace PersonelTakipSistemi.Controllers
                 existing.Ad = model.Ad;
                 existing.Aciklama = model.Aciklama;
                 existing.KategoriId = model.KategoriId;
-                existing.PersonelId = model.PersonelId;
+                // PersonelId related logic is handled via assignments now
+                // existing.PersonelId = model.PersonelId; 
                 existing.BirimId = model.BirimId;
-                existing.Durum = model.Durum;
+                existing.GorevDurumId = model.GorevDurumId;
                 existing.BaslangicTarihi = model.BaslangicTarihi;
                 existing.BitisTarihi = model.BitisTarihi;
                 existing.IsActive = model.IsActive;
@@ -247,47 +254,53 @@ namespace PersonelTakipSistemi.Controllers
         private async Task PopulateDropdowns()
         {
             ViewBag.Kategoriler = new SelectList(await _context.GorevKategorileri.Where(x => x.IsActive).OrderBy(x => x.Ad).ToListAsync(), "GorevKategoriId", "Ad");
-            ViewBag.Birimler = new SelectList(await _context.Birimler.OrderBy(x => x.Ad).ToListAsync(), "BirimId", "Ad");
-            
-            var personeller = await _context.Personeller.Where(x => x.AktifMi).OrderBy(x => x.Ad).ThenBy(x => x.Soyad)
-                .Select(x => new { x.PersonelId, AdSoyad = x.Ad + " " + x.Soyad }).ToListAsync();
-            ViewBag.Personeller = new SelectList(personeller, "PersonelId", "AdSoyad");
+            ViewBag.GorevDurumlari = new SelectList(await _context.Set<GorevDurum>().OrderBy(x => x.Sira).ToListAsync(), "GorevDurumId", "Ad");
         }
         // ==============================================================
         // 5. ATAMA / YETKİLENDİRME (AJAX)
         // ==============================================================
         [HttpGet]
-        public async Task<IActionResult> GetAssignmentData(int gorevId)
+        public async Task<IActionResult> GetAssignmentData(int id)
         {
-            var gorev = await _context.Gorevler.FindAsync(gorevId);
-            if (gorev == null) return NotFound();
-
-            var result = new GorevAtamaResultViewModel
+            try
             {
-                GorevId = gorevId,
-                Teskilatlar = await _context.GorevAtamaTeskilatlar
-                    .Where(x => x.GorevId == gorevId)
-                    .Include(x => x.Teskilat)
-                    .Select(x => new IdNamePair { Id = x.TeskilatId, Name = x.Teskilat.Ad, Type = "Teskilat" })
-                    .ToListAsync(),
-                Koordinatorlukler = await _context.GorevAtamaKoordinatorlukler
-                    .Where(x => x.GorevId == gorevId)
-                    .Include(x => x.Koordinatorluk)
-                    .Select(x => new IdNamePair { Id = x.KoordinatorlukId, Name = x.Koordinatorluk.Ad, Type = "Koordinatorluk" })
-                    .ToListAsync(),
-                Komisyonlar = await _context.GorevAtamaKomisyonlar
-                    .Where(x => x.GorevId == gorevId)
-                    .Include(x => x.Komisyon)
-                    .Select(x => new IdNamePair { Id = x.KomisyonId, Name = x.Komisyon.Ad, Type = "Komisyon" })
-                    .ToListAsync(),
-                Personeller = await _context.GorevAtamaPersoneller
-                    .Where(x => x.GorevId == gorevId)
-                    .Include(x => x.Personel)
-                    .Select(x => new IdNamePair { Id = x.PersonelId, Name = x.Personel.Ad + " " + x.Personel.Soyad, Type = "Personel" })
-                    .ToListAsync()
-            };
+                var gorev = await _context.Gorevler.FindAsync(id);
+                if (gorev == null) return NotFound();
 
-            return Json(result);
+                var result = new GorevAtamaResultViewModel
+                {
+                    GorevId = id,
+                    GorevDurumId = gorev.GorevDurumId,
+                    DurumAciklamasi = gorev.DurumAciklamasi,
+                    Teskilatlar = await _context.GorevAtamaTeskilatlar
+                        .Where(x => x.GorevId == id)
+                        .Include(x => x.Teskilat)
+                        .Select(x => new IdNamePair { Id = x.TeskilatId, Name = x.Teskilat != null ? x.Teskilat.Ad : "Silinmiş", Type = "Teskilat" })
+                        .ToListAsync(),
+                    Koordinatorlukler = await _context.GorevAtamaKoordinatorlukler
+                        .Where(x => x.GorevId == id)
+                        .Include(x => x.Koordinatorluk)
+                        .Select(x => new IdNamePair { Id = x.KoordinatorlukId, Name = x.Koordinatorluk != null ? x.Koordinatorluk.Ad : "Silinmiş", Type = "Koordinatorluk" })
+                        .ToListAsync(),
+                    Komisyonlar = await _context.GorevAtamaKomisyonlar
+                        .Where(x => x.GorevId == id)
+                        .Include(x => x.Komisyon)
+                        .Select(x => new IdNamePair { Id = x.KomisyonId, Name = x.Komisyon != null ? x.Komisyon.Ad : "Silinmiş", Type = "Komisyon" })
+                        .ToListAsync(),
+                    Personeller = await _context.GorevAtamaPersoneller
+                        .Where(x => x.GorevId == id)
+                        .Include(x => x.Personel)
+                        .Select(x => new IdNamePair { Id = x.PersonelId, Name = x.Personel != null ? (x.Personel.Ad + " " + x.Personel.Soyad) : "Silinmiş", Type = "Personel" })
+                        .ToListAsync()
+                };
+
+                return Json(result);
+            }
+            catch (Exception ex)
+            {
+                // Return json with 500 status code but payload with error
+                return StatusCode(500, new { error = ex.Message, stack = ex.StackTrace });
+            }
         }
 
         [HttpPost]
@@ -328,6 +341,24 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             await _context.SaveChangesAsync();
+            return Ok(new { success = true });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateStatus([FromBody] GorevDurumUpdateViewModel model)
+        {
+            if (model == null) return BadRequest();
+
+            var task = await _context.Gorevler.FindAsync(model.GorevId);
+            if (task == null) return NotFound();
+
+            task.GorevDurumId = model.DurumId;
+            task.DurumAciklamasi = model.Aciklama;
+            task.UpdatedAt = DateTime.Now;
+            
+            _context.Update(task);
+            await _context.SaveChangesAsync();
+
             return Ok(new { success = true });
         }
 

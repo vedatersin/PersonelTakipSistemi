@@ -3,16 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|c:\\users\\vedat\\source\\repos\\personeltakipsistemi\\personeltakipsistemi\\controllers\\bildirimmodulucontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|solutionrelative:personeltakipsistemi\\controllers\\bildirimmodulucontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|c:\\users\\vedat\\source\\repos\\personeltakipsistemi\\personeltakipsistemi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|solutionrelative:personeltakipsistemi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|c:\\users\\vedat\\source\\repos\\personeltakipsistemi\\personeltakipsistemi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|solutionrelative:personeltakipsistemi\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|c:\\users\\vedat\\source\\repos\\personeltakipsistemi\\personeltakipsistemi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{86738426-F3D7-4CA4-B3A6-E58C9AC5ABC3}|PersonelTakipSistemi\\PersonelTakipSistemi.csproj|solutionrelative:personeltakipsistemi\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,21 +18,8 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 1,
           "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "BildirimModuluController.cs",
-              "DocumentMoniker": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\Controllers\\BildirimModuluController.cs",
-              "RelativeDocumentMoniker": "PersonelTakipSistemi\\Controllers\\BildirimModuluController.cs",
-              "ToolTip": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\Controllers\\BildirimModuluController.cs",
-              "RelativeToolTip": "PersonelTakipSistemi\\Controllers\\BildirimModuluController.cs",
-              "ViewState": "AQIAAPEAAAAAAAAAAAAxwPgAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-15T21:53:28.005Z",
-              "EditorCaption": ""
-            },
             {
               "$type": "Document",
               "DocumentIndex": 1,
@@ -47,19 +30,21 @@
               "RelativeToolTip": "PersonelTakipSistemi\\appsettings.json",
               "ViewState": "AQIAAAAAAAAAAAAAAAAAAAsAAAABAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2026-01-13T10:20:41.364Z"
+              "WhenOpened": "2026-01-13T10:20:41.364Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 0,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\Program.cs",
               "RelativeDocumentMoniker": "PersonelTakipSistemi\\Program.cs",
               "ToolTip": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\Program.cs",
               "RelativeToolTip": "PersonelTakipSistemi\\Program.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAADwAAAAnAAAA",
+              "ViewState": "AQIAAFAAAAAAAAAAAADgv1kAAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-01-12T03:47:23.043Z"
+              "WhenOpened": "2026-01-12T03:47:23.043Z",
+              "EditorCaption": ""
             }
           ]
         }

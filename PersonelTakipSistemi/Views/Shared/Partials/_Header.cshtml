@@ -36,17 +36,41 @@
         </ul>
       </li>
 
+@using PersonelTakipSistemi.Data
+@inject TegmPersonelTakipDbContext _context
       <!-- User -->
       @if (User.Identity!.IsAuthenticated)
       {
-          var photoUrl = User.FindFirst("PhotoUrl")?.Value;
+          var userIdClaim = User.FindFirst("PersonelId")?.Value;
+          var photoUrl = "";
           var displayName = User.Identity.Name ?? "Kullanıcı";
-          var role = "Personel"; // Or fetch role claim if available
+          var role = "Personel";
+
+          if(int.TryParse(userIdClaim, out int pid)) {
+              var p = _context.Personeller.Find(pid);
+              if(p != null) {
+                 photoUrl = p.FotografYolu;
+                 displayName = p.Ad + " " + p.Soyad; 
+              }
+          }
+
+          // Initials Logic
+          var initials = "";
+          if(!string.IsNullOrEmpty(displayName)) {
+              var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+              if(parts.Length > 0) initials += parts[0][0];
+              if(parts.Length > 1) initials += parts[parts.Length - 1][0];
+          }
+          initials = initials.ToUpper();
 
           <li class="nav-item navbar-dropdown dropdown-user dropdown">
             <a class="nav-link dropdown-toggle hide-arrow p-0 d-flex align-items-center" href="javascript:void(0);" data-bs-toggle="dropdown">
               <div class="avatar avatar-online" style="width: 50px; height: 50px;">
-                <img src="@(string.IsNullOrEmpty(photoUrl) ? "/sevilay-tema/assets/img/avatars/1.png" : photoUrl)" alt class="w-px-50 h-auto rounded-circle" style="object-fit: cover; width: 50px; height: 50px;" />
+                @if(!string.IsNullOrEmpty(photoUrl)) {
+                    <img src="@photoUrl" alt class="w-px-50 rounded-circle" style="object-fit: cover; width: 50px; height: 50px;" />
+                } else {
+                    <span class="avatar-initial rounded-circle bg-label-primary" style="width: 50px; height: 50px; font-size: 1.25rem;">@initials</span>
+                }
               </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
@@ -55,7 +79,11 @@
                   <div class="d-flex">
                     <div class="flex-shrink-0 me-3">
                       <div class="avatar avatar-online" style="width: 50px; height: 50px;">
-                        <img src="@(string.IsNullOrEmpty(photoUrl) ? "/sevilay-tema/assets/img/avatars/1.png" : photoUrl)" alt class="w-px-50 h-auto rounded-circle" style="object-fit: cover; width: 50px; height: 50px;" />
+                        @if(!string.IsNullOrEmpty(photoUrl)) {
+                            <img src="@photoUrl" alt class="w-px-50 rounded-circle" style="object-fit: cover; width: 50px; height: 50px;" />
+                        } else {
+                             <span class="avatar-initial rounded-circle bg-label-primary" style="width: 50px; height: 50px; font-size: 1.25rem;">@initials</span>
+                        }
                       </div>
                     </div>
                     <div class="flex-grow-1">

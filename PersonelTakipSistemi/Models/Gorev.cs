@@ -16,21 +16,26 @@ namespace PersonelTakipSistemi.Models
         public string? Aciklama { get; set; }
 
         // Foreing Keys
+        // Foreing Keys
         public int KategoriId { get; set; }
         public GorevKategori Kategori { get; set; } = null!;
 
-        public int PersonelId { get; set; }
-        public Personel Personel { get; set; } = null!;
+        public int? PersonelId { get; set; }
+        public Personel? Personel { get; set; }
 
         public int? BirimId { get; set; }
         public Birim? Birim { get; set; }
 
-        // 0=Beklemede, 1=Aktif, 2=Tamamlandı
-        public byte Durum { get; set; } 
+        // Status Relationship
+        public int GorevDurumId { get; set; }
+        public GorevDurum GorevDurum { get; set; } = null!;
+        
+        [StringLength(500)]
+        public string? DurumAciklamasi { get; set; }
 
         public DateTime BaslangicTarihi { get; set; }
         public DateTime? BitisTarihi { get; set; }
-
+        
         public bool IsActive { get; set; } = true;
         
         public DateTime CreatedAt { get; set; } = DateTime.Now;

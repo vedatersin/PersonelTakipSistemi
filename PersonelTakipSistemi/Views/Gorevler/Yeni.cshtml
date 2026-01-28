@@ -58,31 +58,13 @@
 
                          <!-- Durum -->
                         <div class="col-md-6">
-                            <label asp-for="Durum" class="form-label">Durum</label>
-                            <select asp-for="Durum" class="form-select">
-                                <option value="0">Beklemede</option>
-                                <option value="1">Aktif</option>
-                                <option value="2">Tamamlandı</option>
+                            <label asp-for="GorevDurumId" class="form-label">Durum</label>
+                            <select asp-for="GorevDurumId" class="form-select" asp-items="ViewBag.GorevDurumlari">
                             </select>
-                            <span asp-validation-for="Durum" class="text-danger"></span>
+                            <span asp-validation-for="GorevDurumId" class="text-danger"></span>
                         </div>
 
-                        <!-- Personel -->
-                        <div class="col-md-6">
-                            <label asp-for="PersonelId" class="form-label">Personel *</label>
-                             <select asp-for="PersonelId" class="form-select" asp-items="ViewBag.Personeller">
-                                <option value="">Seçiniz...</option>
-                            </select>
-                            <span asp-validation-for="PersonelId" class="text-danger"></span>
-                        </div>
 
-                        <!-- Birim -->
-                        <div class="col-md-6">
-                            <label asp-for="BirimId" class="form-label">Birim (Opsiyonel)</label>
-                             <select asp-for="BirimId" class="form-select" asp-items="ViewBag.Birimler">
-                                <option value="">Seçiniz...</option>
-                            </select>
-                        </div>
 
                          <!-- Tarihler -->
                         <div class="col-md-6">

@@ -44,19 +44,30 @@
                                 <option value="">Tümü</option>
                                 @if(kategoriler != null) {
                                     foreach(var k in kategoriler) {
-                                        <!option value="@k.GorevKategoriId" @(ViewBag.KategoriId == k.GorevKategoriId ? "selected" : "")>@k.Ad</!option>
+                                        if (ViewBag.KategoriId == k.GorevKategoriId) {
+                                            <option value="@k.GorevKategoriId" selected>@k.Ad</option>
+                                        } else {
+                                            <option value="@k.GorevKategoriId">@k.Ad</option>
+                                        }
                                     }
                                 }
                             </select>
                         </div>
-                         <div class="col-md-4">
-                            <label class="form-label">Durum</label>
-                            <select name="durum" class="form-select select2">
+                        <div class="col-md-4">
+                             <label class="form-label">Durum</label>
+                            <select name="gorevDurumId" class="form-select select2">
                                 <option value="">Tümü</option>
-                                <!option value="0" @(ViewBag.Durum == 0 ? "selected" : "")>Bekliyor</!option>
-                                <!option value="1" @(ViewBag.Durum == 1 ? "selected" : "")>Devam Ediyor</!option>
-                                <!option value="2" @(ViewBag.Durum == 2 ? "selected" : "")>Tamamlandı</!option>
-                                <!option value="3" @(ViewBag.Durum == 3 ? "selected" : "")>İptal</!option>
+                                @if(ViewBag.GorevDurumlari != null)
+                                {
+                                    foreach(var d in ViewBag.GorevDurumlari)
+                                    {
+                                        if (ViewBag.GorevDurumId == d.GorevDurumId) {
+                                            <option value="@d.GorevDurumId" selected>@d.Ad</option>
+                                        } else {
+                                            <option value="@d.GorevDurumId">@d.Ad</option>
+                                        }
+                                    }
+                                }
                             </select>
                         </div>
                     </div>
@@ -69,7 +80,11 @@
                                 <option value="">Tümü</option>
                                 @if(teskilatlar != null) {
                                     foreach(var t in teskilatlar) {
-                                         <!option value="@t.TeskilatId" @(ViewBag.AssignedTeskilatId == t.TeskilatId ? "selected" : "")>@t.Ad</!option>
+                                        if (ViewBag.AssignedTeskilatId == t.TeskilatId) {
+                                            <option value="@t.TeskilatId" selected>@t.Ad</option>
+                                        } else {
+                                            <option value="@t.TeskilatId">@t.Ad</option>
+                                        }
                                     }
                                 }
                             </select>
@@ -80,7 +95,11 @@
                                 <option value="">Tümü</option>
                                 @if(koordinatorlukler != null) {
                                     foreach(var k in koordinatorlukler) {
-                                         <!option value="@k.KoordinatorlukId" @(ViewBag.AssignedKoordinatorlukId == k.KoordinatorlukId ? "selected" : "")>@k.Ad</!option>
+                                        if (ViewBag.AssignedKoordinatorlukId == k.KoordinatorlukId) {
+                                            <option value="@k.KoordinatorlukId" selected>@k.Ad</option>
+                                        } else {
+                                            <option value="@k.KoordinatorlukId">@k.Ad</option>
+                                        }
                                     }
                                 }
                             </select>
@@ -91,7 +110,11 @@
                                 <option value="">Tümü</option>
                                 @if(komisyonlar != null) {
                                     foreach(var k in komisyonlar) {
-                                         <!option value="@k.Value" @(ViewBag.AssignedKomisyonId?.ToString() == k.Value ? "selected" : "")>@k.Text</!option>
+                                        if (ViewBag.AssignedKomisyonId?.ToString() == k.Value) {
+                                            <option value="@k.Value" selected>@k.Text</option>
+                                        } else {
+                                             <option value="@k.Value">@k.Text</option>
+                                        }
                                     }
                                 }
                             </select>
@@ -102,7 +125,11 @@
                                 <option value="">Tümü</option>
                                 @if(personeller != null) {
                                     foreach(var p in personeller) {
-                                         <!option value="@p.Value" @(ViewBag.AssignedPersonelId?.ToString() == p.Value ? "selected" : "")>@p.Text</!option>
+                                        if (ViewBag.AssignedPersonelId?.ToString() == p.Value) {
+                                            <option value="@p.Value" selected>@p.Text</option>
+                                        } else {
+                                            <option value="@p.Value">@p.Text</option>
+                                        }
                                     }
                                 }
                             </select>
@@ -208,10 +235,18 @@
 
                                 <td>
                                     @{
-                                        string badgeClass = item.Durum switch { 0 => "bg-warning", 1 => "bg-primary", 2 => "bg-success", 3 => "bg-secondary", _ => "bg-secondary" };
-                                        string statusText = item.Durum switch { 0 => "Bekliyor", 1 => "Devam Ediyor", 2 => "Tamamlandı", 3 => "İptal", _ => "Bilinmiyor" };
+                                        string badgeClass = item.GorevDurum?.RenkSinifi ?? "bg-secondary";
+                                        string statusText = item.GorevDurum?.Ad ?? "Bilinmiyor";
                                     }
                                     <span class="badge @badgeClass">@statusText</span>
+                                    @if(!string.IsNullOrEmpty(item.DurumAciklamasi)) {
+                                        <div class="mt-1">
+                                            <i class="bx bx-info-circle text-muted" style="font-size: 0.8rem;"></i>
+                                            <small class="text-muted" data-bs-toggle="tooltip" title="@item.DurumAciklamasi">
+                                                @(item.DurumAciklamasi.Length > 20 ? item.DurumAciklamasi.Substring(0, 20) + "..." : item.DurumAciklamasi)
+                                            </small>
+                                        </div>
+                                    }
                                 </td>
                                 <td class="text-end">
                                     <button class="btn btn-sm btn-icon btn-label-primary" onclick="event.stopPropagation(); openAssignmentDrawer(@item.GorevId, '@item.Ad')">
@@ -248,68 +283,109 @@
     <h5 id="drawerLabel" class="offcanvas-title">Atama Yönetimi</h5>
     <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
-  <div class="offcanvas-body">
-    <div class="mb-3">
+  <div class="offcanvas-body p-0">
+      <div class="p-3 bg-light border-bottom">
         <label class="form-label fw-bold">Görev:</label>
-        <div id="drawerTaskName" class="text-primary"></div>
+        <div id="drawerTaskName" class="text-primary fw-semibold"></div>
         <input type="hidden" id="drawerTaskId" />
-    </div>
+      </div>
 
-    <!-- Add New Assignment Section -->
-    <div class="card bg-lighter mb-3">
-        <div class="card-body p-3">
-            <h6 class="card-title small text-uppercase text-muted">Yeni Atama Ekle</h6>
-            
-            <!-- Type Selector -->
-            <div class="mb-2">
-                <select id="assignTypeSelector" class="form-select mb-2">
-                    <option value="personel">Personel</option>
-                    <option value="teskilat">Teşkilat</option>
-                    <option value="koordinatorluk">Koordinatörlük</option>
-                    <option value="komisyon">Komisyon</option>
-                </select>
-            </div>
+      <!-- TABS -->
+      <ul class="nav nav-tabs nav-fill" role="tablist">
+        <li class="nav-item">
+          <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabAssignments" type="button"><i class="bx bx-user-pin me-1"></i> Atamalar</button>
+        </li>
+        <li class="nav-item">
+          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabStatus" type="button"><i class="bx bx-repost me-1"></i> Durum</button>
+        </li>
+      </ul>
 
-            <!-- Dynamic Searchable Selects (All hidden initially except default) -->
-            
-            <!-- Personel Select -->
-            <div id="selector-personel" class="entity-selector">
-                <select class="form-select select2-drawer" id="drawerSelectPersonel" style="width: 100%;">
-                    <option value="">Personel Seçiniz...</option>
-                    @if(personeller != null) { foreach(var p in personeller) { <option value="@p.Value">@p.Text</option> } }
-                </select>
-            </div>
-             <!-- Teskilat Select -->
-            <div id="selector-teskilat" class="entity-selector d-none">
-                <select class="form-select select2-drawer" id="drawerSelectTeskilat" style="width: 100%;">
-                    <option value="">Teşkilat Seçiniz...</option>
-                     @if(teskilatlar != null) { foreach(var t in teskilatlar) { <option value="@t.TeskilatId">@t.Ad</option> } }
-                </select>
-            </div>
-             <!-- Koordinatorluk Select -->
-            <div id="selector-koordinatorluk" class="entity-selector d-none">
-                <select class="form-select select2-drawer" id="drawerSelectKoordinatorluk" style="width: 100%;">
-                    <option value="">Koordinatörlük Seçiniz...</option>
-                     @if(koordinatorlukler != null) { foreach(var k in koordinatorlukler) { <option value="@k.KoordinatorlukId">@k.Ad</option> } }
-                </select>
-            </div>
-             <!-- Komisyon Select -->
-            <div id="selector-komisyon" class="entity-selector d-none">
-                <select class="form-select select2-drawer" id="drawerSelectKomisyon" style="width: 100%;">
-                    <option value="">Komisyon Seçiniz...</option>
-                     @if(komisyonlar != null) { foreach(var k in komisyonlar) { <option value="@k.Value">@k.Text</option> } }
-                </select>
-            </div>
+      <div class="tab-content p-3">
+          <!-- TAB 1: ASSIGNMENTS -->
+          <div class="tab-pane fade show active" id="tabAssignments">
+                <!-- Add New Assignment Section -->
+                <div class="card bg-lighter mb-3">
+                    <div class="card-body p-3">
+                        <h6 class="card-title small text-uppercase text-muted">Yeni Atama Ekle</h6>
+                        
+                        <!-- Type Selector -->
+                        <div class="mb-2">
+                            <select id="assignTypeSelector" class="form-select mb-2">
+                                <option value="personel">Personel</option>
+                                <option value="teskilat">Teşkilat</option>
+                                <option value="koordinatorluk">Koordinatörlük</option>
+                                <option value="komisyon">Komisyon</option>
+                            </select>
+                        </div>
 
-            <button class="btn btn-primary w-100 mt-2" onclick="addAssignment()">Ekle</button>
-        </div>
-    </div>
+                        <!-- Dynamic Searchable Selects (All hidden initially except default) -->
+                        <div id="selector-personel" class="entity-selector">
+                            <select class="form-select select2-drawer" id="drawerSelectPersonel" style="width: 100%;">
+                                <option value="">Personel Seçiniz...</option>
+                                @if(personeller != null) { foreach(var p in personeller) { <option value="@p.Value">@p.Text</option> } }
+                            </select>
+                        </div>
+                        <div id="selector-teskilat" class="entity-selector d-none">
+                            <select class="form-select select2-drawer" id="drawerSelectTeskilat" style="width: 100%;">
+                                <option value="">Teşkilat Seçiniz...</option>
+                                 @if(teskilatlar != null) { foreach(var t in teskilatlar) { <option value="@t.TeskilatId">@t.Ad</option> } }
+                            </select>
+                        </div>
+                        <div id="selector-koordinatorluk" class="entity-selector d-none">
+                            <select class="form-select select2-drawer" id="drawerSelectKoordinatorluk" style="width: 100%;">
+                                <option value="">Koordinatörlük Seçiniz...</option>
+                                 @if(koordinatorlukler != null) { foreach(var k in koordinatorlukler) { <option value="@k.KoordinatorlukId">@k.Ad</option> } }
+                            </select>
+                        </div>
+                        <div id="selector-komisyon" class="entity-selector d-none">
+                            <select class="form-select select2-drawer" id="drawerSelectKomisyon" style="width: 100%;">
+                                <option value="">Komisyon Seçiniz...</option>
+                                 @if(komisyonlar != null) { foreach(var k in komisyonlar) { <option value="@k.Value">@k.Text</option> } }
+                            </select>
+                        </div>
 
-    <!-- Current Assignments List -->
-    <h6 class="small text-uppercase text-muted">Mevcut Atamalar</h6>
-    <ul class="list-group list-group-flush" id="currentAssignmentsList">
-        <!-- Loaded via JS -->
-    </ul>
+                        <button class="btn btn-primary w-100 mt-2" onclick="addAssignment()">Ekle</button>
+                    </div>
+                </div>
+
+                <!-- Current Assignments List -->
+                <h6 class="small text-uppercase text-muted">Mevcut Atamalar</h6>
+                <ul class="list-group list-group-flush" id="currentAssignmentsList">
+                    <!-- Loaded via JS -->
+                </ul>
+                
+                <div class="mt-4 d-grid gap-2">
+                     <button type="button" class="btn btn-primary" onclick="saveAssignments()">Atamaları Kaydet</button>
+                </div>
+          </div>
+
+          <!-- TAB 2: STATUS -->
+          <div class="tab-pane fade" id="tabStatus">
+              <div class="mb-3">
+                  <label class="form-label">Durum</label>
+                  <select class="form-select" id="drawerStatusSelect">
+                      @if(ViewBag.GorevDurumlari != null)
+                      {
+                        foreach(var d in ViewBag.GorevDurumlari)
+                        {
+                            <option value="@d.GorevDurumId">@d.Ad</option>
+                        }
+                      }
+                  </select>
+              </div>
+              <div class="mb-3">
+                  <label class="form-label">Açıklama / Not</label>
+                  <textarea class="form-control" id="drawerStatusNote" rows="4" placeholder="Durum ile ilgili açıklama giriniz..."></textarea>
+                  <div class="form-text">Bu açıklama görev listesinde görüntülenecektir.</div>
+              </div>
+              <div class="d-grid gap-2">
+                  <button type="button" class="btn btn-primary" onclick="updateStatus()">Durumu Güncelle</button>
+              </div>
+          </div>
+      </div>
+  </div>
+  <div class="offcanvas-footer p-3 border-top d-flex justify-content-end gap-2 bg-light">
+      <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="offcanvas">Kapat</button>
   </div>
 </div>
 
@@ -364,6 +440,7 @@
         var offcanvasElement = document.getElementById('assignmentDrawer');
         var offcanvas = new bootstrap.Offcanvas(offcanvasElement);
         var currentTaskId = 0;
+        var localAssignments = [];
 
         function openAssignmentDrawer(id, name) {
             currentTaskId = id;
@@ -375,157 +452,159 @@
 
         function loadAssignments(id) {
             $('#currentAssignmentsList').html('<li class="list-group-item text-center"><div class="spinner-border spinner-border-sm text-primary"></div></li>');
-            
+            localAssignments = []; // Reset
+
             $.get('/Gorevler/GetAssignmentData/' + id, function(data) {
-                $('#currentAssignmentsList').empty();
-                if(!data || data.length === 0) {
-                     $('#currentAssignmentsList').append('<li class="list-group-item text-muted small text-center">Henüz atama yapılmamış.</li>');
-                     return;
+                if(data) {
+                     // Status Fields
+                     $('#drawerStatusSelect').val(data.gorevDurumId);
+                     $('#drawerStatusNote').val(data.durumAciklamasi);
+
+                     // Flatten object to array
+                     if(data.teskilatlar) data.teskilatlar.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Teskilat' }); });
+                     if(data.koordinatorlukler) data.koordinatorlukler.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Koordinatorluk' }); });
+                     if(data.komisyonlar) data.komisyonlar.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Komisyon' }); });
+                     if(data.personeller) data.personeller.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Personel' }); });
                 }
+                renderAssignments();
+            }).fail(function(jqXHR, textStatus, errorThrown) {
+                var errorMsg = "Yüklenirken hata oluştu (" + jqXHR.status + " " + errorThrown + ").";
+                if(jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                    errorMsg += "<br><small>" + jqXHR.responseJSON.error + "</small>";
+                } else if (jqXHR.responseText) {
+                     // Truncate long HTML responses (like full error pages)
+                     var truncated = jqXHR.responseText.substring(0, 100);
+                     errorMsg += "<br><small>Raw: " + truncated + "...</small>";
+                }
+                $('#currentAssignmentsList').html('<li class="list-group-item text-danger text-center">' + errorMsg + '</li>');
+            });
+        }
 
-                data.forEach(function(item) {
-                     var icon = 'bx-hash';
-                     if(item.type === 'Teskilat') icon = 'bxs-building';
-                     if(item.type === 'Koordinatorluk') icon = 'bxs-business';
-                     if(item.type === 'Komisyon') icon = 'bxs-group';
-                     if(item.type === 'Personel') icon = 'bxs-user';
+        function renderAssignments() {
+            $('#currentAssignmentsList').empty();
+            if(localAssignments.length === 0) {
+                 $('#currentAssignmentsList').append('<li class="list-group-item text-muted small text-center">Henüz atama yapılmamış.</li>');
+                 return;
+            }
 
-                     var li = `
-                        <li class="list-group-item d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class='bx ${icon} me-2 text-secondary'></i>
-                                <span>${item.name}</span>
-                                <br><small class="text-muted ms-4" style="font-size:0.75rem">${item.type}</small>
-                            </div>
-                            <button class="btn btn-xs btn-outline-danger" onclick="removeAssignment('${item.type}', ${item.id})"><i class="bx bx-trash"></i></button>
-                        </li>
-                     `;
-                     $('#currentAssignmentsList').append(li);
-                });
+            localAssignments.forEach(function(item) {
+                 var icon = 'bx-hash';
+                 if(item.type === 'Teskilat') icon = 'bxs-building';
+                 if(item.type === 'Koordinatorluk') icon = 'bxs-business';
+                 if(item.type === 'Komisyon') icon = 'bxs-group';
+                 if(item.type === 'Personel') icon = 'bxs-user';
+
+                 var li = `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class='bx ${icon} me-2 text-secondary'></i>
+                            <span>${item.name}</span>
+                            <br><small class="text-muted ms-4" style="font-size:0.75rem">${item.type}</small>
+                        </div>
+                        <button class="btn btn-xs btn-outline-danger" onclick="removeAssignment('${item.type}', ${item.id})"><i class="bx bx-trash"></i></button>
+                    </li>
+                 `;
+                 $('#currentAssignmentsList').append(li);
             });
         }
 
         function addAssignment() {
-            var type = $('#assignTypeSelector').val();
+            var type = $('#assignTypeSelector').val(); 
             var id = 0;
-            
-            if(type === 'personel') id = $('#drawerSelectPersonel').val();
-            if(type === 'teskilat') id = $('#drawerSelectTeskilat').val();
-            if(type === 'koordinatorluk') id = $('#drawerSelectKoordinatorluk').val();
-            if(type === 'komisyon') id = $('#drawerSelectKomisyon').val();
+            var name = "";
+
+            if(type === 'personel') { id = $('#drawerSelectPersonel').val(); name = $('#drawerSelectPersonel option:selected').text(); }
+            if(type === 'teskilat') { id = $('#drawerSelectTeskilat').val(); name = $('#drawerSelectTeskilat option:selected').text(); }
+            if(type === 'koordinatorluk') { id = $('#drawerSelectKoordinatorluk').val(); name = $('#drawerSelectKoordinatorluk option:selected').text(); }
+            if(type === 'komisyon') { id = $('#drawerSelectKomisyon').val(); name = $('#drawerSelectKomisyon option:selected').text(); }
 
             if(!id) {
-                alert("Lütfen bir seçim yapınız.");
+                Swal.fire({ icon: 'warning', title: 'Uyarı', text: 'Lütfen bir seçim yapınız.' });
                 return;
             }
 
-            var postData = {
-                gorevId: currentTaskId,
-                type: type, // 'personel', 'teskilat' etc. (Controller expects lowercase or handles mapping)
-                // Controller 'SaveAssignments' expects: gorevId, type, [ids] OR separate calls?
-                // Wait, previous SaveAssignments was Bulk Save of ALL IDs. 
-                // I need an 'AddSingleAssignment' or adapt 'SaveAssignments'.
-                // Let's check Controller's 'SaveAssignments' signature.
-                // It accepted arrays: teskilatIds, koordinatorlukIds... 
-                // So I should fetch existing, append new, and save? That is race-condition prone.
-                // Better: Create a new Action 'AddAssignment' and 'RemoveAssignment' in Phase 2.5/3.
-                // Or: Client side logic: Read current list from 'data' variable (need to store it), append, and send full lists. 
-                // Let's implement "Client Side Append & Save" for now, or Check Controller.
-            };
-            
-            // To be safe and quick without changing Controller significantly:
-            // I will use a Helper JS function to Add Single Assignment by calling Save with specific arrays.
-            // Actually, I can just call the existing Save API with *all* current + new.
-            // BUT, `GetAssignmentData` returns a flat list. `SaveAssignments` takes 4 arrays.
-            // I need to reconstruct the arrays from the current list.
-            
-            // Re-fetch current data cleanly:
-            $.get('/Gorevler/GetAssignmentData/' + currentTaskId, function(currentData) {
-                 var payload = {
-                     GorevId: currentTaskId,
-                     TeskilatIds: [],
-                     KoordinatorlukIds: [],
-                     KomisyonIds: [],
-                     PersonelIds: []
-                 };
-                 
-                 // Fill existing
-                 currentData.forEach(i => {
-                     if(i.type === 'Teskilat') payload.TeskilatIds.push(i.id);
-                     if(i.type === 'Koordinatorluk') payload.KoordinatorlukIds.push(i.id);
-                     if(i.type === 'Komisyon') payload.KomisyonIds.push(i.id);
-                     if(i.type === 'Personel') payload.PersonelIds.push(i.id);
-                 });
-                 
-                 // Add New
-                 if(type === 'teskilat') payload.TeskilatIds.push(parseInt(id));
-                 if(type === 'koordinatorluk') payload.KoordinatorlukIds.push(parseInt(id));
-                 if(type === 'komisyon') payload.KomisyonIds.push(parseInt(id));
-                 if(type === 'personel') payload.PersonelIds.push(parseInt(id));
+            // Normalize Type
+            var typePascal = type.charAt(0).toUpperCase() + type.slice(1);
+            if(type === 'koordinatorluk') typePascal = 'Koordinatorluk'; 
 
-                 // Send
-                 $.ajax({
-                     url: '/Gorevler/SaveAssignments',
-                     type: 'POST',
-                     data: JSON.stringify(payload),
-                     contentType: 'application/json; charset=utf-8',
-                     success: function(resp) {
-                         if(resp.success) {
-                             loadAssignments(currentTaskId); // Reload UI
-                             // Clear selection
-                             $('.select2-drawer').val(null).trigger('change');
-                         } else {
-                             alert("Hata: " + resp.message);
-                         }
-                     },
-                     error: function(err) {
-                         alert("Hata oluştu.");
-                     }
-                 });
-            });
+            var exists = localAssignments.some(function(x) { return x.type == typePascal && x.id == id; });
+            if(exists) {
+                 Swal.fire({ icon: 'info', title: 'Bilgi', text: 'Bu atama zaten mevcut.' });
+                 return;
+            }
+
+            localAssignments.push({ id: parseInt(id), name: name, type: typePascal });
+            renderAssignments();
+            $('.select2-drawer').val(null).trigger('change');
         }
 
         function removeAssignment(type, id) {
-             if(!confirm("Bu atamayı kaldırmak istediğinize emin misiniz?")) return;
-             
-             // Same logic: Fetch, Remove, Save
-             $.get('/Gorevler/GetAssignmentData/' + currentTaskId, function(currentData) {
-                 var payload = {
-                     GorevId: currentTaskId,
-                     TeskilatIds: [],
-                     KoordinatorlukIds: [],
-                     KomisyonIds: [],
-                     PersonelIds: []
-                 };
-                 
-                 currentData.forEach(i => {
-                     // logic: if match type & id, skip (don't add to payload)
-                     if(i.type === type && i.id === id) return; 
-
-                     if(i.type === 'Teskilat') payload.TeskilatIds.push(i.id);
-                     if(i.type === 'Koordinatorluk') payload.KoordinatorlukIds.push(i.id);
-                     if(i.type === 'Komisyon') payload.KomisyonIds.push(i.id);
-                     if(i.type === 'Personel') payload.PersonelIds.push(i.id);
-                 });
-
-                 $.ajax({
-                     url: '/Gorevler/SaveAssignments',
-                     type: 'POST',
-                     data: JSON.stringify(payload),
-                     contentType: 'application/json; charset=utf-8',
-                     success: function(resp) {
-                         if(resp.success) {
-                             loadAssignments(currentTaskId);
-                         } else {
-                             alert("Hata: " + resp.message);
-                         }
-                     },
-                     error: function(err) {
-                         alert("Hata oluştu.");
-                     }
-                 });
-            });
+            localAssignments = localAssignments.filter(function(x) { return !(x.type == type && x.id == id); });
+            renderAssignments();
         }
+
+        function saveAssignments() {
+             var payload = {
+                 GorevId: currentTaskId,
+                 TeskilatIds: [],
+                 KoordinatorlukIds: [],
+                 KomisyonIds: [],
+                 PersonelIds: []
+             };
+             
+             localAssignments.forEach(function(i) {
+                 if(i.type === 'Teskilat') payload.TeskilatIds.push(i.id);
+                 if(i.type === 'Koordinatorluk') payload.KoordinatorlukIds.push(i.id);
+                 if(i.type === 'Komisyon') payload.KomisyonIds.push(i.id);
+                 if(i.type === 'Personel') payload.PersonelIds.push(i.id);
+             });
+
+             $.ajax({
+                 url: '/Gorevler/SaveAssignments',
+                 type: 'POST',
+                 data: JSON.stringify(payload),
+                 contentType: 'application/json; charset=utf-8',
+                 success: function(resp) {
+                     if(resp.success) {
+                         Swal.fire({ icon: 'success', title: 'Başarılı', text: 'Atamalar kaydedildi.', timer: 1500, showConfirmButton: false });
+                         // offcanvas.hide(); // Keep open or hide? User preferred saving.
+                         setTimeout(function() { location.reload(); }, 1000); 
+                     } else {
+                         Swal.fire({ icon: 'error', title: 'Hata', text: 'Kaydedilirken bir hata oluştu.' });
+                     }
+                 },
+                 error: function() {
+                     Swal.fire({ icon: 'error', title: 'Hata', text: 'Bir sunucu hatası oluştu.' });
+                 }
+             });
+        }
+
+        function updateStatus() {
+            var payload = {
+                GorevId: currentTaskId,
+                DurumId: $('#drawerStatusSelect').val(),
+                Aciklama: $('#drawerStatusNote').val()
+            };
+
+            $.ajax({
+                 url: '/Gorevler/UpdateStatus',
+                 type: 'POST',
+                 data: JSON.stringify(payload),
+                 contentType: 'application/json; charset=utf-8',
+                 success: function(resp) {
+                     if(resp.success) {
+                         Swal.fire({ icon: 'success', title: 'Başarılı', text: 'Durum güncellendi.', timer: 1500, showConfirmButton: false });
+                         setTimeout(function() { location.reload(); }, 1000); 
+                     } else {
+                         Swal.fire({ icon: 'error', title: 'Hata', text: 'Güncellenirken bir hata oluştu.' });
+                     }
+                 },
+                 error: function() {
+                     Swal.fire({ icon: 'error', title: 'Hata', text: 'Bir sunucu hatası oluştu.' });
+                 }
+             });
+        }
+
         
         // Refresh page on drawer close to show updates in table
         offcanvasElement.addEventListener('hidden.bs.offcanvas', function () {

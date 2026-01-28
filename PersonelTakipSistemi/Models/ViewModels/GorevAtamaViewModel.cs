@@ -16,6 +16,9 @@ namespace PersonelTakipSistemi.Models.ViewModels
     public class GorevAtamaResultViewModel
     {
         public int GorevId { get; set; }
+        public int GorevDurumId { get; set; }
+        public string? DurumAciklamasi { get; set; }
+
         public List<IdNamePair> Teskilatlar { get; set; } = new List<IdNamePair>();
         public List<IdNamePair> Koordinatorlukler { get; set; } = new List<IdNamePair>();
         public List<IdNamePair> Komisyonlar { get; set; } = new List<IdNamePair>();
@@ -27,5 +30,12 @@ namespace PersonelTakipSistemi.Models.ViewModels
         public int Id { get; set; }
         public string Name { get; set; } = "";
         public string? Type { get; set; } // "Merkez", "Taşra" etc for badges
+    }
+
+    public class GorevDurumUpdateViewModel
+    {
+        public int GorevId { get; set; }
+        public int DurumId { get; set; }
+        public string? Aciklama { get; set; }
     }
 }
