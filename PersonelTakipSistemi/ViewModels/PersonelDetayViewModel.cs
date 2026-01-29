@@ -25,10 +25,17 @@ namespace PersonelTakipSistemi.ViewModels
         public List<string> IsNitelikleri { get; set; } = new List<string>();
 
         // 2024-01-28 Refactor: Show assigned roles in profile card
-        public List<string> KurumsalRoller { get; set; } = new List<string>();
+        public List<RoleDisplayModel> KurumsalRoller { get; set; } = new List<RoleDisplayModel>();
 
 
         // Rol bazlı UI kontrolü için
         public string SistemRol { get; set; } = "Kullanıcı";
+    }
+
+    public class RoleDisplayModel
+    {
+        public string Title { get; set; } = null!;
+        public string Subtitle { get; set; } = null!;
+        public string ColorClass { get; set; } = "primary"; // primary, success, info, danger
     }
 }

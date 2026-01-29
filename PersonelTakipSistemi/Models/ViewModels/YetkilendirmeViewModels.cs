@@ -78,6 +78,8 @@ namespace PersonelTakipSistemi.Models.ViewModels
         public int KurumsalRolId { get; set; }
         public string RolAd { get; set; } = null!;
         public string ContextAd { get; set; } = null!; // E.g. "Mardin İl Koordinatörlüğü" or "Matematik Komisyonu"
+        public int? KoordinatorlukId { get; set; }
+        public int? KomisyonId { get; set; }
     }
 
     public class LookupItemViewModel

@@ -85,7 +85,10 @@
                             {
                                 foreach (var rol in Model.KurumsalRoller)
                                 {
-                                    <li class="mb-2"><i class="bx bx-badge-check me-2 text-primary"></i>@rol</li>
+                                    <li class="mb-2 d-flex align-items-center">
+                                        <i class="bx bx-badge-check me-2 text-primary"></i>
+                                        <span>@rol.Title</span>
+                                    </li>
                                 }
                             }
                             else
