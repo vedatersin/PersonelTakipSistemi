@@ -79,9 +79,27 @@
                     </div>
 
                     <div class="mt-4 text-start">
-                        <p class="mb-2"><i class="bx bx-map me-2"></i> <strong>İl:</strong> @Model.GorevliIl</p>
-                        <p class="mb-2"><i class="bx bx-buildings me-2"></i> <strong>Kurum:</strong> @Model.KadroKurum</p>
-                        <p class="mb-2"><i class="bx bx-male-female me-2"></i> <strong>Cinsiyet:</strong> @Model.Cinsiyet</p>
+                        <h6 class="text-muted small text-uppercase">Kurumsal Rolü</h6>
+                        <ul class="list-unstyled mb-0">
+                            @if (Model.KurumsalRoller != null && Model.KurumsalRoller.Any())
+                            {
+                                foreach (var rol in Model.KurumsalRoller)
+                                {
+                                    <li class="mb-2"><i class="bx bx-badge-check me-2 text-primary"></i>@rol</li>
+                                }
+                            }
+                            else
+                            {
+                                <li class="text-muted">-</li>
+                            }
+                        </ul>
+                    </div>
+
+                    <div class="mt-4 text-start">
+                        <h6 class="text-muted small text-uppercase">Sistem Yetkisi</h6>
+                         <ul class="list-unstyled mb-0">
+                             <li class="mb-2"><i class="bx bx-shield-quarter me-2 text-info"></i>@Model.SistemRol</li>
+                        </ul>
                     </div>
                 </div>
             </div>
@@ -92,27 +110,47 @@
             <div class="card mb-4">
                 <h5 class="card-header">Temel Bilgiler</h5>
                 <div class="card-body">
-                    <div class="table-responsive">
-                       <table class="table table-borderless">
-                           <tbody>
-                               <tr>
-                                   <td class="fw-bold" style="width: 30%;">TC Kimlik No</td>
-                                   <td>@Model.TcKimlikNo</td>
-                               </tr>
-                               <tr>
-                                   <td class="fw-bold">Telefon</td>
-                                   <td>@Model.Telefon</td>
-                               </tr>
-                               <tr>
-                                   <td class="fw-bold">E-posta</td>
-                                   <td>@Model.Eposta</td>
-                               </tr>
-                               <tr>
-                                   <td class="fw-bold">Kayıt Tarihi</td>
-                                   <td>@Model.CreatedAt.ToString("dd.MM.yyyy")</td>
-                               </tr>
-                           </tbody>
-                       </table>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <td class="fw-bold" style="width: 35%;">TC Kimlik No</td>
+                                        <td>@Model.TcKimlikNo</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Telefon</td>
+                                        <td>@Model.Telefon</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">E-posta</td>
+                                        <td>@Model.Eposta</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Kayıt Tarihi</td>
+                                        <td>@Model.CreatedAt.ToString("dd.MM.yyyy")</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-borderless">
+                                <tbody>
+                                     <tr>
+                                        <td class="fw-bold" style="width: 35%;">İl</td>
+                                        <td>@Model.GorevliIl</td>
+                                    </tr>
+                                     <tr>
+                                        <td class="fw-bold">Kurum</td>
+                                        <td>@Model.KadroKurum</td>
+                                    </tr>
+                                     <tr>
+                                        <td class="fw-bold">Cinsiyet</td>
+                                        <td>@Model.Cinsiyet</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

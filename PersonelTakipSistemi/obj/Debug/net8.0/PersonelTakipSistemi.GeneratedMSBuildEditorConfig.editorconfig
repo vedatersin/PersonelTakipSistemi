@@ -34,6 +34,14 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQmlsZGlyaW1Nb2R1bHVcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Gorevler/Detay.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR29yZXZsZXJcRGV0YXkuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Gorevler/Gorevlerim.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR29yZXZsZXJcR29yZXZsZXJpbS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Gorevler/KategoriYeni.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR29yZXZsZXJcS2F0ZWdvcmlZZW5pLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 

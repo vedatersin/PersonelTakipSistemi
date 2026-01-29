@@ -3,15 +3,16 @@
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
   <div class="app-brand demo pb-6">
-      <span class="app-brand-logo demo me-2">
-        <img src="~/sevilay-tema/assets/img/meb_logo.png" alt="MEB Logo" style="width: 55px; height: auto;" />
-      </span>
-      <div class="app-brand-text demo menu-text fw-bold ms-1" style="display: flex; flex-direction: column; line-height: 1.2; justify-content: center;">
-          <span style="font-size: 0.85rem; color: #fff; font-weight: 700; letter-spacing: 0.3px;">Temel Eğitim</span>
-          <span style="font-size: 0.85rem; color: #fff; font-weight: 700; letter-spacing: 0.3px;">Genel Müdürlüğü</span>
-          <span style="font-size: 0.70rem; color: #b1b9c2; margin-top: 2px;">Personel Takip Sistemi</span>
-      </div>
-    </a>
+      <a href="/" class="app-brand-link">
+        <span class="app-brand-logo demo me-2">
+            <img src="~/sevilay-tema/assets/img/meb_logo.png" alt="MEB Logo" style="width: 70px; height: auto;" />
+        </span>
+        <div class="app-brand-text demo menu-text fw-bold ms-2" style="display: flex; flex-direction: column; justify-content: center; text-align: left;">
+            <span style="font-size: 0.95rem; color: #fff; font-weight: 700; letter-spacing: 0.5px; line-height: 1.2;">Temel Eğitim</span>
+            <span style="font-size: 0.95rem; color: #fff; font-weight: 700; letter-spacing: 0.5px; line-height: 1.2;">Genel Müdürlüğü</span>
+            <span style="font-size: 0.75rem; color: #b1b9c2; margin-top: 4px; letter-spacing: 0.3px;">Personel Takip Sistemi</span>
+        </div>
+      </a>
 
 
   </div>
@@ -71,11 +72,6 @@
                 <div class="text-truncate" data-i18n="Personel Listesi">Personel Listesi</div>
               </a>
             </li>
-            <li class="menu-item @(isYetkilendirmeActive ? "active" : "")">
-              <a asp-controller="Personel" asp-action="Yetkilendirme" class="menu-link">
-                <div class="text-truncate" data-i18n="Personel Yetkilendirme">Personel Yetkilendirme</div>
-              </a>
-            </li>
           </ul>
         </li>
     }
@@ -91,6 +87,18 @@
         </li>
     }
 
+    @if (userRole == "Admin" || userRole == "Yönetici" || userRole == "Editör")
+    {
+        <!-- Yetkilendirme Modülü (New) -->
+        <!-- Yetkilendirme Modülü (New - Direct Link) -->
+        <li class="menu-item @(isYetkilendirmeActive ? "active" : "")">
+           <a asp-controller="Personel" asp-action="Yetkilendirme" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
+            <div class="text-truncate" data-i18n="Yetkilendirme Modülü">Yetkilendirme Modülü</div>
+          </a>
+        </li>
+    }
+
     <!-- Görevler Modülü (Tüm Yetkililer Erişebilir Varsayımı - veya Admin/Yönetici) -->
     @{
         bool isGorevlerController = string.Equals(currentController, "Gorevler", StringComparison.OrdinalIgnoreCase);
@@ -99,38 +107,46 @@
         bool isGorevListe = isGorevlerController && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase);
         // bool isGorevModuleOpen = isGorevlerController; // This variable is no longer used directly for the parent li's active state
     }
-    <!-- Görevler Modülü -->
-    <li class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Gorevler" ? "active open" : "")">
-      <a href="javascript:void(0);" class="menu-link menu-toggle">
-        <i class="menu-icon tf-icons bx bx-task"></i>
-        <div class="text-truncate" data-i18n="Görevler Modülü">Görevler Modülü</div>
-      </a>
-      <ul class="menu-sub">
-        <li class="menu-item @(isGorevYeni ? "active" : "")">
-          <a asp-controller="Gorevler" asp-action="Yeni" class="menu-link">
-            <div class="text-truncate" data-i18n="Yeni Görev Ekle">Yeni Görev Ekle</div>
+    @if (userRole == "Admin" || userRole == "Yönetici")
+    {
+        <!-- Görevler Modülü -->
+        <li class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Gorevler" && !string.Equals(currentAction, "Gorevlerim", StringComparison.OrdinalIgnoreCase) && !string.Equals(currentAction, "Detay", StringComparison.OrdinalIgnoreCase) ? "active open" : "")">
+          <a href="javascript:void(0);" class="menu-link menu-toggle">
+            <i class="menu-icon tf-icons bx bx-task"></i>
+            <div class="text-truncate" data-i18n="Görevler Modülü">Görevler Modülü</div>
           </a>
+          <ul class="menu-sub">
+            <li class="menu-item @(isGorevYeni ? "active" : "")">
+              <a asp-controller="Gorevler" asp-action="Yeni" class="menu-link">
+                <div class="text-truncate" data-i18n="Yeni Görev Ekle">Yeni Görev Ekle</div>
+              </a>
+            </li>
+            <li class="menu-item @(isGorevKategori ? "active" : "")">
+              <a asp-controller="Gorevler" asp-action="KategoriYeni" class="menu-link">
+                <div class="text-truncate" data-i18n="Görev Kategorisi Ekle">Görev Kategorisi Ekle</div>
+              </a>
+            </li>
+            <li class="menu-item @(isGorevListe ? "active" : "")">
+              <a asp-controller="Gorevler" asp-action="Liste" class="menu-link">
+                 <div class="text-truncate" data-i18n="Görev Listele">Görev Listele</div>
+              </a>
+            </li>
+          </ul>
         </li>
-        <li class="menu-item @(isGorevKategori ? "active" : "")">
-          <a asp-controller="Gorevler" asp-action="KategoriYeni" class="menu-link">
-            <div class="text-truncate" data-i18n="Görev Kategorisi Ekle">Görev Kategorisi Ekle</div>
-          </a>
-        </li>
-        <li class="menu-item @(isGorevListe ? "active" : "")">
-          <a asp-controller="Gorevler" asp-action="Liste" class="menu-link">
-             <div class="text-truncate" data-i18n="Görev Listele">Görev Listele</div>
-          </a>
-        </li>
-      </ul>
-    </li>
+    }
 
     <!-- Profilim & Bildirimler (Tüm Kullanıcılar İçin - En Altta) -->
-    <li class="menu-item @(isProfileActive ? "active open" : "")">
+    <li class="menu-item @(isProfileActive || string.Equals(currentAction, "Gorevlerim", StringComparison.OrdinalIgnoreCase) ? "active open" : "")">
          <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-user-circle"></i>
             <div class="text-truncate" data-i18n="Profilim">Profilim</div>
           </a>
           <ul class="menu-sub">
+            <li class="menu-item @(string.Equals(currentAction, "Gorevlerim", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                <a asp-controller="Gorevler" asp-action="Gorevlerim" class="menu-link">
+                    <div class="text-truncate" data-i18n="Görevlerim">Görevlerim</div>
+                </a>
+            </li>
             <li class="menu-item @(currentAction == "BenimDetay" || (currentAction == "Detay" && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr) ? "active" : "")">
                 <a asp-controller="Personel" asp-action="BenimDetay" class="menu-link">
                     <div class="text-truncate" data-i18n="Profil Bilgileri">Profil Bilgileri</div>

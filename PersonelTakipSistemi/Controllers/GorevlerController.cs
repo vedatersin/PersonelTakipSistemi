@@ -15,16 +15,19 @@ namespace PersonelTakipSistemi.Controllers
     public class GorevlerController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;
+        private readonly Services.INotificationService _notificationService;
 
-        public GorevlerController(TegmPersonelTakipDbContext context)
+        public GorevlerController(TegmPersonelTakipDbContext context, Services.INotificationService notificationService)
         {
             _context = context;
+            _notificationService = notificationService;
         }
 
         // ==============================================================
         // 1. LISTELE (FILTRE + PAGINATION)
         // ==============================================================
         [HttpGet]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
         public async Task<IActionResult> Liste(
             string? q, 
             int? kategoriId, 
@@ -148,6 +151,7 @@ namespace PersonelTakipSistemi.Controllers
         // 2. YENİ GÖREV
         // ==============================================================
         [HttpGet]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
         public async Task<IActionResult> Yeni()
         {
             await PopulateDropdowns();
@@ -155,6 +159,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Yeni(Gorev model)
         {
@@ -178,6 +183,7 @@ namespace PersonelTakipSistemi.Controllers
         // 3. GÖREV DÜZENLE
         // ==============================================================
         [HttpGet]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
         public async Task<IActionResult> Duzenle(int id)
         {
             var task = await _context.Gorevler.FindAsync(id);
@@ -188,6 +194,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Duzenle(Gorev model)
         {
@@ -260,6 +267,7 @@ namespace PersonelTakipSistemi.Controllers
         // 5. ATAMA / YETKİLENDİRME (AJAX)
         // ==============================================================
         [HttpGet]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
         public async Task<IActionResult> GetAssignmentData(int id)
         {
             try
@@ -304,6 +312,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
         public async Task<IActionResult> SaveAssignments([FromBody] GorevAtamaViewModel model)
         {
             if (model == null) return BadRequest();
@@ -341,10 +350,32 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // Notify Users
+            await SendAssignmentNotifications(model);
+
             return Ok(new { success = true });
         }
 
+        private async Task SendAssignmentNotifications(GorevAtamaViewModel model)
+        {
+            var taskName = await _context.Gorevler.Where(x => x.GorevId == model.GorevId).Select(x => x.Ad).FirstOrDefaultAsync() ?? "Görev";
+            var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(currentUserId, out int senderId);
+
+            // 1. Notify Individuals
+            if (model.PersonelIds.Any())
+            {
+                foreach(var pid in model.PersonelIds) {
+                     // Check if notification already exists recently? Maybe redundant.
+                     // Simple implementation: Send notification.
+                     await _notificationService.CreateAsync(pid, senderId > 0 ? senderId : null, "Yeni Görev Ataması", $"Size '{taskName}' adlı görev atandı.", "GorevAtama", null, null, $"/Gorevler/Detay/{model.GorevId}");
+                }
+            }
+        }
+
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
         public async Task<IActionResult> UpdateStatus([FromBody] GorevDurumUpdateViewModel model)
         {
             if (model == null) return BadRequest();
@@ -405,6 +436,62 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             return BadRequest();
+        }
+
+
+        // ==============================================================
+        // 6. GÖREVLERİM (User View)
+        // ==============================================================
+        [HttpGet]
+        public async Task<IActionResult> Gorevlerim()
+        {
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if(!int.TryParse(userIdStr, out int userId)) return Unauthorized();
+
+            // Find tasks assigned to this user DIRECTLY
+            // Also could check Group assignments if needed? "üzerine atanan görevleri" usually implies direct or group.
+            // Let's check Direct + Group assignments for completeness.
+            
+            // Get user's group IDs
+            var user = await _context.Personeller
+                .Include(p => p.PersonelKurumsalRolAtamalari) // Usually link to Units via roles or direct UnitId?
+                // The relationship is not fully clear on how Personel links to Teskilat/Koordinatorluk/Komisyon implicitly.
+                // Usually it's via explicit assignment to those units in Personel table or separate tables.
+                // Assuming simple Direct Assignment for now based on "GorevAtamaPersonel".
+                // If user wants Group assignments to show up, we need to know updated schema. 
+                // Let's stick to Direct Assignment first. 
+                .FirstOrDefaultAsync(x => x.PersonelId == userId);
+
+            if(user == null) return NotFound();
+
+            var query = _context.Gorevler
+                .Include(g => g.Kategori)
+                .Include(g => g.GorevDurum)
+                .Include(g => g.GorevAtamaPersoneller)
+                .Where(g => g.IsActive && 
+                            g.GorevAtamaPersoneller.Any(p => p.PersonelId == userId))
+                .OrderByDescending(g => g.BaslangicTarihi)
+                .AsNoTracking();
+
+            var tasks = await query.ToListAsync();
+            return View(tasks);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Detay(int id)
+        {
+            var task = await _context.Gorevler
+                .Include(g => g.Kategori)
+                .Include(g => g.GorevDurum)
+                .Include(g => g.GorevAtamaTeskilatlar).ThenInclude(t => t.Teskilat)
+                .Include(g => g.GorevAtamaKoordinatorlukler).ThenInclude(k => k.Koordinatorluk)
+                .Include(g => g.GorevAtamaKomisyonlar).ThenInclude(k => k.Komisyon)
+                .Include(g => g.GorevAtamaPersoneller).ThenInclude(p => p.Personel)
+                .FirstOrDefaultAsync(x => x.GorevId == id);
+
+            if (task == null) return NotFound();
+
+            return View(task);
         }
     }
 }

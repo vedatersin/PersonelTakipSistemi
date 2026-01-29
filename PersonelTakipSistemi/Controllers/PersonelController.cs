@@ -1140,7 +1140,14 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
                 .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
                 .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
+                .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
                 .Include(p => p.SistemRol) // Include SistemRol
+                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pk => pk.KurumsalRol)
+                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pk => pk.Koordinatorluk)
+                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pk => pk.Komisyon)
+                .Include(p => p.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
+                .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk).ThenInclude(k => k.Teskilat)
+                .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(ko => ko.Teskilat)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.PersonelId == id);
 
@@ -1168,8 +1175,70 @@ namespace PersonelTakipSistemi.Controllers
                 Uzmanliklar = personel.PersonelUzmanliklar.Select(pu => pu.Uzmanlik.Ad).ToList(),
                 GorevTurleri = personel.PersonelGorevTurleri.Select(pg => pg.GorevTuru.Ad).ToList(),
                 IsNitelikleri = personel.PersonelIsNitelikleri.Select(pi => pi.IsNiteligi.Ad).ToList(),
-                SistemRol = personel.SistemRol?.Ad // Updated
+
+                SistemRol = personel.SistemRol?.Ad,
+                KurumsalRoller = new List<string>() // Will be populated below
             };
+
+            // Aggregate Roles logic
+            // 1. Explicit Roles
+            var explicitRoles = personel.PersonelKurumsalRolAtamalari.Select(r => 
+                r.KurumsalRol.Ad + 
+                (r.Koordinatorluk != null ? $" ({r.Koordinatorluk.Ad})" : "") +
+                (r.Komisyon != null ? $" ({r.Komisyon.Ad})" : "")
+            ).ToList();
+            model.KurumsalRoller.AddRange(explicitRoles);
+
+            // 2. Implicit Roles (Unit Assignments)
+            // Hierarchy: Komisyon -> Koordinatorluk -> Teskilat
+            // We want to hide "Parent" if "Child" is present.
+            
+            var coveredKoordinatorlukIds = new HashSet<int>();
+            var coveredTeskilatIds = new HashSet<int>();
+
+            // A. Komisyon Memberships
+            // Format: "[Koordinatorluk Adı] [Komisyon Adı] Personeli"
+            foreach(var pk in personel.PersonelKomisyonlar)
+            {
+                 var text = $"{pk.Komisyon.Koordinatorluk.Ad} {pk.Komisyon.Ad} Personeli";
+                 model.KurumsalRoller.Add(text);
+
+                 // Mark parent Koordinatorluk and its Teskilat as covered
+                 coveredKoordinatorlukIds.Add(pk.Komisyon.KoordinatorlukId);
+                 coveredTeskilatIds.Add(pk.Komisyon.Koordinatorluk.TeskilatId);
+            }
+
+            // B. Koordinatorluk Memberships
+            // Show only if NOT covered by a Komisyon
+            foreach(var pk in personel.PersonelKoordinatorlukler)
+            {
+                 // Also check if they have an explicit role here (already handled above, but we don't mute implicit roles based on explicit ones usually, 
+                 // but if the user wants to see "Il Koordinatoru" AND "Personel (...)", we keep both.
+                 // But the requirement is about hiding generic parent units.
+                 
+                 if (!coveredKoordinatorlukIds.Contains(pk.KoordinatorlukId))
+                 {
+                     model.KurumsalRoller.Add($"Personel ({pk.Koordinatorluk.Ad})");
+                     coveredTeskilatIds.Add(pk.Koordinatorluk.TeskilatId);
+                 }
+            }
+
+            // C. Teskilat Memberships
+            // Show only if NOT covered by Koordinatorluk (or Komisyon)
+            foreach(var pt in personel.PersonelTeskilatlar)
+            {
+                if (!coveredTeskilatIds.Contains(pt.TeskilatId))
+                {
+                    model.KurumsalRoller.Add($"Personel ({pt.Teskilat.Ad})");
+                }
+            }
+
+            // Cleanup: If we have specific roles + "Personel", remove "Personel"
+            // "Personel" is likely coming from explicit roles as a generic role.
+            if (model.KurumsalRoller.Count > 1 && model.KurumsalRoller.Contains("Personel"))
+            {
+                model.KurumsalRoller.Remove("Personel");
+            }
 
             return View(model);
         }

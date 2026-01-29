@@ -1,0 +1,130 @@
+@model PersonelTakipSistemi.Models.Gorev
+
+@{
+    ViewData["Title"] = "Görev Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var statusClass = Model.GorevDurumId switch
+    {
+        1 => "bg-label-warning",
+        2 => "bg-label-info",
+        3 => "bg-label-success",
+        4 => "bg-label-danger",
+        _ => "bg-label-secondary"
+    };
+}
+
+<div class="row">
+    <div class="col-md-12 mb-3">
+        <a asp-action="Gorevlerim" class="btn btn-label-secondary mb-3">
+            <i class="bx bx-arrow-back me-1"></i> Görevlerim'e Dön
+        </a>
+    </div>
+
+    <!-- Main Detail Card -->
+    <div class="col-xl-8 col-lg-7 col-md-12">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">@Model.Ad</h5>
+                <span class="badge @statusClass">@Model.GorevDurum?.Ad</span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Kategori</label>
+                        <div class="fw-bold">@Model.Kategori?.Ad</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label text-muted">Durum Açıklaması / Notu</label>
+                        <div class="fw-bold">
+                            @if(!string.IsNullOrEmpty(Model.DurumAciklamasi))
+                            {
+                                @Model.DurumAciklamasi
+                            }
+                            else
+                            {
+                                <em class="text-muted">-</em>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted">Açıklama</label>
+                    <div class="border rounded p-3 bg-light">
+                        @if(!string.IsNullOrEmpty(Model.Aciklama))
+                        {
+                            @Html.Raw(Model.Aciklama.Replace("\n", "<br>"))
+                        }
+                        else 
+                        {
+                             <span class="text-muted">Açıklama yok.</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Başlangıç Tarihi</label>
+                        <div><i class="bx bx-calendar me-1"></i> @Model.BaslangicTarihi.ToString("dd.MM.yyyy")</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted">Bitiş Tarihi</label>
+                        <div><i class="bx bx-calendar-check me-1"></i> @(Model.BitisTarihi.HasValue ? Model.BitisTarihi.Value.ToString("dd.MM.yyyy") : "-")</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar / Assignments Card -->
+    <div class="col-xl-4 col-lg-5 col-md-12">
+        <div class="card mb-4">
+             <div class="card-header border-bottom">
+                 <h6 class="mb-0">Atamalar</h6>
+             </div>
+             <div class="card-body p-0">
+                 <ul class="list-group list-group-flush">
+                     <!-- Personeller -->
+                     @if(Model.GorevAtamaPersoneller != null && Model.GorevAtamaPersoneller.Any())
+                     {
+                         <li class="list-group-item bg-light fw-bold small text-uppercase">Personeller</li>
+                         @foreach(var ap in Model.GorevAtamaPersoneller)
+                         {
+                             <li class="list-group-item d-flex align-items-center">
+                                 <div class="avatar avatar-xs me-2">
+                                     <span class="avatar-initial rounded-circle bg-label-primary">
+                                         @(ap.Personel?.Ad?.Substring(0,1))@(ap.Personel?.Soyad?.Substring(0,1))
+                                     </span>
+                                 </div>
+                                 <span>@ap.Personel?.Ad @ap.Personel?.Soyad</span>
+                             </li>
+                         }
+                     }
+
+                     <!-- Teskilatlar -->
+                     @if(Model.GorevAtamaTeskilatlar != null && Model.GorevAtamaTeskilatlar.Any())
+                     {
+                          <li class="list-group-item bg-light fw-bold small text-uppercase mt-2">Teşkilatlar</li>
+                          @foreach(var at in Model.GorevAtamaTeskilatlar)
+                          {
+                              <li class="list-group-item">
+                                  <i class="bx bx-building me-2 text-muted"></i> @at.Teskilat?.Ad
+                              </li>
+                          }
+                     }
+                 </ul>
+                 
+                 @if(
+                     (!Model.GorevAtamaPersoneller?.Any() ?? true) && 
+                     (!Model.GorevAtamaTeskilatlar?.Any() ?? true) && 
+                     (!Model.GorevAtamaKoordinatorlukler?.Any() ?? true) && 
+                     (!Model.GorevAtamaKomisyonlar?.Any() ?? true)
+                   )
+                 {
+                     <div class="p-3 text-center text-muted">Atama bulunmuyor.</div>
+                 }
+             </div>
+        </div>
+    </div>
+</div>

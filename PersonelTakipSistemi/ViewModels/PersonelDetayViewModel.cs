@@ -24,6 +24,10 @@ namespace PersonelTakipSistemi.ViewModels
         public List<string> GorevTurleri { get; set; } = new List<string>();
         public List<string> IsNitelikleri { get; set; } = new List<string>();
 
+        // 2024-01-28 Refactor: Show assigned roles in profile card
+        public List<string> KurumsalRoller { get; set; } = new List<string>();
+
+
         // Rol bazlı UI kontrolü için
         public string SistemRol { get; set; } = "Kullanıcı";
     }
