@@ -1,0 +1,166 @@
+@model PersonelTakipSistemi.ViewModels.IstatistikViewModel
+@{
+    ViewData["Title"] = "İstatistik ve Raporlar";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Modüller /</span> İstatistik ve Raporlar</h4>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div class="content-left">
+                            <span>Toplam Personel</span>
+                            <div class="d-flex align-items-end mt-2">
+                                <h3 class="mb-0 me-2 text-white">@Model.ToplamPersonel</h3>
+                                <small class="text-white-50">(Aktif)</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-white text-primary rounded p-2">
+                            <i class="bx bx-user bx-sm"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div class="content-left">
+                            <span>Komisyonlar</span>
+                            <div class="d-flex align-items-end mt-2">
+                                <h3 class="mb-0 me-2 text-white">@Model.ToplamKomisyon</h3>
+                                <small class="text-white-50">Adet</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-white text-warning rounded p-2">
+                            <i class="bx bx-group bx-sm"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div class="content-left">
+                            <span>Toplam Görev Ataması</span>
+                            <div class="d-flex align-items-end mt-2">
+                                <h3 class="mb-0 me-2 text-white">@Model.ToplamGorev</h3>
+                                <small class="text-white-50">Rol/Üyelik</small>
+                            </div>
+                        </div>
+                        <span class="badge bg-white text-success rounded p-2">
+                            <i class="bx bx-task bx-sm"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+             <div class="card bg-info text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-start justify-content-between">
+                        <div class="content-left">
+                            <span>Cinsiyet Dağılımı</span>
+                            <div class="d-flex align-items-end mt-2">
+                                <div class="d-flex flex-column">
+                                    <small class="text-white">Kadın: @Model.KadinPersonelSayisi</small>
+                                    <small class="text-white">Erkek: @Model.ErkekPersonelSayisi</small>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="badge bg-white text-info rounded p-2">
+                            <i class="bx bx-male-female bx-sm"></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Top Occupied Commissions -->
+        <div class="col-md-6 col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title m-0 me-2">Komisyon Doluluk Oranları (Top 10)</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="p-0 m-0">
+                        @foreach (var item in Model.KomisyonDoluluklari)
+                        {
+                            <li class="d-flex mb-4 pb-1">
+                                <div class="avatar flex-shrink-0 me-3">
+                                    <span class="avatar-initial rounded bg-label-primary">
+                                        <i class="bx bx-group"></i>
+                                    </span>
+                                </div>
+                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
+                                    <div class="me-2">
+                                        <h6 class="mb-0">@item.KomisyonAd</h6>
+                                        <small class="text-muted">@item.BagliBirim</small>
+                                    </div>
+                                    <div class="user-progress">
+                                        <small class="fw-semibold">@item.UyeSayisi Üye</small>
+                                        <div class="progress mt-1" style="height: 6px; width: 100px;">
+                                            <div class="progress-bar bg-primary" role="progressbar" style="width: @Math.Min(item.DolulukYuzdesi, 100)%" aria-valuenow="@item.DolulukYuzdesi" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Coordination Distribution -->
+        <div class="col-md-6 col-lg-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title m-0 me-2">İl Koordinatörlüğü Personel Sayıları</h5>
+                </div>
+                <div class="table-responsive text-nowrap">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Birim Adı</th>
+                                <th>Personel Sayısı</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody class="table-border-bottom-0">
+                            @foreach (var item in Model.TeskilatDagilimlari)
+                            {
+                                <tr>
+                                    <td><i class="bx bx-buildings me-2 text-warning"></i> <strong>@item.BirimAd</strong></td>
+                                    <td>@item.PersonelSayisi</td>
+                                    <td>
+                                        @if (item.PersonelSayisi > 15)
+                                        {
+                                            <span class="badge bg-label-success me-1">Yoğun</span>
+                                        }
+                                        else if (item.PersonelSayisi > 5)
+                                        {
+                                            <span class="badge bg-label-info me-1">Normal</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-label-warning me-1">Düşük</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

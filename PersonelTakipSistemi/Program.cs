@@ -12,6 +12,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.INotificationService, PersonelTakipSistemi.Services.NotificationService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.ILogService, PersonelTakipSistemi.Services.LogService>();
+builder.Services.AddScoped<PersonelTakipSistemi.Services.DataSeedingService>();
 builder.Services.AddHostedService<PersonelTakipSistemi.Services.NotificationBackgroundService>();
 
 // Connection String
