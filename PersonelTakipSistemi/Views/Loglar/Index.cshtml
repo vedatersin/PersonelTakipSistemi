@@ -1,0 +1,136 @@
+@model List<PersonelTakipSistemi.Models.SistemLog>
+@{
+    ViewData["Title"] = "Sistem Logları";
+    int currentPage = ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages;
+    string search = ViewBag.Search;
+    string type = ViewBag.Type;
+    string baslangic = ViewBag.Baslangic;
+    string bitis = ViewBag.Bitis;
+}
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Sistem Logları</h5>
+            </div>
+            
+            <div class="card-body">
+                <!-- Filter Form -->
+                <form method="get" class="row gx-3 gy-2 align-items-end mb-4">
+                    <div class="col-md-2">
+                        <label class="form-label">İşlem Türü</label>
+                        <select name="type" class="form-select">
+                            <option value="">Tümü</option>
+                            <option value="Giris" selected="@(type == "Giris")">Giriş</option>
+                            <option value="Cikis" selected="@(type == "Cikis")">Çıkış</option>
+                            <option value="Ekleme" selected="@(type == "Ekleme")">Ekleme</option>
+                            <option value="Guncelleme" selected="@(type == "Guncelleme")">Güncelleme</option>
+                            <option value="Silme" selected="@(type == "Silme")">Silme</option>
+                            <option value="Yetkilendirme" selected="@(type == "Yetkilendirme")">Yetkilendirme</option>
+                            <option value="Bildirim" selected="@(type == "Bildirim")">Bildirim</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Arama (Ad, TC, IP, Açıklama)</label>
+                        <input type="text" name="search" class="form-control" value="@search" placeholder="Ara..." />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Başlangıç</label>
+                        <input type="date" name="baslangic" class="form-control" value="@baslangic" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Bitiş</label>
+                        <input type="date" name="bitis" class="form-control" value="@bitis" />
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-primary w-100">Filtrele</button>
+                    </div>
+                </form>
+
+                <!-- Table -->
+                <div class="table-responsive text-nowrap">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>İşlem</th>
+                                <th>Kullanıcı</th>
+                                <th>IP Adresi</th>
+                                <th>Açıklama</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model != null && Model.Any())
+                            {
+                                @foreach (var log in Model)
+                                {
+                                    <tr>
+                                        <td>@log.Tarih.ToString("dd.MM.yyyy HH:mm:ss")</td>
+                                        <td>
+                                            @if(log.IslemTuru == "Giris") { <span class="badge bg-label-success">Giriş</span> }
+                                            else if(log.IslemTuru == "Cikis") { <span class="badge bg-label-secondary">Çıkış</span> }
+                                            else if(log.IslemTuru == "Ekleme") { <span class="badge bg-label-primary">Ekleme</span> }
+                                            else if(log.IslemTuru == "Guncelleme") { <span class="badge bg-label-info">Güncelleme</span> }
+                                            else if(log.IslemTuru == "Silme") { <span class="badge bg-label-danger">Silme</span> }
+                                            else if(log.IslemTuru == "Yetkilendirme") { <span class="badge bg-label-warning">Yetki</span> }
+                                            else if(log.IslemTuru == "Atama") { <span class="badge bg-label-info">Atama</span> }
+                                            else { <span class="badge bg-label-dark">@log.IslemTuru</span> }
+                                        </td>
+                                        <td>
+                                            @if(!string.IsNullOrEmpty(log.KullaniciAdSoyad))
+                                            {
+                                                <div class="d-flex flex-column">
+                                                    <span>@log.KullaniciAdSoyad</span>
+                                                    @if(!string.IsNullOrEmpty(log.TcKimlikNo)) { <small class="text-muted">@log.TcKimlikNo</small> }
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">-</span>
+                                            }
+                                        </td>
+                                        <td>@log.IpAdresi</td>
+                                        <td>
+                                            <span data-bs-toggle="tooltip" title="@log.Detay">@log.Aciklama</span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center">Kayıt bulunamadı.</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                @if (totalPages > 1)
+                {
+                    <div class="d-flex justify-content-center mt-4">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = currentPage - 1, search, type, baslangic, bitis })">Önceki</a>
+                                </li>
+                                @for (int i = 1; i <= totalPages; i++)
+                                {
+                                    <li class="page-item @(currentPage == i ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new { page = i, search, type, baslangic, bitis })">@i</a>
+                                    </li>
+                                }
+                                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                    <a class="page-link" href="@Url.Action("Index", new { page = currentPage + 1, search, type, baslangic, bitis })">Sonraki</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

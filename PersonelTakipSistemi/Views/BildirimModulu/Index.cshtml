@@ -164,6 +164,10 @@
                         </label>
                     </div>
                     <span class="text-muted small" id="totalCountBadge">0 kişi listelendi</span>
+                    
+                    <button id="btnClearSelection" class="btn btn-sm btn-text-danger ms-auto" type="button" title="Tüm seçimleri kaldır">
+                        <span class="small"><i class="bx bx-x-circle me-1"></i>Seçimi Temizle</span>
+                    </button>
                 </div>
             </div>
             
@@ -256,9 +260,12 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
+        // GLOBAL STATE
+        var selectedMap = new Map(); // Store full object: id -> personelObj
+        var isProgrammaticChange = false; // Flag to prevent recursive filter triggers
+
         $(document).ready(function() {
             console.log("Bildirim Modülü Yükleniyor...");
-            // Init Components
             initSenderSelect();
             initDatePicker();
             initFilters();
@@ -269,283 +276,193 @@
             });
 
             $('#selectAll').change(function() {
+                // Sadece GÖRÜNEN satırları seçer
                 const isChecked = $(this).is(':checked');
-                $('.personel-checkbox').prop('checked', isChecked).trigger('change');
+                $('.personel-checkbox').each(function() {
+                    // Sadece o anki görünümde unchecked olanları ekle veya çıkar
+                    var row = $(this).closest('tr');
+                    // Data attribute'dan veriyi al
+                    var pData = row.data('personel'); 
+                    var id = pData.personelId;
+                    
+                    if(isChecked) {
+                        if(!selectedMap.has(id)) selectedMap.set(id, pData);
+                        $(this).prop('checked', true);
+                        row.addClass('selected');
+                    } else {
+                        // Tümünü kaldır dediğinde, sadece görünürleri mi kaldırmalı yoksa hepsini mi?
+                        // Genelde "Tümünü Seç" checkbox'ı o anki listeyi yönetir.
+                        // "Seçimi Temizle" butonu genel temizlik yapar.
+                         if(selectedMap.has(id)) selectedMap.delete(id);
+                         $(this).prop('checked', false);
+                         row.removeClass('selected');
+                    }
+                });
+                updateCount();
             });
             
-            // Form Submit
             $('#notificationForm').on('submit', function(e) {
                 e.preventDefault();
                 submitForm();
             });
+
+            // "Seçimi Temizle" Button Event (Added dynamically or static)
+            // But we need to add the button to the DOM first (see HTML update below)
+            $('#btnClearSelection').on('click', function() {
+                if(selectedMap.size === 0) return;
+                
+                Swal.fire({
+                    title: 'Emin misiniz?',
+                    text: "Tüm seçimleriniz kaldırılacak.",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Evet, Temizle',
+                    cancelButtonText: 'İptal'
+                }).then((res) => {
+                    if(res.isConfirmed) {
+                        selectedMap.clear();
+                        // Re-render current view to remove checks/highlights
+                        // Or just simplistic UI update:
+                        $('.personel-checkbox').prop('checked', false);
+                        $('.personel-card').removeClass('selected');
+                        $('#selectAll').prop('checked', false);
+                        
+                        // If we are showing "only selected" or merged list, we might want to refresh to remove them from view if they don't match filter
+                        // But simpler is just uncheck.
+                        // Actually, if they was pinned and don't match filter, they should disappear?
+                        // Let's reload list to be clean.
+                        loadPersonelList(false); // Reload without prompt, but since map is empty, it's a fresh load.
+                        updateCount();
+                    }
+                });
+            });
         });
 
         // --- FILTERS ---
-        // Unified initFilters (Server-Side AJAX Cascading)
         function initFilters() {
-            // 1. Init Select2 for all
             $('.form-select').select2({
-                theme: 'bootstrap-5', 
-                width: '100%', 
-                allowClear: false,
-                language: "tr"
+                theme: 'bootstrap-5', width: '100%', allowClear: false, language: "tr"
             });
 
-            // 2. Set placeholders and disable dependent ones
-            $('#filterKoordinatorluk').prop('disabled', true).val(null).trigger('change');
-            $('#filterKomisyon').prop('disabled', true).val(null).trigger('change');
+            $('#filterKoordinatorluk, #filterKomisyon').prop('disabled', true).val(null).trigger('change');
 
-            // 3. Initial Load (Just Personnel)
-            // Independent lists are now server-rendered via ViewBag
-            loadPersonelList();
+            loadPersonelList(true); // Initial load
 
-            // 4. Cascading Events (Server-Side)
-            $('#filterTeskilat').on('change', function() {
-                var teskilatId = $(this).val();
-                loadKoordinatorlukler(teskilatId);
+            // Cascading
+            $('#filterTeskilat').on('change', function() { loadKoordinatorlukler($(this).val()); });
+            $('#filterKoordinatorluk').on('change', function() { loadKomisyonlar($(this).val()); });
+
+            // Search (Debounced slightly ideally, but direct is fine for now)
+            $('#filterSearch').on('input', function() { loadPersonelListWithCheck(); });
+
+            // Filter Change Handlers (Intercept logic)
+            var filters = '#filterTeskilat, #filterKoordinatorluk, #filterKomisyon, #filterBrans, #filterKurumsalRol, #filterSistemRol, #filterYazilim, #filterUzmanlik, #filterGorevTuru, #filterIsNiteligi';
+            
+            $(filters).on('change', function(e) {
+                if(isProgrammaticChange) return;
+                loadPersonelListWithCheck();
             });
+        }
 
-            $('#filterKoordinatorluk').on('change', function() {
-                var koordinatorlukId = $(this).val();
-                loadKomisyonlar(koordinatorlukId);
-            });
-
-            // Search input (Instant)
-            $('#filterSearch').on('input', function() {
-                loadPersonelList();
-            });
-
-             // Trigger list reload on any filter change
-             $('#filterTeskilat, #filterKoordinatorluk, #filterKomisyon, #filterBrans, #filterKurumsalRol, #filterSistemRol, #filterYazilim, #filterUzmanlik, #filterGorevTuru, #filterIsNiteligi').on('change', function() {
-                 loadPersonelList();
-             });
+        // Wrapper to check if we should prompt user
+        function loadPersonelListWithCheck() {
+            if (selectedMap.size > 0) {
+                // Ask user
+                Swal.fire({
+                    title: 'Seçimleriniz Var',
+                    text: "Filtreleme kriterlerini değiştirdiniz. Mevcut seçimleriniz korunsun mu?",
+                    icon: 'question',
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'Evet, Koru',
+                    denyButtonText: 'Hayır, Temizle',
+                    cancelButtonText: 'İptal' // User can cancel the filter change? Hard to revert select2 easily without state tracking. 
+                    // Let's assume Cancel = Keep working but don't refresh list? No, that leaves UI inconsistent.
+                    // Treating Cancel as "Do nothing" implies we revert filter value? Too complex for Select2.
+                    // Let's simplify: Cancel -> Treat as Keep. Or Hide Cancel.
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // YES -> Keep selections, Append new results
+                        loadPersonelList(false, true); // keepSelection = true
+                    } else if (result.isDenied) {
+                        // NO -> Clear selections, Load new results
+                        selectedMap.clear();
+                        $('#selectAll').prop('checked', false);
+                        loadPersonelList(false, false);
+                    } else {
+                        // Cancel -> Do nothing? But filter IS changed. 
+                        // User might want to revert the filter change.
+                        // Difficult to implement revert. sticking to "Keep" logic if cancelled is safer.
+                        loadPersonelList(false, true); 
+                    }
+                });
+            } else {
+                // No selections, just load
+                loadPersonelList(false, false);
+            }
         }
 
         function loadKoordinatorlukler(teskilatId) {
+            isProgrammaticChange = true;
             var $dropdown = $('#filterKoordinatorluk');
-            var $childDropdown = $('#filterKomisyon');
-
+            var $child = $('#filterKomisyon');
+            
             if (!teskilatId) {
-                // Disable and Reset
                 $dropdown.empty().append('<option value="">Önce Teşkilat Seçiniz</option>').prop('disabled', true).val(null).trigger('change');
-                $childDropdown.empty().append('<option value="">Önce Koordinatörlük Seçiniz</option>').prop('disabled', true).val(null).trigger('change');
+                $child.empty().append('<option value="">Önce Koordinatörlük Seçiniz</option>').prop('disabled', true).val(null).trigger('change');
+                isProgrammaticChange = false;
                 return;
             }
 
-            // AJAX Call to Server
             $.ajax({
-                url: '/BildirimModulu/GetKoordinatorlukler',
-                data: { teskilatId: teskilatId },
+                url: '/BildirimModulu/GetKoordinatorlukler', data: { teskilatId: teskilatId },
                 success: function(data) {
                     $dropdown.empty().append('<option value="">Koordinatörlük: Tümü</option>');
-                    
                     if (data && data.length > 0) {
-                        $.each(data, function(i, item) {
-                            // Handle potential case differences just in case, though Controller returns Value/Text
-                            var val = item.value || item.Value;
-                            var txt = item.text || item.Text;
-                            $dropdown.append(new Option(txt, val, false, false));
-                        });
+                        $.each(data, function(i, item) { $dropdown.append(new Option(item.text || item.Text, item.value || item.Value)); });
                         $dropdown.prop('disabled', false);
                     } else {
-                        $dropdown.empty().append('<option value="">Bu teşkilata ait koordinatörlük yok</option>');
-                        $dropdown.prop('disabled', false); // Keep enabled to see message
+                        $dropdown.empty().append('<option value="">Kayıt Yok</option>');
                     }
-                    $dropdown.trigger('change'); // Refresh Select2
+                    $dropdown.trigger('change');
                 },
-                error: function() {
-                    console.error("Koordinatörlükler yüklenemedi.");
-                    $dropdown.prop('disabled', false); // Allow retry or show error state if needed
-                }
+                complete: function() { isProgrammaticChange = false; }
             });
         }
 
         function loadKomisyonlar(koordinatorlukId) {
+            isProgrammaticChange = true;
             var $dropdown = $('#filterKomisyon');
-
             if (!koordinatorlukId) {
-                // Disable and Reset
                 $dropdown.empty().append('<option value="">Önce Koordinatörlük Seçiniz</option>').prop('disabled', true).val(null).trigger('change');
+                isProgrammaticChange = false;
                 return;
             }
-
             $.ajax({
-                url: '/BildirimModulu/GetKomisyonlar',
-                data: { koordinatorlukId: koordinatorlukId },
+                url: '/BildirimModulu/GetKomisyonlar', data: { koordinatorlukId: koordinatorlukId },
                 success: function(data) {
                     $dropdown.empty().append('<option value="">Komisyon: Tümü</option>');
-                    
                     if (data && data.length > 0) {
-                         $.each(data, function(i, item) {
-                            var val = item.value || item.Value;
-                            var txt = item.text || item.Text;
-                            $dropdown.append(new Option(txt, val, false, false));
-                        });
+                        $.each(data, function(i, item) { $dropdown.append(new Option(item.text || item.Text, item.value || item.Value)); });
                         $dropdown.prop('disabled', false);
                     } else {
-                        $dropdown.empty().append('<option value="">Komisyon Yok</option>');
-                        $dropdown.prop('disabled', false);
+                        $dropdown.empty().append('<option value="">Kayıt Yok</option>');
                     }
                     $dropdown.trigger('change');
                 },
-                error: function() {
-                     console.error("Komisyonlar yüklenemedi.");
-                }
-            });
-        }
-        
-        // --- RENDER TABLE ---
-        function renderTable(data) {
-            console.log("Tablo render ediliyor:", data ? data.length + " kayıt" : "Veri yok");
-            var $tbody = $('#personelTableBody');
-            $tbody.empty();
-
-            if (!data || data.length === 0) {
-                $tbody.html('<tr><td colspan="5" class="text-center p-4">Kayıt bulunamadı.</td></tr>');
-                $('#totalCountBadge').text('0 kişi listelendi');
-                return;
-            }
-
-            // Update Badge
-            $('#totalCountBadge').text(data.length + ' kişi listelendi');
-
-            data.forEach(function(p) {
-                // Avatar Logic
-                var avatarHtml = '';
-                if (p.fotografYolu) {
-                    avatarHtml = `<img src="${p.fotografYolu}" class="rounded-circle" width="40" height="40" style="object-fit: cover;">`;
-                } else {
-                    var initials = getInitials(p.adSoyad);
-                    // Generate a consistent color based on char code
-                    var colorClass = getColorClass(initials);
-                    avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white ${colorClass}" style="width: 40px; height: 40px; font-size: 14px;">${initials}</div>`;
-                }
-
-                // Column 2: Koordinatörlük / Komisyon (Instead of System Role)
-                var birimHtml = '';
-                if(p.koordinatorlukler && p.koordinatorlukler.length > 0) {
-                     p.koordinatorlukler.forEach(k => {
-                        birimHtml += `<div class="badge bg-info text-dark mb-1 d-block text-truncate" style="max-width: 150px;" title="${k}">${k}</div>`;
-                     });
-                }
-                if(p.komisyonlar && p.komisyonlar.length > 0) {
-                     p.komisyonlar.forEach(k => {
-                        birimHtml += `<div class="badge bg-warning text-dark mb-1 d-block text-truncate" style="max-width: 150px;" title="${k}">${k}</div>`;
-                     });
-                }
-                if(!birimHtml) birimHtml = '<span class="text-muted small">-</span>';
-                
-                // Column 3: Uzmanlık (Instead of Birimler)
-                var uzmanlikHtml = '';
-                if(p.uzmanliklar && p.uzmanliklar.length > 0) {
-                     p.uzmanliklar.forEach(u => {
-                        uzmanlikHtml += `<span class="badge bg-secondary me-1 mb-1">${u}</span>`;
-                     });
-                } else {
-                    uzmanlikHtml = '<span class="text-muted small">-</span>';
-                }
-                
-                var row = `
-                    <tr class="personel-card" onclick="toggleSelection(${p.personelId}, this)">
-                        <td class="align-middle">
-                            <div class="form-check">
-                                <input class="form-check-input personel-checkbox" type="checkbox" value="${p.personelId}" onclick="event.stopPropagation(); updateCount();">
-                            </div>
-                        </td>
-                        <td class="align-middle">
-                            ${avatarHtml}
-                        </td>
-                        <td class="align-middle">
-                            <div class="fw-bold">${p.adSoyad}</div>
-                            <small class="text-muted"><i class="bx bx-map"></i> ${p.sehir}</small>
-                        </td>
-                        <td class="align-middle">
-                            ${birimHtml}
-                        </td>
-                        <td class="align-middle">
-                            ${uzmanlikHtml}
-                        </td>
-                    </tr>
-                `;
-                $tbody.append(row);
-            });
-        }
-        
-        function getInitials(name) {
-            if(!name) return '';
-            var names = name.split(' ');
-            var initials = names[0].substring(0, 1).toUpperCase();
-            if (names.length > 1) {
-                initials += names[names.length - 1].substring(0, 1).toUpperCase();
-            }
-            return initials;
-        }
-
-        function getColorClass(str) {
-            var colors = ['bg-primary', 'bg-secondary', 'bg-success', 'bg-danger', 'bg-warning text-dark', 'bg-info text-dark', 'bg-dark'];
-            var hash = 0;
-            for (var i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            var index = Math.abs(hash % colors.length);
-            return colors[index];
-        }        
-        function toggleSelection(id, row) {
-            var cb = $(row).find('.personel-checkbox');
-            cb.prop('checked', !cb.prop('checked'));
-            updateCount();
-        }
-
-        function updateCount() {
-            var count = $('.personel-checkbox:checked').length;
-            $('#selectedCount').text(count);
-            
-            // Eğer hepsi seçiliyse "Tümünü Seç" kutusunu işaretle, değilse kaldır
-            var total = $('.personel-checkbox').length;
-            $('#selectAll').prop('checked', total > 0 && count === total);
-            
-            // Satır stili (opsiyonel)
-            $('.personel-card').removeClass('selected');
-            $('.personel-checkbox:checked').closest('tr').addClass('selected');
-        }
-
-        // --- HELPERS (Sender, Datepicker) ---
-        function initSenderSelect() {
-            $.get('/BildirimModulu/GetSenders', function(data) {
-                var $sel = $('#senderSelect');
-                $sel.empty();
-                data.forEach(function(s) {
-                    $sel.append(new Option(s.ad, s.id));
-                });
+                complete: function() { isProgrammaticChange = false; }
             });
         }
 
-        function initDatePicker() {
-            flatpickr("#scheduleDate", {
-                enableTime: true,
-                dateFormat: "Y-m-d H:i",
-                minDate: "today",
-                time_24hr: true,
-                locale: "tr"
-            });
-        }
-
-        // --- PERSONEL LIST ---
-        function loadPersonelList() {
-            var search = $('#filterSearch').val();
-            // IDs
-            // var koordinatorlukId = $('#filterKoordinatorluk').val(); // This might be Name or ID depending on my resolution
-            
-            // Let's stick to IDs.
-            
+        // --- DATA LOADING & RENDERING ---
+        function loadPersonelList(isInitial = false, keepSelection = false) {
              var payload = {
-                search: search,
+                search: $('#filterSearch').val(),
                 teskilatId: $('#filterTeskilat').val(),
                 koordinatorlukId: $('#filterKoordinatorluk').val(),
                 komisyonId: $('#filterKomisyon').val(),
                 sistemRolId: $('#filterSistemRol').val(),
                 kurumsalRolId: $('#filterKurumsalRol').val(),
-                
                 bransAd: $('#filterBrans').val(),
                 yazilimAd: $('#filterYazilim').val(),
                 uzmanlikAd: $('#filterUzmanlik').val(),
@@ -558,8 +475,35 @@
             $.ajax({
                 url: '/BildirimModulu/GetPersonelList',
                 data: payload,
-                success: function(data) {
-                    renderTable(data);
+                success: function(serverData) {
+                    // Logic:
+                    // 1. If keepSelection is true, we take all items from selectedMap.values()
+                    // 2. We add items from serverData that are NOT in selectedMap
+                    // 3. We render the combined list. Pinned items first.
+                    
+                    var displayList = [];
+                    
+                    if (keepSelection && selectedMap.size > 0) {
+                        // Add pinned items
+                        selectedMap.forEach((v, k) => {
+                            // Optionally mark as pinned visually if desired, but not strictly asked
+                            displayList.push(v);
+                        });
+                        
+                        // Add new items from filter
+                        if (serverData && serverData.length > 0) {
+                            serverData.forEach(p => {
+                                if (!selectedMap.has(p.personelId)) { // Avoid duplicates
+                                    displayList.push(p);
+                                }
+                            });
+                        }
+                    } else {
+                        // Standard flow
+                        displayList = serverData || [];
+                    }
+                    
+                    renderTable(displayList);
                 },
                 error: function() {
                     $('#personelTableBody').html('<tr><td colspan="5" class="text-center text-danger">Yükleme hatası!</td></tr>');
@@ -567,29 +511,172 @@
             });
         }
 
-        function clearFilters() {
-            $('#filterSearch').val('');
-            $('select').val('').trigger('change');
+        function renderTable(data) {
+            var $tbody = $('#personelTableBody');
+            $tbody.empty();
+
+            if (!data || data.length === 0) {
+                // If map has items (shouldn't happen here if logic above is right, but check)
+               if(selectedMap.size > 0) {
+                   // Just render selected
+                   // Handled in loadPersonelList actually
+               } else {
+                   $tbody.html('<tr><td colspan="5" class="text-center p-4">Kayıt bulunamadı.</td></tr>');
+                   $('#totalCountBadge').text('0 kişi listelendi');
+                   return;
+               }
+            }
+
+            $('#totalCountBadge').text(data.length + ' kişi listelendi');
+
+            data.forEach(function(p) {
+                // Check if selected
+                var isSel = selectedMap.has(p.personelId);
+                var rowClass = 'personel-card' + (isSel ? ' selected' : '');
+                var checkProp = isSel ? 'checked' : '';
+                
+                 // Avatar Logic
+                var avatarHtml = '';
+                if (p.fotografYolu) {
+                    avatarHtml = `<img src="${p.fotografYolu}" class="rounded-circle" width="40" height="40" style="object-fit: cover;">`;
+                } else {
+                    var initials = getInitials(p.adSoyad);
+                    var colorClass = getColorClass(initials);
+                    avatarHtml = `<div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white ${colorClass}" style="width: 40px; height: 40px; font-size: 14px;">${initials}</div>`;
+                }
+                
+                 // Column 2: Birimler
+                var birimHtml = '';
+                if(p.koordinatorlukler) p.koordinatorlukler.forEach(k => birimHtml += `<div class="badge bg-info text-dark mb-1 d-block text-truncate" style="max-width: 150px;" title="${k}">${k}</div>`);
+                if(p.komisyonlar) p.komisyonlar.forEach(k => birimHtml += `<div class="badge bg-warning text-dark mb-1 d-block text-truncate" style="max-width: 150px;" title="${k}">${k}</div>`);
+                if(!birimHtml) birimHtml = '-';
+                
+                 // Column 3: Uzmanlık
+                var uzmanlikHtml = '';
+                if(p.uzmanliklar) p.uzmanliklar.forEach(u => uzmanlikHtml += `<span class="badge bg-secondary me-1 mb-1">${u}</span>`);
+                else uzmanlikHtml = '-';
+
+                // JSON string for data storage (store in a way we can retrieve)
+                // We'll attach the object via jQuery data() to the row after creation, or parse on click
+                
+                var $tr = $(`
+                    <tr class="${rowClass}">
+                        <td class="align-middle">
+                            <div class="form-check">
+                                <input class="form-check-input personel-checkbox" type="checkbox" value="${p.personelId}" ${checkProp}>
+                            </div>
+                        </td>
+                        <td class="align-middle">${avatarHtml}</td>
+                        <td class="align-middle">
+                            <div class="fw-bold">${p.adSoyad}</div>
+                            <small class="text-muted"><i class="bx bx-map"></i> ${p.sehir}</small>
+                        </td>
+                        <td class="align-middle">${birimHtml}</td>
+                        <td class="align-middle">${uzmanlikHtml}</td>
+                    </tr>
+                `);
+                
+                // Attach Data
+                $tr.data('personel', p);
+                
+                // Click Event
+                $tr.on('click', function(e) {
+                     // If clicked on checkbox, don't double trigger
+                     if($(e.target).is('input')) return;
+                     toggleBox(p.personelId, $tr);
+                });
+                
+                $tr.find('input').on('change', function() {
+                     toggleBoxState(p.personelId, $tr, $(this).is(':checked'));
+                });
+
+                $tbody.append($tr);
+            });
             
-            // Reset cascading
-             $('#filterKoordinatorluk').empty().append('<option value="">Önce Teşkilat Seçiniz</option>').prop('disabled', true);
-             $('#filterKomisyon').empty().append('<option value="">Önce Koordinatörlük Seçiniz</option>').prop('disabled', true);
-             
-            loadPersonelList();
+            updateCount();
         }
 
-        // --- SUBMIT ---
-        function submitForm() {
-            var recipientIds = [];
-            $('.personel-checkbox:checked').each(function() {
-                recipientIds.push(parseInt($(this).val()));
-            });
+        function toggleBox(id, $row) {
+            var $cb = $row.find('input');
+            var newState = !$cb.prop('checked');
+            $cb.prop('checked', newState);
+            toggleBoxState(id, $row, newState);
+        }
 
-            if (recipientIds.length === 0) {
+        function toggleBoxState(id, $row, isChecked) {
+            var pData = $row.data('personel');
+            
+            if(isChecked) {
+                $row.addClass('selected');
+                selectedMap.set(id, pData);
+            } else {
+                $row.removeClass('selected');
+                selectedMap.delete(id);
+            }
+            updateCount();
+        }
+
+        function updateCount() {
+            var count = selectedMap.size;
+            $('#selectedCount').text(count);
+            // SelectAll check logic
+            var visibleCount = $('.personel-checkbox').length;
+             var checkedVisible = $('.personel-checkbox:checked').length;
+            $('#selectAll').prop('checked', visibleCount > 0 && visibleCount === checkedVisible);
+        }
+        
+        function clearFilters() {
+            // "Filtreleri temizle dediğinde seçim yapılanlar listenin üzerinde tutulsun"
+            // So we just reset inputs and loadList(keepSelection=true)
+            
+            isProgrammaticChange = true;
+            $('#filterSearch').val('');
+            $('select').val('').trigger('change'); // Resets simple selects
+            // Specific Select2 Resets
+            // Reset Cascading manually to be sure
+            $('#filterKoordinatorluk').empty().append('<option value="">Önce Teşkilat Seçiniz</option>').prop('disabled', true);
+            $('#filterKomisyon').empty().append('<option value="">Önce Koordinatörlük Seçiniz</option>').prop('disabled', true);
+            isProgrammaticChange = false;
+
+            loadPersonelList(false, true); // Keep selections!
+        }
+        
+        // --- HELPERS ---
+        function getInitials(name) {
+            if(!name) return '';
+            var names = name.split(' ');
+            var initials = names[0].substring(0, 1).toUpperCase();
+            if (names.length > 1) initials += names[names.length - 1].substring(0, 1).toUpperCase();
+            return initials;
+        }
+
+        function getColorClass(str) {
+            var colors = ['bg-primary', 'bg-secondary', 'bg-success', 'bg-danger', 'bg-warning text-dark', 'bg-info text-dark', 'bg-dark'];
+            var hash = 0;
+            for (var i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            var index = Math.abs(hash % colors.length);
+            return colors[index];
+        }
+
+        function initSenderSelect() {
+            $.get('/BildirimModulu/GetSenders', function(data) {
+                var $sel = $('#senderSelect');
+                $sel.empty();
+                data.forEach(function(s) { $sel.append(new Option(s.ad, s.id)); });
+            });
+        }
+
+        function initDatePicker() {
+            flatpickr("#scheduleDate", { enableTime: true, dateFormat: "Y-m-d H:i", minDate: "today", time_24hr: true, locale: "tr" });
+        }
+
+        function submitForm() {
+            if (selectedMap.size === 0) {
                 Swal.fire('Uyarı', 'Lütfen en az bir kişi seçiniz.', 'warning');
                 return;
             }
 
+            var recipientIds = Array.from(selectedMap.keys());
             var senderId = $('#senderSelect').val();
             var title = $('#notifTitle').val();
             var content = $('#notifContent').val();
@@ -613,16 +700,15 @@
 
             $.ajax({
                 url: '/BildirimModulu/SendBulk',
-                type: 'POST',
-                contentType: 'application/json',
+                type: 'POST', contentType: 'application/json',
                 data: JSON.stringify(payload),
                 success: function(res) {
                     Swal.fire('Başarılı', isScheduled ? 'Bildirim planlandı.' : 'Bildirimler gönderildi.', 'success')
                         .then(() => {
-                           // Reset Form? 
                            $('#notifTitle').val('');
                            $('#notifContent').val('');
-                           $('.personel-checkbox').prop('checked', false);
+                           selectedMap.clear();
+                           loadPersonelList(false, false);
                            updateCount();
                            $('#btnSend').prop('disabled', false).html('<i class="bx bx-paper-plane me-1"></i> Gönder');
                         });

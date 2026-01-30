@@ -1,0 +1,128 @@
+@model PersonelTakipSistemi.ViewModels.PersonelAyarlarViewModel
+
+@{
+    ViewData["Title"] = "Personel Ayarları";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Ayarlar /</span> Personel Tanımları</h4>
+
+    <div class="row g-4">
+        <!-- 1. BRANŞLAR -->
+        <div class="col-md-6 col-xl-4">
+            @await Html.PartialAsync("_LookupCard", new { Title = "Branşlar", Items = Model.Branslar, Type = "brans" })
+        </div>
+
+        <!-- 2. KURUMSAL ROLLER -->
+        <div class="col-md-6 col-xl-4">
+            @await Html.PartialAsync("_LookupCard", new { Title = "Kurumsal Roller", Items = Model.KurumsalRoller, Type = "kurumsalrol" })
+        </div>
+        
+        <!-- 3. GÖREV TÜRLERİ -->
+        <div class="col-md-6 col-xl-4">
+            @await Html.PartialAsync("_LookupCard", new { Title = "Görev Türleri", Items = Model.GorevTurleri, Type = "gorevturu" })
+        </div>
+
+        <!-- 4. İŞ NİTELİKLERİ -->
+        <div class="col-md-6 col-xl-4">
+            @await Html.PartialAsync("_LookupCard", new { Title = "İş Nitelikleri", Items = Model.IsNitelikleri, Type = "isniteligi" })
+        </div>
+
+        <!-- 5. YAZILIMLAR -->
+        <div class="col-md-6 col-xl-4">
+            @await Html.PartialAsync("_LookupCard", new { Title = "Kullanılan Yazılımlar", Items = Model.Yazilimlar, Type = "yazilim" })
+        </div>
+
+        <!-- 6. UZMANLIKLAR -->
+        <div class="col-md-6 col-xl-4">
+            @await Html.PartialAsync("_LookupCard", new { Title = "Uzmanlık Alanları", Items = Model.Uzmanliklar, Type = "uzmanlik" })
+        </div>
+    </div>
+</div>
+
+<!-- SHARED ADD MODAL -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalTitle">Yeni Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="addType" />
+                <div class="mb-3">
+                    <label for="addItemName" class="form-label">Ad / Tanım</label>
+                    <input type="text" id="addItemName" class="form-control" placeholder="Örn: Yazılım Mühendisi" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="saveItem()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // Modal instance
+        var myModal;
+
+        $(document).ready(function() {
+            var el = document.getElementById('addModal');
+            if(el) myModal = new bootstrap.Modal(el);
+        });
+
+        function openAddModal(type, title) {
+            $('#addType').val(type);
+            $('#addItemName').val('');
+            $('#modalTitle').text(title + ' Ekle');
+            myModal.show();
+        }
+
+        function saveItem() {
+            var type = $('#addType').val();
+            var name = $('#addItemName').val();
+
+            if(!name) {
+                Swal.fire('Hata', 'Lütfen isim giriniz.', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '/PersonelAyarlar/Ekle',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ Type: type, Ad: name }),
+                success: function(res) {
+                    Swal.fire('Başarılı', 'Kayıt eklendi.', 'success').then(() => location.reload());
+                },
+                error: function(xhr) {
+                    Swal.fire('Hata', 'Ekleme başarısız: ' + (xhr.responseText || 'Bilinmeyen hata'), 'error');
+                }
+            });
+        }
+
+        function deleteItem(type, id) {
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu kayıt silinecek. Eğer kullanımda ise hata alabilirsiniz.",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Evet, Sil',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/PersonelAyarlar/Sil', { type: type, id: id })
+                        .done(function() {
+                            Swal.fire('Silindi', 'Kayıt başarıyla silindi.', 'success').then(() => location.reload());
+                        })
+                        .fail(function(xhr) {
+                             Swal.fire('Hata', 'Silme başarısız: ' + (xhr.responseText || 'Bu kayıt kullanımda olabilir.'), 'error');
+                        });
+                }
+            });
+        }
+    </script>
+}

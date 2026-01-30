@@ -18,7 +18,7 @@ namespace PersonelTakipSistemi.Models
         // Foreing Keys
         // Foreing Keys
         public int KategoriId { get; set; }
-        public GorevKategori Kategori { get; set; } = null!;
+        public GorevKategori? Kategori { get; set; }
 
         public int? PersonelId { get; set; }
         public Personel? Personel { get; set; }
@@ -28,7 +28,7 @@ namespace PersonelTakipSistemi.Models
 
         // Status Relationship
         public int GorevDurumId { get; set; }
-        public GorevDurum GorevDurum { get; set; } = null!;
+        public GorevDurum? GorevDurum { get; set; }
         
         [StringLength(500)]
         public string? DurumAciklamasi { get; set; }

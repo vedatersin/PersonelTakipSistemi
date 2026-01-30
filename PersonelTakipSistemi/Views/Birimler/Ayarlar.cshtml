@@ -1,0 +1,258 @@
+@model PersonelTakipSistemi.ViewModels.BirimAyarlariViewModel
+@{
+    ViewData["Title"] = "Birim Ayarları";
+    var iller = ViewBag.Iller as IEnumerable<PersonelTakipSistemi.Models.Il>;
+}
+
+<div class="row g-4">
+    <!-- TEŞKİLATLAR -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white"><i class="bx bxs-building me-2"></i>Teşkilatlar</h5>
+                <button class="btn btn-sm btn-light text-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalTeskilat">
+                    <i class="bx bx-plus"></i> Ekle
+                </button>
+            </div>
+            <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+                 <ul class="list-group list-group-flush" id="listTeskilat">
+                     @foreach(var t in Model.Teskilatlar)
+                     {
+                         <li class="list-group-item d-flex justify-content-between align-items-center">
+                             <div>
+                                 <span class="fw-bold">@t.Ad</span>
+                                 <br/>
+                                 <small class="text-muted">@t.Aciklama</small>
+                             </div>
+                             <button class="btn btn-sm btn-icon btn-label-danger" onclick="deleteItem('tes', @t.TeskilatId)"><i class="bx bx-trash"></i></button>
+                         </li>
+                     }
+                 </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- KOORDİNATÖRLÜKLER -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white"><i class="bx bxs-business me-2"></i>Koordinatörlükler</h5>
+                <button class="btn btn-sm btn-light text-secondary fw-bold" data-bs-toggle="modal" data-bs-target="#modalKoordinatorluk">
+                    <i class="bx bx-plus"></i> Ekle
+                </button>
+            </div>
+            <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+                 <ul class="list-group list-group-flush" id="listKoordinatorluk">
+                     @foreach(var k in Model.Koordinatorlukler)
+                     {
+                         <li class="list-group-item d-flex justify-content-between align-items-center">
+                             <div>
+                                 <span class="fw-bold">@k.Ad</span>
+                                 <span class="badge bg-label-primary ms-1" style="font-size: 0.7em">@k.Teskilat?.Ad</span>
+                                 <br/>
+                                 <small class="text-muted">@k.Il?.Ad</small>
+                             </div>
+                             <button class="btn btn-sm btn-icon btn-label-danger" onclick="deleteItem('koord', @k.KoordinatorlukId)"><i class="bx bx-trash"></i></button>
+                         </li>
+                     }
+                 </ul>
+            </div>
+        </div>
+    </div>
+
+     <!-- KOMİSYONLAR -->
+    <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white"><i class="bx bxs-group me-2"></i>Komisyonlar</h5>
+                <button class="btn btn-sm btn-light text-info fw-bold" data-bs-toggle="modal" data-bs-target="#modalKomisyon">
+                    <i class="bx bx-plus"></i> Ekle
+                </button>
+            </div>
+            <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+                 <ul class="list-group list-group-flush" id="listKomisyon">
+                     @foreach(var k in Model.Komisyonlar)
+                     {
+                         <li class="list-group-item d-flex justify-content-between align-items-center">
+                             <div>
+                                 <span class="fw-bold">@k.Ad</span>
+                                 <br/>
+                                 <small class="text-muted"><i class="bx bx-subdirectory-right"></i> @k.Koordinatorluk?.Ad</small>
+                             </div>
+                             <button class="btn btn-sm btn-icon btn-label-danger" onclick="deleteItem('kom', @k.KomisyonId)"><i class="bx bx-trash"></i></button>
+                         </li>
+                     }
+                 </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- MODALS -->
+
+<!-- 1. Teşkilat Modal -->
+<div class="modal fade" id="modalTeskilat" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Yeni Teşkilat Ekle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Teşkilat Adı</label>
+          <input type="text" id="addTesAd" class="form-control" placeholder="Örn: Merkez Teşkilatı">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Tanım (Opsiyonel)</label>
+          <textarea id="addTesTanim" class="form-control"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button type="button" class="btn btn-primary" onclick="saveTeskilat()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Koordinatörlük Modal -->
+<div class="modal fade" id="modalKoordinatorluk" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Yeni Koordinatörlük Ekle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Bağlı Teşkilat</label>
+          <select id="addKoordParent" class="form-select">
+              <option value="">Seçiniz...</option>
+              @foreach(var t in Model.Teskilatlar) { <option value="@t.TeskilatId">@t.Ad</option> }
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Koordinatörlük Adı</label>
+          <input type="text" id="addKoordAd" class="form-control" placeholder="Örn: Ankara İl Koordinatörlüğü">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Şehir (İl)</label>
+          <select id="addKoordIl" class="form-select">
+              <option value="6">Ankara (Varsayılan)</option>
+              @if(iller != null) { foreach(var i in iller) { <option value="@i.IlId">@i.Ad</option> } }
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Tanım (Opsiyonel)</label>
+          <textarea id="addKoordTanim" class="form-control"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button type="button" class="btn btn-primary" onclick="saveKoordinatorluk()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Komisyon Modal -->
+<div class="modal fade" id="modalKomisyon" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Yeni Komisyon Ekle</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+         <div class="mb-3">
+          <label class="form-label">Bağlı Koordinatörlük</label>
+          <select id="addKomParent" class="form-select select2">
+              <option value="">Seçiniz...</option>
+              @foreach(var k in Model.Koordinatorlukler) { <option value="@k.KoordinatorlukId">@k.Ad (@k.Teskilat?.Ad)</option> }
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Komisyon Adı</label>
+          <input type="text" id="addKomAd" class="form-control" placeholder="Örn: Fen Bilgisi Komisyonu">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Tanım (Opsiyonel)</label>
+          <textarea id="addKomTanim" class="form-control"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button type="button" class="btn btn-primary" onclick="saveKomisyon()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+    <script>
+        function saveTeskilat() {
+            var data = { Ad: $('#addTesAd').val(), Tanim: $('#addTesTanim').val() };
+            if(!data.Ad) return Swal.fire('Uyarı', 'Lütfen ad giriniz.', 'warning');
+
+            $.ajax({
+                url: '/Birimler/EkleTeskilat', type: 'POST', contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(resp) { location.reload(); },
+                error: function() { Swal.fire('Hata', 'Kayıt başarısız.', 'error'); }
+            });
+        }
+
+        function saveKoordinatorluk() {
+            var data = { 
+                Ad: $('#addKoordAd').val(), 
+                Tanim: $('#addKoordTanim').val(),
+                ParentId: $('#addKoordParent').val(),
+                IlId: $('#addKoordIl').val()
+            };
+            if(!data.Ad || !data.ParentId) return Swal.fire('Uyarı', 'Ad ve Bağlı Teşkilat zorunludur.', 'warning');
+
+            $.ajax({
+                url: '/Birimler/EkleKoordinatorluk', type: 'POST', contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(resp) { location.reload(); },
+                error: function() { Swal.fire('Hata', 'Kayıt başarısız.', 'error'); }
+            });
+        }
+
+        function saveKomisyon() {
+             var data = { 
+                Ad: $('#addKomAd').val(), 
+                Tanim: $('#addKomTanim').val(),
+                ParentId: $('#addKomParent').val()
+            };
+            if(!data.Ad || !data.ParentId) return Swal.fire('Uyarı', 'Ad ve Bağlı Koordinatörlük zorunludur.', 'warning');
+
+            $.ajax({
+                url: '/Birimler/EkleKomisyon', type: 'POST', contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(resp) { location.reload(); },
+                error: function() { Swal.fire('Hata', 'Kayıt başarısız.', 'error'); }
+            });
+        }
+
+        function deleteItem(type, id) {
+            Swal.fire({
+                title: 'Silmek istediğinize emin misiniz?',
+                text: "Bu işlem geri alınamaz!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Evet, Sil'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Birimler/SilBirim?type=' + type + '&id=' + id, function() {
+                        location.reload();
+                    }).fail(function() {
+                        Swal.fire('Hata', 'Silme işlemi başarısız. Bağlı kayıtlar olabilir.', 'error');
+                    });
+                }
+            })
+        }
+    </script>
+}

@@ -24,13 +24,15 @@ namespace PersonelTakipSistemi.Controllers
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly IMemoryCache _memoryCache;
         private readonly INotificationService _notificationService;
+        private readonly ILogService _logService;
 
-        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, IMemoryCache memoryCache, INotificationService notificationService)
+        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, IMemoryCache memoryCache, INotificationService notificationService, ILogService logService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
             _memoryCache = memoryCache;
             _notificationService = notificationService;
+            _logService = logService;
         }
 
         private int CurrentUserId => int.Parse(User.FindFirst("PersonelId")?.Value ?? "0");
@@ -172,7 +174,27 @@ namespace PersonelTakipSistemi.Controllers
 
             personel.SistemRolId = targetRole.SistemRolId;
             await _context.SaveChangesAsync();
-            return Ok();
+
+            // 5. BİLDİRİM GÖNDER
+            try 
+            {
+                var targetP = await _context.Personeller.FindAsync(id); // Use 'id' from method parameter
+                if (targetP != null)
+                {
+                     await _notificationService.CreateAsync( // Changed to CreateAsync as per existing usage
+                        aliciId: targetP.PersonelId, 
+                        gonderenId: null, // System
+                        baslik: "Yetkilendirme bildirimi", 
+                        aciklama: $"Sayın {targetP.Ad} {targetP.Soyad}, yetkilendirme ayarlarınız güncellenmiştir.", 
+                        tip: "Yetki",
+                        refType: "Personel",
+                        refId: targetP.PersonelId
+                    );
+                }
+            }
+            catch(Exception) { }
+
+            return Ok(); // Original method returned Ok()
         }
 
         [HttpPost]
@@ -953,6 +975,24 @@ namespace PersonelTakipSistemi.Controllers
                         AddRelations(personel.PersonelId, model);
                         await _context.SaveChangesAsync();
 
+                        // BİLDİRİM GÖNDER (Profil Güncelleme)
+                        try 
+                        {
+                            await _notificationService.CreateAsync(
+                                aliciId: personel.PersonelId, 
+                                gonderenId: null, // System
+                                baslik: "Profil bilgileri güncellemesi", 
+                                aciklama: $"Sayın {personel.Ad} {personel.Soyad}, personel bilgileriniz güncellenmiştir.", 
+                                tip: "Profil",
+                                refType: "Personel",
+                                refId: personel.PersonelId
+                            );
+                            
+                            // LOG
+                            await _logService.LogAsync("Guncelleme", $"Personel güncellendi: {personel.Ad} {personel.Soyad} ({personel.TcKimlikNo})", personel.PersonelId, $"Güncelleyen: {User.Identity?.Name ?? "Bilinmiyor"}");
+                        }
+                        catch (Exception) { }
+
                         TempData["Success"] = "Personel bilgileri güncellendi.";
                         return RedirectToAction("Detay", new { id = personel.PersonelId });
                     }
@@ -998,6 +1038,9 @@ namespace PersonelTakipSistemi.Controllers
                             aciklama: "Temel Eğitim Genel Müdürlüğü Personel Takip Sistemine Hoşgeldiniz!",
                             tip: "Sistem"
                         );
+
+                        // LOG
+                        await _logService.LogAsync("Ekleme", $"Yeni personel eklendi: {personel.Ad} {personel.Soyad} ({personel.TcKimlikNo})", personel.PersonelId, $"Ekleyen: {User.Identity?.Name ?? "Bilinmiyor"}");
 
                         TempData["Success"] = $"Yeni personel kaydedildi. Başlangıç şifresi: {autoPasword}";
                         return RedirectToAction("Detay", new { id = personel.PersonelId });
@@ -1110,11 +1153,28 @@ namespace PersonelTakipSistemi.Controllers
 
             // Kural 5: Yönetici -> Diğer Yöneticiyi SİLEBİLİR (Engel yok)
             
+            // --- İlişkili Kayıtları Temizle/Güncelle ---
+            
+            // 1. Gelen Bildirimleri SİL (Çünkü AliciPersonelId zorunlu alan)
+            await _context.Bildirimler.Where(b => b.AliciPersonelId == id).ExecuteDeleteAsync();
+
+            // 2. Giden Bildirimlerin Gönderenini NULL yap (Eğer gönderen silinirse bildirim kalsın ama gönderen anonim olsun)
+            await _context.Bildirimler.Where(b => b.GonderenPersonelId == id)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(b => b.GonderenPersonelId, (int?)null));
+
+            // 3. Sistem Loglarının PersonelId'sini NULL yap
+            await _context.SistemLoglar.Where(l => l.PersonelId == id)
+                .ExecuteUpdateAsync(setters => setters.SetProperty(l => l.PersonelId, (int?)null));
+
             // --- Silme İşlemi ---
             DeletePhotoFile(silinecekPersonel.FotografYolu);
             
             _context.Personeller.Remove(silinecekPersonel);
             await _context.SaveChangesAsync();
+
+            // LOG
+            await _logService.LogAsync("Silme", $"Personel silindi: {silinecekPersonel.Ad} {silinecekPersonel.Soyad} ({silinecekPersonel.TcKimlikNo})", null, $"Silen: {User.Identity?.Name ?? "Bilinmiyor"}");
+
             TempData["Success"] = "Personel başarıyla silindi.";
             
             return RedirectToAction("Index");
@@ -1654,6 +1714,28 @@ namespace PersonelTakipSistemi.Controllers
 
                     await _context.SaveChangesAsync();
                     await transaction.CommitAsync();
+
+                    // 5. BİLDİRİM GÖNDER
+                    try 
+                    {
+                        var targetP = await _context.Personeller.FindAsync(dto.PersonelId);
+                        if (targetP != null)
+                        {
+                             await _notificationService.CreateAsync(
+                                aliciId: targetP.PersonelId, 
+                                gonderenId: null, // System
+                                baslik: "Yetkilendirme bildirimi", 
+                                aciklama: $"Sayın {targetP.Ad} {targetP.Soyad}, yetkilendirme ayarlarınız güncellenmiştir.", 
+                                tip: "Yetki",
+                                refType: "Personel",
+                                refId: targetP.PersonelId
+                            );
+                            
+                            // LOG
+                            await _logService.LogAsync("Yetkilendirme", $"Yetkilendirme güncellendi: {targetP.Ad} {targetP.Soyad}", targetP.PersonelId, $"İşlemi Yapan: {User.Identity.Name}");
+                        }
+                    }
+                    catch(Exception) { }
 
                     return await GetYetkilendirmeData(dto.PersonelId);
                 }

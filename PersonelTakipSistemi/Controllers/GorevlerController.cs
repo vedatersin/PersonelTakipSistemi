@@ -155,7 +155,7 @@ namespace PersonelTakipSistemi.Controllers
         public async Task<IActionResult> Yeni()
         {
             await PopulateDropdowns();
-            return View();
+            return View(new Gorev { GorevDurumId = 1 });
         }
 
         [HttpPost]
@@ -227,6 +227,21 @@ namespace PersonelTakipSistemi.Controllers
             }
             await PopulateDropdowns();
             return View("Yeni", model);
+        }
+        [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
+        public async Task<IActionResult> Sil(int id)
+        {
+            var task = await _context.Gorevler.FindAsync(id);
+            if (task == null) return NotFound();
+
+            task.IsActive = false; // Soft Delete
+            task.UpdatedAt = DateTime.Now;
+            
+            _context.Update(task);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true });
         }
 
         // ==============================================================

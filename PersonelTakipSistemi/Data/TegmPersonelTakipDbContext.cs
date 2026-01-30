@@ -37,6 +37,8 @@ namespace PersonelTakipSistemi.Data
 
         public DbSet<BildirimGonderen> BildirimGonderenler { get; set; }
         public DbSet<TopluBildirim> TopluBildirimler { get; set; }
+        public DbSet<SistemLog> SistemLoglar { get; set; }
+
 
         // Görevler Module DbSets
         public DbSet<GorevKategori> GorevKategorileri { get; set; }

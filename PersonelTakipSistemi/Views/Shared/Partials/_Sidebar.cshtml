@@ -39,8 +39,9 @@
                            (string.Equals(currentAction, "Ekle", StringComparison.OrdinalIgnoreCase) && !isIdPresent));
         bool isIndexActive = isPersonelController && string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase);
         bool isYetkilendirmeActive = isPersonelController && string.Equals(currentAction, "Yetkilendirme", StringComparison.OrdinalIgnoreCase);
+        bool isPersonelAyarlarActive = string.Equals(currentController, "PersonelAyarlar", StringComparison.OrdinalIgnoreCase);
         
-        bool isPersonelModuleOpen = isYeniActive || isIndexActive || isYetkilendirmeActive;
+        bool isPersonelModuleOpen = isYeniActive || isIndexActive || isYetkilendirmeActive || isPersonelAyarlarActive;
 
         // Profilim Logic
         bool isProfileActive = (isPersonelController && (
@@ -72,6 +73,14 @@
                 <div class="text-truncate" data-i18n="Personel Listesi">Personel Listesi</div>
               </a>
             </li>
+            @if (userRole == "Admin" || userRole == "Yönetici")
+            {
+                <li class="menu-item @(isPersonelAyarlarActive ? "active" : "")">
+                  <a asp-controller="PersonelAyarlar" asp-action="Index" class="menu-link">
+                    <div class="text-truncate" data-i18n="Personel Ayarları">Personel Ayarları</div>
+                  </a>
+                </li>
+            }
           </ul>
         </li>
     }
@@ -87,6 +96,17 @@
         </li>
     }
 
+    @if (userRole == "Admin" || userRole == "Yönetici")
+    {
+        <!-- Loglar Modülü (Admin, Yönetici) -->
+        <li class="menu-item @(string.Equals(currentController, "Loglar", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+          <a asp-controller="Loglar" asp-action="Index" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-history"></i>
+            <div class="text-truncate fw-bold" data-i18n="Sistem Logları">Sistem Logları</div>
+          </a>
+        </li>
+    }
+
     @if (userRole == "Admin" || userRole == "Yönetici" || userRole == "Editör")
     {
         <!-- Yetkilendirme Modülü (New) -->
@@ -96,6 +116,36 @@
             <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
             <div class="text-truncate" data-i18n="Yetkilendirme Modülü">Yetkilendirme Modülü</div>
           </a>
+        </li>
+    }
+
+
+
+    <!-- Birimler Modülü (Admin, Yönetici) -->
+    @if (userRole == "Admin" || userRole == "Yönetici")
+    {
+         var isBirimlerController = string.Equals(currentController, "Birimler", StringComparison.OrdinalIgnoreCase);
+         var isBirimAyarlar = isBirimlerController && string.Equals(currentAction, "Ayarlar", StringComparison.OrdinalIgnoreCase);
+         var isBirimTopluAtama = isBirimlerController && string.Equals(currentAction, "TopluAtama", StringComparison.OrdinalIgnoreCase);
+         var isBirimlerOpen = isBirimlerController;
+
+        <li class="menu-item @(isBirimlerOpen ? "active open" : "")">
+          <a href="javascript:void(0);" class="menu-link menu-toggle">
+            <i class="menu-icon tf-icons bx bx-buildings"></i>
+            <div class="text-truncate" data-i18n="Birimler Modülü">Birimler Modülü</div>
+          </a>
+          <ul class="menu-sub">
+            <li class="menu-item @(isBirimAyarlar ? "active" : "")">
+              <a asp-controller="Birimler" asp-action="Ayarlar" class="menu-link">
+                <div class="text-truncate" data-i18n="Birim Ayarları">Birim Ayarları</div>
+              </a>
+            </li>
+            <li class="menu-item @(isBirimTopluAtama ? "active" : "")">
+              <a asp-controller="Birimler" asp-action="TopluAtama" class="menu-link">
+                <div class="text-truncate" data-i18n="Toplu Atama">Toplu Atama</div>
+              </a>
+            </li>
+          </ul>
         </li>
     }
 

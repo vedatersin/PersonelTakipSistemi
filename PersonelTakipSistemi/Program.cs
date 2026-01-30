@@ -9,7 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddMemoryCache();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.INotificationService, PersonelTakipSistemi.Services.NotificationService>();
+builder.Services.AddScoped<PersonelTakipSistemi.Services.ILogService, PersonelTakipSistemi.Services.LogService>();
 builder.Services.AddHostedService<PersonelTakipSistemi.Services.NotificationBackgroundService>();
 
 // Connection String

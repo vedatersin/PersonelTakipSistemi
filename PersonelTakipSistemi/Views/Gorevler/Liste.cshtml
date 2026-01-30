@@ -253,6 +253,7 @@
                                         <i class="bx bx-user-plus"></i>
                                     </button>
                                     <a href="/Gorevler/Duzenle/@item.GorevId" class="btn btn-sm btn-icon btn-label-warning" onclick="event.stopPropagation()"><i class="bx bx-edit"></i></a>
+                                    <button class="btn btn-sm btn-icon btn-label-danger" onclick="event.stopPropagation(); deleteTask(@item.GorevId)"><i class="bx bx-trash"></i></button>
                                 </td>
                             </tr>
                         }
@@ -605,6 +606,31 @@
              });
         }
 
+        function deleteTask(id) {
+            Swal.fire({
+                title: 'Emin misiniz?',
+                text: "Bu görev silinecek (pasife alınacak)!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Gorevler/Sil/' + id, function(resp) {
+                         if(resp.success) {
+                             Swal.fire('Silindi!', 'Görev başarıyla silindi.', 'success');
+                             setTimeout(function() { location.reload(); }, 1000);
+                         } else {
+                             Swal.fire('Hata!', 'Silinirken bir sorun oluştu.', 'error');
+                         }
+                    }).fail(function() {
+                        Swal.fire('Hata!', 'Sunucu hatası.', 'error');
+                    });
+                }
+            })
+        }
         
         // Refresh page on drawer close to show updates in table
         offcanvasElement.addEventListener('hidden.bs.offcanvas', function () {

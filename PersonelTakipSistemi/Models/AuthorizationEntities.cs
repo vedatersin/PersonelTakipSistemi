@@ -14,6 +14,10 @@ namespace PersonelTakipSistemi.Models
         [StringLength(50)]
         public string Ad { get; set; } = null!; // "Merkez", "Taşra"
 
+        public string? Aciklama { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
         // İlişkiler
         public ICollection<Koordinatorluk> Koordinatorlukler { get; set; } = new List<Koordinatorluk>();
         public ICollection<PersonelTeskilat> PersonelTeskilatlar { get; set; } = new List<PersonelTeskilat>();
@@ -28,9 +32,17 @@ namespace PersonelTakipSistemi.Models
         [StringLength(150)]
         public string Ad { get; set; } = null!;
 
+        public string? Aciklama { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
         public int TeskilatId { get; set; }
         [ForeignKey("TeskilatId")]
         public Teskilat Teskilat { get; set; } = null!;
+
+        public int? IlId { get; set; }
+        [ForeignKey("IlId")]
+        public Il? Il { get; set; }
 
         public int? BaskanPersonelId { get; set; }
         [ForeignKey("BaskanPersonelId")]
@@ -49,6 +61,10 @@ namespace PersonelTakipSistemi.Models
         [Required]
         [StringLength(150)]
         public string Ad { get; set; } = null!;
+
+        public string? Aciklama { get; set; }
+        public bool IsActive { get; set; } = true;
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         public int KoordinatorlukId { get; set; }
         [ForeignKey("KoordinatorlukId")]

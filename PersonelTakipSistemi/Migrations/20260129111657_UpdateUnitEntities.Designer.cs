@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PersonelTakipSistemi.Data;
 
@@ -11,9 +12,11 @@ using PersonelTakipSistemi.Data;
 namespace PersonelTakipSistemi.Migrations
 {
     [DbContext(typeof(TegmPersonelTakipDbContext))]
-    partial class TegmPersonelTakipDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260129111657_UpdateUnitEntities")]
+    partial class UpdateUnitEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -635,7 +638,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 11, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5368),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3561),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 1,
@@ -649,7 +652,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 11, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5390),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3577),
                             GorevDurumId = 3,
                             IsActive = true,
                             KategoriId = 1,
@@ -662,7 +665,7 @@ namespace PersonelTakipSistemi.Migrations
                             Ad = "Kimya 11 Yazım Denetimi",
                             BaslangicTarihi = new DateTime(2025, 12, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5395),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3580),
                             GorevDurumId = 1,
                             IsActive = true,
                             KategoriId = 1,
@@ -676,7 +679,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
                             BitisTarihi = new DateTime(2025, 12, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5452),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3582),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 2,
@@ -689,7 +692,7 @@ namespace PersonelTakipSistemi.Migrations
                             Ad = "YKS Deneme Seti",
                             BaslangicTarihi = new DateTime(2025, 11, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5455),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3584),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 2,
@@ -703,7 +706,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 10, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 10, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5458),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3588),
                             GorevDurumId = 4,
                             IsActive = true,
                             KategoriId = 2,
@@ -716,7 +719,7 @@ namespace PersonelTakipSistemi.Migrations
                             Ad = "EBA Video Montaj",
                             BaslangicTarihi = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 1,
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5460),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3590),
                             GorevDurumId = 1,
                             IsActive = true,
                             KategoriId = 3,
@@ -730,7 +733,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 12, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5462),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3592),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 3,
@@ -744,7 +747,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
                             BitisTarihi = new DateTime(2025, 11, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5464),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3594),
                             GorevDurumId = 4,
                             IsActive = true,
                             KategoriId = 3,
@@ -757,7 +760,7 @@ namespace PersonelTakipSistemi.Migrations
                             Ad = "Müfredat İncelemesi",
                             BaslangicTarihi = new DateTime(2025, 12, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5468),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3597),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 4,
@@ -770,7 +773,7 @@ namespace PersonelTakipSistemi.Migrations
                             Ad = "Kazanım Eşleştirme",
                             BaslangicTarihi = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5470),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3598),
                             GorevDurumId = 1,
                             IsActive = true,
                             KategoriId = 4,
@@ -784,7 +787,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 28, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 1,
                             BitisTarihi = new DateTime(2025, 11, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(5471),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 395, DateTimeKind.Local).AddTicks(3600),
                             GorevDurumId = 4,
                             IsActive = true,
                             KategoriId = 4,
@@ -953,7 +956,7 @@ namespace PersonelTakipSistemi.Migrations
                             GorevKategoriId = 1,
                             Aciklama = "Ders kitabı hazırlık işleri",
                             Ad = "Ders Kitapları",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(488),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 394, DateTimeKind.Local).AddTicks(9596),
                             IsActive = true
                         },
                         new
@@ -961,7 +964,7 @@ namespace PersonelTakipSistemi.Migrations
                             GorevKategoriId = 2,
                             Aciklama = "Soru bankası ve etkinlikler",
                             Ad = "Yardımcı Kaynaklar",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(501),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 394, DateTimeKind.Local).AddTicks(9608),
                             IsActive = true
                         },
                         new
@@ -969,7 +972,7 @@ namespace PersonelTakipSistemi.Migrations
                             GorevKategoriId = 3,
                             Aciklama = "Video ve animasyon işleri",
                             Ad = "Dijital İçerik",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(503),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 394, DateTimeKind.Local).AddTicks(9609),
                             IsActive = true
                         },
                         new
@@ -977,7 +980,7 @@ namespace PersonelTakipSistemi.Migrations
                             GorevKategoriId = 4,
                             Aciklama = "Müfredat çalışmaları",
                             Ad = "Programlar",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 400, DateTimeKind.Local).AddTicks(504),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 394, DateTimeKind.Local).AddTicks(9610),
                             IsActive = true
                         });
                 });
@@ -1595,7 +1598,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KomisyonId = 1,
                             Ad = "Türkçe Komisyonu",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 396, DateTimeKind.Local).AddTicks(5221),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 391, DateTimeKind.Local).AddTicks(8319),
                             IsActive = true,
                             KoordinatorlukId = 1
                         },
@@ -1603,7 +1606,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KomisyonId = 2,
                             Ad = "Matematik Komisyonu",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 396, DateTimeKind.Local).AddTicks(5224),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 391, DateTimeKind.Local).AddTicks(8324),
                             IsActive = true,
                             KoordinatorlukId = 1
                         },
@@ -1611,7 +1614,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KomisyonId = 3,
                             Ad = "Fen Bilimleri Komisyonu",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 396, DateTimeKind.Local).AddTicks(5225),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 391, DateTimeKind.Local).AddTicks(8325),
                             IsActive = true,
                             KoordinatorlukId = 1
                         },
@@ -1619,7 +1622,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KomisyonId = 4,
                             Ad = "Türkçe Komisyonu",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 396, DateTimeKind.Local).AddTicks(5226),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 391, DateTimeKind.Local).AddTicks(8326),
                             IsActive = true,
                             KoordinatorlukId = 2
                         },
@@ -1627,7 +1630,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KomisyonId = 5,
                             Ad = "Matematik Komisyonu",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 396, DateTimeKind.Local).AddTicks(5227),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 391, DateTimeKind.Local).AddTicks(8327),
                             IsActive = true,
                             KoordinatorlukId = 2
                         });
@@ -1679,7 +1682,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 1,
                             Ad = "Ankara TEGM Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 396, DateTimeKind.Local).AddTicks(4240),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 391, DateTimeKind.Local).AddTicks(7204),
                             IsActive = true,
                             TeskilatId = 1
                         },
@@ -1687,7 +1690,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 2,
                             Ad = "Mardin İl Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 396, DateTimeKind.Local).AddTicks(4245),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 391, DateTimeKind.Local).AddTicks(7209),
                             IsActive = true,
                             TeskilatId = 2
                         },
@@ -1695,7 +1698,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 3,
                             Ad = "İzmir İl Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 396, DateTimeKind.Local).AddTicks(4246),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 391, DateTimeKind.Local).AddTicks(7210),
                             IsActive = true,
                             TeskilatId = 2
                         });
@@ -1974,50 +1977,6 @@ namespace PersonelTakipSistemi.Migrations
                     b.ToTable("PersonelYazilimlar", (string)null);
                 });
 
-            modelBuilder.Entity("PersonelTakipSistemi.Models.SistemLog", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Aciklama")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Detay")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("IpAdresi")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("IslemTuru")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("KullaniciAdSoyad")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int?>("PersonelId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Tarih")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("TcKimlikNo")
-                        .HasMaxLength(11)
-                        .HasColumnType("nvarchar(11)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SistemLoglar");
-                });
-
             modelBuilder.Entity("PersonelTakipSistemi.Models.SistemRol", b =>
                 {
                     b.Property<int>("SistemRolId")
@@ -2088,14 +2047,14 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             TeskilatId = 1,
                             Ad = "Merkez",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 396, DateTimeKind.Local).AddTicks(2998),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 391, DateTimeKind.Local).AddTicks(6042),
                             IsActive = true
                         },
                         new
                         {
                             TeskilatId = 2,
                             Ad = "Taşra",
-                            CreatedAt = new DateTime(2026, 1, 31, 1, 15, 38, 396, DateTimeKind.Local).AddTicks(3010),
+                            CreatedAt = new DateTime(2026, 1, 29, 14, 16, 56, 391, DateTimeKind.Local).AddTicks(6054),
                             IsActive = true
                         });
                 });

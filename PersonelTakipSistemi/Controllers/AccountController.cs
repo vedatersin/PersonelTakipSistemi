@@ -11,10 +11,12 @@ namespace PersonelTakipSistemi.Controllers
     public class AccountController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;
+        private readonly PersonelTakipSistemi.Services.ILogService _logService;
 
-        public AccountController(TegmPersonelTakipDbContext context)
+        public AccountController(TegmPersonelTakipDbContext context, PersonelTakipSistemi.Services.ILogService logService)
         {
             _context = context;
+            _logService = logService;
         }
 
         [HttpGet]
@@ -82,6 +84,9 @@ namespace PersonelTakipSistemi.Controllers
                     new ClaimsPrincipal(claimsIdentity),
                     authProperties);
 
+                // LOG
+                await _logService.LogAsync("Giris", "Kullanıcı sisteme giriş yaptı.", personel.PersonelId);
+
                 // 6. Yönlendirme (Kendi Detay Sayfasına)
                 return RedirectToAction("BenimDetay", "Personel");
             }
@@ -93,6 +98,11 @@ namespace PersonelTakipSistemi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
+            // LOG (Before signout to capture user context if needed, though usually context is available)
+            // But if we want PersonelId we should get it before signout.
+            // LogService tries to get it from context. So do it before SignOut.
+            await _logService.LogAsync("Cikis", "Kullanıcı çıkış yaptı.");
+
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login", "Account");
         }

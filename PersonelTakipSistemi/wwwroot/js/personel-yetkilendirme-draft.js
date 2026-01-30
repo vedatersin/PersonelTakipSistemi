@@ -447,6 +447,11 @@ function renderUnifiedAddForm(state, data) {
 // Since this is re-rendered string HTML, we need global functions or re-attach listeners.
 // Using global functions for simplicity in this legacy-style app.
 
+window.updateSistemRol = function (val) {
+    draftState.sistemRol = val;
+    renderDrawer();
+};
+
 window.handleAddChange = function (level, val) {
     const id = parseInt(val) || null;
     const data = window.drawerRefData;
@@ -574,38 +579,103 @@ window.executeAdd = function () {
 };
 
 window.removeItem = function (type, id, gIndex) {
+    const data = window.drawerRefData;
+
+    // Helper to find parent Koord of a Komisyon
+    const getKomParent = (komId) => {
+        const kom = data.allKomisyonlar.find(k => k.id == komId);
+        return kom ? kom.parentId : null;
+    };
+
+    // Helper to find parent Teskilat of a Koordinatorluk
+    const getKoordParent = (koordId) => {
+        const koord = data.allKoordinatorlukler.find(k => k.id == koordId);
+        return koord ? koord.parentId : null;
+    };
+
+    // Helper to remove Teskilat
+    const removeTeskilat = (tesId) => {
+        if (!tesId) return;
+        draftState.teskilatIds = draftState.teskilatIds.filter(i => i !== tesId);
+    };
+
+    // Helper to remove Koordinatorluk
+    const removeKoordinatorluk = (koordId) => {
+        if (!koordId) return;
+        draftState.koordinatorlukIds = draftState.koordinatorlukIds.filter(i => i !== koordId);
+        // Cascade up to Teskilat
+        removeTeskilat(getKoordParent(koordId));
+    };
+
+    // Helper to remove Komisyon
+    const removeKomisyon = (komId) => {
+        if (!komId) return;
+        draftState.komisyonIds = draftState.komisyonIds.filter(i => i !== komId);
+        // Cascade up to Koordinatorluk
+        removeKoordinatorluk(getKomParent(komId));
+    };
+
+
     if (type === 'gorev') {
+        const task = draftState.gorevler[gIndex];
+        // Remove the role assignment
         draftState.gorevler.splice(gIndex, 1);
+
+        // Cascade Delete Context
+        if (task) {
+            if (task.komisyonId) {
+                removeKomisyon(task.komisyonId);
+            } else if (task.koordinatorlukId) {
+                removeKoordinatorluk(task.koordinatorlukId);
+            } else {
+                // If just Teskilat? (Rare for explicit role but possible)
+                // We don't track teskilatId in gorev object explicitly based on previous read, 
+                // but if we did, we would handle it. 
+                // Explicit roles usually sit on Koord or Kom.
+            }
+        }
+
     } else if (type === 'kom') {
-        draftState.komisyonIds = draftState.komisyonIds.filter(i => i !== id);
-        // Clean orphaned roles? (Should be handled by re-render implicit logic, but explicit roles sticking around might be issue)
-        // Explicit roles logic:
+        // Remove Komisyon
+        removeKomisyon(id);
+
+        // Remove explicit roles bound to this commission
         draftState.gorevler = draftState.gorevler.filter(g => g.komisyonId !== id);
+
     } else if (type === 'koord') {
-        draftState.koordinatorlukIds = draftState.koordinatorlukIds.filter(i => i !== id);
-        // Cascade
-        // Logic similar to previous removeKoordinatorluk
-        // Remove dependent commissions
-        const komsToRemove = window.drawerRefData.allKomisyonlar.filter(k => k.parentId === id).map(k => k.id);
+        // Remove Koordinatorluk
+        removeKoordinatorluk(id);
+
+        // Remove child Commissions
+        const komsToRemove = data.allKomisyonlar.filter(k => k.parentId === id).map(k => k.id);
         draftState.komisyonIds = draftState.komisyonIds.filter(kid => !komsToRemove.includes(kid));
 
-        // Remove dependent roles
+        // Remove linked Roles
         draftState.gorevler = draftState.gorevler.filter(g => g.koordinatorlukId !== id && (!g.komisyonId || !komsToRemove.includes(g.komisyonId)));
-    } else if (type === 'tes') {
-        draftState.teskilatIds = draftState.teskilatIds.filter(i => i !== id);
-        // Cascade (Heavy)
-        // Usually safer to just remove the top level and let user manage, or full cascade.
-        // Full cascade:
-        const koordsToRemove = window.drawerRefData.allKoordinatorlukler.filter(k => k.parentId === id).map(k => k.id);
 
-        // Triggers koord removal logic... reusing logic?
-        // Simplest: just remove from ID arrays. Explicit Roles logic validation is harder.
-        // Let's rely on standard ID filtering.
+    } else if (type === 'tes') {
+        // Remove Teskilat
+        removeTeskilat(id);
+
+        // Remove child Koordinatorluks
+        const koordsToRemove = data.allKoordinatorlukler.filter(k => k.parentId === id).map(k => k.id);
         draftState.koordinatorlukIds = draftState.koordinatorlukIds.filter(kid => !koordsToRemove.includes(kid));
 
-        // Commissions...
-        // Just keeping it simple for now. 
+        // Remove child Commissions (grand-children)
+        // Find all commissions belonging to these koords
+        const komsToRemove = data.allKomisyonlar.filter(k => koordsToRemove.includes(k.parentId)).map(k => k.id);
+        draftState.komisyonIds = draftState.komisyonIds.filter(kid => !komsToRemove.includes(kid));
+
+        // Remove linked Roles
+        draftState.gorevler = draftState.gorevler.filter(g => {
+            // Check implicit link via Koord or Kom
+            // Since we cleared lists, we can't easily check coverage, ensuring by ID matching
+            if (g.koordinatorlukId && koordsToRemove.includes(g.koordinatorlukId)) return false;
+            if (g.komisyonId && komsToRemove.includes(g.komisyonId)) return false;
+            return true;
+        });
     }
+
     renderDrawer();
 };
 
