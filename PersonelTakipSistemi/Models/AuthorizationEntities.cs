@@ -132,6 +132,10 @@ namespace PersonelTakipSistemi.Models
         [ForeignKey("KurumsalRolId")]
         public KurumsalRol KurumsalRol { get; set; } = null!;
 
+        public int? TeskilatId { get; set; }
+        [ForeignKey("TeskilatId")]
+        public Teskilat? Teskilat { get; set; }
+
         public int? KoordinatorlukId { get; set; }
         [ForeignKey("KoordinatorlukId")]
         public Koordinatorluk? Koordinatorluk { get; set; }

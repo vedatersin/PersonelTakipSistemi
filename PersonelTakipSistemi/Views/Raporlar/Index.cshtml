@@ -1,0 +1,169 @@
+@model PersonelTakipSistemi.ViewModels.RaporlarIndexViewModel
+@{
+    ViewData["Title"] = "Detaylı Raporlar";
+}
+
+<!-- Select2 CSS -->
+
+
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Modüller /</span> Raporlar</h4>
+
+    <!-- Filtre Kartı -->
+    <div class="card mb-4">
+        <h5 class="card-header">Rapor Filtreleri</h5>
+        <div class="card-body">
+            <form method="get">
+                <div class="row gx-3 gy-2 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">Başlangıç Tarihi</label>
+                        <input type="date" class="form-control" asp-for="BaslangicTarihi">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Bitiş Tarihi</label>
+                        <input type="date" class="form-control" asp-for="BitisTarihi">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Koordinatörlük</label>
+                        <select id="koordinatorlukSelect" class="form-select select2" asp-for="KoordinatorlukId" asp-items="Model.KoordinatorlukList">
+                            <option value="">Tümü</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Komisyon</label>
+                        <select id="komisyonSelect" class="form-select select2" asp-for="KomisyonId" asp-items="Model.KomisyonList">
+                            <option value="">Tümü</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 mt-3 d-flex justify-content-end gap-2">
+                        <a asp-action="Index" class="btn btn-label-secondary">Sıfırla</a>
+                        <button type="submit" class="btn btn-primary">Raporla</button>
+                        <a asp-action="ExportExcel" class="btn btn-success">
+                            <i class="bx bx-download me-1"></i> Excel İndir
+                        </a>
+                        <button type="button" class="btn btn-info" onclick="window.print()">
+                            <i class="bx bx-printer me-1"></i> Yazdır
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Rapor Sonuçları (Tablar) -->
+    <div class="nav-align-top mb-4">
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item">
+                <button type="button" class="nav-link active" role="tab" data-bs-toggle="tab" data-bs-target="#navs-top-performans" aria-controls="navs-top-performans" aria-selected="true">
+                    Performans Raporu
+                </button>
+            </li>
+            <li class="nav-item">
+                <button type="button" class="nav-link" role="tab" data-bs-toggle="tab" data-bs-target="#navs-top-usage" aria-controls="navs-top-usage" aria-selected="false">
+                    Tarihsel Yoğunluk
+                </button>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <!-- Tab 1: Performans -->
+            <div class="tab-pane fade show active" id="navs-top-performans" role="tabpanel">
+                <div class="table-responsive text-nowrap">
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th>Personel</th>
+                                <th>Toplam Görev</th>
+                                <th>Tamamlanan</th>
+                                <th>Geciken</th>
+                                <th>Başarı Oranı</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.PerformansRaporlari)
+                            {
+                                <tr>
+                                    <td><strong>@p.AdSoyad</strong><br><small class="text-muted">@p.Birim</small></td>
+                                    <td>@p.ToplamGorev</td>
+                                    <td>@p.Tamamlanan</td>
+                                    <td><span class="badge bg-label-danger">@p.Geciken</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress w-100 me-3" style="height: 8px;">
+                                                <div class="progress-bar bg-@(p.BasariOrani > 80 ? "success" : p.BasariOrani > 50 ? "warning" : "danger")" 
+                                                     role="progressbar" style="width: @p.BasariOrani%" aria-valuenow="@p.BasariOrani" aria-valuemin="0" aria-valuemax="100">
+                                                </div>
+                                            </div>
+                                            <span class="fw-semibold">@p.BasariOrani.ToString("0")%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <!-- Tab 2: Tarihsel -->
+            <div class="tab-pane fade" id="navs-top-usage" role="tabpanel">
+                <div class="table-responsive text-nowrap">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Dönem</th>
+                                <th>Atanan Görev</th>
+                                <th>Tamamlanan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var g in Model.GorevRaporlari)
+                            {
+                                <tr>
+                                    <td>@g.Donem</td>
+                                    <td>@g.AtananGorevSayisi</td>
+                                    <td>@g.TamamlananGorevSayisi</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style media="print">
+    /* Yazdırma ayarları (Sidebar, Header gizle) */
+    .layout-menu, .layout-navbar, .btn { display: none !important; }
+    .content-wrapper { padding: 0 !important; margin: 0 !important; }
+</style>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+    <script>
+        $(document).ready(function() {
+            $('.select2').select2({ theme: 'bootstrap-5' });
+
+            // Cascading Logic: Koordinatorluk -> Komisyon
+            $('#koordinatorlukSelect').on('change', function() {
+                var koordId = $(this).val();
+                
+                var $komisyonJs = $('#komisyonSelect');
+                $komisyonJs.empty().append('<option value="">Tümü</option>');
+
+                if (koordId) {
+                    $.get('@Url.Action("GetKomisyonlar", "Istatistik")', { koordinatorlukId: koordId }, function(data) {
+                         $.each(data, function(i, item) {
+                            $komisyonJs.append($('<option>', { value: item.id, text: item.text }));
+                        });
+                        $komisyonJs.trigger('change.select2'); // Notify Select2
+                    });
+                } else {
+                    $komisyonJs.trigger('change.select2');
+                }
+            });
+        });
+    </script>
+}

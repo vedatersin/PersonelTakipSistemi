@@ -59,6 +59,7 @@ namespace PersonelTakipSistemi.Controllers
                     new Claim(ClaimTypes.NameIdentifier, personel.PersonelId.ToString()),
                     new Claim(ClaimTypes.Name, $"{personel.Ad} {personel.Soyad}"),
                     new Claim("PersonelId", personel.PersonelId.ToString()), // Custom claim for security checks
+                    new Claim("TcKimlikNo", personel.TcKimlikNo), // For Logging
                     new Claim("PhotoUrl", personel.FotografYolu ?? ""),
                     new Claim(ClaimTypes.Role, personel.SistemRol?.Ad ?? "Kullanıcı")
                 };

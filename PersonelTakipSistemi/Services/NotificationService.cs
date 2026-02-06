@@ -82,11 +82,11 @@ namespace PersonelTakipSistemi.Services
             return toplu.Id;
         }
 
-        public async Task<List<SenderOptionDto>> GetAvailableSendersAsync()
+        public async Task<List<SenderOptionDto>> GetAvailableSendersAsync(int? currentUserId = null)
         {
             var options = new List<SenderOptionDto>();
 
-            // 1. System
+            // 1. System (Always Available for Admins)
             options.Add(new SenderOptionDto 
             { 
                 Id = "System", 
@@ -95,11 +95,20 @@ namespace PersonelTakipSistemi.Services
                 AvatarUrl = "/img/system_avatar.png" 
             });
 
-            // 2. Admins & Managers
-            var rolesOfInterest = new[] { "Admin", "Yönetici" };
-            var users = await _context.Personeller
+            // 2. Filter Logic
+            // If currentUserId is provided, we only want to show THAT user if they are allowed (Admin/Yonetici)
+            // If currentUserId is null (or legacy logic), we show all Admins (old behavior, restricted now by preference)
+            
+            var query = _context.Personeller
                 .Include(p => p.SistemRol)
-                .Where(p => p.SistemRol != null && rolesOfInterest.Contains(p.SistemRol.Ad) && p.AktifMi)
+                .Where(p => p.SistemRol != null && (p.SistemRol.Ad == "Admin" || p.SistemRol.Ad == "Yönetici") && p.AktifMi);
+
+            if (currentUserId.HasValue)
+            {
+                query = query.Where(p => p.PersonelId == currentUserId.Value);
+            }
+
+            var users = await query
                 .OrderBy(p => p.Ad)
                 .Select(p => new 
                 {
@@ -117,7 +126,7 @@ namespace PersonelTakipSistemi.Services
                 {
                     Id = user.PersonelId.ToString(), // Client sends "123"
                     Ad = $"{user.Ad} {user.Soyad}",
-                    Title = user.Ad, // Rol Adı is better? user.Ad field is Name. Using Role Name as Group/Title.
+                    Title = user.Ad, 
                     AvatarUrl = user.FotografYolu,
                     IsSystem = false
                 });

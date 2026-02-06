@@ -22,6 +22,28 @@
         .select2-container--bootstrap-5 .select2-selection {
             border-color: #ced4da;
         }
+
+        @@keyframes highlightBlue {
+            0% { background-color: rgba(13, 110, 253, 0.4); }
+            100% { background-color: transparent; }
+        }
+        
+        .highlight-new {
+            animation: highlightBlue 3s ease-out;
+        }
+        
+        /* Circular Action Buttons */
+        .btn-action-circle {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 2px;
+            font-size: 1.15rem; /* 15% larger icons approximation */
+        }
     </style>
 }
 
@@ -140,6 +162,9 @@
                          <!-- Row 3: Action Buttons & Dates -->
                          <!-- Dates could be here, but user didn't explicitly ask for Date *Filter*, just Table column merge. Keeping it simple. -->
                         <div class="col-12 d-flex justify-content-end gap-2">
+                             <button type="button" class="btn btn-danger d-none" id="bulkDeleteBtn" onclick="bulkDelete()">
+                                <i class="bx bx-trash"></i> Seçilenleri Sil (<span id="selectedCount">0</span>)
+                             </button>
                              <a href="/Gorevler/Liste" class="btn btn-outline-secondary">Temizle</a>
                              <button type="submit" class="btn btn-primary">Filtrele</button>
                              <a href="/Gorevler/Yeni" class="btn btn-success"><i class="bx bx-plus"></i> Yeni Görev</a>
@@ -155,6 +180,9 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
+                            <th>
+                                <input type="checkbox" class="form-check-input" id="selectAll">
+                            </th>
                             <th>Görev</th>
                             <th>Kategori</th>
                             <th>Atanan Kişi / Birimler</th>
@@ -166,9 +194,13 @@
                     <tbody>
                         @foreach (var item in Model)
                         {
-                            <tr class="cursor-pointer" onclick="openAssignmentDrawer(@item.GorevId, '@item.Ad')">
+                            <tr class="cursor-pointer" id="row-@item.GorevId" onclick="openAssignmentDrawer(@item.GorevId, '@item.Ad')">
+                                <td onclick="event.stopPropagation()">
+                                    <input type="checkbox" class="form-check-input select-item" value="@item.GorevId" onchange="updateBulkActionState(event)">
+                                </td>
                                 <td>
-                                    <strong>@item.Ad</strong><br/>
+                                    <!-- Link to Detail with stopPropagation -->
+                                    <a href="/Gorevler/Detay/@item.GorevId" onclick="event.stopPropagation()" class="fw-bold text-body">@item.Ad</a><br/>
                                     <small class="text-muted">@item.Aciklama</small>
                                 </td>
                                 <td><span class="badge bg-label-info">@item.Kategori?.Ad</span></td>
@@ -249,27 +281,71 @@
                                     }
                                 </td>
                                 <td class="text-end">
-                                    <button class="btn btn-sm btn-icon btn-label-primary" onclick="event.stopPropagation(); openAssignmentDrawer(@item.GorevId, '@item.Ad')">
+                                    <button class="btn btn-warning btn-action-circle text-white" data-bs-toggle="tooltip" title="Yetkilendir" onclick="event.stopPropagation(); openAssignmentDrawer(@item.GorevId, '@item.Ad')">
                                         <i class="bx bx-user-plus"></i>
                                     </button>
-                                    <a href="/Gorevler/Duzenle/@item.GorevId" class="btn btn-sm btn-icon btn-label-warning" onclick="event.stopPropagation()"><i class="bx bx-edit"></i></a>
-                                    <button class="btn btn-sm btn-icon btn-label-danger" onclick="event.stopPropagation(); deleteTask(@item.GorevId)"><i class="bx bx-trash"></i></button>
+                                    <a href="/Gorevler/Duzenle/@item.GorevId" class="btn btn-primary btn-action-circle" data-bs-toggle="tooltip" title="Düzenle" onclick="event.stopPropagation()">
+                                        <i class="bx bx-edit"></i>
+                                    </a>
+                                    <button class="btn btn-danger btn-action-circle" data-bs-toggle="tooltip" title="Sil" onclick="event.stopPropagation(); deleteTask(@item.GorevId)">
+                                        <i class="bx bx-trash"></i>
+                                    </button>
                                 </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-             <!-- Pagination (Simplified) -->
+             <!-- Pagination (Smart) -->
              @if (ViewBag.TotalPages > 1) {
+                 var currentPage = (int)ViewBag.CurrentPage;
+                 var totalPages = (int)ViewBag.TotalPages;
+                 var startPage = Math.Max(1, currentPage - 2);
+                 var endPage = Math.Min(totalPages, currentPage + 2);
+
                  <div class="card-footer d-flex justify-content-center">
                     <nav>
                         <ul class="pagination">
-                            @for(int i=1; i<=ViewBag.TotalPages; i++) {
-                                <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <!-- Previous -->
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <a class="page-link" href="?page=@(currentPage - 1)&q=@ViewBag.CurrentSort">«</a>
+                            </li>
+
+                            <!-- First Page -->
+                            @if (startPage > 1)
+                            {
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=1&q=@ViewBag.CurrentSort">1</a>
+                                </li>
+                                @if (startPage > 2)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                            }
+
+                            <!-- Page Numbers -->
+                            @for(int i = startPage; i <= endPage; i++) {
+                                <li class="page-item @(i == currentPage ? "active" : "")">
                                     <a class="page-link" href="?page=@i&q=@ViewBag.CurrentSort">@i</a>
                                 </li>
                             }
+
+                            <!-- Last Page -->
+                            @if (endPage < totalPages)
+                            {
+                                @if (endPage < totalPages - 1)
+                                {
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                }
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=@totalPages&q=@ViewBag.CurrentSort">@totalPages</a>
+                                </li>
+                            }
+
+                            <!-- Next -->
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <a class="page-link" href="?page=@(currentPage + 1)&q=@ViewBag.CurrentSort">»</a>
+                            </li>
                         </ul>
                     </nav>
                  </div>
@@ -296,9 +372,6 @@
         <li class="nav-item">
           <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabAssignments" type="button"><i class="bx bx-user-pin me-1"></i> Atamalar</button>
         </li>
-        <li class="nav-item">
-          <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabStatus" type="button"><i class="bx bx-repost me-1"></i> Durum</button>
-        </li>
       </ul>
 
       <div class="tab-content p-3">
@@ -323,7 +396,15 @@
                         <div id="selector-personel" class="entity-selector">
                             <select class="form-select select2-drawer" id="drawerSelectPersonel" style="width: 100%;">
                                 <option value="">Personel Seçiniz...</option>
-                                @if(personeller != null) { foreach(var p in personeller) { <option value="@p.Value">@p.Text</option> } }
+                                @if(personeller != null) { 
+                                    foreach(var p in personeller) { 
+                                        if (p.Disabled) {
+                                            <option value="@p.Value" disabled>@p.Text</option>
+                                        } else {
+                                            <option value="@p.Value">@p.Text</option>
+                                        }
+                                    } 
+                                }
                             </select>
                         </div>
                         <div id="selector-teskilat" class="entity-selector d-none">
@@ -360,29 +441,7 @@
                 </div>
           </div>
 
-          <!-- TAB 2: STATUS -->
-          <div class="tab-pane fade" id="tabStatus">
-              <div class="mb-3">
-                  <label class="form-label">Durum</label>
-                  <select class="form-select" id="drawerStatusSelect">
-                      @if(ViewBag.GorevDurumlari != null)
-                      {
-                        foreach(var d in ViewBag.GorevDurumlari)
-                        {
-                            <option value="@d.GorevDurumId">@d.Ad</option>
-                        }
-                      }
-                  </select>
-              </div>
-              <div class="mb-3">
-                  <label class="form-label">Açıklama / Not</label>
-                  <textarea class="form-control" id="drawerStatusNote" rows="4" placeholder="Durum ile ilgili açıklama giriniz..."></textarea>
-                  <div class="form-text">Bu açıklama görev listesinde görüntülenecektir.</div>
-              </div>
-              <div class="d-grid gap-2">
-                  <button type="button" class="btn btn-primary" onclick="updateStatus()">Durumu Güncelle</button>
-              </div>
-          </div>
+
       </div>
   </div>
   <div class="offcanvas-footer p-3 border-top d-flex justify-content-end gap-2 bg-light">
@@ -416,7 +475,98 @@
                 $('.entity-selector').addClass('d-none');
                 $('#selector-' + type).removeClass('d-none');
             });
+            
+            // Check for New Task Highlighting
+            var newGorevId = '@TempData["NewGorevId"]';
+            if (newGorevId) {
+                var row = document.getElementById('row-' + newGorevId);
+                if (row) {
+                    row.classList.add('highlight-new');
+                    // Scroll into view if needed
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Remove class after animation
+                    setTimeout(function() {
+                        row.classList.remove('highlight-new');
+                    }, 3000);
+                }
+            }
+            
+            // Tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl)
+            })
         });
+        
+        // --- BULK ACTION SCRIPTS ---
+        document.addEventListener('DOMContentLoaded', function() {
+            // Select All handler
+            var selectAll = document.getElementById('selectAll');
+            if(selectAll) {
+                selectAll.addEventListener('change', function() {
+                   var checkboxes = document.querySelectorAll('.select-item');
+                   var isChecked = this.checked;
+                   checkboxes.forEach(function(cb) {
+                       cb.checked = isChecked;
+                   });
+                   updateBulkActionState();
+                });
+            }
+        });
+
+        function updateBulkActionState(e) {
+            if(e) e.stopPropagation();
+            var selectedCount = document.querySelectorAll('.select-item:checked').length;
+            var btn = document.getElementById('bulkDeleteBtn');
+            var countSpan = document.getElementById('selectedCount');
+            
+            if(selectedCount > 0) {
+                btn.classList.remove('d-none');
+                countSpan.innerText = selectedCount;
+            } else {
+                btn.classList.add('d-none');
+            }
+        }
+
+        function bulkDelete() {
+            var selectedIds = [];
+            document.querySelectorAll('.select-item:checked').forEach(function(cb) {
+                selectedIds.push(parseInt(cb.value));
+            });
+
+            if (selectedIds.length === 0) return;
+
+            Swal.fire({
+                title: 'Toplu Silme',
+                text: selectedIds.length + " görev silinecek (pasife alınacak/silinecek). Emin misiniz?",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, Sil!',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '/Gorevler/TopluSil',
+                        type: 'POST',
+                        data: JSON.stringify(selectedIds),
+                        contentType: 'application/json; charset=utf-8',
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire('Başarılı', response.message, 'success')
+                                .then(() => location.reload());
+                            } else {
+                                Swal.fire('Hata', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Hata', 'İşlem sırasında bir hata oluştu.', 'error');
+                        }
+                    });
+                }
+            });
+        }
 
         // Toggle Container (Show More/Less)
         function toggleContainer(element) {
@@ -527,7 +677,7 @@
             // Normalize Type
             var typePascal = type.charAt(0).toUpperCase() + type.slice(1);
             if(type === 'koordinatorluk') typePascal = 'Koordinatorluk'; 
-
+            
             var exists = localAssignments.some(function(x) { return x.type == typePascal && x.id == id; });
             if(exists) {
                  Swal.fire({ icon: 'info', title: 'Bilgi', text: 'Bu atama zaten mevcut.' });

@@ -5,8 +5,7 @@
 
 <!-- Custom CSS for cleaner look -->
     <!-- Custom CSS for cleaner look -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
 
     <style>
         .filter-bar {
@@ -167,7 +166,8 @@
                                 data-yazilim="@yazilimStr"
                                 data-uzmanlik="@uzmanlikStr"
                                 data-gorevturu="@gorevStr"
-                                data-isniteligi="@isStr">
+                                data-isniteligi="@isStr"
+                                style="@(!p.AktifMi ? "opacity: 0.5; pointer-events: none;" : "")">
                                 
                                 <td class="ps-4">
                                      <div class="avatar avatar-sm">
@@ -275,7 +275,7 @@
 }
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script>
         var allTeskilatOptions = @Json.Serialize(Model.TeskilatList);
         var allKurumsalRolOptions = @Json.Serialize(Model.KurumsalRolList);

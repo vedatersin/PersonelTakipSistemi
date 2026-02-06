@@ -16,7 +16,7 @@ namespace PersonelTakipSistemi.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task LogAsync(string islemTuru, string aciklama, int? personelId = null, string? detay = null)
+        public async Task LogAsync(string islemTuru, string aciklama, int? ilgiliPersonelId = null, string? detay = null)
         {
             try
             {
@@ -27,37 +27,71 @@ namespace PersonelTakipSistemi.Services
                 if (context?.Request?.Headers?.ContainsKey("X-Forwarded-For") == true)
                     ip = context.Request.Headers["X-Forwarded-For"].ToString();
 
-                // 2. Resolve User if not provided
-                string? tc = null;
-                string? adSoyad = null;
+                // 2. Identify Performer (The one logged in)
+                int? performerId = null;
+                string? performerTc = null;
+                string? performerName = null;
 
-                if (personelId == null && context?.User?.Identity?.IsAuthenticated == true)
+                if (context?.User?.Identity?.IsAuthenticated == true)
                 {
-                    var pidClaim = context.User.FindFirst("PersonelId")?.Value;
+                    // Try get Performer ID
+                    var pidClaim = context.User.FindFirst("PersonelId")?.Value ?? 
+                                   context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                     if (int.TryParse(pidClaim, out int pid))
                     {
-                        personelId = pid;
+                        performerId = pid;
+                    }
+
+                    // Try get Performer Name
+                    performerName = context.User.FindFirst(ClaimTypes.Name)?.Value;
+
+                    // Try get Performer TC (Added in AccountController)
+                    performerTc = context.User.FindFirst("TcKimlikNo")?.Value;
+
+                    // Fallback: If logged in but TC missing (e.g. old session), fetch from DB once
+                    if (performerId.HasValue && (performerTc == null || performerName == null))
+                    {
+                        var p = await _context.Personeller.FindAsync(performerId.Value);
+                        if (p != null)
+                        {
+                            if (performerTc == null) performerTc = p.TcKimlikNo;
+                            if (performerName == null) performerName = $"{p.Ad} {p.Soyad}";
+                        }
                     }
                 }
 
-                if (personelId.HasValue)
+                // 2b. Special Case for Login (Giris): User is NOT in Context yet, but passed as argument
+                if (!performerId.HasValue && islemTuru == "Giris" && ilgiliPersonelId.HasValue)
                 {
-                    var p = await _context.Personeller.FindAsync(personelId.Value);
+                    performerId = ilgiliPersonelId.Value;
+                    var p = await _context.Personeller.FindAsync(performerId.Value);
                     if (p != null)
                     {
-                        tc = p.TcKimlikNo;
-                        adSoyad = $"{p.Ad} {p.Soyad}";
+                        performerTc = p.TcKimlikNo;
+                        performerName = $"{p.Ad} {p.Soyad}";
                     }
                 }
 
+                // 3. Handle Target Person (ilgiliPersonelId)
+                // If a target ID is provided, append it to details if not already present
+                if (ilgiliPersonelId.HasValue)
+                {
+                    string targetInfo = $"[Hedef Personel ID: {ilgiliPersonelId}]";
+                    if (string.IsNullOrEmpty(detay)) detay = targetInfo;
+                    else detay = targetInfo + " " + detay;
+                }
+
+                // 4. Create Log
                 var log = new SistemLog
                 {
-                    PersonelId = personelId,
-                    TcKimlikNo = tc,
-                    KullaniciAdSoyad = adSoyad,
+                    // Always store Performer info in the main columns
+                    PersonelId = performerId, 
+                    TcKimlikNo = performerTc,
+                    KullaniciAdSoyad = performerName,
+                    
                     IpAdresi = ip,
                     Tarih = DateTime.Now,
-                    IslemTuru = islemTuru, // "Giris", "Cikis", "Ekleme", "Silme", "Guncelleme", "Yetkilendirme", "Bildirim"
+                    IslemTuru = islemTuru, 
                     Aciklama = aciklama,
                     Detay = detay
                 };

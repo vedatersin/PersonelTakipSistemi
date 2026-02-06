@@ -1,4 +1,5 @@
 using PersonelTakipSistemi.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace PersonelTakipSistemi.ViewModels
 {
@@ -7,29 +8,48 @@ namespace PersonelTakipSistemi.ViewModels
         // Kartlar (Özet Sayılar)
         public int ToplamPersonel { get; set; }
         public int ToplamKomisyon { get; set; }
-        public int ToplamGorev { get; set; } // Atama sayısı
-        public double DolulukOrani { get; set; } // Personel/Komisyon oranı vb.
+        public int ToplamKoordinatorluk { get; set; }
+        public int ToplamGorev { get; set; } 
 
-        // Tablolar / Listeler
-        public List<KomisyonDoluluk> KomisyonDoluluklari { get; set; } = new();
-        public List<TeskilatDagilimi> TeskilatDagilimlari { get; set; } = new();
+        // Filtreler için Listeler
+        public List<SelectListItem> TeskilatList { get; set; } = new();
+        public List<SelectListItem> KoordinatorlukList { get; set; } = new();
+        public List<SelectListItem> KomisyonList { get; set; } = new();
+        public List<SelectListItem> PersonelList { get; set; } = new(); // Arama için select2 kullanılacak
+
+        public int? TeskilatId { get; set; }
+        public int? KoordinatorlukId { get; set; }
+        public int? KomisyonId { get; set; }
+        public int? PersonelId { get; set; }
         
-        // Grafikler için veri yapıları (gerekirse JSON string olarak da tutulabilir)
-        public int KadinPersonelSayisi { get; set; }
-        public int ErkekPersonelSayisi { get; set; }
+        // Kişisel İstatistik sayfası için
+        public int? PersonnelIdForKisisel { get; set; }
+
+
+        // Grafik Verileri
+        public ChartDataJson KategoriDagilimi { get; set; } = new();
+        public MultiSeriesChartJson UzmanlikTrendi { get; set; } = new(); // New Multi-Series Chart
+        public ChartDataJson GorevDurumDagilimi { get; set; } = new();
     }
 
-    public class KomisyonDoluluk
+    public class ChartDataJson
     {
-        public string KomisyonAd { get; set; } = null!;
-        public string BagliBirim { get; set; } = null!; // Koordinatörlük
-        public int UyeSayisi { get; set; }
-        public double DolulukYuzdesi { get; set; } // Max kapasiteye göre (örn: 10 kişi)
+        public List<string> Labels { get; set; } = new();
+        public List<int> Data { get; set; } = new();
+        public List<string> Colors { get; set; } = new(); 
     }
 
-    public class TeskilatDagilimi
+    public class MultiSeriesChartJson
     {
-        public string BirimAd { get; set; } = null!;
-        public int PersonelSayisi { get; set; }
+        public List<string> Labels { get; set; } = new();
+        public List<ChartDataset> Datasets { get; set; } = new();
+    }
+
+    public class ChartDataset
+    {
+        public string Label { get; set; } = null!;
+        public List<int> Data { get; set; } = new();
+        public string BorderColor { get; set; } = null!;
+        public string BackgroundColor { get; set; } = null!;
     }
 }

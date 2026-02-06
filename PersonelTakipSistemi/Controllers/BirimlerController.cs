@@ -14,11 +14,13 @@ namespace PersonelTakipSistemi.Controllers
         private readonly TegmPersonelTakipDbContext _context;
 
         private readonly INotificationService _notificationService;
+        private readonly Services.ILogService _logService;
 
-        public BirimlerController(TegmPersonelTakipDbContext context, INotificationService notificationService)
+        public BirimlerController(TegmPersonelTakipDbContext context, INotificationService notificationService, Services.ILogService logService)
         {
             _context = context;
             _notificationService = notificationService;
+            _logService = logService;
         }
 
         // ==============================================================
@@ -49,6 +51,7 @@ namespace PersonelTakipSistemi.Controllers
             var t = new Teskilat { Ad = model.Ad, Aciklama = model.Tanim, CreatedAt = DateTime.Now, IsActive = true };
             _context.Teskilatlar.Add(t);
             await _context.SaveChangesAsync();
+            await _logService.LogAsync("Birim Ekleme", $"Teşkilat eklendi: {t.Ad}", null, $"Teşkilat ID: {t.TeskilatId}");
             return Ok(new { success = true, id = t.TeskilatId });
         }
 
@@ -68,6 +71,7 @@ namespace PersonelTakipSistemi.Controllers
             };
             _context.Koordinatorlukler.Add(k);
             await _context.SaveChangesAsync();
+            await _logService.LogAsync("Birim Ekleme", $"Koordinatörlük eklendi: {k.Ad}", null, $"Koordinatörlük ID: {k.KoordinatorlukId}, Bağlı Teşkilat ID: {model.ParentId}");
             return Ok(new { success = true, id = k.KoordinatorlukId });
         }
 
@@ -86,6 +90,7 @@ namespace PersonelTakipSistemi.Controllers
              };
              _context.Komisyonlar.Add(k);
              await _context.SaveChangesAsync();
+             await _logService.LogAsync("Birim Ekleme", $"Komisyon eklendi: {k.Ad}", null, $"Komisyon ID: {k.KomisyonId}, Bağlı Koordinatörlük ID: {model.ParentId}");
              return Ok(new { success = true, id = k.KomisyonId });
         }
 
@@ -96,17 +101,32 @@ namespace PersonelTakipSistemi.Controllers
             if (type == "tes") 
             {
                 var item = await _context.Teskilatlar.FindAsync(id);
-                if (item != null) { _context.Teskilatlar.Remove(item); await _context.SaveChangesAsync(); }
+                if (item != null) 
+                { 
+                    _context.Teskilatlar.Remove(item); 
+                    await _context.SaveChangesAsync();
+                    await _logService.LogAsync("Birim Silme", $"Teşkilat silindi: {item.Ad}", null, $"Teşkilat ID: {id}");
+                }
             }
             else if (type == "koord")
             {
                 var item = await _context.Koordinatorlukler.FindAsync(id);
-                if (item != null) { _context.Koordinatorlukler.Remove(item); await _context.SaveChangesAsync(); }
+                if (item != null) 
+                { 
+                    _context.Koordinatorlukler.Remove(item); 
+                    await _context.SaveChangesAsync();
+                    await _logService.LogAsync("Birim Silme", $"Koordinatörlük silindi: {item.Ad}", null, $"Koordinatörlük ID: {id}");
+                }
             }
             else if (type == "kom")
             {
                  var item = await _context.Komisyonlar.FindAsync(id);
-                 if (item != null) { _context.Komisyonlar.Remove(item); await _context.SaveChangesAsync(); }
+                 if (item != null) 
+                 { 
+                     _context.Komisyonlar.Remove(item); 
+                     await _context.SaveChangesAsync();
+                     await _logService.LogAsync("Birim Silme", $"Komisyon silindi: {item.Ad}", null, $"Komisyon ID: {id}");
+                 }
             }
 
             return Ok(new { success = true });
@@ -122,7 +142,7 @@ namespace PersonelTakipSistemi.Controllers
             var model = new TopluAtamaViewModel
             {
                 // Only Active Personnel
-                Personeller = await _context.Personeller.Where(p => p.AktifMi).OrderBy(p => p.Ad).ThenBy(p => p.Soyad).ToListAsync(),
+                Personeller = await _context.Personeller.Include(p => p.GorevliIl).OrderBy(p => p.Ad).ThenBy(p => p.Soyad).ToListAsync(),
                 Teskilatlar = await _context.Teskilatlar.OrderBy(x => x.Ad).ToListAsync()
             };
             return View(model);
@@ -133,8 +153,34 @@ namespace PersonelTakipSistemi.Controllers
         {
             if (model.PersonelIds == null || !model.PersonelIds.Any()) return BadRequest("Personel seçilmedi.");
 
-            int count = 0;
+            var duplicateNames = new List<string>();
 
+            // 1. Validation Check First
+            foreach (var pid in model.PersonelIds)
+            {
+                 bool exists = false;
+                 // Check if already in target unit
+                 if (model.KomisyonId.HasValue)
+                     exists = await _context.PersonelKomisyonlar.AnyAsync(x => x.PersonelId == pid && x.KomisyonId == model.KomisyonId.Value);
+                 else if (model.KoordinatorlukId.HasValue)
+                     exists = await _context.PersonelKoordinatorlukler.AnyAsync(x => x.PersonelId == pid && x.KoordinatorlukId == model.KoordinatorlukId.Value);
+                 else if (model.TeskilatId.HasValue)
+                     exists = await _context.PersonelTeskilatlar.AnyAsync(x => x.PersonelId == pid && x.TeskilatId == model.TeskilatId.Value);
+
+                 if (exists)
+                 {
+                     var pName = await _context.Personeller.Where(p => p.PersonelId == pid).Select(p => p.Ad + " " + p.Soyad).FirstOrDefaultAsync();
+                     duplicateNames.Add(pName ?? "Bilinmeyen Personel");
+                 }
+            }
+
+            if (duplicateNames.Any())
+            {
+                return BadRequest($"Seçilen personellerden bazıları zaten bu birimde kayıtlı: {string.Join(", ", duplicateNames.Take(3))}{(duplicateNames.Count > 3 ? "..." : "")}");
+            }
+
+            // 2. Execution
+            int count = 0;
             foreach (var pid in model.PersonelIds)
             {
                 var p = await _context.Personeller
@@ -146,43 +192,51 @@ namespace PersonelTakipSistemi.Controllers
 
                 if (p == null) continue;
 
-                // 1. Add Explicit Role (Generic Member Role)
-                // Assuming Role ID 1 is "Personel" (Member)
-                // We need to check if we should add implicit relations
-                
-                // Add to Komisyon
+                // 1. Teskilat Assignment (Ensure parent hierarchy)
+                if (model.TeskilatId.HasValue)
+                {
+                     if(!p.PersonelTeskilatlar.Any(t => t.TeskilatId == model.TeskilatId.Value))
+                     {
+                         p.PersonelTeskilatlar.Add(new PersonelTeskilat { TeskilatId = model.TeskilatId.Value });
+                     }
+                }
+
+                // 2. Koordinatorluk Assignment
+                if (model.KoordinatorlukId.HasValue)
+                {
+                     if(!p.PersonelKoordinatorlukler.Any(k => k.KoordinatorlukId == model.KoordinatorlukId.Value))
+                     {
+                         p.PersonelKoordinatorlukler.Add(new PersonelKoordinatorluk { KoordinatorlukId = model.KoordinatorlukId.Value });
+                     }
+                }
+
+                // 3. Komisyon Assignment & Role Definition
                 if(model.KomisyonId.HasValue)
                 {
                     if(!p.PersonelKomisyonlar.Any(k => k.KomisyonId == model.KomisyonId.Value))
                     {
                         p.PersonelKomisyonlar.Add(new PersonelKomisyon { KomisyonId = model.KomisyonId.Value });
                     }
-                    // Role
+                    
+                    // Add Role for Commission
                     p.PersonelKurumsalRolAtamalari.Add(new PersonelKurumsalRolAtama { 
                         KurumsalRolId = 1, // Generic Member
                         KomisyonId = model.KomisyonId.Value,
                         KoordinatorlukId = model.KoordinatorlukId.Value 
                     });
                 }
-                // Add to Koordinatorluk
                 else if (model.KoordinatorlukId.HasValue)
                 {
-                     if(!p.PersonelKoordinatorlukler.Any(k => k.KoordinatorlukId == model.KoordinatorlukId.Value))
-                     {
-                         p.PersonelKoordinatorlukler.Add(new PersonelKoordinatorluk { KoordinatorlukId = model.KoordinatorlukId.Value });
-                     }
+                      // Add Role for Koordinatorluk (if no commission selected)
                       p.PersonelKurumsalRolAtamalari.Add(new PersonelKurumsalRolAtama { 
                         KurumsalRolId = 1, // Generic Member
                         KoordinatorlukId = model.KoordinatorlukId.Value 
                     });
                 }
-                // Add to Teskilat (Rare but supported)
                 else if (model.TeskilatId.HasValue)
                 {
-                     if(!p.PersonelTeskilatlar.Any(t => t.TeskilatId == model.TeskilatId.Value))
-                     {
-                         p.PersonelTeskilatlar.Add(new PersonelTeskilat { TeskilatId = model.TeskilatId.Value });
-                     }
+                     // Usually we don't assign roles just to Teskilat (Merkez/Tasra) without a sub-unit, 
+                     // but if needed, we could. The original code didn't add a role for Teskilat-only assignment.
                 }
                 
                 count++;
@@ -221,6 +275,23 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // LOG
+            try
+            {
+               var assignedNames = await _context.Personeller.Where(p => model.PersonelIds.Contains(p.PersonelId)).Select(p => p.Ad + " " + p.Soyad).ToListAsync();
+               var namesStr = string.Join(", ", assignedNames);
+               if(namesStr.Length > 200) namesStr = namesStr.Substring(0, 197) + "...";
+               
+               string targetUnit = "Bilinmiyor";
+               if(model.KomisyonId.HasValue) targetUnit = "Komisyon ID: " + model.KomisyonId;
+               else if(model.KoordinatorlukId.HasValue) targetUnit = "Koordinatörlük ID: " + model.KoordinatorlukId;
+               else if(model.TeskilatId.HasValue) targetUnit = "Teşkilat ID: " + model.TeskilatId;
+    
+               await _logService.LogAsync("Toplu Atama", $"Toplu personel ataması yapıldı.", null, $"Hedef: {targetUnit}, Atanan Kişiler: {namesStr}");
+            }
+            catch(Exception) {}
+
             return Ok(new { success = true, count = count });
         }
 

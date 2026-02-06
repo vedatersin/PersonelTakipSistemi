@@ -54,53 +54,87 @@
 
 /* Sidebar Width Adjustment */
 /* Sidebar Width Adjustment - Global Override */
-aside#layout-menu.layout-menu,
 .layout-menu-fixed .layout-menu {
-  width: 260px !important;
+  width: 290px !important;
   /* Standard narrow width */
 }
 
-.layout-menu-fixed .layout-page {
-  padding-left: 260px !important;
-}
-
-/* Sidebar Logo Area Adjustment */
-.app-brand {
-  min-height: 100px !important;
+/* Force inner menu items to fill the new width completely */
+.layout-menu .menu-inner>.menu-item>.menu-link {
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  border-radius: 0 !important;
   padding-left: 1rem !important;
+  /* Top level padding */
   padding-right: 1rem !important;
-  padding-top: 0 !important;
+  display: flex !important;
+  /* Flexbox for alignment */
+  gap: 0.5rem !important;
   align-items: center !important;
-  /* Center vertically safe */
-  justify-content: center !important;
-  /* Center horizontally */
-  overflow: hidden !important;
+  /* Vertically center icon and text */
 }
 
-/* Logo Image Fix */
-.app-brand-logo {
+/* Sub-menu Indentation and Layout */
+.layout-menu .menu-sub>.menu-item>.menu-link {
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  border-radius: 0 !important;
+
+  /* Reduced padding to bring text closer to the dot */
+  padding-left: 3rem !important;
+  padding-right: 1rem !important;
+
   display: flex !important;
   align-items: center !important;
-  justify-content: center !important;
+  position: relative !important;
+  /* For absolute positioning of dot */
+  gap: 0.5rem !important;
+  /* Ensure gap acts as minimum spacing if needed */
 }
 
-.app-brand-logo img {
-  max-width: 100% !important;
-  height: auto !important;
-  object-fit: contain;
+/* 1. Default State: Dot is HIDDEN */
+.layout-menu .menu-sub>.menu-item>.menu-link::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 1.35rem !important;
+  /* Slightly tighter left align to match parent icon center */
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background-color: #fff !important;
+
+  display: none !important;
+  /* Hide by default */
 }
 
-.app-brand-link {
-  display: flex;
-  align-items: center;
-  width: 100%;
+/* 2. Active State: Dot is VISIBLE */
+.layout-menu .menu-sub>.menu-item.active>.menu-link::before {
+  display: block !important;
 }
 
-/* Ensure long menu text doesn't break poorly - Default Safe */
+/* Remove manual div margin needed previously, as padding handles it now */
+.layout-menu .menu-sub>.menu-item>.menu-link>div {
+  margin-left: 0 !important;
+}
+
+/* Fix Icon Spacing in Flex */
+.menu-link i.menu-icon {
+  /* REMOVED MARGIN: Gap property handles the spacing now (prevents double space) */
+  margin-right: 0 !important;
+  flex-shrink: 0 !important;
+}
+
+/* Ensure text never truncates with ellipsis */
 .menu-link .text-truncate {
-  white-space: nowrap;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-width: none !important;
+  line-height: 1.3 !important;
 }
 
 /* Remove forced menu item expansion to restore default theme look */
@@ -113,17 +147,26 @@ aside#layout-menu.layout-menu,
   }
 
   .layout-menu-fixed .layout-menu {
-    width: 260px !important;
+    width: 290px !important;
+    transition: transform 0.3s ease-in-out !important;
+    /* Ensure smooth slide */
+  }
+
+  /* Increase sidebar icon size by ~15% on mobile */
+  .layout-menu .menu-icon {
+    font-size: 1.45rem !important;
+    /* Default was ~1.25rem, 15% bigger */
+    margin-right: 0.6rem !important;
   }
 }
 
-/* Small screen fix */
-@media (max-width: 1199.98px) {
-  .layout-menu-fixed .layout-page {
-    padding-left: 0 !important;
-  }
 
-  .layout-menu-fixed .layout-menu {
-    width: 260px !important;
-  }
+/* Hide menu inner shadow to prevent white gradient glitch */
+.menu-inner-shadow {
+  display: none !important;
+}
+
+/* Ensure Logo Area Background matches Sidebar */
+.app-brand {
+  background-color: transparent !important;
 }

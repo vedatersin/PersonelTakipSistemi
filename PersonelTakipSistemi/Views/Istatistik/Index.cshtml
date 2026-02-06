@@ -1,166 +1,313 @@
 @model PersonelTakipSistemi.ViewModels.IstatistikViewModel
+@using System.Text.Json
 @{
-    ViewData["Title"] = "İstatistik ve Raporlar";
+    ViewData["Title"] = "İstatistikler";
 }
 
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
 <div class="container-xxl flex-grow-1 container-p-y">
-    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Modüller /</span> İstatistik ve Raporlar</h4>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold py-3 mb-0"><span class="text-muted fw-light">Modüller /</span> İstatistikler</h4>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Teşkilat</label>
+                    <select id="teskilatSelect" class="form-select select2">
+                        <option value="">Tümü</option>
+                        @foreach (var item in Model.TeskilatList)
+                        {
+                            <option value="@item.Value">@item.Text</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Koordinatörlük</label>
+                    <select id="koordinatorlukSelect" class="form-select select2" disabled>
+                        <option value="">Tümü</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Komisyon</label>
+                    <select id="komisyonSelect" class="form-select select2" disabled>
+                        <option value="">Tümü</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Personel</label>
+                    <select id="personelSelect" class="form-select select2" disabled>
+                        <option value="">Tümü</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Summary Cards -->
     <div class="row g-4 mb-4">
-        <div class="col-sm-6 col-xl-3">
-            <div class="card bg-primary text-white">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card">
                 <div class="card-body">
-                    <div class="d-flex align-items-start justify-content-between">
-                        <div class="content-left">
-                            <span>Toplam Personel</span>
-                            <div class="d-flex align-items-end mt-2">
-                                <h3 class="mb-0 me-2 text-white">@Model.ToplamPersonel</h3>
-                                <small class="text-white-50">(Aktif)</small>
-                            </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="avatar me-4">
+                            <span class="avatar-initial rounded bg-primary text-white"><i class="bx bx-task"></i></span>
                         </div>
-                        <span class="badge bg-white text-primary rounded p-2">
-                            <i class="bx bx-user bx-sm"></i>
-                        </span>
+                        <h4 class="mb-0" id="totalGorevCard">@Model.ToplamGorev</h4>
                     </div>
+                    <p class="mb-0">Atanan Görev</p>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card bg-warning text-white">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card">
                 <div class="card-body">
-                    <div class="d-flex align-items-start justify-content-between">
-                        <div class="content-left">
-                            <span>Komisyonlar</span>
-                            <div class="d-flex align-items-end mt-2">
-                                <h3 class="mb-0 me-2 text-white">@Model.ToplamKomisyon</h3>
-                                <small class="text-white-50">Adet</small>
-                            </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="avatar me-4">
+                            <span class="avatar-initial rounded bg-info text-white"><i class="bx bx-user"></i></span>
                         </div>
-                        <span class="badge bg-white text-warning rounded p-2">
-                            <i class="bx bx-group bx-sm"></i>
-                        </span>
+                        <h4 class="mb-0" id="totalPersonelCard">@Model.ToplamPersonel</h4>
                     </div>
+                    <p class="mb-0">Personel</p>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-3">
-            <div class="card bg-success text-white">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card">
                 <div class="card-body">
-                    <div class="d-flex align-items-start justify-content-between">
-                        <div class="content-left">
-                            <span>Toplam Görev Ataması</span>
-                            <div class="d-flex align-items-end mt-2">
-                                <h3 class="mb-0 me-2 text-white">@Model.ToplamGorev</h3>
-                                <small class="text-white-50">Rol/Üyelik</small>
-                            </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="avatar me-4">
+                            <span class="avatar-initial rounded bg-warning text-white"><i class="bx bx-buildings"></i></span>
                         </div>
-                        <span class="badge bg-white text-success rounded p-2">
-                            <i class="bx bx-task bx-sm"></i>
-                        </span>
+                        <h4 class="mb-0" id="totalKoordinatorlukCard">@Model.ToplamKoordinatorluk</h4>
                     </div>
+                    <p class="mb-0">Koordinatörlük</p>
                 </div>
             </div>
         </div>
-        <div class="col-sm-6 col-xl-3">
-             <div class="card bg-info text-white">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card">
                 <div class="card-body">
-                    <div class="d-flex align-items-start justify-content-between">
-                        <div class="content-left">
-                            <span>Cinsiyet Dağılımı</span>
-                            <div class="d-flex align-items-end mt-2">
-                                <div class="d-flex flex-column">
-                                    <small class="text-white">Kadın: @Model.KadinPersonelSayisi</small>
-                                    <small class="text-white">Erkek: @Model.ErkekPersonelSayisi</small>
-                                </div>
-                            </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="avatar me-4">
+                            <span class="avatar-initial rounded bg-success text-white"><i class="bx bx-group"></i></span>
                         </div>
-                        <span class="badge bg-white text-info rounded p-2">
-                            <i class="bx bx-male-female bx-sm"></i>
-                        </span>
+                        <h4 class="mb-0" id="totalKomisyonCard">@Model.ToplamKomisyon</h4>
                     </div>
+                    <p class="mb-0">Komisyon</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <!-- Top Occupied Commissions -->
-        <div class="col-md-6 col-lg-6 mb-4">
+    <!-- Charts Row 1 -->
+    <div class="row mb-4">
+        <!-- Pie Chart: Görev Kategorileri -->
+        <div class="col-md-6 col-lg-4">
             <div class="card h-100">
                 <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="card-title m-0 me-2">Komisyon Doluluk Oranları (Top 10)</h5>
+                    <h5 class="card-title m-0 me-2">Görev Kategori Dağılımı</h5>
                 </div>
                 <div class="card-body">
-                    <ul class="p-0 m-0">
-                        @foreach (var item in Model.KomisyonDoluluklari)
-                        {
-                            <li class="d-flex mb-4 pb-1">
-                                <div class="avatar flex-shrink-0 me-3">
-                                    <span class="avatar-initial rounded bg-label-primary">
-                                        <i class="bx bx-group"></i>
-                                    </span>
-                                </div>
-                                <div class="d-flex w-100 flex-wrap align-items-center justify-content-between gap-2">
-                                    <div class="me-2">
-                                        <h6 class="mb-0">@item.KomisyonAd</h6>
-                                        <small class="text-muted">@item.BagliBirim</small>
-                                    </div>
-                                    <div class="user-progress">
-                                        <small class="fw-semibold">@item.UyeSayisi Üye</small>
-                                        <div class="progress mt-1" style="height: 6px; width: 100px;">
-                                            <div class="progress-bar bg-primary" role="progressbar" style="width: @Math.Min(item.DolulukYuzdesi, 100)%" aria-valuenow="@item.DolulukYuzdesi" aria-valuemin="0" aria-valuemax="100"></div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </li>
-                        }
-                    </ul>
+                    <canvas id="kategoriChart" style="max-height: 300px;"></canvas>
                 </div>
             </div>
         </div>
 
-        <!-- Coordination Distribution -->
-        <div class="col-md-6 col-lg-6 mb-4">
+        <!-- Bar Chart: Görev Durumları -->
+        <div class="col-md-6 col-lg-8">
             <div class="card h-100">
                 <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="card-title m-0 me-2">İl Koordinatörlüğü Personel Sayıları</h5>
+                    <h5 class="card-title m-0 me-2">Görev Durum Analizi</h5>
                 </div>
-                <div class="table-responsive text-nowrap">
-                    <table class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>Birim Adı</th>
-                                <th>Personel Sayısı</th>
-                                <th>Durum</th>
-                            </tr>
-                        </thead>
-                        <tbody class="table-border-bottom-0">
-                            @foreach (var item in Model.TeskilatDagilimlari)
-                            {
-                                <tr>
-                                    <td><i class="bx bx-buildings me-2 text-warning"></i> <strong>@item.BirimAd</strong></td>
-                                    <td>@item.PersonelSayisi</td>
-                                    <td>
-                                        @if (item.PersonelSayisi > 15)
-                                        {
-                                            <span class="badge bg-label-success me-1">Yoğun</span>
-                                        }
-                                        else if (item.PersonelSayisi > 5)
-                                        {
-                                            <span class="badge bg-label-info me-1">Normal</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge bg-label-warning me-1">Düşük</span>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                <div class="card-body">
+                    <canvas id="durumChart" style="max-height: 300px;"></canvas>
                 </div>
             </div>
         </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <div class="row" id="trendRow">
+         <!-- Line Chart: Personel Sayısı -->
+         <div class="col-12">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title m-0 me-2">Görevli Personel Sayısı (Son 6 Ay)</h5>
+                </div>
+                <div class="card-body">
+                     <canvas id="trendChart" style="max-height: 400px;"></canvas>
+                </div>
+            </div>
+         </div>
     </div>
 </div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        let kategoriChartInst = null;
+        let durumChartInst = null;
+        let trendChartInst = null;
+
+        $(document).ready(function() {
+            $('.select2').select2({ theme: 'bootstrap-5' });
+
+            // Initialize Charts (Empty or Initial Load - Let's trigger initial fetch)
+            initCharts();
+            fetchStats(); // Load initial ALL data
+
+            // Filter Events
+            $('#teskilatSelect').on('change', function() {
+                var val = $(this).val();
+                // Reset Downstream
+                resetDropdown('#komisyonSelect');
+                resetDropdown('#personelSelect');
+                
+                updateDropdown('#koordinatorlukSelect', '@Url.Action("GetKoordinatorlukler", "Istatistik")', { teskilatId: val });
+                fetchStats();
+            });
+
+            $('#koordinatorlukSelect').on('change', function() {
+                var val = $(this).val();
+                resetDropdown('#personelSelect');
+
+                if(val) {
+                    updateDropdown('#komisyonSelect', '@Url.Action("GetKomisyonlar", "Istatistik")', { koordinatorlukId: val });
+                } else {
+                     resetDropdown('#komisyonSelect');
+                }
+                fetchStats();
+            });
+
+            $('#komisyonSelect').on('change', function() {
+                var val = $(this).val();
+                if(val) {
+                     updateDropdown('#personelSelect', '@Url.Action("GetPersoneller", "Istatistik")', { komisyonId: val });
+                } else {
+                     resetDropdown('#personelSelect');
+                }
+                fetchStats();
+            });
+
+            $('#personelSelect').on('change', function() {
+                fetchStats();
+            });
+        });
+
+        function resetDropdown(selector) {
+            $(selector).empty().append('<option value="">Tümü</option>').prop('disabled', true).trigger('change.select2');
+        }
+
+        function updateDropdown(selector, url, data) {
+            var $el = $(selector);
+            $el.empty().append('<option value="">Tümü</option>').trigger('change.select2');
+            
+            var parentKey = Object.keys(data)[0];
+            if (!data[parentKey]) { 
+                 $el.prop('disabled', true);
+                 return;
+            }
+
+            $.get(url, data, function(res) {
+                $.each(res, function(i, item) {
+                    $el.append($('<option>', { value: item.id, text: item.text }));
+                });
+                $el.prop('disabled', false).trigger('change.select2'); 
+            });
+        }
+
+        function fetchStats() {
+            var params = {
+                teskilatId: $('#teskilatSelect').val(),
+                koordinatorlukId: $('#koordinatorlukSelect').val(),
+                komisyonId: $('#komisyonSelect').val(),
+                personelId: $('#personelSelect').val()
+            };
+
+            $.get('@Url.Action("GetStats", "Istatistik")', params, function(data) {
+                updateCharts(data);
+                 $('#totalGorevCard').text(data.totalGorev);
+                 $('#totalPersonelCard').text(data.totalPersonel);
+                 $('#totalKoordinatorlukCard').text(data.totalKoordinatorluk);
+                 $('#totalKomisyonCard').text(data.totalKomisyon);
+            });
+        }
+
+        function initCharts() {
+            // Pie
+            kategoriChartInst = new Chart(document.getElementById('kategoriChart'), {
+                type: 'pie',
+                data: { labels: [], datasets: [] },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Bar
+            durumChartInst = new Chart(document.getElementById('durumChart'), {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+
+            // Line
+            trendChartInst = new Chart(document.getElementById('trendChart'), {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function updateCharts(data) {
+            // Categories
+            kategoriChartInst.data = {
+                labels: data.kategori.labels,
+                datasets: [{
+                    data: data.kategori.data,
+                    backgroundColor: data.kategori.colors,
+                    borderWidth: 1
+                }]
+            };
+            kategoriChartInst.update();
+
+            // Status
+            durumChartInst.data = {
+                labels: data.durum.labels,
+                datasets: [{
+                    label: 'Görev Sayısı',
+                    data: data.durum.data,
+                    backgroundColor: data.durum.colors,
+                    borderRadius: 5
+                }]
+            };
+            durumChartInst.update();
+
+            // Trend
+            if (data.line) {
+                $('#trendRow').show();
+                trendChartInst.data = {
+                    labels: data.line.labels,
+                    datasets: data.line.datasets.map(ds => ({
+                        label: ds.label,
+                        data: ds.data,
+                        borderColor: ds.borderColor,
+                        backgroundColor: ds.backgroundColor,
+                        tension: 0.4,
+                        fill: true
+                    }))
+                };
+                trendChartInst.update();
+            } else {
+                // Hide Line Chart if no data (e.g. Personel Selected)
+                $('#trendRow').hide();
+            }
+        }
+    </script>
+}

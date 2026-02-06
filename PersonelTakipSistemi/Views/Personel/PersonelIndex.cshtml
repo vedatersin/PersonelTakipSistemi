@@ -4,7 +4,7 @@
 }
 
 @section Styles {
-  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
   <style>
       .select2-container .select2-selection--single {
           height: 38px;
@@ -161,13 +161,23 @@
                      <label class="form-label">Doğum Tarihi (Başlangıç)</label>
                      <input type="date" class="form-control" asp-for="Filter.DogumBaslangic" />
                 </div>
-                <div class="col-12 col-lg-auto">
-                    <label class="form-label d-block">&nbsp;</label>
-                    <a href="/Personel/Index" class="btn btn-outline-secondary w-100">Temizle</a>
+                <div class="col-12 col-lg-auto ms-auto d-flex gap-2">
+                    <div>
+                        <label class="form-label d-block">&nbsp;</label>
+                        <button type="button" class="btn btn-danger d-none" id="bulkDeleteBtn" onclick="bulkDelete()">
+                            <i class="bx bx-trash"></i> Seçilenleri Sil (<span id="selectedCount">0</span>)
+                        </button>
+                    </div>
                 </div>
-                <div class="col-12 col-lg-auto">
-                    <label class="form-label d-block">&nbsp;</label>
-                    <button type="submit" class="btn btn-primary w-100">Filtrele</button>
+                <div class="col-12 col-lg-auto d-flex gap-2">
+                    <div>
+                        <label class="form-label d-block">&nbsp;</label>
+                        <a href="/Personel/Index" class="btn btn-outline-secondary w-100">Temizle</a>
+                    </div>
+                    <div>
+                        <label class="form-label d-block">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary w-100">Filtrele</button>
+                    </div>
                 </div>
             </div>
 
@@ -182,6 +192,9 @@
         <table class="table table-hover">
             <thead>
                 <tr>
+                    <th>
+                        <input type="checkbox" class="form-check-input" id="selectAll">
+                    </th>
                     <th>Foto</th>
                     <th>Ad Soyad</th>
                     <th>Kullanılan Yazılımlar</th>
@@ -195,7 +208,10 @@
             <tbody class="table-border-bottom-0">
                 @foreach (var item in Model.Results)
                 {
-                    <tr style="cursor: pointer;" onclick="window.location.href='/Personel/Detay/@item.PersonelId'">
+                    <tr style="cursor: pointer; @(!item.AktifMi ? "opacity: 0.6; background-color: #f8f9fa;" : "")" onclick="if(!event.target.classList.contains('form-check-input')) window.location.href='/Personel/Detay/@item.PersonelId'">
+                         <td>
+                            <input type="checkbox" class="form-check-input select-item" value="@item.PersonelId" onchange="updateBulkActionState(event)">
+                        </td>
                         <td>
                             @if (!string.IsNullOrEmpty(item.FotografYolu))
                             {
@@ -386,7 +402,7 @@
                 @if (!Model.Results.Any())
                 {
                     <tr>
-                        <td colspan="6" class="text-center py-4">Kayıt bulunamadı.</td>
+                        <td colspan="9" class="text-center py-4">Kayıt bulunamadı.</td>
                     </tr>
                 }
             </tbody>
@@ -394,24 +410,57 @@
     </div>
     
     <!-- Pagination -->
+    <!-- Smart Pagination -->
     @if (Model.Pagination.TotalPages > 1)
     {
+        var currentPage = Model.Pagination.CurrentPage;
+        var totalPages = Model.Pagination.TotalPages;
+        var startPage = Math.Max(1, currentPage - 2);
+        var endPage = Math.Min(totalPages, currentPage + 2);
+
         <div class="card-footer d-flex justify-content-center">
             <nav aria-label="Page navigation">
                 <ul class="pagination">
+                    <!-- Previous -->
                     <li class="page-item @(Model.Pagination.HasPreviousPage ? "" : "disabled")">
-                        <a class="page-link" href="javascript:void(0);" onclick="changePage(@(Model.Pagination.CurrentPage - 1))">Önceki</a>
+                        <a class="page-link" href="javascript:void(0);" onclick="changePage(@(currentPage - 1))">«</a>
                     </li>
-                    
-                    @for (int i = 1; i <= Model.Pagination.TotalPages; i++)
+
+                    <!-- First Page -->
+                    @if (startPage > 1)
                     {
-                        <li class="page-item @(i == Model.Pagination.CurrentPage ? "active" : "")">
+                        <li class="page-item">
+                            <a class="page-link" href="javascript:void(0);" onclick="changePage(1)">1</a>
+                        </li>
+                        @if (startPage > 2)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                    }
+
+                    <!-- Page Numbers -->
+                    @for (int i = startPage; i <= endPage; i++)
+                    {
+                        <li class="page-item @(i == currentPage ? "active" : "")">
                             <a class="page-link" href="javascript:void(0);" onclick="changePage(@i)">@i</a>
                         </li>
                     }
-                    
+
+                    <!-- Last Page -->
+                    @if (endPage < totalPages)
+                    {
+                        @if (endPage < totalPages - 1)
+                        {
+                            <li class="page-item disabled"><span class="page-link">...</span></li>
+                        }
+                        <li class="page-item">
+                            <a class="page-link" href="javascript:void(0);" onclick="changePage(@totalPages)">@totalPages</a>
+                        </li>
+                    }
+
+                    <!-- Next -->
                     <li class="page-item @(Model.Pagination.HasNextPage ? "" : "disabled")">
-                        <a class="page-link" href="javascript:void(0);" onclick="changePage(@(Model.Pagination.CurrentPage + 1))">Sonraki</a>
+                        <a class="page-link" href="javascript:void(0);" onclick="changePage(@(currentPage + 1))">»</a>
                     </li>
                 </ul>
             </nav>
@@ -454,10 +503,92 @@
           e.stopPropagation();
         });
     });
+
+    // --- BULK ACTION SCRIPTS ---
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Select All handler
+        document.getElementById('selectAll').addEventListener('change', function() {
+           var checkboxes = document.querySelectorAll('.select-item');
+           var isChecked = this.checked;
+           checkboxes.forEach(function(cb) {
+               cb.checked = isChecked;
+           });
+           updateBulkActionState();
+        });
+    });
+
+    function updateBulkActionState(e) {
+        if(e) e.stopPropagation();
+        var selectedCount = document.querySelectorAll('.select-item:checked').length;
+        var btn = document.getElementById('bulkDeleteBtn');
+        var countSpan = document.getElementById('selectedCount');
+        
+        if(selectedCount > 0) {
+            btn.classList.remove('d-none');
+            countSpan.innerText = selectedCount;
+        } else {
+            btn.classList.add('d-none');
+        }
+    }
+
+    function bulkDelete() {
+        var selectedIds = [];
+        document.querySelectorAll('.select-item:checked').forEach(function(cb) {
+            selectedIds.push(parseInt(cb.value));
+        });
+
+        if (selectedIds.length === 0) return;
+
+        Swal.fire({
+            title: 'Toplu Silme',
+            text: selectedIds.length + " personel silinecek (pasife alınacak). Emin misiniz?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Evet, Sil!',
+            cancelButtonText: 'İptal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: '/Personel/TopluSil',
+                    type: 'POST',
+                    data: JSON.stringify(selectedIds),
+                    contentType: 'application/json; charset=utf-8',
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire('Başarılı', response.message, 'success')
+                            .then(() => location.reload());
+                        } else {
+                            Swal.fire('Hata', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        var errMsg = "İşlem sırasında bir hata oluştu.";
+                        if(xhr.responseJSON && xhr.responseJSON.message) {
+                            errMsg = xhr.responseJSON.message;
+                        } else if(xhr.responseText) {
+                             // Try to parse if it's not JSON (e.g. IIS error page)
+                             try {
+                                 var json = JSON.parse(xhr.responseText);
+                                 if(json.message) errMsg = json.message;
+                             } catch(e) {
+                                 // Use status text if available
+                                 errMsg += " (" + (error || status) + ")";
+                                 console.error("Server Error:", xhr.responseText);
+                             }
+                        }
+                        Swal.fire('Hata', errMsg, 'error');
+                    }
+                });
+            }
+        });
+    }
 </script>
 
 @section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script>
       $(document).ready(function() {
           $('.select2').select2({
@@ -491,7 +622,7 @@
                               text: item.text 
                           }));
                       });
-                      $koordSelect.trigger('change'); // Notify select2 to update? select2 handles standard change event? 
+                      $koordSelect.trigger('change.select2'); 
                       // Need to trigger select2 update manually or rebuild? 
                       // Logic usually: Just updating DOM <option> then triggering change is enough for standard selects,
                       // but Select2 needs to simply read the new DOM options. Usually re-init is NOT needed, just change event.

@@ -13,16 +13,19 @@ namespace PersonelTakipSistemi.Controllers
     {
         private readonly INotificationService _notificationService;
         private readonly TegmPersonelTakipDbContext _context;
+        private readonly ILogService _logService;
 
-        public BildirimModuluController(INotificationService notificationService, TegmPersonelTakipDbContext context)
+        public BildirimModuluController(INotificationService notificationService, TegmPersonelTakipDbContext context, ILogService logService)
         {
             _notificationService = notificationService;
             _context = context;
+            _logService = logService;
         }
 
         public async Task<IActionResult> Index()
         {
             ViewBag.TeskilatList = await _context.Teskilatlar.OrderBy(x => x.Ad).Select(x => new { Value = x.TeskilatId, Text = x.Ad }).ToListAsync();
+
             ViewBag.BransList = await _context.Branslar.OrderBy(x => x.Ad).Select(x => new { Value = x.Ad, Text = x.Ad }).ToListAsync(); // Using Name for Brans as per Yetkilendirme
             ViewBag.SistemRolList = await _context.SistemRoller.OrderBy(x => x.Ad).Select(x => new { Value = x.SistemRolId, Text = x.Ad }).ToListAsync();
             ViewBag.KurumsalRolList = await _context.KurumsalRoller.OrderBy(x => x.Ad).Select(x => new { Value = x.KurumsalRolId, Text = x.Ad }).ToListAsync();
@@ -37,7 +40,15 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetSenders()
         {
-            var senders = await _notificationService.GetAvailableSendersAsync();
+            // Get Current User ID
+            int? currentUserId = null;
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out int uid))
+            {
+                currentUserId = uid;
+            }
+
+            var senders = await _notificationService.GetAvailableSendersAsync(currentUserId);
             return Json(senders);
         }
 
@@ -71,7 +82,8 @@ namespace PersonelTakipSistemi.Controllers
             var query = _context.Personeller.AsQueryable();
 
             // Exclude Inactive
-            query = query.Where(p => p.AktifMi);
+            // Exclude Inactive -- Removed to show passive users
+            // query = query.Where(p => p.AktifMi);
 
             // Search by Name/Surname
             if (!string.IsNullOrEmpty(search))
@@ -161,7 +173,9 @@ namespace PersonelTakipSistemi.Controllers
                     Koordinatorlukler = p.PersonelKoordinatorlukler.Select(k => k.Koordinatorluk.Ad).ToList(),
                     Komisyonlar = p.PersonelKomisyonlar.Select(k => k.Komisyon.Ad).ToList(),
                     Uzmanliklar = p.PersonelUzmanliklar.Select(u => u.Uzmanlik.Ad).ToList(),
-                    Sehir = p.GorevliIl.Ad
+
+                    Sehir = p.GorevliIl.Ad,
+                    AktifMi = p.AktifMi // Add this
                 })
                 .ToListAsync();
 
@@ -206,7 +220,16 @@ namespace PersonelTakipSistemi.Controllers
                     request.Baslik, 
                     request.Icerik, 
                     finalTime);
-                
+
+                var recipientNames = await _context.Personeller
+                    .Where(p => request.RecipientIds.Contains(p.PersonelId))
+                    .Select(p => p.Ad + " " + p.Soyad)
+                    .ToListAsync();
+                var namesStr = string.Join(", ", recipientNames);
+                if(namesStr.Length > 200) namesStr = namesStr.Substring(0, 197) + "...";
+
+                await _logService.LogAsync("Bildirim", $"Toplu bildirim gönderildi: {request.Baslik}", null, $"Kişi Sayısı: {request.RecipientIds.Count}, Tarih: {request.ScheduledTime ?? "Anlık"}, Kişiler: {namesStr}");
+
                 return Ok(new { success = true });
             }
             catch (Exception ex)

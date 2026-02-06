@@ -97,7 +97,16 @@
                                          @(ap.Personel?.Ad?.Substring(0,1))@(ap.Personel?.Soyad?.Substring(0,1))
                                      </span>
                                  </div>
-                                 <span>@ap.Personel?.Ad @ap.Personel?.Soyad</span>
+                                 @if(User.IsInRole("Admin") || User.IsInRole("Yönetici") || User.IsInRole("Editör"))
+                                 {
+                                     <a href="/Personel/Detay/@ap.PersonelId" class="text-body fw-semibold">
+                                         @ap.Personel?.Ad @ap.Personel?.Soyad
+                                     </a>
+                                 }
+                                 else
+                                 {
+                                     <span>@ap.Personel?.Ad @ap.Personel?.Soyad</span>
+                                 }
                              </li>
                          }
                      }
@@ -113,6 +122,27 @@
                               </li>
                           }
                      }
+                      <!-- Coordination and Commissions -->
+                     @if(Model.GorevAtamaKoordinatorlukler != null && Model.GorevAtamaKoordinatorlukler.Any())
+                     {
+                          <li class="list-group-item bg-light fw-bold small text-uppercase mt-2">Koordinatörlükler</li>
+                          @foreach(var at in Model.GorevAtamaKoordinatorlukler)
+                          {
+                              <li class="list-group-item">
+                                  <i class="bx bx-business me-2 text-muted"></i> @at.Koordinatorluk?.Ad
+                              </li>
+                          }
+                     }
+                      @if(Model.GorevAtamaKomisyonlar != null && Model.GorevAtamaKomisyonlar.Any())
+                     {
+                          <li class="list-group-item bg-light fw-bold small text-uppercase mt-2">Komisyonlar</li>
+                          @foreach(var at in Model.GorevAtamaKomisyonlar)
+                          {
+                              <li class="list-group-item">
+                                  <i class="bx bx-group me-2 text-muted"></i> @at.Komisyon?.Ad
+                              </li>
+                          }
+                     }
                  </ul>
                  
                  @if(
@@ -125,6 +155,97 @@
                      <div class="p-3 text-center text-muted">Atama bulunmuyor.</div>
                  }
              </div>
+        </div>
+        
+        <!-- HISTORY TIMELINE -->
+        <div class="card">
+            <div class="card-header border-bottom">
+                <h6 class="mb-0">Görev Tarihçesi</h6>
+            </div>
+            <div class="card-body p-3">
+                @if(ViewBag.History != null)
+                {
+                    <ul class="timeline">
+                        @foreach(var item in (List<PersonelTakipSistemi.Models.SistemLog>)ViewBag.History)
+                        {
+                            var title = item.IslemTuru;
+                            var detail = item.Detay ?? item.Aciklama;
+                            var badgeClass = "bg-label-primary";
+
+                            // Logic to refine display
+                            if (item.IslemTuru == "Durum")
+                            {
+                                // Try to extract status name
+                                if (!string.IsNullOrEmpty(detail) && detail.Contains("Yeni Durum: "))
+                                {
+                                    var start = detail.IndexOf("Yeni Durum: ") + 12;
+                                    var end = detail.IndexOf(",", start);
+                                    if (end == -1) end = detail.Length;
+                                    title = detail.Substring(start, end - start).Trim();
+                                    badgeClass = "bg-label-info";
+                                }
+                                else 
+                                {
+                                    title = "Durum Değişikliği";
+                                }
+                            }
+                            else if (item.IslemTuru == "Görev Ekleme")
+                            {
+                                title = "Görev Oluşturuldu";
+                                badgeClass = "bg-label-success";
+                            }
+                            else if (item.IslemTuru == "Görev Atama")
+                            {
+                                title = "Atama Yapıldı";
+                                badgeClass = "bg-label-warning";
+                            }
+
+                            // Clean up detail text (Remove [Görev ID: ...])
+                            if (!string.IsNullOrEmpty(detail))
+                            {
+                                var bracketIndex = detail.IndexOf("]");
+                                if (bracketIndex > -1 && detail.Contains("[Görev ID:"))
+                                {
+                                    detail = detail.Substring(bracketIndex + 1).Trim();
+                                }
+                                // Remove "Yeni Durum: ..." repetition if used as title
+                                if(item.IslemTuru == "Durum" && detail.Contains("Yeni Durum:")) {
+                                     // Maybe show only the "Açıklama" part if present?
+                                     // Format is "Yeni Durum: X, Açıklama: Y"
+                                     var descIndex = detail.IndexOf("Açıklama: ");
+                                     if(descIndex > -1) {
+                                         detail = detail.Substring(descIndex + 10).Trim();
+                                     } else {
+                                         detail = ""; // Clear if only status change without note
+                                     }
+                                }
+                            }
+
+                            <li class="timeline-item timeline-item-transparent text-start ps-3 border-start" style="margin-left: 0.5rem; list-style: none;">
+                                <span class="timeline-point timeline-point-primary" style="margin-left: -1.4rem;"></span>
+                                <div class="timeline-event">
+                                    <div class="d-flex justify-content-between flex-wrap mb-1">
+                                        <div class="fw-bold text-dark">@title</div>
+                                        <small class="text-muted">@item.Tarih.ToString("dd.MM.yyyy HH:mm")</small>
+                                    </div>
+                                    <div class="mb-1 small text-muted">
+                                        <i class="bx bx-user me-1"></i> @item.KullaniciAdSoyad
+                                    </div>
+                                    @if(!string.IsNullOrEmpty(detail)) {
+                                        <p class="mb-0 small text-body mt-1">
+                                            @detail
+                                        </p>
+                                    }
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <p class="text-muted small">Kayıt bulunamadı.</p>
+                }
+            </div>
         </div>
     </div>
 </div>

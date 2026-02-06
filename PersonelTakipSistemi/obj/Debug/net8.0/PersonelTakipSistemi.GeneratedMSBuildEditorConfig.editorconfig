@@ -74,6 +74,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSXN0YXRpc3Rpa1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Istatistik/Kisisel.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSXN0YXRpc3Rpa1xLaXNpc2VsLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Loglar/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTG9nbGFyXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -102,6 +106,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUGVyc29uZWxcWWV0a2lsZW5kaXJtZS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Raporlar/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUmFwb3JsYXJcSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Shared/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXEVycm9yLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
@@ -124,6 +132,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/VeriYonetimi/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVmVyaVlvbmV0aW1pXEluZGV4LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/_ViewImports.cshtml]

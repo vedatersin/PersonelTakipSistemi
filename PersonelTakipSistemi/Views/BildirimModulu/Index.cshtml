@@ -4,8 +4,7 @@
 
 @section Styles {
     <!-- Select2 -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
+
     <!-- Flatpickr -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     
@@ -30,7 +29,15 @@
             top: 0;
             z-index: 10;
             background: #fff;
+            background: #fff;
             padding-bottom: 10px;
+        }
+        .passive-row {
+            opacity: 0.5;
+            background-color: #f2f2f2;
+        }
+        .passive-row .personel-checkbox {
+            cursor: not-allowed;
         }
     </style>
 }
@@ -190,6 +197,8 @@
                     </table>
                 </div>
             </div>
+            
+
         </div>
     </div>
 
@@ -254,7 +263,7 @@
 
 @section Scripts {
     <!-- Libs -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/tr.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -352,6 +361,7 @@
             $('#filterTeskilat').on('change', function() { loadKoordinatorlukler($(this).val()); });
             $('#filterKoordinatorluk').on('change', function() { loadKomisyonlar($(this).val()); });
 
+            // Search (Debounced slightly ideally, but direct is fine for now)
             // Search (Debounced slightly ideally, but direct is fine for now)
             $('#filterSearch').on('input', function() { loadPersonelListWithCheck(); });
 
@@ -559,16 +569,19 @@
                 // JSON string for data storage (store in a way we can retrieve)
                 // We'll attach the object via jQuery data() to the row after creation, or parse on click
                 
+                var isPassive = !p.aktifMi;
+                if(isPassive) rowClass += ' passive-row';
+
                 var $tr = $(`
                     <tr class="${rowClass}">
                         <td class="align-middle">
                             <div class="form-check">
-                                <input class="form-check-input personel-checkbox" type="checkbox" value="${p.personelId}" ${checkProp}>
+                                <input class="form-check-input personel-checkbox" type="checkbox" value="${p.personelId}" ${checkProp} ${isPassive ? 'disabled' : ''}>
                             </div>
                         </td>
                         <td class="align-middle">${avatarHtml}</td>
                         <td class="align-middle">
-                            <div class="fw-bold">${p.adSoyad}</div>
+                            <div class="fw-bold">${p.adSoyad} ${isPassive ? '(Pasif)' : ''}</div>
                             <small class="text-muted"><i class="bx bx-map"></i> ${p.sehir}</small>
                         </td>
                         <td class="align-middle">${birimHtml}</td>
@@ -581,6 +594,7 @@
                 
                 // Click Event
                 $tr.on('click', function(e) {
+                     if(isPassive) return; // Block click for passive
                      // If clicked on checkbox, don't double trigger
                      if($(e.target).is('input')) return;
                      toggleBox(p.personelId, $tr);
@@ -619,6 +633,7 @@
         function updateCount() {
             var count = selectedMap.size;
             $('#selectedCount').text(count);
+            $('#bottomSelectedCount').text(count);
             // SelectAll check logic
             var visibleCount = $('.personel-checkbox').length;
              var checkedVisible = $('.personel-checkbox:checked').length;
@@ -634,8 +649,8 @@
             $('select').val('').trigger('change'); // Resets simple selects
             // Specific Select2 Resets
             // Reset Cascading manually to be sure
-            $('#filterKoordinatorluk').empty().append('<option value="">Önce Teşkilat Seçiniz</option>').prop('disabled', true);
-            $('#filterKomisyon').empty().append('<option value="">Önce Koordinatörlük Seçiniz</option>').prop('disabled', true);
+            $('#filterKoordinatorluk').empty().append('<option value="">Önce Teşkilat Seçiniz</option>').prop('disabled', true).trigger('change.select2');
+            $('#filterKomisyon').empty().append('<option value="">Önce Koordinatörlük Seçiniz</option>').prop('disabled', true).trigger('change.select2');
             isProgrammaticChange = false;
 
             loadPersonelList(false, true); // Keep selections!

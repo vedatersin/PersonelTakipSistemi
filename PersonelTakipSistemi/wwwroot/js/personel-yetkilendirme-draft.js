@@ -519,8 +519,8 @@ function updateRoleOptions() {
     // 3. Genel Koord (If Ankara selected)
     // 4. Kom Bsk (If Komisyon selected)
 
-    // Default Role (Implicit)
-    roleSelect.add(new Option("Sadece Personel/Üye Olarak Ekle", "-1")); // -1 indicator for "No Explicit Role"
+    // Default Role (Implicit) removed as per request
+    // roleSelect.add(new Option("Sadece Personel/Üye Olarak Ekle", "-1"));
 
     window.allKurumsalRolOptions.forEach(r => {
         const rid = parseInt(r.value);
@@ -715,8 +715,8 @@ async function saveDraft() {
         });
 
         if (!response.ok) {
-            const err = await response.text();
-            throw new Error(err);
+            const errText = await response.text();
+            throw new Error(errText);
         }
 
         // Success
@@ -764,7 +764,14 @@ async function saveDraft() {
 
     } catch (error) {
         console.error(error);
-        Swal.fire('Hata', 'Kaydetme başarısız: ' + error.message, 'error');
+        // Clean up message
+        let msg = error.message;
+        try {
+            const json = JSON.parse(msg);
+            msg = json.message || json.title || msg;
+        } catch (e) { }
+
+        Swal.fire('Uyarı', msg, 'warning');
         btn.disabled = false;
         btn.innerHTML = originalText;
     }

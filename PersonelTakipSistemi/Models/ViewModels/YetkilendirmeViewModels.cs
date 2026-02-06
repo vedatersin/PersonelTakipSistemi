@@ -27,6 +27,7 @@ namespace PersonelTakipSistemi.Models.ViewModels
         public string AdSoyad { get; set; } = null!;
         public string? FotografYolu { get; set; }
         public string SistemRol { get; set; } = null!;
+        public bool AktifMi { get; set; } // New
 
         // Display Lists (Strings for UI Chips)
         public List<string> TeskilatAdlari { get; set; } = new List<string>();
@@ -47,7 +48,9 @@ namespace PersonelTakipSistemi.Models.ViewModels
         public int PersonelId { get; set; }
         public string AdSoyad { get; set; } = null!;
         public string? FotografYolu { get; set; }
+
         public string SistemRol { get; set; } = null!;
+        public bool AktifMi { get; set; } // New
 
         // Selected Ids for Initial State in Drawer
         public List<int> SelectedTeskilatIds { get; set; } = new List<int>();

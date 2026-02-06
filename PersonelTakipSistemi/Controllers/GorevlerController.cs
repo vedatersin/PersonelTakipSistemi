@@ -16,11 +16,13 @@ namespace PersonelTakipSistemi.Controllers
     {
         private readonly TegmPersonelTakipDbContext _context;
         private readonly Services.INotificationService _notificationService;
+        private readonly Services.ILogService _logService;
 
-        public GorevlerController(TegmPersonelTakipDbContext context, Services.INotificationService notificationService)
+        public GorevlerController(TegmPersonelTakipDbContext context, Services.INotificationService notificationService, Services.ILogService logService)
         {
             _context = context;
             _notificationService = notificationService;
+            _logService = logService;
         }
 
         // ==============================================================
@@ -88,8 +90,8 @@ namespace PersonelTakipSistemi.Controllers
             // Sorting
             query = sort switch
             {
-                "oldest" => query.OrderBy(x => x.BaslangicTarihi).ThenBy(x => x.GorevId),
-                _ => query.OrderByDescending(x => x.BaslangicTarihi).ThenByDescending(x => x.GorevId),
+                "oldest" => query.OrderBy(x => x.CreatedAt).ThenBy(x => x.GorevId),
+                _ => query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.GorevId),
             };
 
             // Paging
@@ -118,11 +120,12 @@ namespace PersonelTakipSistemi.Controllers
                                         }).ToList();
             
             // Use SelectListItem to avoid "internal anonymous type" visibility issues in Razor
-            ViewBag.Personeller = await _context.Personeller.Where(x => x.AktifMi)
+            ViewBag.Personeller = await _context.Personeller//.Where(x => x.AktifMi) -- Allow passive
                                           .OrderBy(x => x.Ad).ThenBy(x => x.Soyad)
                                           .Select(x => new SelectListItem { 
                                               Value = x.PersonelId.ToString(), 
-                                              Text = x.Ad + " " + x.Soyad 
+                                              Text = x.Ad + " " + x.Soyad + (!x.AktifMi ? " (Pasif)" : ""),
+                                              Disabled = !x.AktifMi
                                           }).ToListAsync();
 
             // Filter State Persistence
@@ -172,7 +175,11 @@ namespace PersonelTakipSistemi.Controllers
 
                 _context.Gorevler.Add(model);
                 await _context.SaveChangesAsync();
+                
+                await _logService.LogAsync("Görev Ekleme", $"Yeni görev oluşturuldu: {model.Ad}", null, $"Görev ID: {model.GorevId}");
+
                 TempData["SuccessMessage"] = "Görev başarıyla oluşturuldu.";
+                TempData["NewGorevId"] = model.GorevId; // Pass ID for highlighting
                 return RedirectToAction("Liste");
             }
             await PopulateDropdowns();
@@ -222,6 +229,8 @@ namespace PersonelTakipSistemi.Controllers
                 _context.Update(existing);
                 await _context.SaveChangesAsync();
                 
+                await _logService.LogAsync("Görev Güncelleme", $"Görev güncellendi: {model.Ad}", null, $"Görev ID: {model.GorevId}");
+                
                 TempData["SuccessMessage"] = "Görev güncellendi.";
                 return RedirectToAction("Liste");
             }
@@ -241,7 +250,37 @@ namespace PersonelTakipSistemi.Controllers
             _context.Update(task);
             await _context.SaveChangesAsync();
 
+            await _logService.LogAsync("Görev Silme", $"Görev silindi (pasife alındı): {task.Ad}", null, $"Görev ID: {id}");
+
             return Ok(new { success = true });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
+        public async Task<IActionResult> TopluSil([FromBody] List<int> ids)
+        {
+            if (ids == null || !ids.Any())
+            {
+                 return Json(new { success = false, message = "Hiçbir kayıt seçilmedi." });
+            }
+
+            try
+            {
+                 // Perform Bulk Hard Delete
+                 // İlişkili 'Assignments' (Atamalar) tabloları Cascade silinecek şekilde ayarlandı.
+                  await _context.Gorevler
+                                .Where(g => ids.Contains(g.GorevId))
+                                .ExecuteDeleteAsync();
+
+                  await _logService.LogAsync("Toplu Görev Silme", $"{ids.Count} adet görev silindi.", null, $"Silinen IDler: {string.Join(",", ids)}");
+
+                 return Json(new { success = true, message = $"{ids.Count} görev başarıyla silindi." });
+            }
+            catch (Exception ex)
+            {
+                 var innerMsg = ex.InnerException?.Message ?? ex.Message;
+                 return Json(new { success = false, message = "Bir hata oluştu: " + innerMsg });
+            }
         }
 
         // ==============================================================
@@ -359,12 +398,72 @@ namespace PersonelTakipSistemi.Controllers
             // 4. Personel
             var existingPers = _context.GorevAtamaPersoneller.Where(x => x.GorevId == model.GorevId);
             _context.GorevAtamaPersoneller.RemoveRange(existingPers);
+            
+            // VALIDATION: Check for Passive Personnel
+            if (model.PersonelIds.Any())
+            {
+                var passivePersonels = await _context.Personeller
+                    .Where(p => model.PersonelIds.Contains(p.PersonelId) && !p.AktifMi)
+                    .Select(p => p.Ad + " " + p.Soyad)
+                    .ToListAsync();
+
+                if (passivePersonels.Any())
+                {
+                    return BadRequest(new { success = false, message = $"Pasif personel atanamaz: {string.Join(", ", passivePersonels)}" });
+                }
+            }
+
             foreach (var id in model.PersonelIds)
             {
                 _context.GorevAtamaPersoneller.Add(new GorevAtamaPersonel { GorevId = model.GorevId, PersonelId = id });
             }
 
             await _context.SaveChangesAsync();
+
+            // Prepare Readable Log Details
+            try
+            {
+                var gorevName = await _context.Gorevler.Where(x => x.GorevId == model.GorevId).Select(x => x.Ad).FirstOrDefaultAsync() ?? "Bilinmeyen Görev";
+                
+                var assignedPersonelNames = new List<string>();
+                if (model.PersonelIds != null && model.PersonelIds.Any())
+                {
+                    assignedPersonelNames = await _context.Personeller
+                        .Where(p => model.PersonelIds.Contains(p.PersonelId))
+                        .Select(p => p.Ad + " " + p.Soyad)
+                        .ToListAsync();
+                }
+
+                var assignedUnitNames = new List<string>();
+                if (model.TeskilatIds != null && model.TeskilatIds.Any())
+                {
+                    var units = await _context.Teskilatlar.Where(t => model.TeskilatIds.Contains(t.TeskilatId)).Select(t => t.Ad).ToListAsync();
+                    assignedUnitNames.AddRange(units);
+                }
+                if (model.KoordinatorlukIds != null && model.KoordinatorlukIds.Any())
+                {
+                    var units = await _context.Koordinatorlukler.Where(k => model.KoordinatorlukIds.Contains(k.KoordinatorlukId)).Select(k => k.Ad).ToListAsync();
+                    assignedUnitNames.AddRange(units);
+                }
+                if (model.KomisyonIds != null && model.KomisyonIds.Any())
+                {
+                    var units = await _context.Komisyonlar.Where(k => model.KomisyonIds.Contains(k.KomisyonId)).Select(k => k.Ad).ToListAsync();
+                    assignedUnitNames.AddRange(units);
+                }
+
+                string logDetail = $"Görev: {gorevName}. ";
+                if (assignedPersonelNames.Any()) logDetail += $"Atanan Kişiler: {string.Join(", ", assignedPersonelNames)}. ";
+                if (assignedUnitNames.Any()) logDetail += $"Atanan Birimler: {string.Join(", ", assignedUnitNames)}. ";
+                
+                if(!assignedPersonelNames.Any() && !assignedUnitNames.Any()) logDetail += "Tüm atamalar kaldırıldı.";
+
+                await _logService.LogAsync("Görev Atama", "Görev atamaları güncellendi", null, logDetail);
+            }
+            catch (Exception ex)
+            {
+                 // Fallback log
+                 await _logService.LogAsync("Görev Atama", $"Görev atamaları güncellendi (GorevID: {model.GorevId}) - Detay oluşturulurken hata.", null, $"Hata: {ex.Message}");
+            }
 
             // Notify Users
             await SendAssignmentNotifications(model);
@@ -405,6 +504,16 @@ namespace PersonelTakipSistemi.Controllers
             _context.Update(task);
             await _context.SaveChangesAsync();
 
+            try
+            {
+                var statusName = await _context.GorevDurumlari.Where(d => d.GorevDurumId == model.DurumId).Select(d => d.Ad).FirstOrDefaultAsync() ?? "Bilinmiyor";
+                await _logService.LogAsync("Durum", $"Görev durumu değiştirildi: {task.Ad}", null, $"[Görev ID: {task.GorevId}] Yeni Durum: {statusName}, Açıklama: {model.Aciklama}");
+            }
+            catch (Exception)
+            {
+                // Logging fails silently to not block the user operation
+            }
+
             return Ok(new { success = true });
         }
 
@@ -443,8 +552,8 @@ namespace PersonelTakipSistemi.Controllers
             else if (type == "Personel")
             {
                  var list = await _context.Personeller
-                    .Where(x => x.AktifMi && (x.Ad.ToLower().Contains(q) || x.Soyad.ToLower().Contains(q)))
-                    .Select(x => new { id = x.PersonelId, text = x.Ad + " " + x.Soyad })
+                    .Where(x => (x.Ad.ToLower().Contains(q) || x.Soyad.ToLower().Contains(q))) // Removed AktifMi check
+                    .Select(x => new { id = x.PersonelId, text = x.Ad + " " + x.Soyad + (!x.AktifMi ? " (Pasif)" : ""), disabled = !x.AktifMi })
                     .Take(20)
                     .ToListAsync();
                 return Json(list);
@@ -505,6 +614,13 @@ namespace PersonelTakipSistemi.Controllers
                 .FirstOrDefaultAsync(x => x.GorevId == id);
 
             if (task == null) return NotFound();
+
+            // Fetch History (Logs)
+            ViewBag.History = await _context.SistemLoglar
+                .Where(l => (l.Detay != null && l.Detay.Contains($"Görev ID: {id}")) || 
+                            (l.Aciklama != null && l.Aciklama.Contains(task.Ad) && (l.IslemTuru == "Görev Ekleme" || l.IslemTuru == "Görev Atama" || l.IslemTuru == "Durum")))
+                .OrderByDescending(l => l.Tarih)
+                .ToListAsync();
 
             return View(task);
         }

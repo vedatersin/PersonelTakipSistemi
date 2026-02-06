@@ -1,0 +1,176 @@
+@model PersonelTakipSistemi.ViewModels.IstatistikViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "İstatistiklerim";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold py-3 mb-0"><span class="text-muted fw-light">Profilim /</span> İstatistiklerim</h4>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-sm-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <div class="avatar me-4">
+                            <span class="avatar-initial rounded bg-white text-primary"><i class="bx bx-task"></i></span>
+                        </div>
+                        <h4 class="mb-0 text-white" id="totalGorevCard">-</h4>
+                    </div>
+                    <p class="mb-0">Toplam Görevim</p>
+                </div>
+            </div>
+        </div>
+        <!-- For personal stats, other cards like 'Total Coordinators' are irrelevant. 
+             Maybe show 'Completed Tasks' instead? We can get it from chart data on client side. -->
+        <div class="col-xl-3 col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                     <div class="d-flex align-items-center mb-2">
+                        <div class="avatar me-4">
+                            <span class="avatar-initial rounded bg-success text-white"><i class="bx bx-check-circle"></i></span>
+                        </div>
+                        <h4 class="mb-0" id="completedGorevCard">-</h4>
+                    </div>
+                    <p class="mb-0">Tamamlanan</p>
+                </div>
+            </div>
+        </div>
+         <div class="col-xl-3 col-sm-6">
+            <div class="card">
+                <div class="card-body">
+                     <div class="d-flex align-items-center mb-2">
+                        <div class="avatar me-4">
+                            <span class="avatar-initial rounded bg-warning text-white"><i class="bx bx-time"></i></span>
+                        </div>
+                        <h4 class="mb-0" id="waitingGorevCard">-</h4>
+                    </div>
+                    <p class="mb-0">Devam Eden/Bekleyen</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div class="row mb-4">
+        <!-- Pie Chart: Görev Kategorileri -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title m-0 me-2">Görev Kategori Dağılımı</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="kategoriChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bar Chart: Görev Durumları -->
+        <div class="col-md-6 col-lg-8">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title m-0 me-2">Görev Durum Analizi</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="durumChart" style="max-height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row 2 -->
+    <!-- Line chart is usually hidden for single personnel in the original controller, 
+         because trend analysis for 1 person might be sparse, but let's see if it returns data. 
+         Controller logic: if (!personelId.HasValue) -> Returns Line Chart. 
+         So for personal view (personelId HAS value), Line Chart is NULL.
+         We can omit it. -->
+
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        let kategoriChartInst = null;
+        let durumChartInst = null;
+        const myPersonelId = '@ViewBag.CurrentPersonelId';
+
+        $(document).ready(function() {
+            initCharts();
+            fetchStats(); 
+        });
+
+        function fetchStats() {
+            var params = {
+                personelId: myPersonelId
+            };
+
+            $.get('@Url.Action("GetStats", "Istatistik")', params, function(data) {
+                updateCharts(data);
+                 $('#totalGorevCard').text(data.totalGorev);
+                 
+                 // Extract Completed/Waiting from 'durum' data
+                 // durum.labels and durum.data are arrays.
+                 let completedCount = 0;
+                 let waitingCount = 0;
+                 
+                 if(data.durum && data.durum.labels) {
+                     data.durum.labels.forEach((label, index) => {
+                         let count = data.durum.data[index];
+                         if(label.includes('Tamam') || label.includes('Bitti')) {
+                             completedCount += count;
+                         } else {
+                             waitingCount += count; // Assume everything else is pending/active
+                         }
+                     });
+                 }
+                 $('#completedGorevCard').text(completedCount);
+                 $('#waitingGorevCard').text(waitingCount);
+            });
+        }
+
+        function initCharts() {
+            // Pie
+            kategoriChartInst = new Chart(document.getElementById('kategoriChart'), {
+                type: 'pie',
+                data: { labels: [], datasets: [] },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+            });
+
+            // Bar
+            durumChartInst = new Chart(document.getElementById('durumChart'), {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+            });
+        }
+
+        function updateCharts(data) {
+            // Categories
+            kategoriChartInst.data = {
+                labels: data.kategori.labels,
+                datasets: [{
+                    data: data.kategori.data,
+                    backgroundColor: data.kategori.colors,
+                    borderWidth: 1
+                }]
+            };
+            kategoriChartInst.update();
+
+            // Status
+            durumChartInst.data = {
+                labels: data.durum.labels,
+                datasets: [{
+                    label: 'Görev Sayısı',
+                    data: data.durum.data,
+                    backgroundColor: data.durum.colors,
+                    borderRadius: 5
+                }]
+            };
+            durumChartInst.update();
+        }
+    </script>
+}

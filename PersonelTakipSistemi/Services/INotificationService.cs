@@ -8,7 +8,7 @@ namespace PersonelTakipSistemi.Services
         
         Task<int> CreateBulkAsync(int? gonderenId, List<int> aliciIds, string baslik, string aciklama, DateTime? planlananZaman = null);
         
-        Task<List<SenderOptionDto>> GetAvailableSendersAsync();
+        Task<List<SenderOptionDto>> GetAvailableSendersAsync(int? currentUserId = null);
 
         Task<List<BildirimDto>> GetInboxAsync(int aliciId, int take = 200);
         Task<(int unreadCount, List<BildirimMiniDto> top)> GetTopUnreadAsync(int aliciId, int take = 5);

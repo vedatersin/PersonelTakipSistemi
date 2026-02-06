@@ -1,16 +1,15 @@
-
 @using System.Security.Claims
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
-  <div class="app-brand demo pb-6">
+  <div class="app-brand demo" style="height: auto; min-height: 80px; padding-top: 1rem; padding-bottom: 1rem;">
       <a href="/" class="app-brand-link">
         <span class="app-brand-logo demo me-2">
-            <img src="~/sevilay-tema/assets/img/meb_logo.png" alt="MEB Logo" style="width: 70px; height: auto;" />
+            <img src="~/sevilay-tema/assets/img/meb_logo.png" alt="MEB Logo" style="width: 50px; height: auto;" />
         </span>
         <div class="app-brand-text demo menu-text fw-bold ms-2" style="display: flex; flex-direction: column; justify-content: center; text-align: left;">
-            <span style="font-size: 0.95rem; color: #fff; font-weight: 700; letter-spacing: 0.5px; line-height: 1.2;">Temel Eğitim</span>
-            <span style="font-size: 0.95rem; color: #fff; font-weight: 700; letter-spacing: 0.5px; line-height: 1.2;">Genel Müdürlüğü</span>
-            <span style="font-size: 0.75rem; color: #b1b9c2; margin-top: 4px; letter-spacing: 0.3px;">Personel Takip Sistemi</span>
+            <span style="font-size: 0.85rem; color: #fff; font-weight: 700; letter-spacing: 0.5px; line-height: 1.1;">Temel Eğitim</span>
+            <span style="font-size: 0.85rem; color: #fff; font-weight: 700; letter-spacing: 0.5px; line-height: 1.1;">Genel Müdürlüğü</span>
+            <span style="font-size: 0.70rem; color: #b1b9c2; margin-top: 2px; letter-spacing: 0.3px;">Personel Takip Sistemi</span>
         </div>
       </a>
 
@@ -106,12 +105,24 @@
           </a>
         </li>
 
-        <!-- İstatistik ve Raporlar -->
-        <li class="menu-item @(string.Equals(currentController, "Istatistik", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-          <a asp-controller="Istatistik" asp-action="Index" class="menu-link">
+        <!-- İstatistik ve Raporlar (Grouped) -->
+        <li class="menu-item @(string.Equals(currentController, "Istatistik", StringComparison.OrdinalIgnoreCase) || string.Equals(currentController, "Raporlar", StringComparison.OrdinalIgnoreCase) ? "active open" : "")">
+          <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-bar-chart-alt-2"></i>
-            <div class="text-truncate fw-bold" data-i18n="İstatistikler">İstatistik ve Raporlar</div>
+            <div class="text-truncate fw-bold" data-i18n="İstatistik ve Raporlar">İstatistik ve Raporlar</div>
           </a>
+          <ul class="menu-sub">
+            <li class="menu-item @(string.Equals(currentController, "Istatistik", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+              <a asp-controller="Istatistik" asp-action="Index" class="menu-link">
+                <div class="text-truncate" data-i18n="İstatistikler">İstatistikler</div>
+              </a>
+            </li>
+            <li class="menu-item @(string.Equals(currentController, "Raporlar", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+              <a asp-controller="Raporlar" asp-action="Index" class="menu-link">
+                <div class="text-truncate" data-i18n="Raporlar">Raporlar</div>
+              </a>
+            </li>
+          </ul>
         </li>
     }
 
@@ -213,6 +224,11 @@
              <li class="menu-item @(currentAction == "Ekle" && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr ? "active" : "")">
                 <a asp-controller="Personel" asp-action="Ekle" asp-route-id="@currentUserIdStr" class="menu-link">
                     <div class="text-truncate" data-i18n="Profili Düzenle">Profili Düzenle</div>
+                </a>
+            </li>
+             <li class="menu-item @(string.Equals(currentController, "Istatistik", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "Kisisel", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                <a asp-controller="Istatistik" asp-action="Kisisel" class="menu-link">
+                    <div class="text-truncate" data-i18n="İstatistiklerim">İstatistiklerim</div>
                 </a>
             </li>
              <li class="menu-item @(currentController == "Bildirimler" ? "active" : "")">

@@ -42,6 +42,7 @@ namespace PersonelTakipSistemi.Data
 
         // Görevler Module DbSets
         public DbSet<GorevKategori> GorevKategorileri { get; set; }
+        public DbSet<GorevDurum> GorevDurumlari { get; set; }
         public DbSet<Birim> Birimler { get; set; }
         public DbSet<Gorev> Gorevler { get; set; }
 
