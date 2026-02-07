@@ -15,8 +15,28 @@
       .select2-container--default .select2-selection--single .select2-selection__arrow {
           top: 6px;
       }
+      
+      @@keyframes highlightFade {
+          0% { background-color: rgba(105, 108, 255, 0.3); } /* Primary tint */
+          100% { background-color: transparent; }
+      }
+      .highlight-row {
+          animation: highlightFade 3s ease-out forwards;
+      }
+      .passive-row {
+          opacity: 0.5;
+          background-color: #e9ecef;
+          text-decoration: line-through; /* Optional: clear visual indicator */
+      }
+      .passive-row td {
+           color: #6c757d;
+      }
+      
+      tr { cursor: pointer; }
   </style>
 }
+
+
 
 <div class="card mb-4">
     <div class="card-body">
@@ -208,7 +228,14 @@
             <tbody class="table-border-bottom-0">
                 @foreach (var item in Model.Results)
                 {
-                    <tr style="cursor: pointer; @(!item.AktifMi ? "opacity: 0.6; background-color: #f8f9fa;" : "")" onclick="if(!event.target.classList.contains('form-check-input')) window.location.href='/Personel/Detay/@item.PersonelId'">
+                    var rowClass = "";
+                    if (!item.AktifMi) { rowClass += " passive-row"; }
+                    if (ViewBag.HighlightId != null && (int)ViewBag.HighlightId == item.PersonelId)
+                    {
+                        rowClass += " highlight-row";
+                    }
+
+                    <tr class="@rowClass" onclick="if(!event.target.classList.contains('form-check-input')) window.location.href='/Personel/Detay/@item.PersonelId'">
                          <td>
                             <input type="checkbox" class="form-check-input select-item" value="@item.PersonelId" onchange="updateBulkActionState(event)">
                         </td>
@@ -591,6 +618,11 @@
 
     <script>
       $(document).ready(function() {
+          // Remove highlight class after animation to ensure passive style takes over if needed
+          setTimeout(function() {
+              $('.highlight-row').removeClass('highlight-row');
+          }, 3000);
+
           $('.select2').select2({
               width: '100%',
               placeholder: 'Seçiniz...',

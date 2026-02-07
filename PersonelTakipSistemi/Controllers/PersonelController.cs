@@ -618,8 +618,9 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(PersonelIndexFilterViewModel filter)
+        public async Task<IActionResult> Index(PersonelIndexFilterViewModel filter, int? highlightId = null)
         {
+            ViewBag.HighlightId = highlightId;
             var sw = Stopwatch.StartNew();
             var query = _context.Personeller
                 .Include(p => p.GorevliIl)
@@ -702,7 +703,7 @@ namespace PersonelTakipSistemi.Controllers
             // 2. Sayfalama Hazırlığı
             var totalItems = await query.CountAsync();
             var results = await query
-                .OrderByDescending(p => p.CreatedAt)
+                .OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
                 .Skip((filter.Page - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .Select(p => new PersonelIndexRowViewModel
@@ -765,7 +766,10 @@ namespace PersonelTakipSistemi.Controllers
                     SeciliUzmanlikIdleri = new List<int>(),
                     SeciliGorevTuruIdleri = new List<int>(),
                     SeciliIsNiteligiIdleri = new List<int>(),
-                    SistemRolId = 4 // Default: Kullanıcı
+
+                    SistemRolId = 4, // Default: Kullanıcı
+                    IsAuthSkipped = false,
+                    AktifMi = true // Default to Active
                 };
                 
                 await FillLookupLists(cleanModel);
@@ -791,8 +795,12 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.PersonelIsNitelikleri)
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.KurumsalRol)
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Teskilat)
-                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Koordinatorluk)
-                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Komisyon)
+                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Koordinatorluk).ThenInclude(k => k.Teskilat)
+                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(k => k.Teskilat)
+                // Missing Includes for Implicit Roles
+                .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(koord => koord.Teskilat)
+                .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk).ThenInclude(k => k.Teskilat)
+                .Include(p => p.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
                 .AsNoTracking() 
                 .FirstOrDefaultAsync(p => p.PersonelId == id.Value);
 
@@ -832,15 +840,102 @@ namespace PersonelTakipSistemi.Controllers
             };
 
             // Existing Roles Serialization for Edit Mode
-            var existingRoles = personel.PersonelKurumsalRolAtamalari
-                .Select(x => new RoleAssignmentDto
+            var existingRoles = new List<RoleAssignmentDto>();
+            var coveredKomIds = new HashSet<int>();
+            var coveredKoordIds = new HashSet<int>();
+            var coveredTesIds = new HashSet<int>();
+
+            // 1. Explicit Roles
+            foreach(var x in personel.PersonelKurumsalRolAtamalari)
+            {
+                existingRoles.Add(new RoleAssignmentDto
                 {
                     rolId = x.KurumsalRolId.ToString(),
                     rolAd = x.KurumsalRol.Ad,
                     teskilatId = x.TeskilatId?.ToString(),
+                    teskilatAd = x.Teskilat?.Ad,
                     koordinatorlukId = x.KoordinatorlukId?.ToString(),
-                    komisyonId = x.KomisyonId?.ToString()
-                }).ToList();
+                    koordinatorlukAd = x.Koordinatorluk?.Ad,
+                    komisyonId = x.KomisyonId?.ToString(),
+                    komisyonAd = x.Komisyon?.Ad
+                });
+
+                // Ensure hierarchy is populated for Edit (Fix for "Edit not working on explicit roles")
+                var lastRole = existingRoles.Last();
+                if(lastRole.teskilatId == null)
+                {
+                     if(x.Koordinatorluk != null) lastRole.teskilatId = x.Koordinatorluk.TeskilatId.ToString();
+                     if(x.Komisyon != null && x.Komisyon.Koordinatorluk != null) lastRole.teskilatId = x.Komisyon.Koordinatorluk.TeskilatId.ToString();
+                }
+                if(lastRole.koordinatorlukId == null)
+                {
+                     if(x.Komisyon != null) lastRole.koordinatorlukId = x.Komisyon.KoordinatorlukId.ToString();
+                }
+
+                if (x.KomisyonId.HasValue) 
+                {
+                    coveredKomIds.Add(x.KomisyonId.Value);
+                    if(x.Komisyon?.KoordinatorlukId != null) coveredKoordIds.Add(x.Komisyon.KoordinatorlukId);
+                    if(x.Komisyon?.Koordinatorluk?.TeskilatId != null) coveredTesIds.Add(x.Komisyon.Koordinatorluk.TeskilatId);
+                }
+                
+                if (x.KoordinatorlukId.HasValue) 
+                {
+                    coveredKoordIds.Add(x.KoordinatorlukId.Value);
+                    if(x.Koordinatorluk?.TeskilatId != null) coveredTesIds.Add(x.Koordinatorluk.TeskilatId);
+                }
+                
+                if (x.TeskilatId.HasValue) coveredTesIds.Add(x.TeskilatId.Value);
+            }
+
+            // 2. Implicit Roles (Ghosts)
+            // Komisyon
+            foreach(var pk in personel.PersonelKomisyonlar)
+            {
+                if(coveredKomIds.Contains(pk.KomisyonId)) continue;
+                existingRoles.Add(new RoleAssignmentDto
+                {
+                     rolId = "", 
+                     rolAd = "", // Empty to trigger "Rolü Yok" in UI
+                     teskilatId = pk.Komisyon.Koordinatorluk?.TeskilatId.ToString(),
+                     teskilatAd = pk.Komisyon.Koordinatorluk?.Teskilat?.Ad,
+                     koordinatorlukId = pk.Komisyon.KoordinatorlukId.ToString(),
+                     koordinatorlukAd = pk.Komisyon.Koordinatorluk?.Ad,
+                     komisyonId = pk.Komisyon.KomisyonId.ToString(),
+                     komisyonAd = pk.Komisyon.Ad,
+                     isImplicit = true
+                });
+                if(pk.Komisyon.KoordinatorlukId != 0) coveredKoordIds.Add(pk.Komisyon.KoordinatorlukId);
+            }
+            // Koordinatorluk
+            foreach(var pk in personel.PersonelKoordinatorlukler)
+            {
+                if(coveredKoordIds.Contains(pk.KoordinatorlukId)) continue;
+                 existingRoles.Add(new RoleAssignmentDto
+                {
+                     rolId = "",
+                     rolAd = "",
+                     teskilatId = pk.Koordinatorluk.TeskilatId.ToString(),
+                     teskilatAd = pk.Koordinatorluk.Teskilat?.Ad,
+                     koordinatorlukId = pk.Koordinatorluk.KoordinatorlukId.ToString(),
+                     koordinatorlukAd = pk.Koordinatorluk.Ad,
+                     isImplicit = true
+                });
+                if(pk.Koordinatorluk.TeskilatId != 0) coveredTesIds.Add(pk.Koordinatorluk.TeskilatId);
+            }
+            // Teskilat
+            foreach(var pt in personel.PersonelTeskilatlar)
+            {
+                if(coveredTesIds.Contains(pt.TeskilatId)) continue;
+                 existingRoles.Add(new RoleAssignmentDto
+                {
+                     rolId = "",
+                     rolAd = "",
+                     teskilatId = pt.Teskilat.TeskilatId.ToString(),
+                     teskilatAd = pt.Teskilat.Ad,
+                     isImplicit = true
+                });
+            }
 
             model.AtananRollerJson = System.Text.Json.JsonSerializer.Serialize(existingRoles);
             
@@ -998,6 +1093,11 @@ namespace PersonelTakipSistemi.Controllers
                             .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
                             .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
                             .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
+                            .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
+                            .Include(p => p.PersonelKurumsalRolAtamalari) // Fix: Include for deletion logic
+                            .Include(p => p.PersonelKomisyonlar)
+                            .Include(p => p.PersonelKoordinatorlukler)
+                            .Include(p => p.PersonelTeskilatlar)
                             .Include(p => p.Brans)
                             .Include(p => p.GorevliIl)
                             .FirstOrDefaultAsync(p => p.PersonelId == model.PersonelId.Value);
@@ -1152,6 +1252,9 @@ namespace PersonelTakipSistemi.Controllers
                         _context.PersonelGorevTurleri.RemoveRange(personel.PersonelGorevTurleri);
                         _context.PersonelIsNitelikleri.RemoveRange(personel.PersonelIsNitelikleri);
                         _context.PersonelKurumsalRolAtamalari.RemoveRange(personel.PersonelKurumsalRolAtamalari); // Clear existing roles
+                        _context.PersonelKomisyonlar.RemoveRange(personel.PersonelKomisyonlar);
+                        _context.PersonelKoordinatorlukler.RemoveRange(personel.PersonelKoordinatorlukler);
+                        _context.PersonelTeskilatlar.RemoveRange(personel.PersonelTeskilatlar);
 
                         // Main Update
                         _context.Personeller.Update(personel);
@@ -1215,7 +1318,7 @@ namespace PersonelTakipSistemi.Controllers
                         catch (Exception) { }
 
                         TempData["Success"] = "Personel bilgileri güncellendi.";
-                        return RedirectToAction("Detay", new { id = personel.PersonelId });
+                        return RedirectToAction("Index", new { highlightId = personel.PersonelId });
                     }
                     else
                     {
@@ -1242,7 +1345,8 @@ namespace PersonelTakipSistemi.Controllers
                             SifreSalt = passwordSalt,
                             CreatedAt = DateTime.Now,
                             UpdatedAt = null,
-                            SistemRolId = 4 // Default: Kullanıcı
+
+                            SistemRolId = (model.IsAuthSkipped || model.SistemRolId == null) ? 4 : model.SistemRolId.Value // Default to 4 if skipped or null
                         };
 
                         _context.Personeller.Add(personel);
@@ -1250,6 +1354,46 @@ namespace PersonelTakipSistemi.Controllers
 
                         AddRelations(personel.PersonelId, model);
                         await _context.SaveChangesAsync();
+
+
+                        // Handle Roles for Insert (Common Logic)
+                        if (model.IsAuthSkipped)
+                        {
+                            // Ensure default role if skipped (already set in object initializer but sure)
+                             personel.SistemRolId = 4; // Kullanıcı
+                             // No institutional roles to add
+                        }
+                        else 
+                        {
+                            // Save Roles
+                             if (!string.IsNullOrEmpty(model.AtananRollerJson))
+                             {
+                                 try 
+                                 {
+                                     var roles = System.Text.Json.JsonSerializer.Deserialize<List<RoleAssignmentDto>>(model.AtananRollerJson);
+                                     if (roles != null)
+                                     {
+                                         foreach(var r in roles)
+                                         {
+                                             if (int.TryParse(r.rolId, out int rId))
+                                             {
+                                                 int? tId = null;
+                                                 if (r.teskilatId != null && int.TryParse(r.teskilatId, out int parsedTId)) tId = parsedTId;
+                                                 
+                                                 int? kId = null;
+                                                 if (r.koordinatorlukId != null && int.TryParse(r.koordinatorlukId, out int parsedKId)) kId = parsedKId;
+                                                 
+                                                 int? cId = null;
+                                                 if (r.komisyonId != null && int.TryParse(r.komisyonId, out int parsedCId)) cId = parsedCId;
+                                                 
+                                                 await AddKurumsalRol(personel.PersonelId, rId, kId, cId, true);
+                                             }
+                                         }
+                                     }
+                                 } 
+                                 catch (Exception ex) { Debug.WriteLine($"Error deserializing or adding roles: {ex.Message}"); }
+                             }
+                        }
 
                         // Hoşgeldin Bildirimi (System Sender)
                         await _notificationService.CreateAsync(
@@ -1264,7 +1408,7 @@ namespace PersonelTakipSistemi.Controllers
                         await _logService.LogAsync("Ekleme", $"Yeni personel eklendi: {personel.Ad} {personel.Soyad} ({personel.TcKimlikNo})", personel.PersonelId, $"Ekleyen: {User.Identity?.Name ?? "Bilinmiyor"}");
 
                         TempData["Success"] = $"Yeni personel kaydedildi. Başlangıç şifresi: {autoPasword}";
-                        return RedirectToAction("Detay", new { id = personel.PersonelId });
+                        return RedirectToAction("Index", new { highlightId = personel.PersonelId });
                     }
                 }
                 catch (Exception ex)
@@ -1296,7 +1440,13 @@ namespace PersonelTakipSistemi.Controllers
 
             if (model.SeciliIsNiteligiIdleri != null)
                 foreach (var id in model.SeciliIsNiteligiIdleri) _context.PersonelIsNitelikleri.Add(new PersonelIsNiteligi { PersonelId = personelId, IsNiteligiId = id });
+
+            // Process AtananRoller (JSON) for BOTH Insert and Update logic here OR in the main block.
+            // Since we call AddRelations from both, let's keep it clean and do it in the main block for better control over async/await and error handling, 
+            // OR move the common logic here.
+            // Given the complexity of the JSON parsing, let's keep it in the Controller action but ensure it runs for Insert too.
         }
+
 
         private void DeletePhotoFile(string? path)
         {
@@ -1674,19 +1824,13 @@ namespace PersonelTakipSistemi.Controllers
                 string fullString = "";
                 if (tes != null) fullString += tes.Ad + " ";
                 if (koord != null) fullString += koord.Ad + " ";
-                fullString += kom.Ad + " Personeli"; // "Komisyon Üyesi" yerine "Personeli" daha genel olabilir veya "Komisyon Üyesi"
-
-                // Assuming "Komisyon Üyesi" is the desired implicitly displayed role for commission members without explicit role
-                // But user example says "Fen Komisyon başkanı" (explicit). 
-                // If they are just a member, maybe "Fen Komisyonu Üyesi"? Let's stick to "Personeli" or "Üyesi".
-                // User said: "Merkez Teşkilatı Ankara Kordinatörlüğü Fen Komisyon başkanı"
-                // Let's use "[Full Path] Üyesi" for implicit.
+                fullString += kom.Ad;
 
                 model.KurumsalRoller.Add(new RoleDisplayModel
                 {
-                    Title = fullString, 
+                    Title = $"{fullString} (Rolü Yok)", 
                     Subtitle = null,
-                    ColorClass = "secondary"
+                    ColorClass = "danger" // Red for warning
                 });
 
                 if (kom.KoordinatorlukId != 0) 
@@ -1706,13 +1850,13 @@ namespace PersonelTakipSistemi.Controllers
                 
                 string fullString = "";
                 if (tes != null) fullString += tes.Ad + " ";
-                fullString += koord.Ad + " Personeli";
+                fullString += koord.Ad;
                 
                 model.KurumsalRoller.Add(new RoleDisplayModel
                 {
-                    Title = fullString,
+                    Title = $"{fullString} (Rolü Yok)",
                     Subtitle = null,
-                    ColorClass = "secondary"
+                    ColorClass = "danger"
                 });
 
                 if (koord.TeskilatId != 0) coveredTesIds.Add(koord.TeskilatId);
@@ -1725,9 +1869,9 @@ namespace PersonelTakipSistemi.Controllers
 
                 model.KurumsalRoller.Add(new RoleDisplayModel
                 {
-                    Title = pt.Teskilat.Ad + " Personeli",
+                    Title = $"{pt.Teskilat.Ad} (Rolü Yok)",
                     Subtitle = null,
-                    ColorClass = "secondary"
+                    ColorClass = "danger"
                 });
             }
 
@@ -1839,6 +1983,33 @@ namespace PersonelTakipSistemi.Controllers
                 model.IsNitelikleri = isNitelikleri ?? new List<LookupItemVm>();
                 model.Iller = iller;
                 model.Branslar = branslar;
+
+                // Auth Lookups
+                model.SistemRolleri = await _context.SistemRoller.AsNoTracking().Select(x => new LookupItemVm { Id = x.SistemRolId, Ad = x.Ad }).ToListAsync();
+                model.KurumsalRoller = await _context.KurumsalRoller.AsNoTracking().Select(x => new LookupItemVm { Id = x.KurumsalRolId, Ad = x.Ad }).ToListAsync();
+                model.Teskilatlar = await _context.Teskilatlar.AsNoTracking().Select(x => new LookupItemVm { Id = x.TeskilatId, Ad = x.Ad }).ToListAsync();
+
+                // Preload Hierarchy for Client-Side Cascading (Refined)
+                try {
+                    // Using simple anonymous types to avoid EF Core complexity
+                    var allKoords = await _context.Koordinatorlukler
+                        .AsNoTracking()
+                        .Select(x => new { id = x.KoordinatorlukId, ad = x.Ad, parentId = x.TeskilatId })
+                        .ToListAsync();
+                    
+                    var allKoms = await _context.Komisyonlar
+                        .AsNoTracking()
+                        .Select(x => new { id = x.KomisyonId, ad = x.Ad, parentId = x.KoordinatorlukId })
+                        .ToListAsync();
+                    
+                    this.ViewData["AllKoordinatorlukler"] = allKoords;
+                    this.ViewData["AllKomisyonlar"] = allKoms;
+                } catch(Exception ex) {
+                    // Fallback to empty lists to avoid null ref in View, but define checking key
+                     this.ViewData["AllKoordinatorlukler"] = new List<object>();
+                     this.ViewData["AllKomisyonlar"] = new List<object>();
+                     Debug.WriteLine("Hierarchy Load Error: " + ex.Message);
+                }
             }
             catch (Exception ex)
             {

@@ -7,6 +7,7 @@ namespace PersonelTakipSistemi.ViewModels
     {
         public int? PersonelId { get; set; } // For Edit Mode
         public bool IsEditMode { get; set; } // Explicit Mode Flag
+        public bool IsAuthSkipped { get; set; } // Skip Authorization Step
 
         [Required(ErrorMessage = "Ad alanı zorunludur.")]
         public string Ad { get; set; } = null!;

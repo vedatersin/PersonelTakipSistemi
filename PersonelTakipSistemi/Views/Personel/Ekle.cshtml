@@ -217,8 +217,11 @@
 
   <form asp-controller="Personel" asp-action="Ekle" method="post" enctype="multipart/form-data">
   @Html.AntiForgeryToken()
-  <input type="hidden" asp-for="PersonelId" />
-  <input type="hidden" asp-for="IsEditMode" />
+   <input type="hidden" asp-for="PersonelId" />
+   <input type="hidden" asp-for="AtananRollerJson" id="AtananRollerJson" />
+   <input type="hidden" asp-for="IsEditMode" />
+   <input type="hidden" asp-for="IsAuthSkipped" id="IsAuthSkipped" />
+
 
   <!-- TAB1 KİŞİSEL BİLGİLER -->
   <div id="tab1" class="tab-content active">
@@ -230,9 +233,14 @@
       <!-- PHOTO AREA -->
       <div class="photo-upload-area">
           <div class="photo-circle" id="previewContainer">
-              @if(!string.IsNullOrEmpty(Model.FotografBase64))
+              @{
+                  var imgSrc = !string.IsNullOrEmpty(Model.FotografBase64) ? Model.FotografBase64 : Model.FotografYolu;
+                  var hasPhoto = !string.IsNullOrEmpty(imgSrc);
+              }
+              
+              @if(hasPhoto)
               {
-                   <img id="photoPreview" src="@Model.FotografBase64" onerror="this.onerror=null;this.src='/sevilay-tema/assets/img/avatars/1.png';"/>
+                   <img id="photoPreview" src="@imgSrc" onerror="this.onerror=null;this.src='/sevilay-tema/assets/img/avatars/1.png';"/>
                    <i class='bx bx-user' style="display:none"></i>
               }
               else
@@ -245,6 +253,7 @@
                <label class="form-label">Personel Fotoğrafı</label>
                <input type="file" id="personelFoto" name="personelFoto" accept="image/*" class="form-control" >
                <input type="hidden" id="FotografBase64" name="FotografBase64" asp-for="FotografBase64" />
+               <input type="hidden" id="FotografYolu" name="FotografYolu" asp-for="FotografYolu" />
                <small class="text-muted d-block mt-1">JPG veya PNG formatında, maksimum 2MB.</small>
           </div>
       </div>
@@ -356,84 +365,116 @@
 
 
 
-   <!-- NEW TAB: YETKİLER -->
-  <div id="tab_auth" class="tab-content">
-       <input type="hidden" asp-for="AtananRollerJson" id="AtananRollerJson" />
-       
-       <div class="row g-4">
-           <!-- LEFT: System Role -->
-           <div class="col-md-5 border-end">
-               <h6 class="text-muted mb-3">Sistem Erişimi</h6>
-               <div class="mb-3">
-                   <label asp-for="SistemRolId" class="form-label">Sistem Rolü</label>
-                   <select class="form-select select2" asp-for="SistemRolId">
-                       <option value="">Seçiniz</option>
-                        @if(Model.SistemRolleri != null) { foreach(var item in Model.SistemRolleri) { <option value="@item.Id">@item.Ad</option> } }
-                   </select>
-               </div>
-               
-               <div class="mb-3">
-                    <label class="form-label d-block">Yetki Kapsamı</label>
-                    <div class="btn-group w-100" role="group">
-                        <input type="radio" class="btn-check" name="YetkiKapsami" id="scopeSelf" value="Self" @(Model.YetkiKapsami == "Self" ? "checked" : "")>
-                        <label class="btn btn-outline-secondary" for="scopeSelf">Kendisi</label>
+                            <!-- 5. Yetkiler Tabı (Auth) -->
+                            <div id="tab_auth" class="tab-content">
+                                <h4 class="mb-4 text-primary"><i class="fas fa-user-shield me-2"></i>Sistem & Kurumsal Yetkiler</h4>
+                                
+                                <input type="hidden" id="IsAuthSkipped" name="IsAuthSkipped" value="false" />
+                                <input type="hidden" id="AtananRollerJson" name="AtananRollerJson" />
 
-                        <input type="radio" class="btn-check" name="YetkiKapsami" id="scopeUnit" value="Unit" @(Model.YetkiKapsami == "Unit" ? "checked" : "")>
-                        <label class="btn btn-outline-secondary" for="scopeUnit">Birimleri</label>
+                                <div id="authContentArea">
+                                    <div class="row g-4">
+                                        <!-- Sol Kolon: Kurumsal Rol Atama -->
+                                        <div class="col-md-6">
+                                            <div class="card h-100 border-0 shadow-sm">
+                                                <div class="card-body">
+                                                    <h6 class="card-title text-secondary mb-3">Kurumsal Görevlendirmeler</h6>
 
-                        <input type="radio" class="btn-check" name="YetkiKapsami" id="scopeAll" value="All" @(Model.YetkiKapsami == "All" ? "checked" : "")>
-                        <label class="btn btn-outline-secondary" for="scopeAll">Tüm Sistem</label>
-                    </div>
-                    <small class="text-muted d-block mt-1">Admin rolü için otomatik 'Tüm Sistem' seçilir.</small>
-               </div>
-           </div>
+                                                    <!-- Ekleme Formu -->
+                                                    <div class="d-flex flex-column gap-2 mb-3">
+                                                        <select class="form-select select2" id="newRoleTeskilat">
+                                                            <option value="">Seçiniz...</option>
+                                                            @foreach (var item in Model.Teskilatlar)
+                                                            {
+                                                                <option value="@item.Id">@item.Ad</option>
+                                                            }
+                                                        </select>
+                                                        
+                                                        <div class="d-flex gap-2">
+                                                            <select class="form-select select2" id="newRoleKoord" disabled>
+                                                                <option>Koordinatörlük</option>
+                                                            </select>
+                                                            <select class="form-select select2" id="newRoleKom" disabled>
+                                                                <option>Komisyon</option>
+                                                            </select>
+                                                        </div>
 
-           <!-- RIGHT: Institutional Roles -->
-           <div class="col-md-7">
-               <h6 class="text-muted mb-3">Kurumsal Görevlendirmeler</h6>
-               
-               <!-- Add Role Form -->
-               <div class="card bg-lighter mb-3 border-0">
-                   <div class="card-body p-3">
-                       <div class="row g-2">
-                           <div class="col-12">
-                               <select class="form-select form-select-sm select2" id="newRoleTeskilat">
-                                   <option value="">Teşkilat Seç...</option>
-                                   @if(Model.Teskilatlar != null) { foreach(var item in Model.Teskilatlar) { <option value="@item.Id">@item.Ad</option> } }
-                               </select>
-                           </div>
-                           <div class="col-6">
-                               <select class="form-select form-select-sm select2" id="newRoleKoord" disabled><option>Koordinatörlük</option></select>
-                           </div>
-                           <div class="col-6">
-                               <select class="form-select form-select-sm select2" id="newRoleKom" disabled><option>Komisyon</option></select>
-                           </div>
-                           <div class="col-8">
-                               <select class="form-select form-select-sm select2" id="newRoleType">
-                                   <option value="">Rol Seç...</option>
-                                   @if(Model.KurumsalRoller != null) { foreach(var item in Model.KurumsalRoller) { <option value="@item.Id">@item.Ad</option> } }
-                               </select>
-                           </div>
-                           <div class="col-4 d-grid">
-                               <button type="button" class="btn btn-primary btn-sm" id="btnAddRole"><i class='bx bx-plus'></i> Ekle</button>
-                           </div>
-                       </div>
-                   </div>
-               </div>
+                                                        <div class="d-flex gap-2">
+                                                            <select class="form-select select2" id="newRoleType">
+                                                                <option value="">Rol Seçiniz...</option>
+                                                                @foreach (var item in Model.KurumsalRoller)
+                                                                {
+                                                                    <option value="@item.Id">@item.Ad</option>
+                                                                }
+                                                            </select>
+                                                            <button type="button" class="btn btn-primary text-nowrap" id="btnAddRole">
+                                                                <i class="fas fa-plus"></i> Ekle
+                                                            </button>
+                                                            <button type="button" class="btn btn-secondary text-nowrap d-none" id="btnCancelEditRole" onclick="cancelEditRole()">
+                                                                <i class="fas fa-times"></i> Vazgeç
+                                                            </button>
+                                                        </div>
+                                                    </div>
 
-               <!-- Role List -->
-               <div class="role-list" id="roleListContainer" style="max-height: 250px; overflow-y:auto;">
-                   <!-- JS will populate -->
-                   <div class="text-center text-muted py-3 small" id="noRolesMsg">Henüz rol eklenmedi.</div>
-               </div>
-           </div>
-       </div>
+                                                    <!-- Liste -->
+                                                    <div class="table-responsive" style="max-height: 250px; overflow-y:auto;">
+                                                        <table class="table table-hover align-middle mb-0" id="rolesTable">
+                                                            <thead class="table-light sticky-top">
+                                                                <tr>
+                                                                    <th>Rol</th>
+                                                                    <th>Birim/Kapsam</th>
+                                                                    <th style="width:50px"></th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody id="assignedRolesBody">
+                                                                <tr><td colspan="3" class="text-center text-muted py-3">Henüz rol eklenmedi.</td></tr>
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
 
-       <div class="action-bar">
-          <button type="button" class="btn btn-outline-secondary" onclick="clearTabAuth()">Temizle</button>
-          <button type="button" class="btn btn-primary px-4" id="next_auth">İlerle</button>
-      </div>
-  </div>
+                                        <!-- Sağ Kolon: Sistem Rolü -->
+                                        <div class="col-md-6">
+                                            <div class="card h-100 border-0 shadow-sm">
+                                                <div class="card-body">
+                                                    <h6 class="card-title text-secondary mb-3">Sistem Erişimi</h6>
+                                                    
+                                                    <div class="mb-4">
+                                                        <label asp-for="SistemRolId" class="form-label fw-bold">Sistem Rolü</label>
+                                                        <select asp-for="SistemRolId" class="form-select select2" id="sistemRolSelect">
+                                                            <option value="">Seçiniz...</option>
+                                                            @foreach (var item in Model.SistemRolleri)
+                                                            {
+                                                                <option value="@item.Id">@item.Ad</option>
+                                                            }
+                                                        </select>
+                                                        <span asp-validation-for="SistemRolId" class="text-danger"></span>
+                                                    </div>
+                                                    <!-- Yetki Kapsamı Removed -->
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between mt-4 align-items-center">
+                                    <div class="d-flex justify-content-start">
+                                        @if (!Model.IsEditMode)
+                                        {
+                                            <button type="button" class="btn btn-outline-warning" id="btnSkipAuth">
+                                                <i class="fas fa-fast-forward me-2"></i>Yetkilendirme İşlemini Atla
+                                            </button>
+                                        }
+                                    </div>
+                                    <div class="d-flex justify-content-end gap-2">
+                                         <button type="button" class="btn btn-outline-secondary" onclick="clearTabAuth()">Temizle</button>
+                                         <button type="button" class="btn btn-primary px-4" id="next_auth">İlerle <i class="fas fa-arrow-right ms-2"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+
 
   <!-- TAB2 BECERİLER -->
   <div id="tab2" class="tab-content">
@@ -573,6 +614,16 @@
         </div>
     </div>
 
+    <!-- ROLES SECTION (Full Width) -->
+    <div class="row mt-4">
+        <div class="col-12">
+             <h6 class="text-muted border-bottom pb-2 mb-3">Sistem & Kurumsal Roller</h6>
+             <table class="table table-bordered table-sm">
+                <tbody id="kontrolTableBodyRoles"></tbody>
+             </table>
+        </div>
+    </div>
+
   <div class="d-grid gap-2 mt-4">
     <button type="submit" class="btn btn-success btn-lg">@(Model.IsEditMode ? "Bilgileri Güncelle" : "Bilgileri Kaydet")</button>
   </div>
@@ -624,77 +675,110 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.8/jquery.inputmask.min.js"></script>
     <script>
-      $(document).ready(function() {
-          // Select2 Init
-          $('.select2').select2({
-              width: '100%',
-              placeholder: 'Seçiniz...',
-              allowClear: true,
-              language: {
-                    noResults: function () {
-                        return "Sonuç bulunamadı";
+        // --- 1. GLOBAL STATE & CONFIGURATION (CRITICAL: Must run first) ---
+        
+        // Robust Edit Mode Detection
+        // We check the hidden input strictly, fallback to Model value.
+        var isEditMode = false;
+        try {
+            var hiddenVal = document.querySelector('input[name="IsEditMode"]')?.value;
+            if(hiddenVal === "True" || hiddenVal === "true") isEditMode = true;
+            else if (@(Model.IsEditMode.ToString().ToLowerInvariant())) isEditMode = true;
+        } catch(e) { console.error("EditMode detect error", e); }
+        
+        console.log("Wizard Initialized. Mode:", isEditMode ? "EDIT" : "CREATE");
+
+        // State Container
+        window.wizardState = {
+            unlockedTabs: new Set(["tab1"]),
+            // Standard Tab Order
+            tabOrder: ["tab1", "tab_auth", "tab2", "tab3", "tab4", "tab5", "tab6"],
+            assignedRoles: @Html.Raw(Model.AtananRollerJson ?? "[]")
+        };
+
+        // Edit Mode: Unlock All Tabs Immediately
+        if (isEditMode) {
+             // Add password tab if needed
+             if (!window.wizardState.tabOrder.includes("tab_password")) {
+                 const idx = window.wizardState.tabOrder.indexOf("tab6");
+                 if(idx > -1) window.wizardState.tabOrder.splice(idx, 0, "tab_password");
+             }
+             // Unlock all
+             window.wizardState.tabOrder.forEach(t => window.wizardState.unlockedTabs.add(t));
+        }
+
+        // --- 2. GLOBAL NAVIGATION HANDLERS (Must be available for onclick) ---
+        
+        window.handleStepClick = function (tabId) {
+            // Safety check
+            if(!window.wizardState) { console.error("Wizard State not ready"); return; }
+            activateTab(tabId);
+        };
+
+        window.activateTab = function(tabId) {
+            // Permission Check
+            if (!window.wizardState.unlockedTabs.has(tabId) && !isEditMode) {
+                // Double check isEditMode in case strictly unlocked
+                console.warn("Tab locked:", tabId);
+                return;
+            }
+
+            // 1. Toggle Content
+            const contents = document.querySelectorAll(".tab-content");
+            contents.forEach(c => {
+                 // Use direct style/class manipulation for speed
+                 const isActive = c.id === tabId;
+                 c.classList.toggle("active", isActive);
+                 // c.style.display = isActive ? 'block' : 'none'; // Optional: Use CSS class for cleaner handling
+            });
+
+            // 2. Update Stepper UI
+            updateStepperUI(tabId);
+
+            // 3. Tab Specific Logic
+            if (tabId === "tab6") {
+                if(typeof fillKontrolOzet === 'function') fillKontrolOzet();
+                if(typeof updateControlPhoto === 'function') updateControlPhoto();
+            }
+        };
+
+
+        window.updateStepperUI = function(activeTabId) {
+            const buttons = document.querySelectorAll(".step-item");
+            buttons.forEach(btn => {
+                const stepId = btn.getAttribute("data-step");
+                
+                // Reset basic state
+                btn.classList.remove("active", "completed");
+                btn.style.opacity = "0.6"; 
+
+                // Determine Highlighting
+                const isUnlocked = window.wizardState.unlockedTabs.has(stepId);
+                const isActive = stepId === activeTabId;
+
+                if (isEditMode) {
+                    // Edit Mode: All unlocked/visible are technically 'completed'/'accessible'
+                    // Just highlight active one specifically
+                    btn.classList.add("completed"); 
+                    btn.style.opacity = "1";
+                    
+                    if (isActive) {
+                         btn.classList.add("active");
+                    }
+                } else {
+                    // Create Mode
+                    if (isActive) {
+                        btn.classList.add("active");
+                        btn.style.opacity = "1";
+                    } else if (isUnlocked) {
+                        btn.classList.add("completed");
+                        btn.style.opacity = "1";
                     }
                 }
-          });
+            });
+        };
 
-          // Phone Mask Init
-          $('#personeltelefon').inputmask({
-              mask: "0 (999) 999 99 99",
-              placeholder: "_",
-              showMaskOnHover: false,
-              showMaskOnFocus: true,
-              clearIncomplete: false
-          });
 
-          // Unobtrusive validation entegrasyonu
-          $('.select2').on('change', function() { $(this).valid(); });
-          $('.select2').on('change', function() { $(this).valid(); });
-          // $('#personeltelefon').on('change', function() { $(this).valid(); }); // REMOVED: Bypasses onfocusout and causes premature required error
-
-          // --- PASSWORD VALIDATION UX TWEAK ---
-          // Şifre alanlarında blur/keyup validasyonunu engelle, sadece butona basınca kontrol etsin.
-          var form = $('form');
-          var validator = form.data('validator');
-          if(validator) {
-               // Backup defaults
-               var defaultOnFocusOut = validator.settings.onfocusout;
-               var defaultOnKeyUp = validator.settings.onkeyup;
-
-               validator.settings.onfocusout = function(element) {
-                   if (element.type === "password") return; // Şifrede blur validasyonu yapma
-                   if (element.id === "personeltelefon") return; // Telefonda blur validasyonu yapma (İlerle butonuna basınca yapacak)
-                   if (defaultOnFocusOut) defaultOnFocusOut.call(this, element);
-               };
-
-               validator.settings.onkeyup = function(element, event) {
-                   if (element.type === "password") {
-                       // Sadece eşleşme kontrolü (Mismatch) için hızlı geri bildirim
-                       var p1 = $('#NewPassword').val();
-                       var p2 = $('#NewPasswordConfirm').val();
-                       if(element.id === "NewPasswordConfirm" && p1 && p2) {
-                           if(p1 !== p2) {
-                               // Manuel hata mesajı göster (Unobtrusive'i bozmadan)
-                               var span = $('span[data-valmsg-for="NewPasswordConfirm"]');
-                               span.removeClass('field-validation-valid').addClass('field-validation-error');
-                               span.text('Şifreler eşleşmiyor.');
-                           } else {
-                               $('span[data-valmsg-for="NewPasswordConfirm"]').text('');
-                           }
-                       }
-                       return; 
-                   }
-                   if (defaultOnKeyUp) defaultOnKeyUp.call(this, element, event);
-               };
-          }
-      });
-      
-      // ... existing code ...
-
-      document.addEventListener("DOMContentLoaded", function () {
-        const buttons = document.querySelectorAll(".step-item");
-        const contents = document.querySelectorAll(".tab-content");
-
-        // --- YENİ EKLENEN FONKSİYON: Özet Tablosunu Doldur ---
         function fillKontrolOzet() {
              const leftBody = document.getElementById("kontrolTableBodyLeft");
              const rightBody = document.getElementById("kontrolTableBodyRight");
@@ -709,7 +793,7 @@
                  targetBody.appendChild(tr);
              };
 
-             // SOL KOLON: Kişisel
+             // --- SOL ---
              const ad = document.getElementById("personelAdi")?.value || "";
              const soyad = document.getElementById("personelSoyadi")?.value || "";
              addRow(leftBody, "Ad Soyad", `${ad} ${soyad}`);
@@ -725,8 +809,7 @@
              const aktifMi = document.getElementById("gorevAktif")?.checked ? "Aktif" : "Pasif";
              addRow(leftBody, "Durum", aktifMi);
 
-
-             // SAĞ KOLON: Görev & Beceriler
+             // --- SAĞ ---
              addRow(rightBody, "Kadro Kurum", document.getElementById("personelKadroKurum")?.value);
 
              const gorevliIl = document.getElementById("personelgorevli_il");
@@ -748,10 +831,12 @@
                 if (checkedInputs.length === 0) return "-";
                 const labels = [];
                 checkedInputs.forEach(input => {
+                     // Check parent label or custom card
                      const parent = input.closest('.custom-checkbox-card');
                      if(parent) {
                          labels.push(parent.querySelector('span').innerText);
                      } else {
+                         // Fallback
                          const labelEl = document.querySelector(`label[for="${input.id}"]`);
                          if(labelEl) labels.push(labelEl.textContent.trim());
                      }
@@ -763,233 +848,330 @@
              addRow(rightBody, "Uzmanlıklar", getLabels_("SeciliUzmanlikIdleri"));
              addRow(rightBody, "Görev Türü", getLabels_("SeciliGorevTuruIdleri"));
              addRow(rightBody, "İş Niteliği", getLabels_("SeciliIsNiteligiIdleri"));
+
+             // --- ROLES (NEW SECTION) ---
+             const rolesBody = document.getElementById("kontrolTableBodyRoles");
+             if(rolesBody) {
+                 rolesBody.innerHTML = "";
+                 
+                 // 1. Sistem Rolü
+                 let sistemRolText = $("#sistemRolSelect option:selected").text();
+                 const sysVal = $("#sistemRolSelect").val();
+                 if(!sysVal || sysVal === "") {
+                     const isSkipped = $('#IsAuthSkipped').val() === 'true';
+                     sistemRolText = isSkipped ? "Standart Kullanıcı (Atlandı)" : "-";
+                 }
+                 // Add Row to Roles Table
+                 const trSys = document.createElement("tr");
+                 trSys.innerHTML = `<td style="width:20%; font-weight:600;">Sistem Rolü</td><td>${sistemRolText}</td>`;
+                 rolesBody.appendChild(trSys);
+
+                 // 2. Kurumsal Roller
+                 let kRollerHtml = "-";
+                 if(wizardState.assignedRoles && wizardState.assignedRoles.length > 0) {
+                     kRollerHtml = wizardState.assignedRoles.map(r => {
+                          let loc = r.teskilatAd || "";
+                          if(r.koordinatorlukAd) loc += ` > ${r.koordinatorlukAd}`;
+                          if(r.komisyonAd) loc += ` > ${r.komisyonAd}`;
+                          
+                          let roleDisplay = r.rolAd;
+                          let styleClass = "";
+                          if(r.isImplicit === true || r.rolAd === "") {
+                              roleDisplay = "<span class='text-danger'>(Rolü Yok)</span>";
+                              styleClass = "border-start border-3 border-danger ps-2";
+                          }
+                          
+                          return `<div class='mb-2 ${styleClass}'><strong>${roleDisplay}</strong> <br><small class='text-muted'>${loc}</small></div>`;
+                     }).join("");
+                 }
+                 
+                 const trCorp = document.createElement("tr");
+                 trCorp.innerHTML = `<td style="width:20%; font-weight:600;">Kurumsal Roller</td><td>${kRollerHtml}</td>`;
+                 rolesBody.appendChild(trCorp);
+             }
         }
 
-        const tabOrder = ["tab1", "tab_auth", "tab2", "tab3", "tab4", "tab5"]; // Added tab_auth
-        const isEditMode = '@Model.IsEditMode' === 'True'; 
-        if(isEditMode) {
-            tabOrder.push("tab_password");
-        }
-        tabOrder.push("tab6"); 
+        // --- Role Management State ---
+        let editingRoleIndex = null;
 
-        // Role Management Logic
-        let assignedRoles = []; // Array of objects
-        // Initial Load (if View Model has data - TODO: Parse Model.AtananRollerJson if exists)
-        // For now starting empty for new param, or parse if edit mode populated it.
-        
+        // --- Role Render Logic ---
         function renderRoles() {
-            const container = document.getElementById('roleListContainer');
-            const noMsg = document.getElementById('noRolesMsg');
+            const container = document.getElementById('assignedRolesBody');
+            if(!container) return; 
+            
             container.innerHTML = '';
             
-            if(assignedRoles.length === 0) {
-                 container.appendChild(noMsg);
-                 noMsg.style.display = 'block';
+            if(wizardState.assignedRoles.length === 0) {
+                 container.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">Henüz rol eklenmedi.</td></tr>';
+                 // Explicitly set empty array for backend deletion logic
+                 const jsonInput = document.getElementById('AtananRollerJson');
+                 if(jsonInput) jsonInput.value = '[]'; 
+                 // Also update control summary if needed
+                 if(typeof fillKontrolOzet === 'function') fillKontrolOzet();
                  return;
             }
-            noMsg.style.display = 'none';
 
-            assignedRoles.forEach((role, idx) => {
-                const div = document.createElement('div');
-                div.className = 'd-flex justify-content-between align-items-center border-bottom py-2';
-                // Context Text
-                let ctx = role.teskilatAd ;
+            wizardState.assignedRoles.forEach((role, idx) => {
+                const tr = document.createElement('tr');
+                
+                let ctx = role.teskilatAd || "";
                 if(role.koordinatorlukAd) ctx += ` > ${role.koordinatorlukAd}`;
                 if(role.komisyonAd) ctx += ` > ${role.komisyonAd}`;
+
+                const isImplicit = role.isImplicit === true || role.rolAd === "";
+                let roleNameDisplay = role.rolAd;
+                let roleStyle = "fw-bold text-dark small";
+
+                if (isImplicit) {
+                    roleNameDisplay = "<span class='text-danger'>(Rolü Yok)</span>";
+                    tr.classList.add("border", "border-danger");
+                }
+
+
+
+                let isLegacy = !role.teskilatAd && !role.koordinatorlukAd && !role.komisyonAd;
+                if(isLegacy) {
+                     ctx = "<i class='bx bx-error-circle'></i> <em>Kapsam Belirtilmemiş (Eski Kayıt)</em>";
+                }
                 
-                div.innerHTML = `
-                    <div>
-                        <div class="fw-bold text-dark small">${role.rolAd}</div>
+                // Highlight row being edited
+                if(editingRoleIndex === idx) {
+                    tr.classList.add("table-primary");
+                }
+
+                tr.innerHTML = `
+                    <td>
+                        <div class="${roleStyle}">${roleNameDisplay}</div>
+                    </td>
+                    <td>
                         <div class="text-muted" style="font-size:0.75rem">${ctx}</div>
-                    </div>
-                    <button type="button" class="btn btn-icon btn-sm text-danger" onclick="removeRole(${idx})"><i class='bx bx-trash'></i></button>
-                `;
-                container.appendChild(div);
+                    </td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-icon btn-sm text-primary me-1" onclick="editRole(${idx})" title="Düzenle" style="transform: scale(1.1);">
+                            <i class='bx bx-edit-alt'></i>
+                        </button>
+                        <button type="button" class="btn btn-icon btn-sm text-danger" onclick="removeRole(${idx})" title="Sil" style="transform: scale(1.1);">
+                            <i class='bx bx-trash'></i>
+                        </button>
+                    </td>`;
+                container.appendChild(tr);
             });
             
-            // Update Hidden Input
-            document.getElementById('AtananRollerJson').value = JSON.stringify(assignedRoles);
+            // Sync Hidden Input
+            const jsonInput = document.getElementById('AtananRollerJson');
+            if(jsonInput) jsonInput.value = JSON.stringify(wizardState.assignedRoles);
+            
+            // Re-render Control Tab Summary if needed
+            if(typeof fillKontrolOzet === 'function') fillKontrolOzet();
         }
 
         window.removeRole = function(index) {
-            assignedRoles.splice(index, 1);
+            if(confirm("Bu rolü silmek istediğinize emin misiniz?")) {
+                if(editingRoleIndex === index) cancelEditRole();
+                wizardState.assignedRoles.splice(index, 1);
+                renderRoles();
+            }
+        };
+
+        window.editRole = async function(index) {
+            const role = wizardState.assignedRoles[index];
+            editingRoleIndex = index;
+            
+            console.group("Edit Role Debug");
+            console.log("Editing Role Object:", role);
+
+            // Re-render (highlighting)
+            renderRoles();
+            
+            // Set Flag to suppress default change handlers
+            window.isEditingCascade = true;
+
+            try {
+                // 1. Teskilat
+                if(role.teskilatId) {
+                    const $tes = $('#newRoleTeskilat');
+                    
+                    // Verify Option Exists
+                    const tesVal = String(role.teskilatId);
+                    if($tes.find(`option[value="${tesVal}"]`).length === 0) {
+                        console.warn(`Teskilat ID ${tesVal} not found in options!`, $tes.html());
+                        alert(`Hata: Teşkilat ID (${tesVal}) listede bulunamadı!`);
+                    } else {
+                        console.log(`Setting Teskilat to ${tesVal}`);
+                        $tes.val(tesVal).trigger('change.select2');
+                    }
+                    
+                    // Filter Roles based on Teskilat immediately
+                    if(window.updateRoleOptions) window.updateRoleOptions(role.teskilatId);
+
+                    // 2. Load Koordinatorluk
+                    if(window.loadKoordinatorlukler) {
+                        try {
+                            await window.loadKoordinatorlukler(role.teskilatId, role.koordinatorlukId);
+                            console.log("Loaded Koordinatorluk for:", role.teskilatId);
+                            
+                            // Check if value was set (it should be set inside loadKoordinatorlukler)
+                            const currentKoord = $('#newRoleKoord').val();
+                            if(role.koordinatorlukId && String(currentKoord) !== String(role.koordinatorlukId)) {
+                                console.warn(`Failed to set Koordinatorluk ID ${role.koordinatorlukId}. Current val: ${currentKoord}`);
+                                // Retry manual set just in case? Or alert?
+                                // alert(`Uyarı: Koordinatörlük ID (${role.koordinatorlukId}) listede yok!`);
+                            }
+                        } catch(err) { console.error("Error loading Koord", err); }
+                    }
+
+                    // 3. Load Komisyon
+                    if(role.koordinatorlukId && window.loadKomisyonlar) {
+                        try {
+                            await window.loadKomisyonlar(role.koordinatorlukId, role.komisyonId);
+                            console.log("Loaded Komisyon for:", role.koordinatorlukId);
+                            
+                            const currentKom = $('#newRoleKom').val();
+                            if(role.komisyonId && String(currentKom) !== String(role.komisyonId)) {
+                                console.warn(`Failed to set Komisyon ID ${role.komisyonId}. Current val: ${currentKom}`);
+                            }
+                        } catch(err) { console.error("Error loading Kom", err); }
+                    }
+                }
+            } catch(e) {
+                console.error("Edit cascade failed", e);
+            } finally {
+                window.isEditingCascade = false;
+                console.groupEnd();
+            }
+
+            // Role Select
+            const $roleType = $('#newRoleType');
+            if(role.rolId && role.rolId !== "0" && role.rolId !== "") {
+                const rVal = String(role.rolId);
+                if($roleType.find(`option[value="${rVal}"]`).length > 0) {
+                    $roleType.val(rVal).trigger('change.select2');
+                } else {
+                    console.warn(`Role ID ${rVal} not found in options!`);
+                }
+            } else {
+                $roleType.val(null).trigger('change.select2');
+            }
+            
+            // Update Buttons
+            $('#btnAddRole').html('<i class="bx bx-save me-1"></i>Güncelle').removeClass('btn-primary').addClass('btn-warning');
+            $('#btnCancelEditRole').removeClass('d-none');
+
+            // Scroll to Form
+            document.querySelector('#newRoleTeskilat').scrollIntoView({behavior: 'smooth'});
+        };
+        
+        window.cancelEditRole = function() {
+            editingRoleIndex = null;
+            
+            // Reset Form (Clear values)
+            $('#newRoleTeskilat').val('').trigger('change.select2'); // Ensure select2 trigger
+            $('#newRoleKoord').val('').empty().append('<option>Koordinatörlük</option>').prop('disabled', true).trigger('change.select2');
+            $('#newRoleKom').val('').empty().append('<option>Komisyon</option>').prop('disabled', true).trigger('change.select2');
+            $('#newRoleType').val('').trigger('change.select2');
+            
+            // Reset Buttons
+            $('#btnAddRole').html('<i class="bx bx-plus-circle me-1"></i>Ekle').removeClass('btn-warning').addClass('btn-primary');
+            $('#btnCancelEditRole').addClass('d-none');
+            
             renderRoles();
         };
 
-        // Add Role Handler
-        document.getElementById('btnAddRole')?.addEventListener('click', function() {
+        // --- Add/Update Role ---
+        $('#btnAddRole').on('click', function() {
              const tesSelect = document.getElementById('newRoleTeskilat');
              const koordSelect = document.getElementById('newRoleKoord');
              const komSelect = document.getElementById('newRoleKom');
              const rolSelect = document.getElementById('newRoleType');
              
+             // Validation Logic
              if(!rolSelect.value || !tesSelect.value) {
-                 // Toast or alert
-                 Swal.fire('Uyarı', 'Lütfen en az Teşkilat ve Rol seçiniz.', 'warning');
+                 Swal.fire('Uyarı', 'Teşkilat ve Rol seçimi zorunludur.', 'warning');
                  return;
              }
              
-             // Validate Context Compatibility (e.g. Baskan needs Komisyon)
-             const rolText = rolSelect.options[rolSelect.selectedIndex].text;
-             if(rolText === 'Komisyon Başkanı' && !komSelect.value) {
-                  Swal.fire('Uyarı', 'Komisyon Başkanı rolü için Komisyon seçmelisiniz.', 'warning');
-                  return;
-             }
-             if((rolText === 'İl Koordinatörü' || rolText === 'Genel Koordinatör') && !koordSelect.value) {
-                  Swal.fire('Uyarı', 'Koordinatör rolü için Koordinatörlük seçmelisiniz.', 'warning');
-                  return;
-             }
-
-             // Duplicate Check (Local)
-             const existing = assignedRoles.find(r => 
-                 r.rolId === rolSelect.value && 
-                 r.teskilatId === tesSelect.value && 
-                 r.koordinatorlukId === koordSelect.value && 
-                 r.komisyonId === komSelect.value
-             );
-             if(existing) {
-                 Swal.fire('Uyarı', 'Bu rol zaten ekli.', 'warning');
-                 return;
-             }
-
-             // Add
-             assignedRoles.push({
-                 rolId: rolSelect.value,
-                 rolAd: rolText,
-                 teskilatId: tesSelect.value,
-                 teskilatAd: tesSelect.options[tesSelect.selectedIndex].text,
-                 koordinatorlukId: koordSelect.value || null,
-                 koordinatorlukAd: koordSelect.selectedIndex > 0 ? koordSelect.options[koordSelect.selectedIndex].text : null,
-                 komisyonId: komSelect.value || null,
-                 komisyonAd: komSelect.selectedIndex > 0 ? komSelect.options[komSelect.selectedIndex].text : null
-             });
+             const data = {
+                   rolId: rolSelect.value,
+                   rolAd: rolSelect.options[rolSelect.selectedIndex].text,
+                   teskilatId: tesSelect.value,
+                   teskilatAd: tesSelect.options[tesSelect.selectedIndex].text,
+                   koordinatorlukId: koordSelect.value || null,
+                   koordinatorlukAd: koordSelect.selectedIndex > 0 ? koordSelect.options[koordSelect.selectedIndex].text : null,
+                   komisyonId: komSelect.value || null,
+                   komisyonAd: komSelect.selectedIndex > 0 ? komSelect.options[komSelect.selectedIndex].text : null
+             };
              
-             renderRoles();
-             
-             // Reset dropdowns (optional, maybe keep context)
-             $(rolSelect).val('').trigger('change.select2');
-        });
-
-        // Cascading Logic for Role Form
-        $('#newRoleTeskilat').change(function() {
-             const id = $(this).val();
-             const $koord = $('#newRoleKoord');
-             $koord.empty().append('<option value="">Koordinatörlük</option>').prop('disabled', true);
-             $('#newRoleKom').empty().append('<option value="">Komisyon</option>').prop('disabled', true);
-             
-             if(id) {
-                 $.get('/Birimler/GetKoordinatorlukler?teskilatId=' + id, function(data) {
-                     $koord.prop('disabled', false);
-                     data.forEach(x => $koord.append(new Option(x.ad, x.koordinatorlukId)));
-                     $koord.trigger('change.select2');
-                 });
+             // Add or Update logic
+             if(editingRoleIndex !== null) {
+                 wizardState.assignedRoles[editingRoleIndex] = data;
+                 Swal.fire({ position: 'top-end', icon: 'success', title: 'Rol güncellendi', showConfirmButton: false, timer: 1500 });
+                 
+                 // Reset UI (Cancel Mode)
+                 cancelEditRole();
              } else {
-                 $koord.trigger('change.select2');
-                 $('#newRoleKom').trigger('change.select2');
-             }
-        });
-        
-        $('#newRoleKoord').change(function() {
-             const id = $(this).val();
-             const $kom = $('#newRoleKom');
-             $kom.empty().append('<option value="">Komisyon</option>').prop('disabled', true);
-             
-             if(id) {
-                 $.get('/Birimler/GetKomisyonlar?koordinatorlukId=' + id, function(data) {
-                     $kom.prop('disabled', false);
-                     data.forEach(x => $kom.append(new Option(x.ad, x.komisyonId)));
-                     $kom.trigger('change.select2');
-                 });
-             } else {
-                 $kom.trigger('change.select2');
+                 wizardState.assignedRoles.push(data);
+                 
+                 // Just Clear Inputs (Reuse cancelEditRole logic as it clears everything and resets state)
+                 cancelEditRole(); 
              }
         });
 
 
+        // --- Photo Logic ---
+        function updateControlPhoto() {
+            const previewImg = document.getElementById("photoPreview");
+            const controlImg = document.getElementById("kontrolFoto");
+            const controlIcon = document.getElementById("controlIcon");
 
-        const unlockedTabs = new Set(["tab1"]); 
-        if(isEditMode) {
-            tabOrder.forEach(t => unlockedTabs.add(t));
+            if (!controlImg) return;
+            
+            // Sync logic
+            if (previewImg && previewImg.src && previewImg.style.display !== "none" && previewImg.src !== "" && previewImg.src !== window.location.href) {
+                 controlImg.src = previewImg.src;
+                 controlImg.style.display = "block";
+                 if(controlIcon) controlIcon.style.display = "none";
+            } 
+            else {
+                 controlImg.style.display = "none";
+                 if(controlIcon) controlIcon.style.display = "block";
+            }
         }
 
-        // --- STEPPER VISUAL UPDATE ---
-        function updateStepperUI(activeTabId) {
-            buttons.forEach(btn => {
-                const stepId = btn.getAttribute("data-step");
+        function restorePhotoFromHidden() {
+            const hiddenBase64 = document.getElementById("FotografBase64");
+            const hiddenYolu = document.getElementById("FotografYolu");
+            const previewImg = document.getElementById("photoPreview");
+            
+            // Priority: Base64 (New Upload) > Yolu (Existing)
+            let src = "";
+            if(hiddenBase64 && hiddenBase64.value) src = hiddenBase64.value;
+            else if(hiddenYolu && hiddenYolu.value) src = hiddenYolu.value;
+
+            if(src && previewImg) {
+                previewImg.src = src;
                 
-                // Reset
-                btn.classList.remove("active", "completed");
-                
-                // Edit Mode Rule: All steps look completed (green) always, but active gets blue border/highlight?
-                // User said: "Edit mod: TÜM adımlar completed gibi yeşil. Aktif adım yeşil kalsın."
-                // My CSS: .completed { opacity: 1; } .step-item.completed .step-counter { bg: green }
-                
-                if (isEditMode) {
-                    btn.classList.add("completed");
-                    // Active step gets extra highlight if needed, or just let it be green.
-                    // If active, maybe just underline or same green. 
-                    // Let's stick to "completed" style for all, and maybe "active" just ensures opacity 1.
-                    if (stepId === activeTabId) {
-                        btn.style.opacity = "1";
-                        // Optional: differentiating active step in edit mode
-                        btn.querySelector('.step-counter').style.boxShadow = "0 0 0 3px rgba(25, 135, 84, 0.3)";
-                    } else {
-                        btn.querySelector('.step-counter').style.boxShadow = "none";
-                    }
-                } 
-                else {
-                    // Create Mode
-                    if (stepId === activeTabId) {
-                        btn.classList.add("active");
-                    } else if (unlockedTabs.has(stepId) && tabOrder.indexOf(stepId) < tabOrder.indexOf(activeTabId)) {
-                        btn.classList.add("completed");
-                    } else if (unlockedTabs.has(stepId)) {
-                         // Unlocked but ahead? Usually doesn't happen in seq flow but if user clicked back
-                         // Treat as unlocked (opacity 1) but not active/completed color? 
-                         // Or just completed if we passed it? 
-                         // Simple rule: If we are past it, it's completed.
-                         btn.classList.add("completed");
-                    }
-                }
-            });
+                // Show it
+                const container = previewImg.parentElement;
+                const icon = container.querySelector("i");
+                if(icon) icon.style.display = "none";
+                previewImg.style.display = "block";
+            }
         }
 
-        function activateTab(tabId) {
-           if (!unlockedTabs.has(tabId)) return;
-           
-           contents.forEach((c) => {
-             c.classList.toggle("active", c.id === tabId);
-           });
-           
-           updateStepperUI(tabId);
 
-           if (tabId === "tab6") {
-               fillKontrolOzet();
-               if (typeof updateControlPhoto === "function") {
-                   updateControlPhoto();
-               }
-           }
-        }
-
-        // Global function for onclick in HTML
-        window.handleStepClick = function(tabId) {
-            activateTab(tabId);
-        };
-        
-        // --- CLEAR HELPERS ---
+        // --- Clear Handlers ---
+        // --- Clear Handlers ---
         window.clearTab1 = function() {
-            // Inputs
             const inputs = document.querySelectorAll('#tab1 input:not([type="hidden"]):not([type="radio"])');
             inputs.forEach(i => i.value = "");
-            
-            // Select2
             $('#personelgorevli_il').val(null).trigger('change');
             $('#personelBrans').val(null).trigger('change');
             
-            // Radios (Optional: maybe don't clear gender?)
-            // document.querySelectorAll('input[name="PersonelCinsiyet"]').forEach(r => r.checked = false);
+            // Explicitly Reset ID and EditMode for "New Record" Intent
+            $('input[name="PersonelId"]').val(0);
+            $('input[name="IsEditMode"]').val('False');
             
-            // Photo - clear preview
+            // Reset Photo
             const preview = document.getElementById("photoPreview");
             const icon = document.querySelector("#previewContainer i");
             if(preview) { preview.src = ""; preview.style.display = 'none'; }
@@ -1005,489 +1187,453 @@
         };
 
         window.clearTabAuth = function() {
-             $('#SistemRolId').val('').trigger('change.select2');
+             $('#sistemRolSelect').val('').trigger('change.select2');
              $('input[name="YetkiKapsami"][value="Self"]').prop('checked', true);
              
-             assignedRoles = [];
+             wizardState.assignedRoles = [];
              renderRoles();
              
-             // Reset New Role Inputs
              $('#newRoleTeskilat').val('').trigger('change.select2');
-             // Derived inputs cleared by triggers above
              $('#newRoleType').val('').trigger('change.select2');
         };
 
-        // Initialize UI
-        updateStepperUI("tab1");
 
-        // Initialize UI
-        updateStepperUI("tab1");
+        // --- 3. DOM READY INITIALIZATION ---
+        $(document).ready(function() {
+             // A. Init UI Components
+             updateStepperUI("tab1"); // Default active
+             renderRoles();
+             restorePhotoFromHidden();
 
-        // Set Next Button Logic including new AUTH tab
-        const setupNextBtn = (btnId, currentTabId) => {
-             const btn = document.getElementById(btnId);
-             if(!btn) return;
+             // B. Input Masks & Plugins
+             $('.select2').select2({
+                 width: '100%', allowClear:true, placeholder: 'Seçiniz...',
+                 language: { noResults: () => "Sonuç bulunamadı" }
+             });
              
-             btn.addEventListener("click", () => {
-                 // Validation logic...
-                 const idx = tabOrder.indexOf(currentTabId);
-                 if(idx > -1 && idx < tabOrder.length - 1) {
-                     const nextId = tabOrder[idx + 1];
-                     // Unlock next
-                     unlockedTabs.add(nextId);
-                     activateTab(nextId);
+             $('#personeltelefon').inputmask({
+                 mask: "0 (999) 999 99 99", showMaskOnHover: false, clearIncomplete: false
+             });
+
+             // Validate on Change
+             $('.select2').on('change', function() { $(this).valid(); });
+
+             // C. Validation Override (Password UX)
+             var form = $('form');
+             var validator = form.data('validator');
+             if(validator) {
+                  var defaultOnFocusOut = validator.settings.onfocusout;
+                  var defaultOnKeyUp = validator.settings.onkeyup;
+                  validator.settings.onfocusout = function(element) {
+                      if (element.type === "password" || element.id === "personeltelefon") return;
+                      if (defaultOnFocusOut) defaultOnFocusOut.call(this, element);
+                  };
+                  validator.settings.onkeyup = function(element, event) {
+                       if (element.type === "password") {
+                            // Check mismatch manually
+                            var p1 = $('#NewPassword').val();
+                            var p2 = $('#NewPasswordConfirm').val();
+                            if(element.id === "NewPasswordConfirm" && p1 && p2 && p1 !== p2) {
+                                 var span = $('span[data-valmsg-for="NewPasswordConfirm"]');
+                                 span.removeClass('field-validation-valid').addClass('field-validation-error').text('Şifreler eşleşmiyor.');
+                            } else if (element.id === "NewPasswordConfirm") {
+                                 $('span[data-valmsg-for="NewPasswordConfirm"]').text('');
+                            }
+                            return;
+                       }
+                       if (defaultOnKeyUp) defaultOnKeyUp.call(this, element, event);
+                  };
+             }
+
+
+             // D. Button Setup Helper
+             const setupNextBtn = (btnId, currentTabId, checkBoxName) => {
+                  const btn = document.getElementById(btnId);
+                  if(!btn) return;
+                  
+                  btn.addEventListener("click", () => {
+                      const $tabInputs = $('#' + currentTabId).find(':input');
+                      if (!$tabInputs.valid()) {
+                           console.warn("Validation Failed on tab:", currentTabId);
+                           console.log("Invalid Elements:", $('#' + currentTabId).find('.input-validation-error'));
+                           Swal.fire({ title: 'Eksik Bilgi', text: 'Zorunlu alanları doldurunuz.', icon: 'warning', timer: 2000, showConfirmButton: false });
+                           return;
+                      }
+                      if (checkBoxName) {
+                          if (document.querySelectorAll(`input[name="${checkBoxName}"]:checked`).length === 0) {
+                              Swal.fire({ title: 'Seçim Yapılmadı', text: "En az bir seçenek seçiniz.", icon: 'warning', confirmButtonText: 'Tamam' });
+                              return;
+                          }
+                      }
+                      // Go Next
+                      const idx = wizardState.tabOrder.indexOf(currentTabId);
+                      if(idx > -1 && idx < wizardState.tabOrder.length - 1) {
+                          const nextId = wizardState.tabOrder[idx + 1];
+                          wizardState.unlockedTabs.add(nextId);
+                          activateTab(nextId);
+                      }
+                  });
+             };
+
+             // setupNextBtn("next_auth", "tab_auth"); // Custom handler used below
+             setupNextBtn("next2", "tab2", "SeciliYazilimIdleri");
+             
+             // --- CUSTOM: Auth Next Logic with Skip Support ---
+             const btnNextAuth = document.getElementById("next_auth");
+             if (btnNextAuth) {
+                  btnNextAuth.addEventListener("click", () => {
+                      const isSkipped = $('#IsAuthSkipped').val() === 'true';
+
+                      if (!isSkipped) {
+                          // Standard Validation
+                          // 1. System Role Check
+                          const sysRole = $('#sistemRolSelect').val();
+                          if (!sysRole) {
+                               Swal.fire({ title: 'Eksik Bilgi', text: 'Sistem Rolü seçimi zorunludur.', icon: 'warning' });
+                               return;
+                          }
+                          // 2. Institutional Role Check
+                          // Edit Mode: Allow 0 roles if user wants to clear them (or re-assign later)
+                          if (!isEditMode && wizardState.assignedRoles.length === 0) {
+                               Swal.fire({ title: 'Rol Eksik', text: 'En az bir kurumsal rol ekleyiniz veya işlemlerden vazgeçmek için "Yetkilendirme İşlemini Atla" butonunu kullanınız.', icon: 'warning' });
+                               return;
+                          }
+                      }
+
+                      // Unlock Next
+                      wizardState.unlockedTabs.add("tab2");
+                      activateTab("tab2");
+                  });
+             }
+
+             // --- Skip Button Logic ---
+             $('#btnSkipAuth').click(function() {
+                  const $btn = $(this);
+                  const $content = $('#authContentArea');
+                  const $input = $('#IsAuthSkipped');
+                  
+                  // Toggle State
+                  const isCurrentlySkipped = $input.val() === 'true';
+                  
+                  if (!isCurrentlySkipped) {
+                       // Activate Skip Mode
+                       $input.val('true');
+                       $content.addClass('disabled-div'); // Ensure CSS class exists or use inline
+                       $content.css({ 'opacity': '0.5', 'pointer-events': 'none' });
+                       $btn.removeClass('btn-outline-warning').addClass('btn-warning').html('<i class="fas fa-undo me-2"></i>İşlemi Etkinleştir');
+                  } else {
+                       // Deactivate Skip Mode
+                       $input.val('false');
+                       $content.css({ 'opacity': '1', 'pointer-events': 'auto' });
+                       $btn.removeClass('btn-warning').addClass('btn-outline-warning').html('<i class="fas fa-fast-forward me-2"></i>Yetkilendirme İşlemini Atla');
+                  }
+             });
+             setupNextBtn("next3", "tab3", "SeciliUzmanlikIdleri");
+             setupNextBtn("next4", "tab4", "SeciliGorevTuruIdleri");
+             setupNextBtn("next5", "tab5", "SeciliIsNiteligiIdleri");
+
+             // E. Custom Handlers (Tab 1 & Password & Roles)
+             
+             // --- Next 1 (AJAX Check) ---
+             const btnNext1 = document.getElementById("next1");
+             if(btnNext1) {
+                 btnNext1.addEventListener("click", () => {
+                      // Bypass masked TC validation
+                      const $tc = $('#personelTcKimlik');
+                      if($tc.val().indexOf('*') !== -1) {
+                          $tc.rules("remove");
+                          $tc.removeClass("input-validation-error");
+                          $tc.next("span").text(""); // clear error
+                      }
+                      
+                      const $inputs = $('#tab1').find(':input');
+                      if(!$inputs.valid()) {
+                           Swal.fire({ title: 'Eksik Bilgi', text: 'Zorunlu alanları doldurunuz.', icon: 'warning', timer: 2000, showConfirmButton: false });
+                           return;
+                      }
+
+                      // Check Duplicates
+                      const tc = $tc.val();
+                      const email = $('#personelemail').val();
+                      const pid = '@Model.PersonelId';
+                      
+                      btnNext1.disabled = true;
+                      $.get('@Url.Action("CheckDuplicates", "Personel")', { id: pid, tc: tc, email: email })
+                       .done(function(res) {
+                            btnNext1.disabled = false;
+                            if(res.tcExists || res.emailExists) {
+                                let msg = res.tcExists ? "Bu TC Kimlik No kayıtlı. " : "";
+                                msg += res.emailExists ? "Bu E-posta kayıtlı." : "";
+                                Swal.fire('Kayıt Mevcut', msg, 'error');
+                            } else {
+                                // Success - Move to Auth
+                                wizardState.unlockedTabs.add("tab_auth");
+                                activateTab("tab_auth");
+                            }
+                       })
+                       .fail(function() {
+                            btnNext1.disabled = false;
+                            Swal.fire('Hata', 'Sunucu hatası oluştu. Lütfen tekrar deneyin.', 'error');
+                       });
+                 });
+             }
+
+             // --- Next Password ---
+             const btnPass = document.getElementById("next_pass");
+             if(btnPass) {
+                 btnPass.addEventListener("click", () => {
+                      const $inputs = $('#tab_password').find(':input');
+                      // Custom check for Old Password
+                      const oldPass = $('#EskiSifre').val();
+                      const newPass = $('#NewPassword').val();
+                      
+                      if(!newPass) { // No change
+                          wizardState.unlockedTabs.add("tab6");
+                          activateTab("tab6");
+                          return;
+                      }
+                      
+                      if(!oldPass && $('#EskiSifre').length > 0) {
+                           // If hidden validation didn't catch it
+                           if(!$inputs.valid()) return; 
+                      }
+                      
+                      if($('#EskiSifre').length > 0) {
+                          btnPass.disabled = true;
+                          $.get('@Url.Action("CheckPassword", "Personel")', { id: '@Model.PersonelId', password: oldPass })
+                           .done(function(res) {
+                                btnPass.disabled = false;
+                                if(!res.success) {
+                                     Swal.fire('Hata', 'Eski şifre hatalı.', 'error');
+                                } else {
+                                     wizardState.unlockedTabs.add("tab6");
+                                     activateTab("tab6");
+                                }
+                           })
+                           .fail(function() {
+                                btnPass.disabled = false;
+                                Swal.fire('Hata', 'Şifre kontrol hatası.', 'error');
+                           });
+                      } else {
+                          // Admin mode
+                          wizardState.unlockedTabs.add("tab6");
+                          activateTab("tab6");
+                      }
+                 });
+             }
+
+
+             // --- Preloaded Data for Stability (Client-Side Cascading) ---
+             // Move to WINDOW scope so editRole can see them
+             window.allKoords = @Json.Serialize(ViewData["AllKoordinatorlukler"] ?? new List<object>());
+             window.allKomis = @Json.Serialize(ViewData["AllKomisyonlar"] ?? new List<object>()); 
+             
+             console.log("Loaded Hierarchies:", window.allKoords, window.allKomis);
+
+             // --- Cascading Roles Helpers (GLOBAL SCOPE for editRole) ---
+             window.loadKoordinatorlukler = (teskilatId, selectedId = null) => {
+                 return new Promise((resolve, reject) => {
+                     const $koord = $('#newRoleKoord');
+                     const $kom = $('#newRoleKom');
+                     
+                     // Reset structure with placeholder
+                     let html = '<option value="">Koordinatörlük</option>';
+                     
+                     // Reset dependent
+                     $kom.empty().append('<option value="">Komisyon</option>').prop('disabled', true);
+                     
+                     if(!teskilatId) { 
+                         $koord.html(html).prop('disabled', true);
+                         resolve(); return; 
+                     }
+
+                     // Filter
+                     const filtered = window.allKoords.filter(x => String(x.parentId) === String(teskilatId));
+                     
+                     if(filtered.length > 0) {
+                         // Build Options String
+                         filtered.forEach(x => {
+                             const isSelected = selectedId && String(x.id) === String(selectedId);
+                             html += `<option value="${x.id}" ${isSelected ? 'selected' : ''}>${x.ad}</option>`;
+                         });
+                         
+                         $koord.html(html).prop('disabled', false);
+                         
+                         // Trigger Change to update Select2
+                         // Using generic 'change' ensures both Select2 and other listeners fire
+                         $koord.trigger('change');
+                     } else {
+                         $koord.html(html).prop('disabled', true);
+                     }
+                     resolve();
+                 });
+             };
+
+             window.loadKomisyonlar = (koordinatorlukId, selectedId = null) => {
+                 return new Promise((resolve, reject) => {
+                     const $kom = $('#newRoleKom');
+                     
+                     // Reset structure with placeholder
+                     let html = '<option value="">Komisyon</option>';
+                     
+                     if(!koordinatorlukId) { 
+                         $kom.html(html).prop('disabled', true);
+                         resolve(); return; 
+                     }
+
+                     // Filter
+                     const filtered = window.allKomis.filter(x => String(x.parentId) === String(koordinatorlukId));
+
+                     if(filtered.length > 0) {
+                         // Build Options String
+                         filtered.forEach(x => {
+                             const isSelected = selectedId && String(x.id) === String(selectedId);
+                             html += `<option value="${x.id}" ${isSelected ? 'selected' : ''}>${x.ad}</option>`;
+                         });
+                         
+                         $kom.html(html).prop('disabled', false);
+                         $kom.trigger('change');
+                     } else {
+                         $kom.html(html).prop('disabled', true);
+                     }
+                     resolve();
+                 });
+             };
+
+             // --- Cascading Events (Restored) ---
+             // REMOVED .off('change') to avoid killing validation/select2 listeners
+             $('#newRoleTeskilat').on('change', function() {
+                  const id = $(this).val();
+                  if(window.isEditingCascade) return; 
+                  window.loadKoordinatorlukler(id);
+                  window.updateRoleOptions(id); 
+             });
+
+             $('#newRoleKoord').on('change', function() {
+                  const id = $(this).val();
+                  if(window.isEditingCascade) return;
+                  window.loadKomisyonlar(id);
+             });
+
+             // --- Role Filtering Logic (Global) ---
+             // Capture Original Options immediate (assuming populated on server render)
+             window.originalRoleOptions = [];
+             $('#newRoleType option').each(function() {
+                 const val = $(this).val();
+                 const text = $(this).text();
+                 if(val) window.originalRoleOptions.push({ val, text });
+             });
+
+             window.updateRoleOptions = function(teskilatId) {
+                 const $role = $('#newRoleType');
+                 const currentVal = $role.val();
+                 
+                 // Clean Id Comparison
+                 // Merkez ID usually 1 or defined in data.
+                 // Better: Check the text of the selected OPTION in the DOM?
+                 // But we have the ID. Let's find the option by ID to be safe.
+                 const isMerkez = $('#newRoleTeskilat').find(`option[value="${teskilatId}"]`).text().includes('Merkez');
+
+                 // Clear current options (keep placeholder)
+                 $role.empty().append('<option value="">Rol Seçiniz...</option>');
+
+                 // Rebuild Options
+                 window.originalRoleOptions.forEach(opt => {
+                     let allowed = true;
+                     // Rule: "Genel Koordinatör" (ID 4) only for "Merkez"
+                     if (opt.val == '4' && !isMerkez) allowed = false;
+                     // Rule: "İl Koordinatörü" (ID 3) only for "Taşra"
+                     if (opt.val == '3' && isMerkez) allowed = false;
+
+                     if (allowed) {
+                         const newOpt = new Option(opt.text, opt.val);
+                         if(currentVal == opt.val) newOpt.selected = true;
+                         $role.append(newOpt);
+                     }
+                 });
+                 
+                 // Restore or Clear
+                 if(currentVal && !$role.find(`option[value="${currentVal}"]`).length) {
+                     $role.val(null).trigger('change');
+                 } else {
+                     $role.trigger('change.select2'); 
+                 }
+             };
+
+
+             // F. Restore State Logic (Legacy/Restart) & Modal Open
+             // (Logic simplified: if Edit Mode, we already unlocked everything. 
+             // If Create Mode, check fields to auto-advance?)
+             if (!isEditMode) {
+                  // Auto-advance logic for Create Mode only
+                  if($('#personelAdi').val() && $('#personelTcKimlik').val()) {
+                       // wizardState.unlockedTabs.add("tab_auth"); // Optional: Don't auto-unlock too aggressively
+                  }
+             }
+
+             // Open specific tab if requested by Server
+             const openTab = '@TempData["OpenTab"]';
+             const showModal = '@TempData["ShowUserExistsModal"]' === '1';
+             
+             if(showModal) {
+                 try {
+                     var m = new bootstrap.Modal(document.getElementById('tcDuplicateModal'), {backdrop:'static'});
+                     m.show();
+                     $('#btnFixTc').click(() => { m.hide(); setTimeout(() => activateTab('tab1'), 300); });
+                 } catch(e) { alert("Hata: Kayıt zaten mevcut."); }
+             }
+             else if(openTab) {
+                 activateTab(openTab);
+             }
+
+             // Photo Upload Change
+             $('#personelFoto').change(function(e) {
+                  const file = e.target.files[0];
+                  if(file) {
+                      if(file.size > 2*1024*1024) { alert("Max 2MB"); this.value=""; return; }
+                      const r = new FileReader();
+                      r.onload = function(evt) {
+                           $('#FotografBase64').val(evt.target.result);
+                           const img = document.getElementById("photoPreview");
+                           if(img) {
+                               img.src = evt.target.result;
+                               // Show Logic
+                               img.style.display = 'block';
+                               $(img).siblings('i').hide();
+                               
+                               if($('#tab6').hasClass('active')) updateControlPhoto();
+                           }
+                      };
+                      r.readAsDataURL(file);
+                  }
+             });
+
+             // Final Submit Guard
+             $('form').submit(function(e) {
+                 const groups = [
+                     { name: "SeciliYazilimIdleri", label: "Beceriler" },
+                     { name: "SeciliUzmanlikIdleri", label: "Uzmanlık" },
+                     { name: "SeciliGorevTuruIdleri", label: "Görev Türü" },
+                     { name: "SeciliIsNiteligiIdleri", label: "İş Niteliği" }
+                 ];
+                 let hasError = false;
+                 groups.forEach(g => {
+                     // Check if at least one checkbox is checked for each group
+                     // Note: You might want to skip this check if the tab is skipped or not visible?
+                     // For now, restoring per user request.
+                     if($(`input[name="${g.name}"]:checked`).length === 0) hasError = true;
+                 });
+                 if(hasError) {
+                      e.preventDefault();
+                      Swal.fire({
+                          title: 'Eksik Seçim',
+                          text: "Lütfen Beceriler, Uzmanlık, Görev Türü ve İş Niteliği sekmelerinden en az birer seçim yapınız.",
+                          icon: 'warning',
+                          confirmButtonText: 'Tamam'
+                      });
                  }
              });
-        };
 
-        setupNextBtn("next1", "tab1");
-        setupNextBtn("next_auth", "tab_auth"); // NEW
-        setupNextBtn("next2", "tab2");
-        setupNextBtn("next3", "tab3");
-        setupNextBtn("next4", "tab4");
-        setupNextBtn("next5", "tab5");
-        // Passw logic handled separately or similar
-        
-        // "İlerle" Butonları logic (Old one replaced by simpler logic above for clarity, 
-        // but let's keep the validation structure if needed. 
-        // For the purpose of this replacement, assuming simple replacement of setupNextBtn logic)
-        
-        // Re-implementing the original setupNextBtn to avoid breaking validation
-        /* 
-        const setupNextBtn = (btnId, currentTabId, checkBoxName = null) => { ... } 
-        // The original logic was complex. We just need to ensure 'next_auth' is hooked up.
-        // And tabOrder is updated.
-        */
-
-                if (!isValid) return;
-
-                // 2. Checkbox Validasyonu (Faz 2A Zorunluluk)
-                if (checkBoxName) {
-                    const checkedCount = document.querySelectorAll(`input[name="${checkBoxName}"]:checked`).length;
-                    if (checkedCount === 0) {
-                        // Basit bir uyarı mekanizması (SweetAlert yoksa standart alert)
-                        // Daha şık olması için tab içine bir hata divi eklenebilir ama şu an alert yeterli.
-                        alert("Lütfen en az bir seçenek seçiniz.");
-                        return; // İlerlemeyi durdur
-                    }
-                }
-
-                const currentIndex = tabOrder.indexOf(currentTabId);
-                if(currentIndex >= 0 && currentIndex < tabOrder.length - 1) {
-                    const nextTabId = tabOrder[currentIndex + 1];
-                    unlockedTabs.add(nextTabId);
-                    activateTab(nextTabId);
-                }
-            });
-        };
-
-        // --- TAB 1 CUSTOM VALIDATION (AJAX CHECK) ---
-        const btnNext1 = document.getElementById("next1");
-        if(btnNext1) {
-             btnNext1.addEventListener("click", () => {
-                 // 0. Masked TC Bypass
-                 const $tcInput = $('#personelTcKimlik');
-                 const tcVal = $tcInput.val();
-                 if(tcVal && tcVal.indexOf('*') !== -1) {
-                     // Remove validation rules temporarily to pass .valid()
-                     $tcInput.rules("remove");
-                     $tcInput.removeClass("input-validation-error");
-                     $tcInput.next("span").removeClass("field-validation-error").addClass("field-validation-valid").text("");
-                 }
-
-                 // 1. Basic Validation
-                 const $tab1Inputs = $('#tab1').find(':input');
-                 if(!$tab1Inputs.valid()) return;
-
-                 // 2. AJAX Duplicate Check
-                 const tc = $('#personelTcKimlik').val();
-                 const email = $('#personelemail').val();
-                 const pid = '@Model.PersonelId'; 
-
-                 // Disable button temporarily
-                 btnNext1.disabled = true;
-
-                 $.ajax({
-                     url: '@Url.Action("CheckDuplicates", "Personel")',
-                     type: 'GET',
-                     data: { id: pid, tc: tc, email: email },
-                     success: function(res) {
-                         btnNext1.disabled = false;
-                         if(res.tcExists || res.emailExists) {
-                             let msg = "Hata: ";
-                             if(res.tcExists) msg += "Bu TC Kimlik No sistemde kayıtlı. ";
-                             if(res.emailExists) msg += "Bu E-posta adresi sistemde kayıtlı.";
-                             
-                             // Show Error (SweetAlert or Standard)
-                             alert(msg);
-                             return; // STOP HERE
-                         }
-                         
-                         // Success -> Unlock & Move
-                         unlockedTabs.add("tab2");
-                         activateTab("tab2");
-                     },
-                     error: function() {
-                         btnNext1.disabled = false;
-                         alert("Doğrulama sırasında bir hata oluştu.");
-                     }
-                 });
-            });
-        }
-
-        // setupNextBtn("next1", "tab1"); // REPLACED BY CUSTOM AJAX ABOVE
-        setupNextBtn("next2", "tab2", "SeciliYazilimIdleri");
-        setupNextBtn("next3", "tab3", "SeciliUzmanlikIdleri");
-        setupNextBtn("next4", "tab4", "SeciliGorevTuruIdleri");
-        setupNextBtn("next5", "tab5", "SeciliIsNiteligiIdleri");
-        
-        if(isEditMode) {
-             // setupNextBtn("next_pass", "tab_password"); // REPLACED BY CUSTOM AJAX
-             
-             const btnNextPass = document.getElementById("next_pass");
-             if(btnNextPass) {
-                 btnNextPass.addEventListener("click", () => {
-                     // 1. Basic Validation
-                     const $tabPassInputs = $('#tab_password').find(':input');
-                     if(!$tabPassInputs.valid()) return;
-
-                     // 2. Check Logic
-                     const oldPass = $('#EskiSifre').val();
-                     const newPass = $('#NewPassword').val();
-                     const pid = '@Model.PersonelId';
-
-                     // If not changing password (empty), just go
-                     if(!newPass) {
-                         unlockedTabs.add("tab6");
-                         activateTab("tab6");
-                         return;
-                     }
-
-                     // If changing password...
-                     // Check if Old Password is required/present
-                     if($('#EskiSifre').length > 0) {
-                         // If user didn't enter old pass but entered new pass, Model validation catches it?
-                         // But let's check explicitly if it's there
-                         if(!oldPass) {
-                             // Let unobtrusive validation handle it (it should be required if conditional logic applied)
-                             // But we can force a check.
-                             if(!$tabPassInputs.valid()) return;
-                         }
-
-                         // AJAX Check Old Password
-                         btnNextPass.disabled = true;
-                         $.ajax({
-                             url: '@Url.Action("CheckPassword", "Personel")',
-                             type: 'GET',
-                             data: { id: pid, password: oldPass },
-                             success: function(res) {
-                                 btnNextPass.disabled = false;
-                                 if(!res.success) {
-                                     // Show error on EskiSifre field
-                                     var span = $('span[data-valmsg-for="EskiSifre"]');
-                                     span.removeClass('field-validation-valid').addClass('field-validation-error');
-                                     span.text('Eski şifre hatalı.');
-                                     return;
-                                 } else {
-                                     // Clear error
-                                     $('span[data-valmsg-for="EskiSifre"]').text('');
-                                 }
-
-                                 // Success -> Unlock Control
-                                 unlockedTabs.add("tab6");
-                                 activateTab("tab6");
-                             },
-                             error: function() {
-                                 btnNextPass.disabled = false;
-                                 alert("Şifre kontrolü sırasında hata oluştu.");
-                             }
-                         });
-                     } else {
-                         // No Old Password field (Admin mode or First Time), just go
-                         unlockedTabs.add("tab6");
-                         activateTab("tab6");
-                     }
-                 });
-             }
-        }
-        
-        // --- RESTORE WIZARD STATE (Grey Tab Fix) ---
-        function initWizardState() {
-             // Helper to unlock next tab
-             const unlock = (id) => { unlockedTabs.add(id); };
-
-             // Tab 1 valid? (Check Name & ID)
-             let t1Valid = $('#personelAdi').val() && $('#personelTcKimlik').val() && $('#personeltelefon').val() && $('#personelemail').val();
-             if(t1Valid) { unlock("tab2"); }
-
-             // Tab 2 valid? (Checkbox)
-             let t2Valid = $('input[name="SeciliYazilimIdleri"]:checked').length > 0;
-             if(t2Valid) { unlock("tab3"); }
-
-             // Tab 3 valid?
-             let t3Valid = $('input[name="SeciliUzmanlikIdleri"]:checked').length > 0;
-             if(t3Valid) { unlock("tab4"); }
-
-             // Tab 4 valid?
-             let t4Valid = $('input[name="SeciliGorevTuruIdleri"]:checked').length > 0;
-             if(t4Valid) { unlock("tab5"); }
-             
-             // Tab 5 valid?
-             let t5Valid = $('input[name="SeciliIsNiteligiIdleri"]:checked').length > 0;
-             if(t5Valid) { 
-                 if(isEditMode) unlock("tab_password");
-                 unlock("tab6"); 
-             }
-             
-             // Update UI for all unlocked tabs
-             updateStepperUI(tabOrder[0]); // Start update
-             
-             // LOGIC: If form has errors (Server Side), we stay on the invalid tab.
-             // BUT, if we just fixed the error (e.g. Duplicate TC corrected) and re-submitted,
-             // The server might return "OK" logic but we are here.
-             // If ISVALID is technically true for "Required" fields (checked via JS above), we should offer jump to Control.
-             
-             // Check specific field errors from Server to jump to correct tab
-             var openTab = '@TempData["OpenTab"]';
-             
-             // Explicit server instruction takes precedence
-             if(openTab) {
-                 activateTab(openTab);
-             } 
-             else if (!isEditMode && t1Valid && t2Valid && t3Valid && t4Valid && t5Valid) {
-                 // ALL VALID? Jump to Control directly ONLY IN CREATE MODE!
-                 // In Edit Mode, user wants to see Personal Info first.
-                 activateTab("tab6");
-             }
-             
-             // Allow Direct Access to Control if everything seems ready
-             if(unlockedTabs.has("tab6")) {
-                 document.querySelector('.step-item[data-step="tab6"]').onclick = function() { activateTab("tab6"); };
-             }
-        }
-        
-        // Run init
-        initWizardState();
-
-
-        // Fotoğraf Önizleme
-        const photoInput = document.getElementById("personelFoto");
-        const previewImg = document.getElementById("photoPreview");
-        
-        // Control tab elements
-        const controlImg = document.getElementById("kontrolFoto");
-        const controlIcon = document.getElementById("controlIcon");
-
-        // Hidden input for Base64 Persistence
-        const hiddenBase64 = document.getElementById("FotografBase64");
-        // Hidden input for Server Path
-        const hiddenPath = document.getElementById("FotografYoluHidden");
-        
-        function updateContainer(imgElement, isControl = false) {
-            if(!imgElement) return;
-            
-            if (isControl) {
-                // Control tab logic: only show img if src is valid, otherwise show icon
-                if (imgElement.src && imgElement.src !== window.location.href && imgElement.src !== "") {
-                    imgElement.style.display = "block";
-                    if(controlIcon) controlIcon.style.display = "none";
-                } else {
-                    imgElement.style.display = "none";
-                     if(controlIcon) controlIcon.style.display = "block";
-                }
-            } else {
-                // Regular preview logic
-                const container = imgElement.parentElement;
-                const icon = container.querySelector("i");
-                if(icon) icon.style.display = "none";
-                imgElement.style.display = "block";
-            }
-        }
-
-        // Logic to determine which photo to show in Control Tab
-        function updateControlPhoto() {
-            const previewImg = document.getElementById("photoPreview");
-            const controlImg = document.getElementById("kontrolFoto");
-            const controlIcon = document.getElementById("controlIcon");
-
-            if (!controlImg) return;
-            
-            // BRUTE FORCE SYNC: If Tab 1 has a visible image, show it in Tab 6.
-            // This works for both base64 (new uploads) and server paths (existing).
-            if (previewImg && previewImg.src && previewImg.style.display !== "none" && previewImg.src !== "" && previewImg.src !== window.location.href) {
-                 controlImg.src = previewImg.src;
-                 controlImg.style.display = "block";
-                 if(controlIcon) controlIcon.style.display = "none";
-            } 
-            else {
-                 controlImg.style.display = "none";
-                 if(controlIcon) controlIcon.style.display = "block";
-            }
-        }
-
-        // Fotoğraf Restore Fonksiyonu (Base64 veya URL'den)
-        function restorePhotoFromHidden() {
-            if(hiddenBase64 && hiddenBase64.value) {
-                const src = hiddenBase64.value;
-                if(previewImg) {
-                    previewImg.src = src;
-                    updateContainer(previewImg);
-                }
-                // Control photo update handled by updateControlPhoto call or tab switch
-            }
-        }
-        
-        // Sayfa yüklendiğinde (örn validation hatası sonrası) fotoyu geri yükle
-        restorePhotoFromHidden();
-
-        if(photoInput) {
-            photoInput.addEventListener("change", function(e) {
-                const file = e.target.files[0];
-                if (file) {
-                    // 2MB Size Check (2 * 1024 * 1024 = 2097152 bytes)
-                    if (file.size > 2 * 1024 * 1024) {
-                        alert("Fotoğraf 2MB’dan büyük olamaz.");
-                        this.value = ""; // Clear input
-                        return; // Stop processing
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        const result = e.target.result;
-
-                        // Base64'ü hidden input'a kaydet (Persistence için)
-                        if(hiddenBase64) {
-                            hiddenBase64.value = result; // Note: For new uploads, we might not want to submit this as text, but for preview persistence logic matches
-                        }
-                        
-                        if(previewImg) {
-                            previewImg.src = result;
-                            updateContainer(previewImg);
-                        }
-                        
-                        // Update control immediately if active
-                         if(document.getElementById("tab6").classList.contains("active")) {
-                             updateControlPhoto();
-                         }
-                    }
-                    reader.readAsDataURL(file);
-                }
-            });
-        }
-        
-        // Tab Activation Hook Update
-        // Override activateTab inside listener scope or modify existing if possible.
-        // Since we cannot easily modify inside DOMContentLoaded scope without replacing everything, 
-        // we rely on the existing click listeners calling the *original* activateTab if it wasn't exposed.
-        // Wait, I am replacing the script block. I need tomake sure I hook into tab switching.
-        
-        // Re-attaching tab listeners or injecting logic into fillKontrolOzet which is called by tab switch
-        // The original `fillKontrolOzet` is called when tab6 is activated. Let's add photo update there.
-
-
-        // --- DUPLICATE TC / MODAL LOGIC ---
-        // Backend'den gelen ShowErrorModal bayrağı kontrol ediliyor
-        const showErrorModal = '@TempData["ShowUserExistsModal"]'; // Updated key
-        // Backward compatibility for basic check
-        const oldShowModal = '@TempData["ShowErrorModal"]';
-        
-        const openTab = '@TempData["OpenTab"]';
-        const focusId = '@TempData["FocusId"]';
-
-        if (showErrorModal === '1' || oldShowModal === '1') {
-            const modalEl = document.getElementById('tcDuplicateModal');
-            if (modalEl) {
-                // Bootstrap modal varsa kullan
-                // Projede bootstrap.js yüklü kabul ediyoruz
-                try {
-                    const modal = new bootstrap.Modal(modalEl, {
-                        backdrop: 'static',
-                        keyboard: false
-                    });
-                    modal.show();
-
-                    // "Tamam (Düzelt)" butonu
-                    const btnFix = document.getElementById('btnFixTc');
-                    if(btnFix){
-                        btnFix.addEventListener('click', () => {
-                            modal.hide();
-                            
-                            // Modal animasyonu bitince odaklan
-                            setTimeout(() => {
-                                handleTabAndFocus();
-                            }, 500); 
-                        });
-                    }
-                    
-                    // Modal manuel kapanırsa da aynı işlemi yap
-                    modalEl.addEventListener('hidden.bs.modal', function () {
-                        handleTabAndFocus();
-                    });
-
-                } catch (e) {
-                    // Fallback: Bootstrap JS yoksa veya hata olursa manuel göster (Overlay)
-                    console.warn("Bootstrap modal yüklenemedi, fallback kullanılıyor.", e);
-                    alert("Kayıt Hatası: Bu kullanıcı sistemde zaten mevcut.");
-                    handleTabAndFocus();
-                }
-            } else {
-                handleTabAndFocus();
-            }
-        } 
-        else if (openTab) {
-            // Modal yok ama tab set edilmişse
-            activateTab(openTab);
-        }
-
-        function handleTabAndFocus() {
-            if (openTab) {
-                activateTab(openTab);
-            }
-            if (focusId) {
-                const el = document.getElementById(focusId);
-                if (el) {
-                    el.focus();
-                    if(el.select) el.select(); // Değeri seç
-                }
-            }
-            // Fotoğrafı tekrar çiz (önlem olarak, tab geçişi bazen bozabilir)
-            restorePhotoFromHidden();
-        }
-
-        // --- FORM SUBMIT VALIDATION (Faz 2B) ---
-        // Edit modunda kullanıcı tab başlıklarına tıklayarak "İlerle" butonlarını pas geçebilir.
-        // Bu yüzden son aşamada tekrar kontrol ediyoruz.
-        const form = document.querySelector("form");
-        if(form) {
-            form.addEventListener("submit", function(e) {
-                // Checkbox gruplarının isimleri
-                const groups = [
-                    { name: "SeciliYazilimIdleri", label: "Beceriler" },
-                    { name: "SeciliUzmanlikIdleri", label: "Uzmanlık" },
-                    { name: "SeciliGorevTuruIdleri", label: "Görev Türü" },
-                    { name: "SeciliIsNiteligiIdleri", label: "İş Niteliği" }
-                ];
-                
-                let hasError = false;
-                let errorMsg = "";
-
-                // Her grubu kontrol et
-                groups.forEach(g => {
-                    const checkedCount = document.querySelectorAll(`input[name="${g.name}"]:checked`).length;
-                    if(checkedCount === 0) {
-                        hasError = true;
-                        errorMsg += `- ${g.label} sekmesinde en az bir seçim yapmalısınız.\n`;
-                    }
-                });
-
-                if(hasError) {
-                    e.preventDefault(); // Submit'i durdur
-                    alert("Lütfen aşağıdaki eksikleri tamamlayınız:\n\n" + errorMsg);
-                }
-                // Hata yoksa form normal gönderilir
-            });
-        }
-
-      });
+        }); // End Ready
     </script>
 }

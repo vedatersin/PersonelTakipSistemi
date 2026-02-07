@@ -10,5 +10,6 @@ namespace PersonelTakipSistemi.ViewModels
         public string? koordinatorlukAd { get; set; } // For UI
         public string? komisyonId { get; set; }
         public string? komisyonAd { get; set; } // For UI
+        public bool isImplicit { get; set; }
     }
 }

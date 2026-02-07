@@ -127,6 +127,9 @@ async function loadDraftData(id) {
 
         draftState = JSON.parse(JSON.stringify(originalState));
 
+        // RESET FORM STATE (Fix for issue: Old edit state persisting)
+        resetAddFormState();
+
         renderDrawer();
     } catch (error) {
         console.error(error);
@@ -134,6 +137,17 @@ async function loadDraftData(id) {
     } finally {
         hideLoader();
     }
+}
+
+// Helper to reset internal form state
+function resetAddFormState() {
+    addFormSelections = {
+        teskilatId: null,
+        koordinatorlukId: null,
+        komisyonId: null,
+        roleId: null,
+        editingItem: null
+    };
 }
 
 // --- Rendering ---
@@ -212,15 +226,22 @@ function renderAssignmentsTab(state, data) {
     if (displayList.length > 0) {
         html += `<div class="d-flex flex-column gap-2 mb-4">`;
         displayList.forEach((item, idx) => {
+            const editClass = item.isEditing ? 'border-warning bg-warning bg-opacity-10' : `border-${item.color}`;
+
             html += `
-                <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded border border-start-4 border-${item.color} shadow-sm">
+                <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded border border-start-4 ${editClass} shadow-sm">
                      <div class="overflow-hidden">
-                        <span class="fw-bold d-block text-truncate" title="${item.title}">${item.title}</span>
+                        <span class="fw-bold d-block text-truncate ${item.color === 'danger' ? 'text-danger' : ''}" title="${item.title}">${item.title}</span>
                         <small class="text-muted d-block text-truncate" title="${item.subtitle}">${item.subtitle}</small>
                      </div>
-                     <button class="btn btn-sm btn-icon btn-text-secondary rounded-pill" onclick="removeItem('${item.type}', ${item.id}, ${item.gIndex})" title="Yetkiyi Kaldır">
-                        <i class="bx bx-x fs-4"></i>
-                     </button>
+                     <div class="d-flex">
+                         <button class="btn btn-sm btn-icon btn-text-primary rounded-pill me-1" onclick="editItem('${item.type}', ${item.id}, ${item.gIndex})" title="Düzenle">
+                            <i class="bx bx-edit-alt fs-4"></i>
+                         </button>
+                         <button class="btn btn-sm btn-icon btn-text-secondary rounded-pill" onclick="removeItem('${item.type}', ${item.id}, ${item.gIndex})" title="Yetkiyi Kaldır">
+                            <i class="bx bx-x fs-4"></i>
+                         </button>
+                     </div>
                 </div>
             `;
         });
@@ -240,6 +261,7 @@ function renderAssignmentsTab(state, data) {
 
 function buildDisplayList(state, data) {
     let list = [];
+    const editState = addFormSelections.editingItem;
 
     // 1. Explicit Roles (Gorevler)
     state.gorevler.forEach((g, idx) => {
@@ -268,17 +290,20 @@ function buildDisplayList(state, data) {
             }
         }
 
+        const isEditing = editState && editState.type === 'gorev' && editState.gIndex === idx;
+
         list.push({
             type: 'gorev',
             id: null,
             gIndex: idx, // Index in gorevler array
             title: roleName,
             subtitle: contextName ? `${path ? path + " > " : ""}${contextName}` : "Genel",
-            color: 'danger',
+            color: 'primary', // Explicit roles are normal
             priority: 10,
             // Track coverage to hide implicit memberships
             komId: g.komisyonId,
-            koordId: g.koordinatorlukId
+            koordId: g.koordinatorlukId,
+            isEditing: isEditing
         });
     });
 
@@ -309,10 +334,6 @@ function buildDisplayList(state, data) {
 
     // A. Komisyon Memberships
     state.komisyonIds.forEach(kid => {
-        // If we have an explicit role for this commission (e.g. Baskan), do we show "Member"?
-        // Usually Role implies Membership. User said "List my roles... click X to delete". 
-        // If I have "Commission President", I shouldn't see "Commission Member" separately? 
-        // Assume yes.
         if (coveredKomIds.has(kid)) return;
 
         const kom = data.allKomisyonlar.find(k => k.id == kid);
@@ -322,13 +343,16 @@ function buildDisplayList(state, data) {
         const tes = koord ? data.allTeskilatlar.find(t => t.id == koord.parentId) : null;
         const path = [tes?.ad, koord?.ad].filter(Boolean).join(" > ");
 
+        const isEditing = editState && editState.type === 'kom' && editState.id === kid;
+
         list.push({
             type: 'kom',
             id: kid,
-            title: 'Komisyon Üyesi', // Default title for simple membership
+            title: '(Rolü Yok)', // Modified
             subtitle: `${path ? path + " > " : ""}${kom.ad}`,
-            color: 'success',
-            priority: 5
+            color: 'danger', // Modified
+            priority: 5,
+            isEditing: isEditing
         });
     });
 
@@ -340,21 +364,20 @@ function buildDisplayList(state, data) {
         if (!koord) return;
 
         const tes = data.allTeskilatlar.find(t => t.id == koord.parentId);
+        const isEditing = editState && editState.type === 'koord' && editState.id === kid;
 
         list.push({
             type: 'koord',
             id: kid,
-            title: 'Koordinatörlük Personeli',
+            title: '(Rolü Yok)', // Modified
             subtitle: `${tes ? tes.ad + " > " : ""}${koord.ad}`,
-            color: 'info',
-            priority: 2
+            color: 'danger', // Modified
+            priority: 2,
+            isEditing: isEditing
         });
     });
 
     // C. Teşkilat Memberships
-    // Usually we don't just list "Merkez Teşkilat Personeli" if they have deeper roles?
-    // But if they are JUST at root, show it.
-    // Logic: If user has ANY koordinatorluk in this teskilat, hide teskilat?
     const activeTeskilatIdsInKoords = new Set();
     state.koordinatorlukIds.forEach(kid => {
         const k = data.allKoordinatorlukler.find(x => x.id == kid);
@@ -367,37 +390,117 @@ function buildDisplayList(state, data) {
         const tes = data.allTeskilatlar.find(t => t.id == tid);
         if (!tes) return;
 
+        const isEditing = editState && editState.type === 'tes' && editState.id === tid;
+
         list.push({
             type: 'tes',
             id: tid,
-            title: 'Teşkilat Personeli',
+            title: '(Rolü Yok)', // Modified
             subtitle: tes.ad,
-            color: 'primary',
-            priority: 1
+            color: 'danger', // Modified
+            priority: 1,
+            isEditing: isEditing
         });
     });
 
     return list.sort((a, b) => b.priority - a.priority);
 }
 
+// ... (renderUnifiedAddForm remains same) ...
+
+window.editItem = function (type, id, gIndex) {
+    const data = window.drawerRefData;
+    let tId = null, kId = null, cId = null, rId = null;
+
+    // Extraction
+    if (type === 'gorev') {
+        const task = draftState.gorevler[gIndex]; // Valid before removal
+        if (!task) return;
+        rId = task.kurumsalRolId;
+        cId = task.komisyonId;
+        kId = task.koordinatorlukId;
+
+        if (cId) {
+            const kom = data.allKomisyonlar.find(k => k.id == cId);
+            if (kom) {
+                kId = kom.parentId;
+                const koord = data.allKoordinatorlukler.find(k => k.id == kId);
+                if (koord) tId = koord.parentId;
+            }
+        } else if (kId) {
+            const koord = data.allKoordinatorlukler.find(k => k.id == kId);
+            if (koord) tId = koord.parentId;
+        }
+
+    } else if (type === 'kom') {
+        cId = id;
+        const kom = data.allKomisyonlar.find(k => k.id == cId);
+        if (kom) {
+            kId = kom.parentId;
+            const koord = data.allKoordinatorlukler.find(k => k.id == kId);
+            if (koord) tId = koord.parentId;
+        }
+    } else if (type === 'koord') {
+        kId = id;
+        const koord = data.allKoordinatorlukler.find(k => k.id == kId);
+        if (koord) tId = koord.parentId;
+    } else if (type === 'tes') {
+        tId = id;
+    }
+
+    // Set Editing State (Do NOT remove)
+    addFormSelections.editingItem = { type, id, gIndex };
+
+    // Set Form
+    if (tId) {
+        // Need to set value AND trigger cascading logic
+        // We can do it by simulating change manually or just calling logic
+        // Since handleAddChange is synchronous, we can call it.
+        // We set ID in global selection state first? handleAddChange does that.
+        // So we just call handleAddChange.
+        handleAddChange('tes', tId);
+    }
+
+    if (kId && tId) {
+        handleAddChange('koord', kId);
+    }
+
+    if (cId && kId) {
+        handleAddChange('kom', cId);
+    }
+
+    if (rId) {
+        handleAddChange('role', rId);
+    }
+
+    // Focus
+    const el = document.getElementById('addTeskilat');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+};
+
 // Global variable for Cascading dropdowns in Add Form
 let addFormSelections = {
     teskilatId: null,
     koordinatorlukId: null,
     komisyonId: null,
-    roleId: null
+    roleId: null,
+    editingItem: null // { type, id, gIndex }
 };
 
 function renderUnifiedAddForm(state, data) {
     // Reset selections on re-render? No, keeps UI stable if they are in middle of selection?
     // Actually, re-rendering happens on ADD/REMOVE. So we Should reset the form.
-    addFormSelections = { teskilatId: null, koordinatorlukId: null, komisyonId: null, roleId: null };
+    // addFormSelections = { ... }; // We shouldn't reset if we are just re-rendering to show highlight
+    // But renderDrawer is called on loadData too.
+    // Let's rely on manual resets in executeAdd/cancelEdit.
+
+    const isEditing = !!addFormSelections.editingItem;
 
     return `
         <div class="card border-primary border-opacity-25 bg-light-primary">
             <div class="card-header bg-transparent border-bottom border-primary border-opacity-10 py-2">
                 <h6 class="mb-0 text-primary">
-                    <i class="bx bx-plus-circle me-1"></i>Yeni Yetki Tanımla
+                    <i class="bx ${isEditing ? 'bx-edit' : 'bx-plus-circle'} me-1"></i>${isEditing ? 'Yetkiyi Düzenle' : 'Yeni Yetki Tanımla'}
                 </h6>
             </div>
             <div class="card-body pt-3 pb-3">
@@ -406,152 +509,134 @@ function renderUnifiedAddForm(state, data) {
                     <div class="col-12">
                         <select class="form-select form-select-sm" id="addTeskilat" onchange="handleAddChange('tes', this.value)">
                             <option value="">Teşkilat Seçiniz...</option>
-                            ${data.allTeskilatlar.map(t => `<option value="${t.id}">${t.ad}</option>`).join('')}
+                            ${data.allTeskilatlar.map(t => `<option value="${t.id}">${t.id === addFormSelections.teskilatId ? 'selected' : ''}>${t.ad}</option>`).join('')}
                         </select>
                     </div>
 
                     <!-- 2. Koordinatörlük (Cascading) -->
                     <div class="col-12">
-                         <select class="form-select form-select-sm" id="addKoordinatorluk" disabled onchange="handleAddChange('koord', this.value)">
+                         <select class="form-select form-select-sm" id="addKoordinatorluk" ${!addFormSelections.teskilatId ? 'disabled' : ''} onchange="handleAddChange('koord', this.value)">
                             <option value="">Koordinatörlük Seçiniz...</option>
+                            <!-- Populated in ref via JS or we render here if data avail? 
+                                 For simplicity we rely on 'handleAddChange' re-populating or we render if state is set.
+                                 To keep it sync with 'addFormSelections', we should render options if parent selected.
+                            -->
+                            ${renderKoordOptions(data, addFormSelections.teskilatId, addFormSelections.koordinatorlukId)}
                         </select>
                     </div>
 
                     <!-- 3. Komisyon (Cascading) -->
                     <div class="col-12">
-                        <select class="form-select form-select-sm" id="addKomisyon" disabled onchange="handleAddChange('kom', this.value)">
+                        <select class="form-select form-select-sm" id="addKomisyon" ${!addFormSelections.koordinatorlukId ? 'disabled' : ''} onchange="handleAddChange('kom', this.value)">
                             <option value="">Komisyon Seçiniz (İsteğe Bağlı)...</option>
+                            ${renderKomOptions(data, addFormSelections.koordinatorlukId, addFormSelections.komisyonId)}
                         </select>
                     </div>
 
                     <!-- 4. Rol -->
                     <div class="col-12">
-                        <select class="form-select form-select-sm" id="addRole" disabled onchange="handleAddChange('role', this.value)">
+                        <select class="form-select form-select-sm" id="addRole" ${!addFormSelections.koordinatorlukId ? 'disabled' : ''} onchange="handleAddChange('role', this.value)">
                              <option value="">Rol Seçiniz...</option>
-                             <!-- Options populated by JS -->
+                             ${renderRoleOptions(addFormSelections.roleId)}
                         </select>
                     </div>
                 </div>
 
-                <div class="d-grid mt-3">
-                    <button class="btn btn-primary btn-sm" id="btnAddConfirm" disabled onclick="executeAdd()">
-                        <i class="bx bx-check me-1"></i>Yetkiyi Ekle
+                <div class="d-grid mt-3 d-flex gap-2">
+                    <button class="btn btn-${isEditing ? 'warning' : 'primary'} btn-sm flex-grow-1" id="btnAddConfirm" ${!addFormSelections.koordinatorlukId ? 'disabled' : ''} onclick="executeAdd()">
+                        <i class="bx ${isEditing ? 'bx-save' : 'bx-check'} me-1"></i>${isEditing ? 'Değişiklikleri Kaydet' : 'Yetkiyi Ekle'}
                     </button>
+                    ${isEditing ? `
+                    <button class="btn btn-secondary btn-sm" onclick="cancelEdit()">
+                        <i class="bx bx-x me-1"></i>Vazgeç
+                    </button>` : ''}
                 </div>
             </div>
         </div>
     `;
 }
 
-// Logic for Add Form Interactivity (Global scope functions attached to window or clean implementation)
-// Since this is re-rendered string HTML, we need global functions or re-attach listeners.
-// Using global functions for simplicity in this legacy-style app.
+// Helper render functions to maintain state during full re-renders
+function renderKoordOptions(data, parentId, selectedId) {
+    if (!parentId) return '';
+    const koords = data.allKoordinatorlukler.filter(k => k.parentId == parentId);
+    return koords.map(k => `<option value="${k.id}" ${k.id == selectedId ? 'selected' : ''}>${k.ad}</option>`).join('');
+}
+function renderKomOptions(data, parentId, selectedId) {
+    if (!parentId) return '';
+    const koms = data.allKomisyonlar.filter(k => k.parentId == parentId);
+    return koms.map(k => `<option value="${k.id}" ${k.id == selectedId ? 'selected' : ''}>${k.ad}</option>`).join('');
+}
+function renderRoleOptions(selectedId) {
+    // Logic similar to updateRoleOptions but generating HTML string
+    // Simplified: we rely on updateRoleOptions to handle logic usually, but here we want to render roughly correct state.
+    // Ideally we call 'updateRoleOptions' logic. 
+    // Since 'updateRoleOptions' modifies DOM, we can't use it in template string.
+    // Let's allow the DOM to be updated after render? 
+    // renderDrawer replaces HTML.
+    // We should probably rely on a post-render init or just inline the logic.
+    // Inline logic for options:
+    let html = '';
+    window.allKurumsalRolOptions.forEach(r => {
+        // ... filtering logic ...
+        // Re-implementing simplified filtering for render
+        let allowed = false;
+        const rid = parseInt(r.value);
+        if (rid === 1) allowed = true;
+        // Other logic depends on 'addFormSelections' which is available.
+        const ROLES = { GENEL_KOORD: 4, IL_KOORD: 3, KOMISYON_BASKANI: 2, PERSONEL: 1, ANKARA_TEGM_KOORD: 1 }; // Context dependent
 
+        if (rid === 2 && addFormSelections.komisyonId) allowed = true;
+        if (rid === 3 && addFormSelections.koordinatorlukId && addFormSelections.koordinatorlukId !== ROLES.ANKARA_TEGM_KOORD) allowed = true;
+        if (rid === 4 && addFormSelections.koordinatorlukId === ROLES.ANKARA_TEGM_KOORD) allowed = true;
+
+        if (allowed) {
+            html += `<option value="${r.value}" ${r.value == selectedId ? 'selected' : ''}>${r.text}</option>`;
+        }
+    });
+    return html;
+}
+
+
+// Logic for Add Form Interactivity
 window.updateSistemRol = function (val) {
     draftState.sistemRol = val;
-    renderDrawer();
+    renderDrawer(); // Re-renders and keeps addFormSelections
 };
 
 window.handleAddChange = function (level, val) {
     const id = parseInt(val) || null;
-    const data = window.drawerRefData;
 
+    // Update State
     if (level === 'tes') {
         addFormSelections.teskilatId = id;
         addFormSelections.koordinatorlukId = null;
         addFormSelections.komisyonId = null;
         addFormSelections.roleId = null;
-
-        // Update Koord Dropdown
-        const koordSelect = document.getElementById('addKoordinatorluk');
-        const komSelect = document.getElementById('addKomisyon');
-        const roleSelect = document.getElementById('addRole');
-
-        koordSelect.innerHTML = '<option value="">Koordinatörlük Seçiniz...</option>';
-        komSelect.innerHTML = '<option value="">Komisyon Seçiniz (İsteğe Bağlı)...</option>';
-
-        roleSelect.disabled = true;
-        komSelect.disabled = true;
-
-        if (id) {
-            const koords = data.allKoordinatorlukler.filter(k => k.parentId === id);
-            koords.forEach(k => koordSelect.add(new Option(k.ad, k.id)));
-            koordSelect.disabled = false;
-        } else {
-            koordSelect.disabled = true;
-        }
     }
     else if (level === 'koord') {
         addFormSelections.koordinatorlukId = id;
         addFormSelections.komisyonId = null;
-
-        const komSelect = document.getElementById('addKomisyon');
-        komSelect.innerHTML = '<option value="">Komisyon Seçiniz (İsteğe Bağlı)...</option>';
-
-        if (id) {
-            const koms = data.allKomisyonlar.filter(k => k.parentId === id);
-            koms.forEach(k => komSelect.add(new Option(k.ad, k.id)));
-            komSelect.disabled = false;
-        } else {
-            komSelect.disabled = true;
-        }
-        updateRoleOptions();
     }
     else if (level === 'kom') {
         addFormSelections.komisyonId = id;
-        updateRoleOptions();
     }
     else if (level === 'role') {
         addFormSelections.roleId = id;
     }
 
-    updateAddButton();
+    // Re-render to update dependent dropdowns and button state
+    renderDrawer();
 };
-
-function updateRoleOptions() {
-    const roleSelect = document.getElementById('addRole');
-    roleSelect.innerHTML = '<option value="">Rol Seçiniz...</option>';
-    roleSelect.disabled = false;
-
-    // Filter Roles based on context
-    // 1. Personel (Always available)
-    // 2. Il Koord (If Koord selected, not Ankara)
-    // 3. Genel Koord (If Ankara selected)
-    // 4. Kom Bsk (If Komisyon selected)
-
-    // Default Role (Implicit) removed as per request
-    // roleSelect.add(new Option("Sadece Personel/Üye Olarak Ekle", "-1"));
-
-    window.allKurumsalRolOptions.forEach(r => {
-        const rid = parseInt(r.value);
-        let allowed = false;
-
-        if (rid === ROLES.PERSONEL) allowed = false; // We use "-1" for generic, or we can use explicit 1? Let's use explicit 1.
-
-        // Personel (1) is generic.
-        if (rid === 1) allowed = true;
-
-        if (rid === ROLES.KOMISYON_BASKANI && addFormSelections.komisyonId) allowed = true;
-        if (rid === ROLES.IL_KOORD && addFormSelections.koordinatorlukId && addFormSelections.koordinatorlukId !== ROLES.ANKARA_TEGM_KOORD) allowed = true;
-        if (rid === ROLES.GENEL_KOORD && addFormSelections.koordinatorlukId === ROLES.ANKARA_TEGM_KOORD) allowed = true;
-
-        if (allowed) {
-            roleSelect.add(new Option(r.text, r.value));
-        }
-    });
-}
-
-function updateAddButton() {
-    const btn = document.getElementById('btnAddConfirm');
-    // Valid if at least Koordinatorluk is selected
-    // (Teskilat selection alone might not be enough for a role usually, usually need Koord)
-    const valid = addFormSelections.koordinatorlukId !== null;
-    btn.disabled = !valid;
-}
 
 window.executeAdd = function () {
     const s = addFormSelections;
     if (!s.koordinatorlukId) return;
+
+    // IF EDITING: Remove old item first
+    if (s.editingItem) {
+        removeItem(s.editingItem.type, s.editingItem.id, s.editingItem.gIndex);
+    }
 
     // 1. Memberships
     if (s.teskilatId && !draftState.teskilatIds.includes(s.teskilatId)) {
@@ -566,8 +651,6 @@ window.executeAdd = function () {
 
     // 2. Roles
     if (s.roleId && s.roleId !== -1) {
-        // Special Case: "Personel" (1). Is it explicit?
-        // If user explicitly chose "Personel", we add it as explicit.
         draftState.gorevler.push({
             kurumsalRolId: s.roleId,
             koordinatorlukId: s.koordinatorlukId,
@@ -575,6 +658,12 @@ window.executeAdd = function () {
         });
     }
 
+    // Reset Form & Editing State
+    cancelEdit();
+};
+
+window.cancelEdit = function () {
+    addFormSelections = { teskilatId: null, koordinatorlukId: null, komisyonId: null, roleId: null, editingItem: null };
     renderDrawer();
 };
 

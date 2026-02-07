@@ -85,9 +85,15 @@
                             {
                                 foreach (var rol in Model.KurumsalRoller)
                                 {
-                                    <li class="mb-2 d-flex align-items-center">
-                                        <i class="bx bx-badge-check me-2 text-primary"></i>
-                                        <span>@rol.Title</span>
+                                    <li class="mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <i class="bx bx-badge-check me-2 text-@rol.ColorClass"></i>
+                                            <span class="@(rol.ColorClass == "danger" ? "text-danger" : "")">@rol.Title</span>
+                                        </div>
+                                        @if(!string.IsNullOrEmpty(rol.Subtitle))
+                                        {
+                                            <div class="small text-muted ms-4">@rol.Subtitle</div>
+                                        }
                                     </li>
                                 }
                             }

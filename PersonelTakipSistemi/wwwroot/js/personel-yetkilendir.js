@@ -262,6 +262,31 @@ document.addEventListener('DOMContentLoaded', function () {
             drawerKomisyonChips.appendChild(chip);
         });
 
+        // Toggle Option Visibility based on Teskilat
+        // Array.from(drawerKurumsalRol.options).forEach(opt => {
+        //     if (opt.value === "İl Koordinatörü") {
+        //         opt.style.display = user.teskilat === "Merkez" ? "none" : "block"; // Start Simple
+        //         // Select2 handles display differently (might need to rebuild or disable)
+        //         // Use simple disable for now if select2 is not init on drawer inputs (checked HTML, they are .form-control-custom)
+        //         // HTML shows they are standard selects but might be enhanced?
+        //         // JS init only enhances filters. Drawer inputs seem standard.
+        //         opt.hidden = user.teskilat === "Merkez";
+        //         opt.disabled = user.teskilat === "Merkez";
+        //     }
+        // });
+
+        // Standard Select Option Hiding
+        const ilKoordOpt = Array.from(drawerKurumsalRol.options).find(o => o.value === "İl Koordinatörü");
+        if (ilKoordOpt) {
+            const isMerkez = user.teskilat === "Merkez";
+            ilKoordOpt.hidden = isMerkez;
+            ilKoordOpt.disabled = isMerkez;
+            // If currently selected and now hidden, switch to Personel
+            if (isMerkez && drawerKurumsalRol.value === "İl Koordinatörü") {
+                drawerKurumsalRol.value = "Personel";
+            }
+        }
+
         drawerKurumsalRol.value = user.kurumsalRol;
         drawerSistemRol.value = user.sistemRol;
         radioScopeSelf.checked = true; // Reset scope
