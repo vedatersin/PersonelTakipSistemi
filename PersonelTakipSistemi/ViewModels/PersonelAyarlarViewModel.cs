@@ -18,4 +18,11 @@ namespace PersonelTakipSistemi.ViewModels
         public string Type { get; set; } // "brans", "yazilim", "uzmanlik", "gorevturu", "isniteligi", "kurumsalrol"
         public string Ad { get; set; }
     }
+
+    public class PersonelAyarGuncelleModel
+    {
+        public string Type { get; set; }
+        public int Id { get; set; }
+        public string Ad { get; set; }
+    }
 }

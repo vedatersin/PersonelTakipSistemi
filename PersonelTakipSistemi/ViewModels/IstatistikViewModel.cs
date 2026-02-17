@@ -30,6 +30,20 @@ namespace PersonelTakipSistemi.ViewModels
         public ChartDataJson KategoriDagilimi { get; set; } = new();
         public MultiSeriesChartJson UzmanlikTrendi { get; set; } = new(); // New Multi-Series Chart
         public ChartDataJson GorevDurumDagilimi { get; set; } = new();
+        
+        // Personel Modu için Görev Listesi
+        public List<PersonelGorevItem> GorevListesi { get; set; } = new();
+    }
+
+    public class PersonelGorevItem 
+    {
+        public int GorevId { get; set; }
+        public string Baslik { get; set; } = null!;
+        public string Durum { get; set; } = null!;
+        public string Renk { get; set; } = null!; // Keep for backward compatibility if needed, or deprecate
+        public string? RenkKod { get; set; } // Hex Code
+        public DateTime Tarih { get; set; }
+        public DateTime? SonIslem { get; set; }
     }
 
     public class ChartDataJson

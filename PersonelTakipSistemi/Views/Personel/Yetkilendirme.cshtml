@@ -340,6 +340,7 @@
             $('#filterTeskilat').on('change', function() {
                 var val = $(this).val();
                 loadKoordinatorlukler(val);
+                updateKurumsalRolFilter(val);
             });
 
             $('#filterKoordinatorluk').on('change', function() {
@@ -400,6 +401,56 @@
                     $dropdown.prop('disabled', false);
                 }
             });
+        }
+
+        // Store original Kurumsal Rol options (lazy init)
+        var allKurumsalRolFilterOptions = null;
+
+        function getKurumsalRolFilterOptions() {
+            if (allKurumsalRolFilterOptions === null) {
+                allKurumsalRolFilterOptions = [];
+                $('#filterKurumsalRol option').each(function() {
+                    allKurumsalRolFilterOptions.push({ value: $(this).val(), text: $(this).text() });
+                });
+            }
+            return allKurumsalRolFilterOptions;
+        }
+
+        function updateKurumsalRolFilter(teskilatAd) {
+            var opts = getKurumsalRolFilterOptions();
+            var $dropdown = $('#filterKurumsalRol');
+            var currentVal = $dropdown.val();
+            var isMerkez = teskilatAd && teskilatAd.indexOf('Merkez') > -1;
+
+            // Clear and rebuild
+            $dropdown.empty();
+
+            opts.forEach(function(opt) {
+                var allowed = true;
+                var txt = opt.text;
+
+                if (teskilatAd) {
+                    if (isMerkez) {
+                        // Merkez: hide İl Koordinatörü
+                        if (txt.indexOf('İl Koordinat') > -1) allowed = false;
+                    } else {
+                        // Taşra: hide Merkez Birim Koordinatörlüğü + Genel Koordinatör
+                        if (txt.indexOf('Merkez Birim') > -1) allowed = false;
+                        if (txt.indexOf('Genel Koordinat') > -1) allowed = false;
+                    }
+                }
+
+                if (allowed) {
+                    $dropdown.append($('<option>', { value: opt.value, text: opt.text }));
+                }
+            });
+
+            // Restore or reset selection
+            if (currentVal && $dropdown.find('option[value="' + currentVal + '"]').length > 0) {
+                $dropdown.val(currentVal);
+            } else {
+                $dropdown.val('');
+            }
         }
 
         function filterTable() {

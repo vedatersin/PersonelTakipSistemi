@@ -7,11 +7,14 @@ namespace PersonelTakipSistemi.ViewModels
     // --- Ayarlar Sayfası ---
     public class BirimAyarlariViewModel
     {
+        public List<DaireBaskanligi> DaireBaskanliklari { get; set; } = new List<DaireBaskanligi>();
         public List<Teskilat> Teskilatlar { get; set; } = new List<Teskilat>();
         public List<Koordinatorluk> Koordinatorlukler { get; set; } = new List<Koordinatorluk>();
         public List<Komisyon> Komisyonlar { get; set; } = new List<Komisyon>();
         public List<Brans> Branslar { get; set; } = new List<Brans>(); // Opsiyonel branş seçimi için
     }
+
+
 
     public class BirimEkleModel
     {
@@ -23,7 +26,9 @@ namespace PersonelTakipSistemi.ViewModels
         // Parent IDs
         public int? ParentId { get; set; } // Koordinatorluk için TeskilatId, Komisyon için KoordinatorlukId
         public int? IlId { get; set; } // Koordinatorluk için İl
+        public bool TasraTeskilatiVarMi { get; set; } = true; // Default true (Merkez için)
         public int? KomisyonBaskaniBirimId { get; set; } // Komisyon için opsiyonel branş vb.
+        public int? BagliMerkezKoordinatorlukId { get; set; } // Taşra Komisyonu için Merkez Birim Linki
     }
 
     // --- Toplu Atama Sayfası ---

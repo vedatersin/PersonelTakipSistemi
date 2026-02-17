@@ -57,12 +57,16 @@
                         </div>
 
                          <!-- Durum -->
-                        <div class="col-md-6">
-                            <label asp-for="GorevDurumId" class="form-label">Durum</label>
-                            <select asp-for="GorevDurumId" class="form-select" asp-items="ViewBag.GorevDurumlari">
-                            </select>
-                            <span asp-validation-for="GorevDurumId" class="text-danger"></span>
-                        </div>
+                        @if(!isEdit) {
+                            <div class="col-md-6">
+                                <label asp-for="GorevDurumId" class="form-label">Durum</label>
+                                <select asp-for="GorevDurumId" class="form-select" asp-items="ViewBag.GorevDurumlari">
+                                </select>
+                                <span asp-validation-for="GorevDurumId" class="text-danger"></span>
+                            </div>
+                        } else {
+                            <input type="hidden" asp-for="GorevDurumId" />
+                        }
 
 
 

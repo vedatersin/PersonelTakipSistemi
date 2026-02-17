@@ -31,6 +31,11 @@ namespace PersonelTakipSistemi.ViewModels
         public int Tamamlanan { get; set; }
         public int Geciken { get; set; }
         public double BasariOrani { get; set; } // % olarak
+
+        // Navigasyon için birim ID'leri
+        public int? TeskilatId { get; set; }
+        public int? KoordinatorlukId { get; set; }
+        public int? KomisyonId { get; set; }
     }
 
     public class GorevYogunlukRaporu

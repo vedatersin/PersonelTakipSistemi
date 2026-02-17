@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PersonelTakipSistemi.Data;
 using PersonelTakipSistemi.Models;
 using PersonelTakipSistemi.ViewModels;
+using PersonelTakipSistemi.Services;
 
 namespace PersonelTakipSistemi.Controllers
 {
@@ -11,10 +12,12 @@ namespace PersonelTakipSistemi.Controllers
     public class PersonelAyarlarController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;
+        private readonly ILogService _logService;
 
-        public PersonelAyarlarController(TegmPersonelTakipDbContext context)
+        public PersonelAyarlarController(TegmPersonelTakipDbContext context, ILogService logService)
         {
             _context = context;
+            _logService = logService;
         }
 
         [HttpGet]
@@ -75,6 +78,8 @@ namespace PersonelTakipSistemi.Controllers
                     default:
                         return BadRequest("Geçersiz tür.");
                 }
+
+                await _logService.LogAsync("Tanım Ekleme", $"Yeni tanım eklendi: {model.Ad}", null, $"Tür: {model.Type}");
                 return Ok(new { success = true });
             }
             catch (Exception ex)
@@ -88,44 +93,94 @@ namespace PersonelTakipSistemi.Controllers
         {
             try
             {
+                string deletedName = "";
+
                 switch (type)
                 {
                     case "brans":
                         var b = await _context.Branslar.FindAsync(id);
-                        if (b != null) _context.Branslar.Remove(b);
+                        if (b != null) { deletedName = b.Ad; _context.Branslar.Remove(b); }
                         break;
                     case "yazilim":
                         var y = await _context.Yazilimlar.FindAsync(id);
-                        if (y != null) _context.Yazilimlar.Remove(y);
+                        if (y != null) { deletedName = y.Ad; _context.Yazilimlar.Remove(y); }
                         break;
                     case "uzmanlik":
                         var u = await _context.Uzmanliklar.FindAsync(id);
-                        if (u != null) _context.Uzmanliklar.Remove(u);
+                        if (u != null) { deletedName = u.Ad; _context.Uzmanliklar.Remove(u); }
                         break;
                     case "gorevturu":
                         var gt = await _context.GorevTurleri.FindAsync(id);
-                        if (gt != null) _context.GorevTurleri.Remove(gt);
+                        if (gt != null) { deletedName = gt.Ad; _context.GorevTurleri.Remove(gt); }
                         break;
                     case "isniteligi":
                         var i = await _context.IsNitelikleri.FindAsync(id);
-                        if (i != null) _context.IsNitelikleri.Remove(i);
+                        if (i != null) { deletedName = i.Ad; _context.IsNitelikleri.Remove(i); }
                         break;
                     case "kurumsalrol":
                         var kr = await _context.KurumsalRoller.FindAsync(id);
-                        if (kr != null) _context.KurumsalRoller.Remove(kr);
+                        if (kr != null) { deletedName = kr.Ad; _context.KurumsalRoller.Remove(kr); }
                         break;
                     default:
                         return BadRequest("Geçersiz tür.");
                 }
 
                 await _context.SaveChangesAsync();
+                await _logService.LogAsync("Tanım Silme", $"Tanım silindi: {deletedName}", null, $"Tür: {type}");
                 return Ok(new { success = true });
             }
             catch (Exception ex)
             {
-                // Foreign key constraint errors might happen here if the item is in use.
-                // For now, we'll just return the error.
                 return StatusCode(500, "Silinemedi. Bu kayıt kullanımda olabilir.");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Guncelle([FromBody] PersonelAyarGuncelleModel model)
+        {
+            if (string.IsNullOrWhiteSpace(model.Ad)) return BadRequest("Ad alanı boş olamaz.");
+
+            try
+            {
+                string oldName = "";
+
+                switch (model.Type)
+                {
+                    case "brans":
+                        var b = await _context.Branslar.FindAsync(model.Id);
+                        if (b != null) { oldName = b.Ad; b.Ad = model.Ad; }
+                        break;
+                    case "yazilim":
+                        var y = await _context.Yazilimlar.FindAsync(model.Id);
+                        if (y != null) { oldName = y.Ad; y.Ad = model.Ad; }
+                        break;
+                    case "uzmanlik":
+                        var u = await _context.Uzmanliklar.FindAsync(model.Id);
+                        if (u != null) { oldName = u.Ad; u.Ad = model.Ad; }
+                        break;
+                    case "gorevturu":
+                        var gt = await _context.GorevTurleri.FindAsync(model.Id);
+                        if (gt != null) { oldName = gt.Ad; gt.Ad = model.Ad; }
+                        break;
+                    case "isniteligi":
+                        var i = await _context.IsNitelikleri.FindAsync(model.Id);
+                        if (i != null) { oldName = i.Ad; i.Ad = model.Ad; }
+                        break;
+                    case "kurumsalrol":
+                        var kr = await _context.KurumsalRoller.FindAsync(model.Id);
+                        if (kr != null) { oldName = kr.Ad; kr.Ad = model.Ad; }
+                        break;
+                    default:
+                        return BadRequest("Geçersiz tür.");
+                }
+
+                await _context.SaveChangesAsync();
+                await _logService.LogAsync("Tanım Güncelleme", $"Tanım güncellendi: {oldName} → {model.Ad}", null, $"Tür: {model.Type}");
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, "Güncelleme başarısız: " + ex.Message);
             }
         }
     }

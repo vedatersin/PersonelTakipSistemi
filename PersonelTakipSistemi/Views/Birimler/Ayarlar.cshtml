@@ -1,87 +1,299 @@
 @model PersonelTakipSistemi.ViewModels.BirimAyarlariViewModel
 @{
-    ViewData["Title"] = "Birim Ayarları";
+    ViewData["Title"] = "Birim Tanımları";
     var iller = ViewBag.Iller as IEnumerable<PersonelTakipSistemi.Models.Il>;
 }
 
-<div class="row g-4">
-    <!-- TEŞKİLATLAR -->
-    <div class="col-md-4">
+<style>
+    /* Selected Item: Very Light Gray, Black Text */
+    .list-group-item.active {
+        background-color: #d3d3d4 !important; /* 15% lighter than #adb5bd */
+        border-color: #d3d3d4 !important;
+        color: #000 !important; /* Black text */
+    }
+    .list-group-item.active small, .list-group-item.active .text-muted {
+        color: #333 !important; /* Darker muted text for contrast */
+    }
+    
+    /* Animations for Row Feedback */
+    @@keyframes highlightGreen { 0% { background-color: #d4edda; } 100% { background-color: transparent; } }
+    @@keyframes highlightBlue { 0% { background-color: #cce5ff; } 100% { background-color: transparent; } }
+    @@keyframes highlightRed { 0% { background-color: #f8d7da; } 100% { background-color: transparent; } }
+    @@keyframes highlightGray { 0% { background-color: #d6d8d9; } 100% { background-color: transparent; } }
+
+    .highlight-green { animation: highlightGreen 2s ease-out !important; }
+    .highlight-blue { animation: highlightBlue 2s ease-out !important; }
+    .highlight-red { background-color: #f8d7da !important; transition: all 0.5s ease-out; }
+    .highlight-gray { animation: highlightGray 2s ease-out !important; }
+
+    /* Custom Scrollbar for lists */
+
+    /* Custom Scrollbar for lists */
+    .scrollable-list {
+        min-height: 350px; /* Reduced to avoid too much empty space */
+        max-height: 850px; /* High enough to avoid scrollbars for Daire */
+        overflow-y: auto;
+    }
+
+    /* Colors */
+    .bg-daire { background-color: #ff9f43 !important; color: white; } /* Orange */
+    .bg-teskilat { background-color: #6f42c1 !important; color: white; } /* Purple (Mor) */
+    .bg-koordinatorluk { background-color: #198754 !important; color: white; } /* Green (Yeşil) */
+    .bg-komisyon { background-color: #0dcaf0 !important; color: white; } /* Cyan/Info */
+    
+    .cursor-pointer { cursor: pointer; }
+
+    /* Passive/Faded State for Daires */
+    .daire-passive {
+        opacity: 0.6;
+        background-color: #eaeaea;
+        cursor: pointer; /* Show pointer to indicate interactivity (buttons) */
+    }
+    
+    .daire-active-item {
+        font-weight: bold;
+        border-left: 5px solid #ff9f43;
+    }
+
+    /* Icon Size Increase (Larger), No Background */
+    .btn-icon {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 5px;
+    }
+    .btn-icon i {
+        font-size: 1.75em !important; /* Increased from 1.5em */
+        font-weight: 600 !important; /* Make them 'bolder' / darker appearance */
+    }
+    
+    /* Inline Edit Inputs */
+    .edit-input {
+        width: 100%;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+</style>
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Ayarlar /</span> Birim Tanımları</h4>
+<div class="row g-5">
+    <!-- 1. DAİRE BAŞKANLIKLARI -->
+    <div class="col-md-6 mb-5">
         <div class="card h-100 shadow-sm border-0">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0 text-white"><i class="bx bxs-building me-2"></i>Teşkilatlar</h5>
-                <button class="btn btn-sm btn-light text-primary fw-bold" data-bs-toggle="modal" data-bs-target="#modalTeskilat">
+            <div class="card-header bg-daire d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white"><i class="bx bxs-institution me-2"></i>Daire Başkanlıkları</h5>
+                <button class="btn btn-sm btn-light text-secondary fw-bold" onclick="addDaireModal()">
                     <i class="bx bx-plus"></i> Ekle
                 </button>
             </div>
-            <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+            <div class="card-body p-0 scrollable-list">
+            <div class="card-body p-0 scrollable-list">
+                 <ul class="list-group list-group-flush" id="listDaire">
+                     @{
+                         var sortedDaire = Model.DaireBaskanliklari
+                             .OrderByDescending(x => x.Teskilatlar != null && x.Teskilatlar.Any()) // Aktifler üste
+                             .ThenBy(x => x.Ad) // Kendi aralarında alfabetik
+                             .ToList();
+                     }
+                      @foreach(var d in sortedDaire)
+                      {
+                          // ID 9 is "Programlar..." -> make it active/selected by default
+                          bool isSelected = d.Id == 9;
+                          bool hasChildren = d.Teskilatlar != null && d.Teskilatlar.Any();
+                          
+                          // Active if selected. Normal if has children. Passive if empty.
+                          // But user said: "içi boş teşkilatı yoksa pasif kalmaya devam edebilir".
+                          // So:
+                          // Selected -> active daire-active-item
+                          // Has Children -> "" (Normal click)
+                          // No Children -> daire-passive
+                          
+                          var isActiveClass = isSelected ? "active daire-active-item" : (hasChildren ? "" : "daire-passive");
+                          
+                          // If passive, maybe clicking it triggers "Empty" view?
+                          var clickAction = $"selectDaire(this, {d.Id}, '{d.Ad}')"; 
+                          
+                          <li class="list-group-item list-group-item-action cursor-pointer d-flex justify-content-between align-items-center @isActiveClass" 
+                              onclick="@clickAction"
+                              data-id="@d.Id"
+                              id="row_daire_@d.Id">
+                              
+                              <!-- Display Mode -->
+                              <div class="view-mode w-100 d-flex justify-content-between align-items-center">
+                                  <span class="fw-bold text-wrap item-name">@d.Ad</span>
+                                  <div style="min-width: 80px; text-align: right;">
+                                      <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('daire', @d.Id)"><i class="bx bx-edit"></i></button>
+                                      <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('daire', @d.Id)"><i class="bx bx-trash"></i></button>
+                                  </div>
+                              </div>
+
+                              <!-- Edit Mode (Hidden) -->
+                              <div class="edit-mode w-100 d-none justify-content-between align-items-center">
+                                  <input type="text" class="edit-input me-2" value="@d.Ad" id="input_daire_@d.Id" onclick="event.stopPropagation()">
+                                  <div style="min-width: 80px; text-align: right;">
+                                      <button class="btn btn-sm btn-icon text-success me-1" onclick="event.stopPropagation(); saveEdit('daire', @d.Id)"><i class="bx bx-check"></i></button>
+                                      <button class="btn btn-sm btn-icon text-dark" onclick="event.stopPropagation(); cancelEdit('daire', @d.Id)"><i class="bx bx-x"></i></button>
+                                  </div>
+                              </div>
+                          </li>
+                      }
+                 </ul>
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. TEŞKİLATLAR -->
+    <div class="col-md-6">
+        <div class="card h-100 shadow-sm border-0">
+            <div class="card-header bg-teskilat text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 text-white"><i class="bx bxs-building me-2"></i>Teşkilatlar</h5>
+                <button class="btn btn-sm btn-light text-secondary fw-bold" style="color: #6c757d !important;" data-bs-toggle="modal" data-bs-target="#modalTeskilat">
+                    <i class="bx bx-plus"></i> Ekle
+                </button>
+            </div>
+            <div class="card-body p-0 scrollable-list">
                  <ul class="list-group list-group-flush" id="listTeskilat">
                      @foreach(var t in Model.Teskilatlar)
                      {
-                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                             <div>
-                                 <span class="fw-bold">@t.Ad</span>
-                                 <br/>
-                                 <small class="text-muted">@t.Aciklama</small>
+                         var hasChildrenKoord = Model.Koordinatorlukler.Any(x => x.TeskilatId == t.TeskilatId);
+                         var passiveClass = hasChildrenKoord ? "" : "daire-passive"; 
+                         var onClick = hasChildrenKoord ? $"selectTeskilat(this, {t.TeskilatId})" : "";
+                         
+                         // Determine initial visibility: Hidden unless it belongs to default active Daire (ID 9)
+                         // But since we handle this in document.ready now, we can just start hidden or data-attribute based.
+                         var parentId = t.DaireBaskanligiId ?? 0;
+                         var style = parentId == 9 ? "" : "display:none;"; // Show checks for ID 9 initially
+
+                         <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center tes-item @passiveClass" 
+                             onclick="@onClick"
+                             data-id="@t.TeskilatId"
+                             data-parent-id="@parentId" 
+                             style="display:none;"
+                             id="row_tes_@t.TeskilatId">
+                             
+                             <div class="view-mode w-100 d-flex justify-content-between align-items-center">
+                                 <div>
+                                     <span class="fw-bold item-name">@t.Ad</span>
+                                     <br/><small class="text-muted">@t.Aciklama</small>
+                                 </div>
+                                 <div style="min-width: 80px; text-align: right;">
+                                     <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('tes', @t.TeskilatId)"><i class="bx bx-edit"></i></button>
+                                     <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('tes', @t.TeskilatId)"><i class="bx bx-trash"></i></button>
+                                 </div>
                              </div>
-                             <button class="btn btn-sm btn-icon btn-label-danger" onclick="deleteItem('tes', @t.TeskilatId)"><i class="bx bx-trash"></i></button>
+
+                             <div class="edit-mode w-100 d-none justify-content-between align-items-center">
+                                 <input type="text" class="edit-input me-2" value="@t.Ad" id="input_tes_@t.TeskilatId" onclick="event.stopPropagation()">
+                                  <div style="min-width: 80px; text-align: right;">
+                                     <button class="btn btn-sm btn-icon text-success me-1" onclick="event.stopPropagation(); saveEdit('tes', @t.TeskilatId)"><i class="bx bx-check"></i></button>
+                                     <button class="btn btn-sm btn-icon text-dark" onclick="event.stopPropagation(); cancelEdit('tes', @t.TeskilatId)"><i class="bx bx-x"></i></button>
+                                 </div>
+                             </div>
                          </li>
                      }
+                     <li id="tesInfo" class="list-group-item text-center text-muted fst-italic py-3" style="display:none;">
+                         Bu daire başkanlığına bağlı teşkilat bulunamadı.
+                     </li>
                  </ul>
             </div>
         </div>
     </div>
 
-    <!-- KOORDİNATÖRLÜKLER -->
-    <div class="col-md-4">
+    <!-- 3. KOORDİNATÖRLÜKLER -->
+    <div class="col-md-6">
         <div class="card h-100 shadow-sm border-0">
-            <div class="card-header bg-secondary text-white d-flex justify-content-between align-items-center">
+            <div class="card-header bg-koordinatorluk text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-white"><i class="bx bxs-business me-2"></i>Koordinatörlükler</h5>
                 <button class="btn btn-sm btn-light text-secondary fw-bold" data-bs-toggle="modal" data-bs-target="#modalKoordinatorluk">
                     <i class="bx bx-plus"></i> Ekle
                 </button>
             </div>
-            <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+            <div class="card-body p-0 scrollable-list">
                  <ul class="list-group list-group-flush" id="listKoordinatorluk">
                      @foreach(var k in Model.Koordinatorlukler)
                      {
-                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                             <div>
-                                 <span class="fw-bold">@k.Ad</span>
-                                 <span class="badge bg-label-primary ms-1" style="font-size: 0.7em">@k.Teskilat?.Ad</span>
-                                 <br/>
-                                 <small class="text-muted">@k.Il?.Ad</small>
+                          <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center k-item" 
+                              data-parent-id="@k.TeskilatId"
+                              data-id="@k.KoordinatorlukId"
+                              onclick="selectKoordinatorluk(this, @k.KoordinatorlukId)"
+                              style="display:none;"
+                              id="row_koord_@k.KoordinatorlukId">
+
+                             <div class="view-mode w-100 d-flex justify-content-between align-items-center">
+                                 <div>
+                                     <span class="fw-bold item-name">@k.Ad</span>
+                                     <br/><small class="text-muted">@k.Aciklama</small>
+                                 </div>
+                                 <div style="min-width: 80px; text-align: right;">
+                                      <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('koord', @k.KoordinatorlukId)"><i class="bx bx-edit"></i></button>
+                                     <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('koord', @k.KoordinatorlukId)"><i class="bx bx-trash"></i></button>
+                                 </div>
                              </div>
-                             <button class="btn btn-sm btn-icon btn-label-danger" onclick="deleteItem('koord', @k.KoordinatorlukId)"><i class="bx bx-trash"></i></button>
+                             
+                             <div class="edit-mode w-100 d-none justify-content-between align-items-center">
+                                 <input type="text" class="edit-input me-2" value="@k.Ad" id="input_koord_@k.KoordinatorlukId" onclick="event.stopPropagation()">
+                                  <div style="min-width: 80px; text-align: right;">
+                                     <button class="btn btn-sm btn-icon text-success me-1" onclick="event.stopPropagation(); saveEdit('koord', @k.KoordinatorlukId)"><i class="bx bx-check"></i></button>
+                                     <button class="btn btn-sm btn-icon text-dark" onclick="event.stopPropagation(); cancelEdit('koord', @k.KoordinatorlukId)"><i class="bx bx-x"></i></button>
+                                 </div>
+                             </div>
                          </li>
                      }
+                     <li id="koordInfo" class="list-group-item text-center text-muted fst-italic py-3">
+                         Lütfen bir teşkilat seçiniz.
+                     </li>
                  </ul>
             </div>
         </div>
     </div>
 
-     <!-- KOMİSYONLAR -->
-    <div class="col-md-4">
+    <!-- 4. KOMİSYONLAR -->
+    <div class="col-md-6">
         <div class="card h-100 shadow-sm border-0">
-            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <div class="card-header bg-komisyon text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-white"><i class="bx bxs-group me-2"></i>Komisyonlar</h5>
-                <button class="btn btn-sm btn-light text-info fw-bold" data-bs-toggle="modal" data-bs-target="#modalKomisyon">
+                <button class="btn btn-sm btn-light text-secondary fw-bold" data-bs-toggle="modal" data-bs-target="#modalKomisyon">
                     <i class="bx bx-plus"></i> Ekle
                 </button>
             </div>
-            <div class="card-body p-0" style="max-height: 600px; overflow-y: auto;">
+            <div class="card-body p-0 scrollable-list">
                  <ul class="list-group list-group-flush" id="listKomisyon">
                      @foreach(var k in Model.Komisyonlar)
                      {
-                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                             <div>
-                                 <span class="fw-bold">@k.Ad</span>
-                                 <br/>
-                                 <small class="text-muted"><i class="bx bx-subdirectory-right"></i> @k.Koordinatorluk?.Ad</small>
+                          <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center kom-item" 
+                              data-parent-id="@k.KoordinatorlukId"
+                              data-bagli-merkez-id="@(k.BagliMerkezKoordinatorlukId ?? 0)"
+                              data-parent-name="@k.Koordinatorluk?.Ad"
+                              data-original-name="@k.Ad"
+                              style="display:none;"
+                              id="row_kom_@k.KomisyonId">
+                             
+                             <div class="view-mode w-100 d-flex justify-content-between align-items-center">
+                                 <div>
+                                     <span class="fw-bold item-name">@k.Ad</span>
+                                     <br/><small class="text-muted">@k.Koordinatorluk?.Ad</small>
+                                 </div>
+                                 <div style="min-width: 80px; text-align: right;">
+                                     <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('kom', @k.KomisyonId)"><i class="bx bx-edit"></i></button>
+                                     <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('kom', @k.KomisyonId)"><i class="bx bx-trash"></i></button>
+                                 </div>
                              </div>
-                             <button class="btn btn-sm btn-icon btn-label-danger" onclick="deleteItem('kom', @k.KomisyonId)"><i class="bx bx-trash"></i></button>
+
+                             <div class="edit-mode w-100 d-none justify-content-between align-items-center">
+                                 <input type="text" class="edit-input me-2" value="@k.Ad" id="input_kom_@k.KomisyonId" onclick="event.stopPropagation()">
+                                  <div style="min-width: 80px; text-align: right;">
+                                     <button class="btn btn-sm btn-icon text-success me-1" onclick="event.stopPropagation(); saveEdit('kom', @k.KomisyonId)"><i class="bx bx-check"></i></button>
+                                     <button class="btn btn-sm btn-icon text-dark" onclick="event.stopPropagation(); cancelEdit('kom', @k.KomisyonId)"><i class="bx bx-x"></i></button>
+                                 </div>
+                             </div>
                          </li>
                      }
+                     <li id="komInfo" class="list-group-item text-center text-muted fst-italic py-3">
+                         Lütfen bir koordinatörlük seçiniz.
+                     </li>
                  </ul>
             </div>
         </div>
@@ -89,7 +301,31 @@
 </div>
 
 
+
+</div>
+
 <!-- MODALS -->
+<!-- Daire Modal (Simple) -->
+<div class="modal fade" id="modalDaire" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Yeni Daire Başkanlığı Ekle</h5>
+        
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Daire Adı</label>
+          <input type="text" id="addDaireAd" class="form-control">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+        <button type="button" class="btn btn-primary" onclick="saveDaire()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- 1. Teşkilat Modal -->
 <div class="modal fade" id="modalTeskilat" tabindex="-1" aria-hidden="true">
@@ -100,6 +336,13 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">Bağlı Daire Başkanlığı</label>
+          <select id="addTesParent" class="form-select">
+              <option value="">Seçiniz...</option>
+              @foreach(var d in Model.DaireBaskanliklari) { <option value="@d.Id">@d.Ad</option> }
+          </select>
+        </div>
         <div class="mb-3">
           <label class="form-label">Teşkilat Adı</label>
           <input type="text" id="addTesAd" class="form-control" placeholder="Örn: Merkez Teşkilatı">
@@ -133,17 +376,37 @@
               @foreach(var t in Model.Teskilatlar) { <option value="@t.TeskilatId">@t.Ad</option> }
           </select>
         </div>
-        <div class="mb-3">
-          <label class="form-label">Koordinatörlük Adı</label>
-          <input type="text" id="addKoordAd" class="form-control" placeholder="Örn: Ankara İl Koordinatörlüğü">
+        
+        <!-- Merkez - İsim Girişi -->
+        <div class="mb-3" id="divKoordAdContainer">
+          <label class="form-label">Birim Adı</label>
+          <input type="text" id="addKoordAd" class="form-control" placeholder="Örn: İnsan Kaynakları">
+          <small class="text-muted">Sadece birim adını giriniz. Sistem otomatik tamamlayacaktır.</small>
         </div>
-        <div class="mb-3">
+        
+        <!-- Merkez - Taşra Switch -->
+        <div class="mb-3 form-check form-switch" id="divKoordTasraSwitch">
+            <input class="form-check-input" type="checkbox" id="chkKoordTasraVar" checked>
+            <label class="form-check-label" for="chkKoordTasraVar">Taşra Örgütlenmesi Var mı?</label>
+        </div>
+
+        <!-- Taşra - İl Seçimi -->
+        <div class="mb-3" id="divKoordIlContainer" style="display:none;">
           <label class="form-label">Şehir (İl)</label>
           <select id="addKoordIl" class="form-select">
-              <option value="6">Ankara (Varsayılan)</option>
-              @if(iller != null) { foreach(var i in iller) { <option value="@i.IlId">@i.Ad</option> } }
+              <option value="">Seçiniz...</option>
+              @if(iller != null) { foreach(var i in iller) { 
+                  <option value="@i.IlId">@i.Ad</option> 
+              } }
           </select>
         </div>
+
+        <!-- Canlı Önizleme -->
+        <div class="mb-3 p-2 border rounded">
+            <label class="form-label text-muted small mb-0">Önizleme:</label>
+            <div id="divKoordOnizleme" class="fw-bold text-dark">-</div>
+        </div>
+
         <div class="mb-3">
           <label class="form-label">Tanım (Opsiyonel)</label>
           <textarea id="addKoordTanim" class="form-control"></textarea>
@@ -166,16 +429,45 @@
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-         <div class="mb-3">
+        <div class="mb-3">
           <label class="form-label">Bağlı Koordinatörlük</label>
-          <select id="addKomParent" class="form-select select2">
+          <select id="addKomParent" class="form-select">
               <option value="">Seçiniz...</option>
-              @foreach(var k in Model.Koordinatorlukler) { <option value="@k.KoordinatorlukId">@k.Ad (@k.Teskilat?.Ad)</option> }
+              @foreach(var k in Model.Koordinatorlukler) { 
+                  <option value="@k.KoordinatorlukId" data-teskilat-id="@k.TeskilatId" data-tasra-var-mi="@k.TasraTeskilatiVarMi.ToString().ToLower()">@k.Ad</option> 
+              }
           </select>
         </div>
-        <div class="mb-3">
+        
+        <!-- Merkez Birim Selection (Initially Hidden) -->
+        <div class="mb-3" id="divKomBagliMerkez" style="display:none;">
+          <label class="form-label">Bağlı Merkez Birim</label>
+          <select id="addKomBagliMerkez" class="form-select">
+              <option value="">Seçiniz...</option>
+              @foreach(var mk in Model.Koordinatorlukler.Where(x => x.TeskilatId == 1 && x.TasraTeskilatiVarMi)) {
+                  <option value="@mk.KoordinatorlukId">@mk.Ad</option>
+              }
+          </select>
+          <small class="text-muted">Seçilen birim adına göre komisyon adı otomatik oluşturulur.</small>
+        </div>
+        
+        <!-- Merkez - İl Seçimi (Redirection) -->
+        <div class="mb-3" id="divKomIlContainer" style="display:none;">
+             <div class="alert alert-danger" role="alert">
+                 <i class="bx bx-error me-1"></i> Bu koordinatörlüğün Taşra Örgütlenmesi bulunmaktadır. Lütfen komisyonu eklemek istediğiniz İli seçiniz. Komisyon ilgili ilin altına eklenecektir.
+             </div>
+             <label class="form-label">Şehir (İl) Seçiniz</label>
+             <select id="addKomIl" class="form-select">
+                <option value="">Seçiniz...</option>
+                @if(iller != null) { foreach(var i in iller) { 
+                    <option value="@i.IlId">@i.Ad</option> 
+                } }
+             </select>
+        </div>
+
+        <div class="mb-3" id="divKomAdContainer">
           <label class="form-label">Komisyon Adı</label>
-          <input type="text" id="addKomAd" class="form-control" placeholder="Örn: Fen Bilgisi Komisyonu">
+          <input type="text" id="addKomAd" class="form-control" placeholder="Örn: İnceleme Komisyonu">
         </div>
         <div class="mb-3">
           <label class="form-label">Tanım (Opsiyonel)</label>
@@ -190,50 +482,1064 @@
   </div>
 </div>
 
+
+
 @section Scripts {
     <script>
+        // ============================================
+        // GLOBAL STATE
+        // ============================================
+        var selectedDaireId = null;
+        var selectedTeskilatId = null;
+        var selectedKoordId = null;
+
+        // List of City IDs that have a Provincial Coordinatorship (TeskilatId = 2)
+        var validTasraCityIds = @Html.Raw(Json.Serialize(Model.Koordinatorlukler.Where(x => x.TeskilatId == 2 && x.IlId.HasValue).Select(x => x.IlId.Value).Distinct().ToList()));
+
+        $(document).ready(function() {
+            console.log('[Ayarlar] Document ready. Initializing cascading...');
+            
+            // Debug: log all tes-item data
+            $('.tes-item').each(function() {
+                console.log('[Ayarlar] Teskilat item:', $(this).data('id'), 'parent:', $(this).attr('data-parent-id'));
+            });
+
+            // 1. Initial Cascade - Find the default active Daire
+            var activeDaire = $('#listDaire .daire-active-item');
+            if(activeDaire.length > 0) {
+                var dId = parseInt(activeDaire.attr('data-id'));
+                console.log('[Ayarlar] Auto-selecting Daire ID:', dId);
+                selectDaire(activeDaire[0], dId);
+            }
+            
+            // 2. Modal Show Event: Pre-select Daire dropdown
+            // 2. Modal Show Event: Pre-select Daire dropdown
+            $('#modalTeskilat').on('show.bs.modal', function () {
+                if(selectedDaireId) {
+                    console.log('[Ayarlar] Pre-selecting Daire in Modal:', selectedDaireId);
+                    $('#addTesParent').val(selectedDaireId);
+                } else {
+                    $('#addTesParent').val('');
+                }
+            });
+
+            // ===================================
+            // NEW: Koordinatorluk Modal Logic
+            // ===================================
+            var modalKoordinatorluk = document.getElementById('modalKoordinatorluk');
+            if(modalKoordinatorluk) {
+                modalKoordinatorluk.addEventListener('show.bs.modal', function () {
+                        // Reset All Inputs
+                        $('#addKoordAd').val('');
+                        $('#addKoordTanim').val('');
+                        $('#addKoordIl').val('').trigger('change'); 
+                        
+                        // Smart Filtering: Disable cities that are already added for ParentId=2 (Taşra)
+                        // Assume ParentId=2 is selected by default or user will select it.
+                        // We check currently visible items in the list to know what's added.
+                        // Or better: Checking all items in #listKoordinatorluk with data-parent-id="2".
+                        
+                        var existingCityIds = [];
+                        $('#listKoordinatorluk .k-item[data-parent-id="2"]').each(function() {
+                            // The easiest way to get the City ID is if we stored it in data-something.
+                            // But usually the name is "Adana İl Koordinatörlüğü". Parsing name is risky.
+                            // Let's assume we can't easily know the ID from DOM unless we added it on creation.
+                            // However, we can match by TEXT.
+                            
+                            var text = $(this).find('.item-name').text().trim();
+                            // "Adana İl Koordinatörlüğü" -> "Adana"
+                            var cityName = text.replace(' İl Koordinatörlüğü', '').trim();
+                            existingCityIds.push(cityName); 
+                        });
+                        
+                        // Since text matching is fragile, let's rely on backend check mostly, BUT 
+                        // to improve UX, let's try to disable options by Text Matching for now.
+                        // Ideally we should add data-il-id to the list item on creation/render.
+                        
+                        var $citySelect = $('#addKoordIl');
+                        $citySelect.find('option').prop('disabled', false); // Reset
+                        
+                        $citySelect.find('option').each(function() {
+                            var optText = $(this).text();
+                            if(existingCityIds.includes(optText)) {
+                                $(this).prop('disabled', true);
+                            }
+                        });
+                        
+                        // Select2 might need refresh if disabled status changed? 
+                         // Select2 usually respects disabled property on init or render.
+                         // But for dynamic changes, sometimes we need to destroy/re-init or trigger change.
+                         // Actually, just triggering change won't hide them.
+                         // Let's rely on standard 'disabled' attribute which Select2 supports.
+                        
+                        if(selectedTeskilatId) {
+                            $('#addKoordParent').val(selectedTeskilatId).trigger('change');
+                        } else {
+                            $('#addKoordParent').val('').trigger('change');
+                        }
+                });
+            }
+            
+            // NEW: Komisyon Modal Show Logic
+            var modalKomisyon = document.getElementById('modalKomisyon');
+            if(modalKomisyon) {
+                modalKomisyon.addEventListener('show.bs.modal', function () {
+                    $('#addKomAd').val('');
+                    $('#addKomTanim').val('');
+                    $('#addKomBagliMerkez').val('').trigger('change');
+
+                    $('#addKomAd').val('');
+                    $('#addKomTanim').val('');
+                    $('#addKomBagliMerkez').val('').trigger('change');
+                    $('#addKomIl').val('').trigger('change');
+                    
+                    // Reset visibility
+                    $('#divKomBagliMerkez').hide();
+                    $('#divKomIlContainer').hide();
+                    $('#divKomAdContainer').show();
+
+                    // FETCH FROM DATABASE: 
+                    // To ensure deleted items are removed and new items are present,
+                    // we fetch the list from server based on selectedTeskilatId.
+                    
+                    var $select = $('#addKomParent');
+                    $select.empty().append('<option value="">Yükleniyor...</option>');
+                    
+                    if(selectedTeskilatId) {
+                         // Cache-busting: add timestamp to force fresh fetch
+                         var uniqueUrl = '/Birimler/GetKoordinatorlukler?teskilatId=' + selectedTeskilatId + '&_=' + new Date().getTime();
+                         
+                         $.get(uniqueUrl, function(data) {
+                             $select.empty();
+                             $select.append('<option value="">Seçiniz...</option>');
+                             
+                             if(data && data.length > 0) {
+                                 data.forEach(function(item) {
+                                     // Handle Casing (Camel vs Pascal)
+                                     var id = item.koordinatorlukId || item.KoordinatorlukId;
+                                     var title = item.ad || item.Ad;
+                                     var tasra = (item.tasraTeskilatiVarMi !== undefined) ? item.tasraTeskilatiVarMi : item.TasraTeskilatiVarMi;
+                                     
+                                     // data-tasra-var-mi attribute added
+                                     var option = new Option(title, id);
+                                     $(option).attr('data-tasra-var-mi', tasra);
+                                     $(option).attr('data-teskilat-id', selectedTeskilatId);
+                                     $select.append(option);
+                                 });
+                             }
+                             
+                             // Refresh Select2
+                             if ($select.data('select2')) {
+                                 $select.select2('destroy');
+                             }
+                             $select.select2({
+                                 theme: 'bootstrap-5',
+                                 dropdownParent: $select.closest('.modal'),
+                                 width: '100%'
+                             });
+                             
+                             // Set Selected if exists
+                             if(selectedKoordId) {
+                                 $select.val(selectedKoordId).trigger('change');
+                             } else {
+                                 $select.val('').trigger('change');
+                             }
+                         }).fail(function() {
+                             $select.empty().append('<option value="">Hata oluştu</option>');
+                         });
+                    } else {
+                        $select.empty().append('<option value="">Önce Teşkilat Seçiniz</option>');
+                    }
+                });
+            }
+            
+            $('#addKoordParent').change(function() {
+                var val = $(this).val();
+                updateKoordPreview();
+
+                // 2 is Taşra ID
+                if(val == '2') {
+                    $('#divKoordAdContainer').hide();
+                    $('#divKoordTasraSwitch').hide(); // Hide switch for Tasra
+                    $('#divKoordIlContainer').show();
+                } else {
+                    // Merkez or others
+                    $('#divKoordAdContainer').show();
+                    // Only show switch if Merkez (1)
+                    if(val == '1') $('#divKoordTasraSwitch').show();
+                    else $('#divKoordTasraSwitch').hide();
+                    
+                    $('#divKoordIlContainer').hide();
+                }
+            });
+
+            // Live Preview Events
+            $('#addKoordAd, #addKoordIl').on('input change', function() {
+                updateKoordPreview();
+            });
+
+            function updateKoordPreview() {
+                var parentId = $('#addKoordParent').val();
+                var text = '-';
+                
+                if(parentId == '2') { // Taşra
+                    var ilText = $('#addKoordIl option:selected').text();
+                    if(ilText && ilText !== 'Seçiniz...') {
+                        text = ilText + ' İl Koordinatörlüğü';
+                    }
+                } else { // Merkez/Diğer
+                    var ad = $('#addKoordAd').val();
+                    if(ad) {
+                        // Simple Title Case
+                        var formatted = ad.toLowerCase().split(' ').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+                        text = formatted + ' Birim Koordinatörlüğü';
+                    }
+                }
+                $('#divKoordOnizleme').text(text);
+            }
+
+            // ===================================
+            // NEW: Komisyon Modal Logic
+            // ===================================
+            // ===================================
+            // NEW: Komisyon Modal Logic
+            // ===================================
+             $('#addKomParent').change(function() {
+                var selectedOption = $(this).find('option:selected');
+                var teskilatId = selectedOption.data('teskilat-id');
+                var tasraVarMi = selectedOption.attr('data-tasra-var-mi') === 'true'; // Check string attribute
+                
+                // Reset
+                $('#divKomBagliMerkez').hide();
+                $('#divKomIlContainer').hide();
+                $('#divKomAdContainer').hide();
+
+                // Logic
+                // 1. If Parent is Taşra (TeskilatId=2) -> Show "Bağlı Merkez"
+                if(teskilatId == 2) {
+                    $('#divKomBagliMerkez').show();
+                    // Name is auto-generated so hide Ad
+                } 
+                // 2. If Parent is Merkez (or others)
+                else {
+                    // Check if Parent has provincial organization
+                    if(tasraVarMi) {
+                         // Redirect to Il selection
+                         $('#divKomIlContainer').show();
+                         
+                         // Filter City Dropdown: Show only valid cities
+                         var $citySelect = $('#addKomIl');
+                         $citySelect.val('').trigger('change'); // Reset selection
+                         
+                         $citySelect.find('option').each(function() {
+                             var val = $(this).val();
+                             if(val === "") return; // Skip default option
+                             
+                             var cityId = parseInt(val);
+                             var currentText = $(this).text();
+
+                             if(validTasraCityIds.includes(cityId)) {
+                                 // Show/Enable
+                                 $(this).prop('disabled', false);
+                                 
+                                 // Append Suffix if not present
+                                 if(!currentText.includes('İl Koordinatörlüğü')) {
+                                     $(this).text(currentText + ' İl Koordinatörlüğü');
+                                 }
+                             } else {
+                                 // Hide/Disable/Remove
+                                 // User requested they should not be seen ("görülmemeli")
+                                 // Since validTasraCityIds is static for the session, removing is safe.
+                                 $(this).remove();
+                             }
+                         });
+                         
+                         // Refresh Select2 to apply disabled state
+                         // Note: standard Bootstrap 5 theme might not visually hide disabled items perfectly in dropdown 
+                         // but they should be unselectable. 
+                         // For better UX, we might want to recreate the options, but disabling is a good start.
+                         // Actually, Select2 requires full re-init to update disabled state visuals sometimes.
+                         // Let's try destroying and re-initing if needed, or just let Select2 handle it.
+                         if ($citySelect.data('select2')) {
+                             $citySelect.select2('destroy').select2({
+                                 theme: 'bootstrap-5',
+                                 dropdownParent: $citySelect.closest('.modal'),
+                                 width: '100%'
+                             });
+                         }
+
+                    } else {
+                        // Standard Manual Entry
+                        $('#divKomAdContainer').show();
+                    }
+                }
+            });
+
+            // Initialize Select2 for all form-selects in modals
+            // using event delegation for robustness
+            $(document).on('shown.bs.modal', '.modal', function() {
+                $(this).find('select.form-select').each(function() {
+                    // Check if already initialized to avoid double init
+                    if (!$(this).data('select2')) {
+                        $(this).select2({
+                            theme: 'bootstrap-5',
+                            dropdownParent: $(this).closest('.modal'),
+                            width: '100%'
+                        });
+                    }
+                });
+            });
+
+            // DEBUG: List all commissions
+            console.log('[Ayarlar] Debug: Listing all commissions...');
+            var debugCommissions = [];
+            $('.kom-item').each(function() {
+                debugCommissions.push({
+                    id: $(this).attr('id'),
+                    name: $(this).find('.item-name').text().trim(),
+                    original_name: $(this).attr('data-original-name'),
+                    parent_id: $(this).attr('data-parent-id'),
+                    bagli_merkez_id: $(this).attr('data-bagli-merkez-id'),
+                    parent_name: $(this).attr('data-parent-name')
+                });
+            });
+            console.table(debugCommissions);
+
+        });
+
+
+        // ============================================
+        // 1. DAIRE SELECTION
+        // ============================================
+        function selectDaire(el, id, force) {
+            // Prevent clicking on passive items unless forced (strictly true)
+            if($(el).hasClass('daire-passive') && force !== true) {
+                return;
+            }
+
+            selectedDaireId = id;
+            console.log('[Ayarlar] selectDaire called with id:', id);
+
+            // Update visual selection
+            $('#listDaire .list-group-item').removeClass('active daire-active-item');
+            $(el).addClass('active daire-active-item');
+
+            // Reset lower levels
+            selectedTeskilatId = null;
+            selectedKoordId = null;
+            
+            // Hide all Koordinatorluk and Komisyon
+            $('.k-item').each(function() { $(this).css('display', 'none').removeClass('d-flex'); });
+            $('#koordInfo').text('Lütfen bir teşkilat seçiniz.').css('display', '');
+            $('.kom-item').each(function() { $(this).css('display', 'none').removeClass('d-flex'); });
+            $('#komInfo').text('Lütfen bir koordinatörlük seçiniz.').css('display', '');
+
+            // Filter Teskilat List by parent-id
+            var tesItems = $('.tes-item');
+            var matchCount = 0;
+            
+            tesItems.each(function() {
+                var parentId = parseInt($(this).attr('data-parent-id'));
+                if(parentId === id) {
+                    $(this).css('display', '').addClass('d-flex');
+                    matchCount++;
+                } else {
+                    $(this).css('display', 'none').removeClass('d-flex');
+                }
+            });
+
+            console.log('[Ayarlar] Matched Teskilat count:', matchCount);
+
+            // Show/hide info message
+            if(matchCount === 0) {
+                 $('#tesInfo').css('display', '');
+            } else {
+                 $('#tesInfo').css('display', 'none');
+                 
+                 // Auto-select first non-passive Teskilat
+                 var firstValid = null;
+                 tesItems.each(function() {
+                     var parentId = parseInt($(this).attr('data-parent-id'));
+                     if(parentId === id && !$(this).hasClass('daire-passive')) {
+                         firstValid = this;
+                         return false; // break
+                     }
+                 });
+                 
+                 if(firstValid) {
+                     var tId = parseInt($(firstValid).attr('data-id'));
+                     setTimeout(function() {
+                         selectTeskilat(firstValid, tId);
+                     }, 50);
+                 }
+            }
+        }
+
+        // ============================================
+        // 2. TESKILAT SELECTION
+        // ============================================
+        function selectTeskilat(el, id) {
+            selectedTeskilatId = id;
+            console.log('[Ayarlar] selectTeskilat called with id:', id);
+
+            // Update visual selection
+            $('#listTeskilat .tes-item').removeClass('active');
+            $(el).addClass('active');
+
+            // Reset Komisyon
+            selectedKoordId = null;
+            $('.kom-item').each(function() { $(this).css('display', 'none').removeClass('d-flex'); });
+            $('#komInfo').text('Lütfen bir koordinatörlük seçiniz.').css('display', '');
+
+            // Filter Koordinatorluk
+            var koordItems = $('.k-item');
+            var matchCount = 0;
+            
+            koordItems.each(function() {
+                var parentId = parseInt($(this).attr('data-parent-id'));
+                if(parentId === id) {
+                    $(this).css('display', '').addClass('d-flex');
+                    matchCount++;
+                } else {
+                    $(this).css('display', 'none').removeClass('d-flex');
+                }
+            });
+
+            // Reset Koordinatorluk selection
+            $('#listKoordinatorluk .k-item').removeClass('active');
+
+            if(matchCount > 0) {
+                $('#koordInfo').css('display', 'none');
+                
+                // Auto-select first Koordinatorluk
+                var firstKoord = null;
+                koordItems.each(function() {
+                    var parentId = parseInt($(this).attr('data-parent-id'));
+                    if(parentId === id) {
+                        firstKoord = this;
+                        return false; // break
+                    }
+                });
+                
+                if(firstKoord) {
+                    var kId = parseInt($(firstKoord).attr('data-id'));
+                    setTimeout(function() {
+                        selectKoordinatorluk(firstKoord, kId);
+                    }, 50);
+                }
+            } else {
+                $('#koordInfo').text('Bu teşkilata bağlı koordinatörlük bulunamadı.').css('display', '');
+            }
+        }
+
+        // ============================================
+        // 3. KOORDINATORLUK SELECTION
+        // ============================================
+        function selectKoordinatorluk(el, id) {
+            selectedKoordId = id;
+            console.log('[Ayarlar] selectKoordinatorluk called with id:', id);
+
+            // Update visual selection
+            $('#listKoordinatorluk .k-item').removeClass('active');
+            $(el).addClass('active');
+
+            // Filter Komisyon
+            // Filter Komisyon
+            var komItems = $('.kom-item');
+            var matchCount = 0;
+            
+            komItems.each(function() {
+                var $this = $(this);
+                var parentId = parseInt($this.attr('data-parent-id'));
+                var bagliMerkezId = parseInt($this.attr('data-bagli-merkez-id')) || 0;
+                var originalName = $this.attr('data-original-name');
+                var parentName = $this.attr('data-parent-name');
+
+                if(parentId === id || bagliMerkezId === id) {
+                    // Logic: If showing because of BagliMerkezId (and not direct parent), 
+                    // rename it to indicate which Province it is from.
+                    if (bagliMerkezId === id && parentId !== id) {
+                         // e.g. "Antalya" from "Antalya İl Koordinatörlüğü"
+                         var cityUniqueName = "";
+                         if(parentName) {
+                             cityUniqueName = parentName.replace(' İl Koordinatörlüğü', '').replace(' Birim Koordinatörlüğü', '');
+                         }
+                         $this.find('.item-name').text(cityUniqueName + ' Komisyonu');
+                    } else {
+                         // Restore original name
+                         $this.find('.item-name').text(originalName);
+                    }
+
+                    $this.css('display', '').addClass('d-flex');
+                    matchCount++;
+                } else {
+                    $this.css('display', 'none').removeClass('d-flex');
+                }
+            });
+
+            if(matchCount > 0) {
+                $('#komInfo').css('display', 'none');
+            } else {
+                $('#komInfo').text('Bu koordinatörlüğe bağlı komisyon bulunamadı.').css('display', '');
+            }
+        }
+
+        // ============================================
+        // INLINE EDIT LOGIC
+        // ============================================
+        
+        function toggleEdit(type, id) {
+            var row = $('#row_' + type + '_' + id);
+            row.find('.view-mode').removeClass('d-flex').addClass('d-none');
+            row.find('.edit-mode').removeClass('d-none').addClass('d-flex');
+        }
+
+        function cancelEdit(type, id) {
+             var row = $('#row_' + type + '_' + id);
+            row.find('.edit-mode').removeClass('d-flex').addClass('d-none');
+            row.find('.view-mode').removeClass('d-none').addClass('d-flex');
+        }
+
+
+        function saveEdit(type, id) {
+            var inputVal = $('#input_' + type + '_' + id).val();
+            if(!inputVal) return Swal.fire('Uyarı', 'Ad boş olamaz.', 'warning');
+
+            var url = '';
+            var data = { Id: id, Ad: inputVal };
+            
+            if(type === 'daire') url = '/Birimler/GuncelleDaire';
+            else if(type === 'tes') url = '/Birimler/GuncelleTeskilat'; 
+            else if(type === 'koord') url = '/Birimler/GuncelleKoordinatorluk';
+            else if(type === 'kom') url = '/Birimler/GuncelleKomisyon';
+
+            $.ajax({
+                url: url, type: 'POST', contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function() {
+                     Swal.fire({
+                        icon: 'success',
+                        title: 'Güncellendi',
+                        showConfirmButton: false,
+                        timer: 1500
+                     }).then(() => {
+                         var row = $('#row_' + type + '_' + id);
+                         if(row.length > 0) {
+                             row.find('.item-name').text(inputVal);
+                             cancelEdit(type, id);
+                             
+                             // Visual Feedback: Blue Highlight AFTER popup closes
+                             row.removeClass('highlight-gray highlight-red highlight-green').addClass('highlight-blue');
+                             setTimeout(function() { row.removeClass('highlight-blue'); }, 2000);
+                         } else {
+                             location.reload(); 
+                         }
+                     });
+                },
+                error: function() { Swal.fire('Hata', 'Güncelleme başarısız.', 'error'); }
+            });
+        }
+
+        // ============================================
+        // CRUD Operations
+        // ============================================
+
+        function addDaireModal() {
+            $('#modalDaire').modal('show');
+        }
+
+        function saveDaire() {
+            var data = { Ad: $('#addDaireAd').val() };
+            if(!data.Ad) return Swal.fire('Uyarı', 'Ad giriniz.', 'warning');
+
+             $.ajax({
+                url: '/Birimler/EkleDaire', type: 'POST', contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(resp) {
+                    if(resp.success) {
+                        $('#modalDaire').modal('hide');
+                        $('#addDaireAd').val('');
+
+                        var newRowHtml = `
+                            <li class="list-group-item list-group-item-action cursor-pointer d-flex justify-content-between align-items-center daire-passive"
+                               onclick="selectDaire(this, ${resp.id}, '${resp.ad}')"
+                               data-id="${resp.id}"
+                               id="row_daire_${resp.id}">
+
+                               <div class="view-mode w-100 d-flex justify-content-between align-items-center">
+                                   <span class="fw-bold text-wrap item-name">${resp.ad}</span>
+                                   <div style="min-width: 80px; text-align: right;">
+                                       <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('daire', ${resp.id})"><i class="bx bx-edit"></i></button>
+                                       <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('daire', ${resp.id})"><i class="bx bx-trash"></i></button>
+                                   </div>
+                               </div>
+
+                               <div class="edit-mode w-100 d-none justify-content-between align-items-center">
+                                   <input type="text" class="edit-input me-2" value="${resp.ad}" id="input_daire_${resp.id}" onclick="event.stopPropagation()">
+                                   <div style="min-width: 80px; text-align: right;">
+                                       <button class="btn btn-sm btn-icon text-success me-1" onclick="event.stopPropagation(); saveEdit('daire', ${resp.id})"><i class="bx bx-check"></i></button>
+                                       <button class="btn btn-sm btn-icon text-dark" onclick="event.stopPropagation(); cancelEdit('daire', ${resp.id})"><i class="bx bx-x"></i></button>
+                                   </div>
+                               </div>
+                           </li>`;
+                        
+                        // Insert alphabetically roughly or just top
+                        $('#listDaire').prepend(newRowHtml);
+                        var row = $('#row_daire_' + resp.id);
+                        
+                        // Highlight
+                        row.addClass('highlight-green');
+                        setTimeout(function() { row.removeClass('highlight-green'); }, 2000);
+
+                        // Update Dropdown in Add Koordinatorluk Modal
+                        var newOption = new Option(data.Ad, resp.id, false, false);
+                        $('#addKoordParent').append(newOption).trigger('change');
+                        
+                        // Update Dropdown in Add Teskilat Modal
+                        var newOptionTes = new Option(data.Ad, resp.id, false, false);
+                        $('#addTesParent').append(newOptionTes).trigger('change');
+                    }
+                },
+                error: function() { 
+                    setTimeout(() => Swal.fire('Hata', 'Kayıt başarısız.', 'error'), 300); 
+                }
+            });
+        }
+        
         function saveTeskilat() {
-            var data = { Ad: $('#addTesAd').val(), Tanim: $('#addTesTanim').val() };
-            if(!data.Ad) return Swal.fire('Uyarı', 'Lütfen ad giriniz.', 'warning');
+            var data = { 
+                Ad: $('#addTesAd').val(), 
+                Tanim: $('#addTesTanim').val(),
+                ParentId: $('#addTesParent').val()
+            };
+
+            if(!data.ParentId) return Swal.fire('Uyarı', 'Lütfen bağlı daire başkanlığını seçiniz.', 'warning');
+            if(!data.Ad) return Swal.fire('Uyarı', 'Teşkilat adı zorunludur.', 'warning');
+            
+            data.ParentId = parseInt(data.ParentId);
 
             $.ajax({
                 url: '/Birimler/EkleTeskilat', type: 'POST', contentType: 'application/json',
                 data: JSON.stringify(data),
-                success: function(resp) { location.reload(); },
-                error: function() { Swal.fire('Hata', 'Kayıt başarısız.', 'error'); }
+                success: function(resp) {
+                     if(resp.success) {
+                         $('#modalTeskilat').modal('hide');
+                         $('#addTesAd').val('');
+                         $('#addTesTanim').val('');
+                         
+                         var newId = resp.id;
+                         var newRowHtml = `
+                             <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center tes-item" 
+                                 onclick="selectTeskilat(this, ${newId})"
+                                 data-id="${newId}"
+                                 data-parent-id="${data.ParentId}" 
+                                 style="display:none;"
+                                 id="row_tes_${newId}">
+                                 
+                                 <div class="view-mode w-100 d-flex justify-content-between align-items-center">
+                                     <div>
+                                         <span class="fw-bold item-name">${resp.ad || data.Ad}</span>
+                                         <br/><small class="text-muted">${data.Tanim || ''}</small>
+                                     </div>
+                                     <div style="min-width: 80px; text-align: right;">
+                                         <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('tes', ${newId})"><i class="bx bx-edit"></i></button>
+                                         <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('tes', ${newId})"><i class="bx bx-trash"></i></button>
+                                     </div>
+                                 </div>
+                                 
+                                  <div class="edit-mode w-100 d-none justify-content-between align-items-center">
+                                     <input type="text" class="edit-input me-2" value="${data.Ad}" id="input_tes_${newId}" onclick="event.stopPropagation()">
+                                      <div style="min-width: 80px; text-align: right;">
+                                         <button class="btn btn-sm btn-icon text-success me-1" onclick="event.stopPropagation(); saveEdit('tes', ${newId})"><i class="bx bx-check"></i></button>
+                                         <button class="btn btn-sm btn-icon text-dark" onclick="event.stopPropagation(); cancelEdit('tes', ${newId})"><i class="bx bx-x"></i></button>
+                                     </div>
+                                 </div>
+                             </li>`;
+                         
+                         $('#listTeskilat').append(newRowHtml);
+                         
+                         // Update Dropdown in Koordinatorluk Modal
+                         var newOption = new Option(data.Ad, newId, false, false);
+                         $('#addKoordParent').append(newOption);
+                         
+                         // 1. Find and Select the Parent Daire
+                         var parentRow = $('#row_daire_' + data.ParentId);
+                         if(parentRow.length > 0) {
+                             // Remove passive state visually & logically
+                             parentRow.removeClass('daire-passive');
+                             
+                             // Force selection 
+                             selectDaire(parentRow[0], data.ParentId, true);
+                             
+                             // 2. Scroll to Daire
+                             parentRow[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                         }
+                         
+                         // 3. Highlight and Scroll to new Teşkilat
+                         var newRow = $('#row_tes_' + newId);
+                         if(newRow.length > 0) {
+                             newRow.addClass('highlight-green');
+                             setTimeout(function() { newRow.removeClass('highlight-green'); }, 2000);
+                             newRow[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                         }
+                         
+                         Swal.fire({
+                             icon: 'success', title: 'Eklendi', showConfirmButton: false, timer: 1500
+                         });
+
+                     } else {
+                         Swal.fire('Hata', 'İşlem başarısız.', 'error');
+                     }
+                },
+                error: function(xhr) { 
+                    setTimeout(() => Swal.fire('Hata', xhr.responseText || 'İşlem başarısız.', 'error'), 300); 
+                }
+            });
+        }
+        
+        // ===================================
+        // KOORDINATORLUK FUNCTIONALITY
+        // ===================================
+
+        // Edit Button Click - Open Modal instead of Inline
+        function openKoordEditModal(id, ad, tasraVarMi, parentId) {
+            // Reset & Populate Modal
+            $('#modalKoordinatorluk .modal-title').text('Koordinatörlük Düzenle');
+            $('#addKoordAd').val(ad);
+            $('#addKoordTanim').val(''); 
+            
+            // Set Hidden ID and Mode
+            $('#modalKoordinatorluk').data('id', id);
+            $('#modalKoordinatorluk').data('mode', 'update');
+
+            // Set Parent (Teşkilat)
+            $('#addKoordParent').val(parentId).trigger('change');
+            
+            // Set Switch
+            // Ensure boolean conversion
+            var isTasra = (tasraVarMi === true || tasraVarMi === 'True' || tasraVarMi === 'true');
+            $('#chkKoordTasraVar').prop('checked', isTasra);
+
+            // Hide/Show logic triggers based on Parent Change, but we need to ensure Switch visibility for Merkez (Id=1)
+            // Ideally we check ParentId from select or argument
+            if(parentId == 1) { 
+                $('#divKoordTasraSwitch').show();
+            } else {
+                $('#divKoordTasraSwitch').hide();
+            }
+
+            var modal = new bootstrap.Modal(document.getElementById('modalKoordinatorluk'));
+            modal.show();
+        }
+
+        // Reset Modal on Close
+        var koordModalEl = document.getElementById('modalKoordinatorluk');
+        if(koordModalEl) {
+            koordModalEl.addEventListener('hidden.bs.modal', function () {
+                $('#modalKoordinatorluk .modal-title').text('Yeni Koordinatörlük Ekle');
+                $('#modalKoordinatorluk').data('id', null);
+                $('#modalKoordinatorluk').data('mode', 'add');
+                $('#addKoordAd').val('');
+                $('#addKoordTanim').val('');
+                $('#addKoordParent').val('').trigger('change');
+                $('#chkKoordTasraVar').prop('checked', true); // Default
+                $('#addKoordIl').val('').trigger('change');
             });
         }
 
         function saveKoordinatorluk() {
+            var mode = $('#modalKoordinatorluk').data('mode') || 'add';
+            var id = $('#modalKoordinatorluk').data('id');
+
+            var rawParentVal = $('#addKoordParent').val();
+            
             var data = { 
+                Id: id,
                 Ad: $('#addKoordAd').val(), 
-                Tanim: $('#addKoordTanim').val(),
-                ParentId: $('#addKoordParent').val(),
-                IlId: $('#addKoordIl').val()
+                Tanim: $('#addKoordTanim').val(), 
+                ParentId: rawParentVal, 
+                IlId: $('#addKoordIl').val(),
+                TasraTeskilatiVarMi: $('#chkKoordTasraVar').is(':checked')
             };
-            if(!data.Ad || !data.ParentId) return Swal.fire('Uyarı', 'Ad ve Bağlı Teşkilat zorunludur.', 'warning');
+
+            // Fallback for Parent
+            if(!data.ParentId && selectedTeskilatId) {
+                data.ParentId = selectedTeskilatId;
+            }
+            
+            // Validation
+            if(!data.ParentId) return Swal.fire('Uyarı', 'Bağlı Teşkilat seçimi yapılamadı.', 'warning');
+
+            data.ParentId = parseInt(data.ParentId);
+            data.IlId = data.IlId ? parseInt(data.IlId) : null;
+            
+            // Validation Logic
+            if(data.ParentId === 2 || $('#divKoordIlContainer').is(':visible')) {
+                if(!data.IlId) return Swal.fire('Uyarı', 'Lütfen bir il seçiniz.', 'warning');
+                if(!data.Ad) data.Ad = "Otomatik"; 
+            } else {
+                if(!data.Ad) return Swal.fire('Uyarı', 'Birim Adı zorunludur.', 'warning');
+            }
+
+            var url = mode === 'update' ? '/Birimler/GuncelleKoordinatorluk' : '/Birimler/EkleKoordinatorluk';
 
             $.ajax({
-                url: '/Birimler/EkleKoordinatorluk', type: 'POST', contentType: 'application/json',
+                url: url, type: 'POST', contentType: 'application/json',
                 data: JSON.stringify(data),
-                success: function(resp) { location.reload(); },
-                error: function() { Swal.fire('Hata', 'Kayıt başarısız.', 'error'); }
+                success: function(resp) { 
+                    // 1. Success Message
+                    Swal.fire({
+                        icon: 'success', title: mode === 'update' ? 'Güncellendi' : 'Eklendi',
+                        showConfirmButton: false, timer: 1500
+                    });
+
+                    $('#modalKoordinatorluk').modal('hide');
+                    
+                    if(mode === 'update') {
+                         // UPDATE UI
+                         var row = $('#row_koord_' + id);
+                         if(row.length > 0) {
+                             row.find('.item-name').text(data.Ad); // Optimistic name update
+                             
+                             // Update Tasra Status for future edits
+                             // Note: We need to update the onclick handler too if we want perfect state, 
+                             // but openKoordEditModal takes args. We can update the row HTML or just data attributes.
+                             // Updating onclick attribute is hard via jquery properly.
+                             // Simplest: Replace the button HTML.
+                             var btnEdit = row.find('.btn-icon').first(); // Edit button
+                             // Re-bind click? Or just replace onclick attribute string.
+                             btnEdit.attr('onclick', `event.stopPropagation(); openKoordEditModal(${id}, '${data.Ad}', ${data.TasraTeskilatiVarMi}, ${data.ParentId})`);
+
+                             // Highlight Blue
+                             row.addClass('highlight-blue');
+                             setTimeout(function() { row.removeClass('highlight-blue'); }, 2000);
+
+                             // Handle Deleted Commissions
+                             if(resp.deletedKomisyonIds && resp.deletedKomisyonIds.length > 0) {
+                                 resp.deletedKomisyonIds.forEach(function(kid) {
+                                     var kRow = $('#row_kom_' + kid);
+                                     if(kRow.length > 0) {
+                                         kRow.addClass('highlight-red');
+                                         setTimeout(function() { 
+                                             kRow.slideUp(function() { $(this).remove(); }); 
+                                         }, 500);
+                                     }
+                                 });
+                             }
+                         }
+                    } else {
+                        // ADD UI
+                        if(resp.success) {
+                             var newId = resp.id;
+                             var newRowHtml = `
+                               <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center k-item" 
+                                   data-parent-id="${data.ParentId}"
+                                   data-id="${newId}"
+                                   onclick="selectKoordinatorluk(this, ${newId})"
+                                   style="display:none;"
+                                   id="row_koord_${newId}">
+
+                                   <div class="view-mode w-100 d-flex justify-content-between align-items-center">
+                                       <div>
+                                           <span class="fw-bold item-name">${resp.ad}</span>
+                                           <br/><small class="text-muted">${data.Tanim || ''}</small>
+                                       </div>
+                                       <div style="min-width: 80px; text-align: right;">
+                                           <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); openKoordEditModal(${newId}, '${resp.ad}', ${data.TasraTeskilatiVarMi}, ${data.ParentId})"><i class="bx bx-edit"></i></button>
+                                           <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('koord', ${newId})"><i class="bx bx-trash"></i></button>
+                                       </div>
+                                   </div>
+                               </li>`;
+                             
+                             $('#listKoordinatorluk').prepend(newRowHtml);
+                             
+                             // Show/Highlight if visible context
+                             if(selectedTeskilatId == data.ParentId || (!selectedTeskilatId && data.ParentId==2)) { // 2=Tasra special case maybe?
+                                 var row = $('#row_koord_' + newId);
+                                 row.css('display', '').addClass('d-flex');
+                                 $('#koordInfo').hide();
+                                 row.addClass('highlight-green');
+                                 setTimeout(function() { row.removeClass('highlight-green'); }, 2000);
+                                 row[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                             }
+                             
+                             // Update Option in Komisyon Modal
+                             var newOption = new Option(resp.ad, newId, false, false);
+                             $(newOption).attr('data-teskilat-id', data.ParentId);
+                             $(newOption).attr('data-tasra-var-mi', data.TasraTeskilatiVarMi);
+                             $('#addKomParent').append(newOption);
+                        } else {
+                            location.reload();
+                        }
+                    }
+                },
+                error: function(xhr) { 
+                    setTimeout(() => Swal.fire('Hata', xhr.responseText || 'İşlem başarısız.', 'error'), 300); 
+                }
             });
         }
 
         function saveKomisyon() {
+             var rawParentVal = $('#addKomParent').val();
+             console.log('[Ayarlar] Raw Komisyon Parent Value:', rawParentVal);
+
              var data = { 
                 Ad: $('#addKomAd').val(), 
                 Tanim: $('#addKomTanim').val(),
-                ParentId: $('#addKomParent').val()
+                ParentId: rawParentVal,
+                BagliMerkezKoordinatorlukId: $('#addKomBagliMerkez').val()
             };
-            if(!data.Ad || !data.ParentId) return Swal.fire('Uyarı', 'Ad ve Bağlı Koordinatörlük zorunludur.', 'warning');
+
+            // Fix for [Required] Ad property in backend
+            if(!$('#divKomAdContainer').is(':visible')) {
+                data.Ad = "Otomatik"; // Will be overwritten by backend logic
+            }
+            
+            // Fallback for Komisyon Parent
+            if(!data.ParentId && selectedKoordId) {
+                console.log('[Ayarlar] Using fallback selectedKoordId:', selectedKoordId);
+                data.ParentId = selectedKoordId;
+            }
+
+            if(!data.ParentId) return Swal.fire('Uyarı', 'Bağlı Koordinatörlük zorunludur.', 'warning');
+
+            // Sanitize IDs
+            console.log('[Ayarlar] Save Data Before Parse:', data);
+            
+            data.ParentId = data.ParentId ? parseInt(data.ParentId) : null;
+            data.BagliMerkezKoordinatorlukId = data.BagliMerkezKoordinatorlukId ? parseInt(data.BagliMerkezKoordinatorlukId) : null;
+            var ilId = $('#addKomIl').val();
+            if(ilId) data.IlId = parseInt(ilId);
+            
+            if($('#divKomBagliMerkez').is(':visible')) {
+                if(!data.BagliMerkezKoordinatorlukId) return Swal.fire('Uyarı', 'Bağlı Merkez Birim zorunludur.', 'warning');
+            } 
+            else if($('#divKomIlContainer').is(':visible')) {
+                if(!data.IlId) return Swal.fire('Uyarı', 'Lütfen komisyonun ekleneceği İli seçiniz.', 'warning');
+            }
+            else {
+                if(!data.Ad) return Swal.fire('Uyarı', 'Komisyon Adı zorunludur.', 'warning');
+            }
+
+            var parentName = $("#addKomParent option:selected").text();
 
             $.ajax({
                 url: '/Birimler/EkleKomisyon', type: 'POST', contentType: 'application/json',
                 data: JSON.stringify(data),
-                success: function(resp) { location.reload(); },
-                error: function() { Swal.fire('Hata', 'Kayıt başarısız.', 'error'); }
+                success: function(resp) {
+                    console.log('[Ayarlar] EkleKomisyon Success:', resp); 
+                    if(resp.success) {
+                        // CAPTURE STATE IMMEDIATELY (Before Modal Close/Clear)
+                        var isRedirected = $('#divKomIlContainer').is(':visible');
+                        var selectedCityText = $("#addKomIl option:selected").text();
+                        var selectedParentText = $("#addKomParent option:selected").text();
+
+                        // 1. Show Success Message FIRST
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Eklendi',
+                            showConfirmButton: false,
+                            timer: 1500
+                        }).then(() => {
+                            // 2. Hide Modal
+                            var $modal = $('#modalKomisyon');
+                            $modal.modal('hide');
+                            
+                            // 3. UI Updates
+                            $modal.one('hidden.bs.modal', function () {
+                                 $('#addKomAd').val('');
+                                 $('#addKomTanim').val('');
+                                 $('#addKomIl').val('').trigger('change'); // This clears the selection!
+                                 
+                                 var redirected = isRedirected; // Use captured state
+                                 
+                                 // Determine display properties for the new item
+                                 var newItemName = resp.ad; 
+                                 var parentName = "";
+                                 var bagliMerkezIdOfNewItem = data.BagliMerkezKoordinatorlukId || 0;
+                                 var parentIdOfNewItem = data.ParentId;
+
+                                  // If added via redirection (e.g. Center -> Province), 
+                                  // we want to display it properly under the Center IF we are currently viewing the Center.
+                                  if(redirected) {
+                                       var rawText = selectedCityText; // Use captured text e.g. "Adana İl Koordinatörlüğü"
+                                       var cityOnly = rawText.replace(' İl Koordinatörlüğü', '').trim();
+                                       
+                                       // newItemName should be the STORED name (e.g. "Fen Bilimleri Komisyonu") 
+                                       // so that when viewing under ADANA, it shows "Fen Bilimleri".
+                                       // When viewing under FEN BILIMLERI, the selectKoordinatorluk logic will rename it to "Adana".
+                                       newItemName = resp.ad; 
+                                       parentName = cityOnly + " İl Koordinatörlüğü"; 
+
+                                       // FORCE RENAMING LOGIC:
+                                       // selectKoordinatorluk renames IF (bagliMerkezId == currentId && parentId != currentId)
+                                       // currentId is data.ParentId (Central Unit).
+                                       // So we must set bagliMerkezIdOfNewItem = data.ParentId
+                                       // And parentIdOfNewItem = something else (e.g. -1)
+                                       bagliMerkezIdOfNewItem = data.ParentId; 
+                                       parentIdOfNewItem = -1; 
+                                  } else {
+                                       parentName = selectedParentText; // Use captured text
+                                  }
+
+                                 var newRowHtml = `
+                                   <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center kom-item" 
+                                       data-parent-id="${parentIdOfNewItem}"
+                                       data-bagli-merkez-id="${bagliMerkezIdOfNewItem}"
+                                       data-parent-name="${parentName}"
+                                       data-original-name="${newItemName}"
+                                       style="display:none;"
+                                       id="row_kom_${resp.id}">
+                                      
+                                      <div class="view-mode w-100 d-flex justify-content-between align-items-center">
+                                          <div>
+                                              <span class="fw-bold item-name">${resp.ad}</span>
+                                              <br/><small class="text-muted">${parentName}</small>
+                                          </div>
+                                          <div style="min-width: 80px; text-align: right;">
+                                              <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('kom', ${resp.id})"><i class="bx bx-edit"></i></button>
+                                              <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('kom', ${resp.id})"><i class="bx bx-trash"></i></button>
+                                          </div>
+                                      </div>
+                                      
+                                      <div class="edit-mode w-100 d-none justify-content-between align-items-center">
+                                          <input type="text" class="edit-input me-2" value="${resp.ad}" id="input_kom_${resp.id}" onclick="event.stopPropagation()">
+                                           <div style="min-width: 80px; text-align: right;">
+                                              <button class="btn btn-sm btn-icon text-success me-1" onclick="event.stopPropagation(); saveEdit('kom', ${resp.id})"><i class="bx bx-check"></i></button>
+                                              <button class="btn btn-sm btn-icon text-dark" onclick="event.stopPropagation(); cancelEdit('kom', ${resp.id})"><i class="bx bx-x"></i></button>
+                                          </div>
+                                      </div>
+                                   </li>`;
+
+                                 // Simple Append
+                                 var $container = $('#listKomisyon');
+                                 $container.prepend(newRowHtml); 
+
+                                 // Re-apply filters to show/hide and rename properly
+                                 if(selectedKoordId) {
+                                      var $activeKoord = $('#listKoordinatorluk .k-item.active');
+                                      if($activeKoord.length > 0) {
+                                           selectKoordinatorluk($activeKoord[0], selectedKoordId);
+                                      }
+                                 }
+                                 
+                                 // Highlight the new item
+                                 var $newItem = $('#row_kom_' + resp.id);
+                                 if($newItem.is(':visible')) {
+                                     $newItem.addClass('highlight-green');
+                                     setTimeout(function() { $newItem.removeClass('highlight-green'); }, 2000);
+                                     $newItem[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                 }
+                            });
+                        });
+
+                    } else {
+                        location.reload(); 
+                    }
+                },
+                error: function(xhr) { 
+                     setTimeout(() => Swal.fire('Hata', xhr.responseText || 'Kayıt başarısız.', 'error'), 300); 
+                }
             });
         }
 
@@ -246,10 +1552,96 @@
                 confirmButtonText: 'Evet, Sil'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post('/Birimler/SilBirim?type=' + type + '&id=' + id, function() {
-                        location.reload();
-                    }).fail(function() {
-                        Swal.fire('Hata', 'Silme işlemi başarısız. Bağlı kayıtlar olabilir.', 'error');
+                    var url = '/Birimler/SilBirim?type=' + type + '&id=' + id;
+                    if(type === 'daire') url = '/Birimler/SilDaire?id=' + id;
+
+                    $.post(url, function() {
+                        var row = $('#row_' + type + '_' + id);
+                        if(row.length > 0) {
+                            // Visual Feedback: Red Highlight then Remove
+                            row.addClass('highlight-red');
+                            setTimeout(function() {
+                                row.slideUp(function() { 
+                                    $(this).remove(); 
+                                    
+                                    // If deleted item was a Coordinator, also remove its linked Commissions from DOM
+                                    if(type === 'koord') {
+                                        // Remove direct children
+                                        $('.kom-item[data-parent-id="' + id + '"]').remove();
+                                        // Remove linked provincial commissions
+                                        $('.kom-item[data-bagli-merkez-id="' + id + '"]').remove();
+                                        
+                                        // If currently selected coordinator was this one, reset view
+                                        if(selectedKoordId === id) {
+                                            selectedKoordId = null;
+                                            $('.kom-item').hide().removeClass('d-flex');
+                                            $('#komInfo').text('Lütfen bir koordinatörlük seçiniz.').show();
+                                        }
+                                    }
+                                    
+                                    // If deleted item was Daire, remove linked Teskilat rows with Red Effect
+                                    if(type === 'daire') {
+                                        var $relatedTes = $('.tes-item[data-parent-id="' + id + '"]');
+                                        if($relatedTes.length > 0) {
+                                            $relatedTes.addClass('highlight-red');
+                                            setTimeout(function() {
+                                                $relatedTes.slideUp(function() { 
+                                                    $(this).remove(); 
+                                                    // Also remove from dropdowns if any related teskilats were in them
+                                                    // Since we don't know IDs easily without looping, we rely on server sync mostly.
+                                                    // BUT we can remove the Daire option itself from Daire dropdowns if exist
+                                                    // (though currently no add-something-under-daire dropdown other than Teskilat Parent)
+                                                });
+                                            }, 500);
+                                        }
+
+                                        // Also remove option from Teskilat Add Modal -> Parent Select
+                                        $('#addTesParent option[value="' + id + '"]').remove();
+
+                                        // If this Daire was active, reset everything
+                                        if(selectedDaireId === id) {
+                                            selectedDaireId = null;
+                                            selectedTeskilatId = null;
+                                            selectedKoordId = null;
+                                            $('.tes-item').hide().removeClass('d-flex');
+                                            $('.k-item').hide().removeClass('d-flex');
+                                            $('.kom-item').hide().removeClass('d-flex');
+                                            $('#tesInfo').show();
+                                            $('#koordInfo').show();
+                                            $('#komInfo').show();
+                                        }
+                                    }
+
+                                    // If deleted item was Teskilat
+                                    if(type === 'tes') {
+                                        // Remove from Koordinatorluk Add Modal -> Parent Select
+                                        $('#addKoordParent option[value="' + id + '"]').remove();
+                                        
+                                        // If deleted item was active
+                                         if(selectedTeskilatId === id) {
+                                            selectedTeskilatId = null;
+                                            selectedKoordId = null;
+                                            $('.k-item').hide().removeClass('d-flex');
+                                            $('.kom-item').hide().removeClass('d-flex');
+                                            $('#koordInfo').show();
+                                            $('#komInfo').show();
+                                        }
+                                    }
+
+                                    // If deleted item was Koordinatorluk
+                                    if(type === 'koord') {
+                                        // Remove from Komisyon Add Modal -> Parent Select
+                                        $('#addKomParent option[value="' + id + '"]').remove();
+                                        // Remove from Komisyon Add Modal -> BagliMerkez Select
+                                        $('#addKomBagliMerkez option[value="' + id + '"]').remove();
+                                    }
+                                });
+                            }, 500);
+                        } else {
+                            location.reload();
+                        }
+                    }).fail(function(xhr) {
+                        Swal.fire('Hata', xhr.responseText || 'Silme işlemi başarısız. Bağlı kayıtlar olabilir.', 'error');
                     });
                 }
             })

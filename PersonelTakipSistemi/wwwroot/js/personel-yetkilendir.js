@@ -279,10 +279,21 @@ document.addEventListener('DOMContentLoaded', function () {
         const ilKoordOpt = Array.from(drawerKurumsalRol.options).find(o => o.value === "İl Koordinatörü");
         if (ilKoordOpt) {
             const isMerkez = user.teskilat === "Merkez";
-            ilKoordOpt.hidden = isMerkez;
+            ilKoordOpt.hidden = isMerkez; // Hide if Merkez (Only for Taşra)
             ilKoordOpt.disabled = isMerkez;
-            // If currently selected and now hidden, switch to Personel
+
             if (isMerkez && drawerKurumsalRol.value === "İl Koordinatörü") {
+                drawerKurumsalRol.value = "Personel";
+            }
+        }
+
+        const merkezBirimOpt = Array.from(drawerKurumsalRol.options).find(o => o.value === "Merkez Birim Koordinatörlüğü");
+        if (merkezBirimOpt) {
+            const isMerkez = user.teskilat === "Merkez";
+            merkezBirimOpt.hidden = !isMerkez; // Hide if NOT Merkez (Only for Merkez)
+            merkezBirimOpt.disabled = !isMerkez;
+
+            if (!isMerkez && drawerKurumsalRol.value === "Merkez Birim Koordinatörlüğü") {
                 drawerKurumsalRol.value = "Personel";
             }
         }

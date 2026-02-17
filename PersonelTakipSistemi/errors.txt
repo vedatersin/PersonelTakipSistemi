@@ -1,0 +1,7 @@
+C:\Users\vedat\source\repos\PersonelTakipSistemi\PersonelTakipSistemi\ViewModels\IstatistikViewModel.cs(54,6): error CS1513: } expected [C:\Users\vedat\source\repos\PersonelTakipSistemi\PersonelTakipSistemi\PersonelTakipSistemi.csproj]
+
+Build FAILED.
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:00.90

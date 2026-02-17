@@ -45,11 +45,13 @@ namespace PersonelTakipSistemi.Data
         public DbSet<GorevDurum> GorevDurumlari { get; set; }
         public DbSet<Birim> Birimler { get; set; }
         public DbSet<Gorev> Gorevler { get; set; }
+        public DbSet<GorevDurumGecmisi> GorevDurumGecmisleri { get; set; }
 
         public DbSet<GorevAtamaTeskilat> GorevAtamaTeskilatlar { get; set; }
         public DbSet<GorevAtamaKoordinatorluk> GorevAtamaKoordinatorlukler { get; set; }
         public DbSet<GorevAtamaKomisyon> GorevAtamaKomisyonlar { get; set; }
         public DbSet<GorevAtamaPersonel> GorevAtamaPersoneller { get; set; }
+        public DbSet<DaireBaskanligi> DaireBaskanliklari { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -63,6 +65,19 @@ namespace PersonelTakipSistemi.Data
             modelBuilder.Entity<IsNiteligi>().ToTable("IsNitelikleri");
             modelBuilder.Entity<Il>().ToTable("Iller");
             modelBuilder.Entity<Brans>().ToTable("Branslar");
+
+            // Daire Başkanlıkları Seed
+            modelBuilder.Entity<DaireBaskanligi>().HasData(
+                new DaireBaskanligi { Id = 1, Ad = "Araştırma Geliştirme ve Projeler Daire Başkanlığı", IsActive = false },
+                new DaireBaskanligi { Id = 2, Ad = "Eğitim Ortamlarının ve Öğrenme Süreçlerinin Geliştirilmesi Daire Başkanlığı", IsActive = false },
+                new DaireBaskanligi { Id = 3, Ad = "Eğitim Politikaları Daire Başkanlığı", IsActive = false },
+                new DaireBaskanligi { Id = 4, Ad = "Erken Çocukluk Eğitimi Daire Başkanlığı", IsActive = false },
+                new DaireBaskanligi { Id = 5, Ad = "İdari ve Mali İşler Daire Başkanlığı", IsActive = false },
+                new DaireBaskanligi { Id = 6, Ad = "İzleme ve Değerlendirme Daire Başkanlığı", IsActive = false },
+                new DaireBaskanligi { Id = 7, Ad = "Kültür, Sanat ve Spor Etkinlikleri Daire Başkanlığı", IsActive = false },
+                new DaireBaskanligi { Id = 8, Ad = "Öğrenci İşleri Daire Başkanlığı", IsActive = false },
+                new DaireBaskanligi { Id = 9, Ad = "Programlar ve Öğretim Materyalleri Daire Başkanlığı", IsActive = true }
+            );
 
             // Notification Module
             modelBuilder.Entity<BildirimGonderen>(entity => {
@@ -279,9 +294,15 @@ namespace PersonelTakipSistemi.Data
             modelBuilder.Entity<Teskilat>(entity => {
                 entity.ToTable("Teskilatlar");
                 entity.HasKey(e => e.TeskilatId);
+                
+                entity.HasOne(t => t.DaireBaskanligi)
+                      .WithMany(d => d.Teskilatlar)
+                      .HasForeignKey(t => t.DaireBaskanligiId)
+                      .OnDelete(DeleteBehavior.Cascade); // Kademeli silme için Cascade
+
                 entity.HasData(
-                    new Teskilat { TeskilatId = 1, Ad = "Merkez" },
-                    new Teskilat { TeskilatId = 2, Ad = "Taşra" }
+                    new Teskilat { TeskilatId = 1, Ad = "Merkez", DaireBaskanligiId = 9 },
+                    new Teskilat { TeskilatId = 2, Ad = "Taşra", DaireBaskanligiId = 9 }
                 );
             });
 
@@ -301,7 +322,25 @@ namespace PersonelTakipSistemi.Data
                     .OnDelete(DeleteBehavior.SetNull); // Başkan silinirse koordinatörlük silinmesin
 
                 entity.HasData(
-                    new Koordinatorluk { KoordinatorlukId = 1, Ad = "Ankara TEGM Koordinatörlüğü", TeskilatId = 1 },
+                    // Merkez (Id: 1) Coordinatorships - Updated
+                    new Koordinatorluk { KoordinatorlukId = 4, Ad = "Fen Bilimleri Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 5, Ad = "İngilizce Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 6, Ad = "İlkokul Türkçe Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 7, Ad = "İlkokul Hayat Bilgisi Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 8, Ad = "Ortaokul Matematik Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 9, Ad = "İlkokul Matematik Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 10, Ad = "Ortaokul Türkçe Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 11, Ad = "Sosyal Bilgiler Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 12, Ad = "T.C. İnkılap Tarihi ve Atatürkçülük Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 13, Ad = "Almanca Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 14, Ad = "Görsel Tasarım Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 15, Ad = "Mebi Dijital Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 16, Ad = "Müzik Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 17, Ad = "Uzmanlar Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 18, Ad = "BÖTE Birim Koordinatörlüğü", TeskilatId = 1 },
+                    new Koordinatorluk { KoordinatorlukId = 19, Ad = "Dil İnceleme Birim Koordinatörlüğü", TeskilatId = 1 },
+
+                    // Taşra (Id: 2) - Keep Existing
                     new Koordinatorluk { KoordinatorlukId = 2, Ad = "Mardin İl Koordinatörlüğü", TeskilatId = 2 },
                     new Koordinatorluk { KoordinatorlukId = 3, Ad = "İzmir İl Koordinatörlüğü", TeskilatId = 2 }
                 );
@@ -323,13 +362,7 @@ namespace PersonelTakipSistemi.Data
                     .OnDelete(DeleteBehavior.SetNull);
 
                 entity.HasData(
-                    // Ankara TEGM
-                    new Komisyon { KomisyonId = 1, Ad = "Türkçe Komisyonu", KoordinatorlukId = 1 },
-                    new Komisyon { KomisyonId = 2, Ad = "Matematik Komisyonu", KoordinatorlukId = 1 },
-                    new Komisyon { KomisyonId = 3, Ad = "Fen Bilimleri Komisyonu", KoordinatorlukId = 1 },
-                    // Mardin İl
-                    new Komisyon { KomisyonId = 4, Ad = "Türkçe Komisyonu", KoordinatorlukId = 2 },
-                    new Komisyon { KomisyonId = 5, Ad = "Matematik Komisyonu", KoordinatorlukId = 2 }
+                   // No seed data for Komisyonlar
                 );
             });
 
@@ -341,7 +374,8 @@ namespace PersonelTakipSistemi.Data
                     new KurumsalRol { KurumsalRolId = 1, Ad = "Personel" },
                     new KurumsalRol { KurumsalRolId = 2, Ad = "Komisyon Başkanı" },
                     new KurumsalRol { KurumsalRolId = 3, Ad = "İl Koordinatörü" },
-                    new KurumsalRol { KurumsalRolId = 4, Ad = "Genel Koordinatör" }
+                    new KurumsalRol { KurumsalRolId = 4, Ad = "Genel Koordinatör" },
+                    new KurumsalRol { KurumsalRolId = 5, Ad = "Merkez Birim Koordinatörlüğü" }
                 );
             });
 
@@ -461,10 +495,10 @@ namespace PersonelTakipSistemi.Data
                 
                 // Seed
                 entity.HasData(
-                    new GorevKategori { GorevKategoriId = 1, Ad = "Ders Kitapları", Aciklama = "Ders kitabı hazırlık işleri" },
-                    new GorevKategori { GorevKategoriId = 2, Ad = "Yardımcı Kaynaklar", Aciklama = "Soru bankası ve etkinlikler" },
-                    new GorevKategori { GorevKategoriId = 3, Ad = "Dijital İçerik", Aciklama = "Video ve animasyon işleri" },
-                    new GorevKategori { GorevKategoriId = 4, Ad = "Programlar", Aciklama = "Müfredat çalışmaları" }
+                    new GorevKategori { GorevKategoriId = 1, Ad = "Ders Kitapları", Aciklama = "Ders kitabı hazırlık işleri", Renk = "#3B82F6" },
+                    new GorevKategori { GorevKategoriId = 2, Ad = "Yardımcı Kaynaklar", Aciklama = "Soru bankası ve etkinlikler", Renk = "#10B981" },
+                    new GorevKategori { GorevKategoriId = 3, Ad = "Dijital İçerik", Aciklama = "Video ve animasyon işleri", Renk = "#F59E0B" },
+                    new GorevKategori { GorevKategoriId = 4, Ad = "Programlar", Aciklama = "Müfredat çalışmaları", Renk = "#8B5CF6" }
                 );
             });
 
@@ -477,11 +511,11 @@ namespace PersonelTakipSistemi.Data
                 
                 // Seed
                 entity.HasData(
-                    new GorevDurum { GorevDurumId = 1, Ad = "Atanmayı Bekliyor", Sira = 1, RenkSinifi = "bg-warning" },
-                    new GorevDurum { GorevDurumId = 2, Ad = "Devam Ediyor", Sira = 2, RenkSinifi = "bg-primary" },
-                    new GorevDurum { GorevDurumId = 3, Ad = "Kontrolde", Sira = 3, RenkSinifi = "bg-info" },
-                    new GorevDurum { GorevDurumId = 4, Ad = "Tamamlandı", Sira = 4, RenkSinifi = "bg-success" },
-                    new GorevDurum { GorevDurumId = 5, Ad = "İptal", Sira = 5, RenkSinifi = "bg-secondary" }
+                    new GorevDurum { GorevDurumId = 1, Ad = "Atanmayı Bekliyor", Sira = 1, RenkSinifi = "bg-warning", Renk = "#F59E0B" },
+                    new GorevDurum { GorevDurumId = 2, Ad = "Devam Ediyor", Sira = 2, RenkSinifi = "bg-primary", Renk = "#3B82F6" },
+                    new GorevDurum { GorevDurumId = 3, Ad = "Kontrolde", Sira = 3, RenkSinifi = "bg-info", Renk = "#06B6D4" },
+                    new GorevDurum { GorevDurumId = 4, Ad = "Tamamlandı", Sira = 4, RenkSinifi = "bg-success", Renk = "#10B981" },
+                    new GorevDurum { GorevDurumId = 5, Ad = "İptal", Sira = 5, RenkSinifi = "bg-secondary", Renk = "#6B7280" }
                 );
             });
 
@@ -521,6 +555,10 @@ namespace PersonelTakipSistemi.Data
                 var tasks = new List<Gorev>();
                 int idCounter = 1;
 
+                // Test Tasks... skipping original seed lines in replace block usually, but here I'm inserting before Seed.
+                // Wait, I should insert AFTER Indexes and BEFORE Seed Data to keep it clean.
+
+
                 // Kategori 1: Ders Kitapları
                 tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Matematik 9 Kitap Dizgisi", Aciklama = "Dizgi taslağını hazırla", KategoriId = 1, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 01), BitisTarihi = new DateTime(2025, 11, 20) });
                 tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Fizik 10 Kapak Tasarımı", Aciklama = "Kapak görseli revizesi", KategoriId = 1, PersonelId = 1, BirimId = 3, GorevDurumId = 3, BaslangicTarihi = new DateTime(2025, 11, 05), BitisTarihi = new DateTime(2025, 11, 08) });
@@ -542,6 +580,27 @@ namespace PersonelTakipSistemi.Data
                 tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Haftalık Plan", Aciklama = "2. Dönem planlaması", KategoriId = 4, PersonelId = 1, BirimId = 1, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 11, 28), BitisTarihi = new DateTime(2025, 11, 30) });
  
                 entity.HasData(tasks);
+            });
+
+            // 3.5 GorevDurumGecmisi
+            modelBuilder.Entity<GorevDurumGecmisi>(entity => {
+                entity.ToTable("GorevDurumGecmisleri");
+                entity.HasKey(e => e.Id);
+                
+                entity.HasOne(e => e.Gorev)
+                    .WithMany(g => g.GorevDurumGecmisleri)
+                    .HasForeignKey(e => e.GorevId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.GorevDurum)
+                    .WithMany()
+                    .HasForeignKey(e => e.GorevDurumId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.IslemYapanPersonel)
+                    .WithMany()
+                    .HasForeignKey(e => e.IslemYapanPersonelId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
 
             // 4. Gorev Assignments (Junction Tables)

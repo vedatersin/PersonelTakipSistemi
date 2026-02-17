@@ -18,6 +18,9 @@ namespace PersonelTakipSistemi.Models
         [StringLength(50)]
         public string? RenkSinifi { get; set; } 
 
+        [StringLength(7)]
+        public string? Renk { get; set; } 
+
         public ICollection<Gorev> Gorevler { get; set; } = new List<Gorev>();
     }
 }

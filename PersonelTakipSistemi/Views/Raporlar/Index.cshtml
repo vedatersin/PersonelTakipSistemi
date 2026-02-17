@@ -3,9 +3,10 @@
     ViewData["Title"] = "Detaylı Raporlar";
 }
 
-<!-- Select2 CSS -->
-
-
+<style>
+    .clickable-row { cursor: pointer; }
+    .clickable-row:hover { background-color: rgba(105, 108, 255, 0.06) !important; }
+</style>
 
 <div class="container-xxl flex-grow-1 container-p-y">
     <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Modüller /</span> Raporlar</h4>
@@ -14,36 +15,77 @@
     <div class="card mb-4">
         <h5 class="card-header">Rapor Filtreleri</h5>
         <div class="card-body">
-            <form method="get">
+            <form method="get" id="raporForm">
                 <div class="row gx-3 gy-2 align-items-end">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Başlangıç Tarihi</label>
-                        <input type="date" class="form-control" asp-for="BaslangicTarihi">
+                        <input type="date" class="form-control" name="baslangic" value="@(Model.BaslangicTarihi?.ToString("yyyy-MM-dd"))">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Bitiş Tarihi</label>
-                        <input type="date" class="form-control" asp-for="BitisTarihi">
+                        <input type="date" class="form-control" name="bitis" value="@(Model.BitisTarihi?.ToString("yyyy-MM-dd"))">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
+                        <label class="form-label">Teşkilat</label>
+                        <select id="teskilatSelect" class="form-select" name="teskilatId">
+                            <option value="">Tümü</option>
+                            @foreach (var item in Model.TeskilatList)
+                            {
+                                if (Model.TeskilatId.HasValue && Model.TeskilatId.ToString() == item.Value)
+                                {
+                                    <option value="@item.Value" selected="selected">@item.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label class="form-label">Koordinatörlük</label>
-                        <select id="koordinatorlukSelect" class="form-select select2" asp-for="KoordinatorlukId" asp-items="Model.KoordinatorlukList">
+                        <select id="koordinatorlukSelect" class="form-select" name="koordinatorlukId">
                             <option value="">Tümü</option>
+                            @foreach (var item in Model.KoordinatorlukList)
+                            {
+                                if (Model.KoordinatorlukId.HasValue && Model.KoordinatorlukId.ToString() == item.Value)
+                                {
+                                    <option value="@item.Value" selected="selected">@item.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            }
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label">Komisyon</label>
-                        <select id="komisyonSelect" class="form-select select2" asp-for="KomisyonId" asp-items="Model.KomisyonList">
+                        <select id="komisyonSelect" class="form-select" name="komisyonId">
                             <option value="">Tümü</option>
+                            @foreach (var item in Model.KomisyonList)
+                            {
+                                if (Model.KomisyonId.HasValue && Model.KomisyonId.ToString() == item.Value)
+                                {
+                                    <option value="@item.Value" selected="selected">@item.Text</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.Value">@item.Text</option>
+                                }
+                            }
                         </select>
                     </div>
-                    <div class="col-md-12 mt-3 d-flex justify-content-end gap-2">
-                        <a asp-action="Index" class="btn btn-label-secondary">Sıfırla</a>
-                        <button type="submit" class="btn btn-primary">Raporla</button>
-                        <a asp-action="ExportExcel" class="btn btn-success">
-                            <i class="bx bx-download me-1"></i> Excel İndir
-                        </a>
-                        <button type="button" class="btn btn-info" onclick="window.print()">
-                            <i class="bx bx-printer me-1"></i> Yazdır
+                    <div class="col-md-2 d-flex align-items-end gap-2 flex-wrap">
+                        <a asp-action="Index" class="btn btn-label-secondary btn-sm">Sıfırla</a>
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="bx bx-filter-alt me-1"></i>Raporla
+                        </button>
+                        <button type="button" class="btn btn-success btn-sm" id="btnExcelIndir">
+                            <i class="bx bx-download me-1"></i>Excel İndir
+                        </button>
+                        <button type="button" class="btn btn-info btn-sm" onclick="window.print()">
+                            <i class="bx bx-printer me-1"></i>Yazdır
                         </button>
                     </div>
                 </div>
@@ -69,7 +111,7 @@
             <!-- Tab 1: Performans -->
             <div class="tab-pane fade show active" id="navs-top-performans" role="tabpanel">
                 <div class="table-responsive text-nowrap">
-                    <table class="table table-bordered table-hover">
+                    <table class="table table-bordered table-hover" id="performansTable">
                         <thead>
                             <tr>
                                 <th>Personel</th>
@@ -82,7 +124,12 @@
                         <tbody>
                             @foreach (var p in Model.PerformansRaporlari)
                             {
-                                <tr>
+                                <tr class="clickable-row" 
+                                    data-personel-id="@p.PersonelId" 
+                                    data-teskilat-id="@p.TeskilatId"
+                                    data-koord-id="@p.KoordinatorlukId"
+                                    data-komisyon-id="@p.KomisyonId"
+                                    title="İstatistiklere git">
                                     <td><strong>@p.AdSoyad</strong><br><small class="text-muted">@p.Birim</small></td>
                                     <td>@p.ToplamGorev</td>
                                     <td>@p.Tamamlanan</td>
@@ -99,13 +146,20 @@
                                     </td>
                                 </tr>
                             }
+                            @if (!Model.PerformansRaporlari.Any())
+                            {
+                                <tr><td colspan="5" class="text-center text-muted py-4">Filtrelere uygun veri bulunamadı.</td></tr>
+                            }
                         </tbody>
                     </table>
                 </div>
             </div>
             
-            <!-- Tab 2: Tarihsel -->
+            <!-- Tab 2: Tarihsel Yoğunluk -->
             <div class="tab-pane fade" id="navs-top-usage" role="tabpanel">
+                <div class="mb-3 text-end">
+                    <small class="text-muted me-2">Filtreler tarihsel yoğunluk tablosuna da uygulanır</small>
+                </div>
                 <div class="table-responsive text-nowrap">
                     <table class="table table-striped">
                         <thead>
@@ -113,16 +167,31 @@
                                 <th>Dönem</th>
                                 <th>Atanan Görev</th>
                                 <th>Tamamlanan</th>
+                                <th>Tamamlanma Oranı</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var g in Model.GorevRaporlari)
                             {
+                                var oran = g.AtananGorevSayisi > 0 ? (double)g.TamamlananGorevSayisi / g.AtananGorevSayisi * 100 : 0;
                                 <tr>
-                                    <td>@g.Donem</td>
+                                    <td><strong>@g.Donem</strong></td>
                                     <td>@g.AtananGorevSayisi</td>
                                     <td>@g.TamamlananGorevSayisi</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="progress w-75 me-2" style="height: 6px;">
+                                                <div class="progress-bar bg-@(oran > 80 ? "success" : oran > 50 ? "info" : "warning")" 
+                                                     style="width: @oran%"></div>
+                                            </div>
+                                            <small>@oran.ToString("0")%</small>
+                                        </div>
+                                    </td>
                                 </tr>
+                            }
+                            @if (!Model.GorevRaporlari.Any())
+                            {
+                                <tr><td colspan="4" class="text-center text-muted py-4">Filtrelere uygun veri bulunamadı.</td></tr>
                             }
                         </tbody>
                     </table>
@@ -133,36 +202,146 @@
 </div>
 
 <style media="print">
-    /* Yazdırma ayarları (Sidebar, Header gizle) */
-    .layout-menu, .layout-navbar, .btn { display: none !important; }
+    .layout-menu, .layout-navbar, .btn, .card-header, .nav-tabs { display: none !important; }
     .content-wrapper { padding: 0 !important; margin: 0 !important; }
+    .tab-pane { display: block !important; opacity: 1 !important; }
 </style>
 
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-
     <script>
         $(document).ready(function() {
-            $('.select2').select2({ theme: 'bootstrap-5' });
+            var $teskilat = $('#teskilatSelect');
+            var $koordinatorluk = $('#koordinatorlukSelect');
+            var $komisyon = $('#komisyonSelect');
+            var $form = $('#raporForm');
+            var $baslangic = $('input[name="baslangic"]');
+            var $bitis = $('input[name="bitis"]');
 
-            // Cascading Logic: Koordinatorluk -> Komisyon
-            $('#koordinatorlukSelect').on('change', function() {
-                var koordId = $(this).val();
-                
-                var $komisyonJs = $('#komisyonSelect');
-                $komisyonJs.empty().append('<option value="">Tümü</option>');
-
-                if (koordId) {
-                    $.get('@Url.Action("GetKomisyonlar", "Istatistik")', { koordinatorlukId: koordId }, function(data) {
-                         $.each(data, function(i, item) {
-                            $komisyonJs.append($('<option>', { value: item.id, text: item.text }));
-                        });
-                        $komisyonJs.trigger('change.select2'); // Notify Select2
-                    });
-                } else {
-                    $komisyonJs.trigger('change.select2');
+            // --- TAB PERSISTENCE & DATE LOGIC ---
+            // Sayfa yüklendiğinde son aktif olan tabı aç (localStorage)
+            var activeTabSelector = localStorage.getItem('raporActiveTab');
+            if (activeTabSelector && activeTabSelector !== '#' && activeTabSelector.startsWith('#')) {
+                try {
+                    var tabTriggerEl = document.querySelector('button[data-bs-target="' + activeTabSelector + '"]');
+                    if(tabTriggerEl) {
+                        var tab = new bootstrap.Tab(tabTriggerEl);
+                        tab.show();
+                    }
+                } catch (e) {
+                    console.error("Tab restoration failed:", e);
+                    localStorage.removeItem('raporActiveTab');
                 }
+            }
+
+            // Tab değiştiğinde localStorage'a kaydet
+            $('button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                var target = $(e.target).data('bs-target'); // #navs-top-performans etc.
+                if(target) {
+                    localStorage.setItem('raporActiveTab', target);
+                }
+            });
+
+            // Başlangıç durumu: Eğer üst birim seçili değilse alt birimleri ve "Tümü" seçeneğini yönet
+            if (!$teskilat.val()) {
+                $koordinatorluk.prop('disabled', true);
+                $komisyon.prop('disabled', true);
+            } else if (!$koordinatorluk.val()) {
+                $komisyon.prop('disabled', true);
+            }
+
+            // --- DATE LOGIC ---
+            function validateDates() {
+                var startDate = $baslangic.val();
+                var endDate = $bitis.val();
+
+                if (startDate && endDate) {
+                    if (startDate > endDate) {
+                        // Conflict: Clear the one that caused the issue? 
+                        // Or just Return false?
+                        // If we are here, user just changed one.
+                        // We will handle specific change events below.
+                    }
+                }
+            }
+
+            // Cascading: Teşkilat -> Koordinatörlük
+            $teskilat.on('change', function() {
+                // Reset child dropdowns
+                $koordinatorluk.val(''); 
+                $komisyon.val('');
+                
+                // Auto-submit
+                $form.submit();
+            });
+
+            // Cascading: Koordinatörlük -> Komisyon
+            $koordinatorluk.on('change', function() {
+                // Reset child dropdown
+                $komisyon.val('');
+                
+                // Auto-submit
+                $form.submit();
+            });
+
+            // Komisyon değişince de auto-submit
+            $komisyon.on('change', function() {
+                $form.submit();
+            });
+
+            // Tarih değişince
+            $('input[type="date"]').on('change', function() {
+                var startDate = $baslangic.val();
+                var endDate = $bitis.val();
+                
+                // Validate
+                if (startDate && endDate && startDate > endDate) {
+                    // Conflict found. 
+                    // Since we don't know which one changed easily (without separate handlers),
+                    // let's assume if Start > End, we reset the field required to make it valid.
+                    // But simpler: just Swap? No, confusing.
+                    // Clear the OTHER one. 
+                    // Actually, let's verify which one is `this`.
+                    if ($(this).is($baslangic)) {
+                        // User changed Start. It is now > End. So End is invalid.
+                        $bitis.val(''); 
+                    } else {
+                        // User changed End. It is now < Start. So Start is invalid (or End is invalid).
+                        // Usually End Date < Start is invalid.
+                        $baslangic.val('');
+                    }
+                }
+
+                // Tarih değiştiyse kullanıcı "Tarihsel Yoğunluk" ile ilgileniyordur -> O tabı aktif yap (localStorage'a kaydet)
+                var targetTabSelector = 'button[data-bs-target="#navs-top-usage"]';
+                localStorage.setItem('raporActiveTab', targetTabSelector);
+
+                $form.submit();
+            });
+
+
+            // Row click -> İstatistikler sayfasına git (tüm bağlamla)
+            $(document).on('click', '.clickable-row', function() {
+                var personelId = $(this).data('personel-id');
+                // Row üzerindeki (personelin kendi) birim bilgileri, filtredekilerden önceliklidir
+                var teskilatId = $(this).data('teskilat-id') || $teskilat.val();
+                var koordId = $(this).data('koord-id') || $koordinatorluk.val();
+                var komisyonId = $(this).data('komisyon-id') || $komisyon.val();
+
+                var url = '@Url.Action("Index", "Istatistik")' + '?personelId=' + personelId;
+                if (teskilatId) url += '&teskilatId=' + teskilatId;
+                if (koordId) url += '&koordinatorlukId=' + koordId;
+                if (komisyonId) url += '&komisyonId=' + komisyonId;
+                
+                window.location.href = url;
+            });
+
+            // Excel İndir — mevcut filtreleri taşı
+            $('#btnExcelIndir').on('click', function() {
+                // Form submit etmeden parametreleri alıp link oluştur
+                var params = new URLSearchParams(new FormData(document.getElementById('raporForm')));
+                window.location.href = '@Url.Action("ExportExcel", "Raporlar")' + '?' + params.toString();
             });
         });
     </script>

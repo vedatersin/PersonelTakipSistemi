@@ -4,6 +4,10 @@ using Microsoft.EntityFrameworkCore;
 using PersonelTakipSistemi.Data;
 using PersonelTakipSistemi.ViewModels;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using OfficeOpenXml.Drawing.Chart;
+using System.Drawing;
 
 namespace PersonelTakipSistemi.Controllers
 {
@@ -15,12 +19,14 @@ namespace PersonelTakipSistemi.Controllers
         public IstatistikController(TegmPersonelTakipDbContext context)
         {
             _context = context;
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         }
 
         [Authorize(Roles = "Admin,Yönetici")]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? personelId)
         {
             var model = new IstatistikViewModel();
+            model.PersonelId = personelId; // ID from URL param
 
             // 1. Temel Sayılar (Kartlar için - Genel)
             model.ToplamPersonel = await _context.Personeller.CountAsync(p => p.AktifMi);
@@ -47,17 +53,9 @@ namespace PersonelTakipSistemi.Controllers
                  return RedirectToAction("Index", "Home");
             }
             
-            // Re-use ViewModel but we only populate what's needed or create a new VM. 
-            // Reuse IstatistikViewModel for simplicity, but fields like "ToplamPersonel" can be "Toplam Gorevim" etc.
-            // Let's filter the totals later in JS or fetch specific totals here.
-            
             var model = new IstatistikViewModel();
-            model.PersonnelIdForKisisel = userId; // Add a property or pass via ViewBag? Passing via ViewBag/TempData is okay for now.
+            model.PersonnelIdForKisisel = userId;
             ViewBag.CurrentPersonelId = userId;
-
-             // Fetch specific totals for this user to show on cards immediately?
-             // Or let the JS fetch it via GetStats (which returns totals).
-             // Let's rely on GetStats JS call to fill the cards.
 
             return View(model);
         }
@@ -102,7 +100,7 @@ namespace PersonelTakipSistemi.Controllers
         // Main Statistics API
         [HttpGet]
         [Authorize] 
-        public async Task<IActionResult> GetStats(int? teskilatId, int? koordinatorlukId, int? komisyonId, int? personelId)
+        public async Task<IActionResult> GetStats(int? teskilatId, int? koordinatorlukId, int? komisyonId, int? personelId, int months = 6)
         {
             // SECURITY CHECK: If not Admin/Manager, FORCE filtering by their own ID
             if (!User.IsInRole("Admin") && !User.IsInRole("Yönetici"))
@@ -111,9 +109,6 @@ namespace PersonelTakipSistemi.Controllers
                 if (int.TryParse(userIdStr, out int uid))
                 {
                     personelId = uid;
-                    // Reset others to null to prevent authorized data leak? 
-                    // Actually, if they filter by their own ID, other filters are irrelevant (intersection).
-                    // But to be safe:
                     teskilatId = null;
                     koordinatorlukId = null;
                     komisyonId = null;
@@ -126,18 +121,12 @@ namespace PersonelTakipSistemi.Controllers
             
             var query = _context.Gorevler.Include(g => g.Kategori).AsQueryable();
 
-            if (personelId.HasValue) // This branch will always be hit for regular users
+            if (personelId.HasValue)
             {
                 query = query.Where(g => g.GorevAtamaPersoneller.Any(gap => gap.PersonelId == personelId));
             }
             else if (komisyonId.HasValue)
             {
-                // Commission -> Tasks assigned to Commission OR (Tasks assigned to Personnel IN Commission?)
-                // User said: "Komisyonu da seçerse bağlı komisyondaki bütün personelin verileri toplanarak"
-                // This implies we need tasks where the assigned person is in this commission?
-                // OR tasks assigned directly to the Commission.
-                // Let's assume inclusive: Tasks assigned to the commission + Tasks assigned to personnel who are members of the commission.
-                
                 var personnelIdsInComm = await _context.PersonelKomisyonlar
                     .Where(pk => pk.KomisyonId == komisyonId)
                     .Select(pk => pk.PersonelId)
@@ -150,11 +139,6 @@ namespace PersonelTakipSistemi.Controllers
             }
             else if (koordinatorlukId.HasValue)
             {
-                // Coordinator -> Tasks assigned to Coordinator OR (Tasks assigned to Commissions under it) OR (Tasks assigned to Personnel under it? - Maybe too broad)
-                // "bağlı komisyondaki bütün personelin verileri" -> implies drilling down.
-                // Let's stick to explicit Assignment links usually.
-                // Tasks assigned to this Coordinator OR Tasks assigned to Commissions of this Coordinator.
-                
                 query = query.Where(g => 
                     g.GorevAtamaKoordinatorlukler.Any(gak => gak.KoordinatorlukId == koordinatorlukId) ||
                     g.GorevAtamaKomisyonlar.Any(k => k.Komisyon.KoordinatorlukId == koordinatorlukId)
@@ -162,8 +146,7 @@ namespace PersonelTakipSistemi.Controllers
             }
             else if (teskilatId.HasValue)
             {
-                // Teskilat -> Tasks assigned to Coordinators under it
-                 query = query.Where(g => 
+                query = query.Where(g => 
                     g.GorevAtamaKoordinatorlukler.Any(gak => gak.Koordinatorluk.TeskilatId == teskilatId) ||
                     g.GorevAtamaKomisyonlar.Any(k => k.Komisyon.Koordinatorluk.TeskilatId == teskilatId)
                 );
@@ -171,24 +154,32 @@ namespace PersonelTakipSistemi.Controllers
 
             // 1. Categories (Pie)
             var kategoriData = await query
-                .GroupBy(g => g.Kategori.Ad)
-                .Select(g => new { Label = g.Key, Count = g.Count() })
+                .GroupBy(g => new { g.Kategori.Ad, g.Kategori.Renk })
+                .Select(g => new { Label = g.Key.Ad, Count = g.Count(), Color = g.Key.Renk })
                 .ToListAsync();
 
             // 2. Task Status (Bar)
              var durumData = await query
                 .Include(g => g.GorevDurum)
-                .GroupBy(g => g.GorevDurum.Ad)
+                .GroupBy(g => new { g.GorevDurum.Ad, g.GorevDurum.Renk })
                 .Select(g => new 
                 { 
-                    Label = g.Key, 
+                    Label = g.Key.Ad, 
                     Count = g.Count(),
-                    RenkSinifi = g.Max(x => x.GorevDurum.RenkSinifi) 
+                    Color = g.Key.Renk
                 })
                 .ToListAsync();
 
             // 3. Assigned Task Count
             int totalTasks = await query.CountAsync();
+
+            // ... (Skipping unchanged parts for brevity if tool supported it, but here I must provide contiguous block or careful splicing. 
+            // I'll skip the middle parts by narrowing the range or using multiple chunks if I wasn't replacing a huge block.
+            // Actually, I can target just the queries and then the return statement separate? 
+            // Better to do it in one go if they are close, but they are separated by 100 lines.
+            // I will use multi_replace_file_content for this.)
+
+
 
             // 4. Other Counts (Dynamic)
             int totalPersonel = 0;
@@ -198,22 +189,17 @@ namespace PersonelTakipSistemi.Controllers
             if (personelId.HasValue)
             {
                 totalPersonel = 1;
-                totalKomisyon = 1; // Belonging commission
-                totalKoordinatorluk = 1; // Belonging coordinator
+                totalKomisyon = 1;
+                totalKoordinatorluk = 1;
             }
             else if (komisyonId.HasValue)
             {
-                // Count personnel in this commission
                 totalPersonel = await _context.PersonelKomisyonlar.CountAsync(pk => pk.KomisyonId == komisyonId);
                 totalKomisyon = 1;
                 totalKoordinatorluk = 1;
             }
             else if (koordinatorlukId.HasValue)
             {
-                // Count personnel in this coordinator (via commissions or direct assignment if any)
-                // Assuming personnel are linked to commissions which are linked to coordinator
-                // OR linked directly to coordinator.
-                // Union of both sets of IDs.
                 var pIds1 = _context.PersonelKoordinatorlukler.Where(pk => pk.KoordinatorlukId == koordinatorlukId).Select(p => p.PersonelId);
                 var pIds2 = _context.PersonelKomisyonlar.Where(pk => pk.Komisyon.KoordinatorlukId == koordinatorlukId).Select(p => p.PersonelId);
                 totalPersonel = await pIds1.Union(pIds2).Distinct().CountAsync();
@@ -240,50 +226,91 @@ namespace PersonelTakipSistemi.Controllers
                 totalKomisyon = await _context.Komisyonlar.CountAsync();
             }
 
-            // 5. Personnel Trend (Line)
+            // 5. Trend Line Chart
             MultiSeriesChartJson? lineChart = null;
-            if (!personelId.HasValue)
+
+            if (personelId.HasValue)
             {
-                  var sixMonthsAgo = DateTime.Now.AddMonths(-5);
-                  var months = Enumerable.Range(0, 6)
-                     .Select(i => sixMonthsAgo.AddMonths(i))
-                     .Select(d => new { Month = d.Month, Year = d.Year, Label = d.ToString("MM/yyyy") })
-                     .ToList();
+                // ========== PERSONEL MODU: Görev Listesi Getir ==========
+                var tasks = await query
+                    .OrderByDescending(t => t.CreatedAt)
+                    .Select(t => new PersonelGorevItem
+                    {
+                        GorevId = t.GorevId,
+                        Baslik = t.Ad,
+                        Durum = t.GorevDurum.Ad,
+                        Renk = t.GorevDurum.RenkSinifi ?? "bg-secondary",
+                        RenkKod = t.GorevDurum.Renk,
+                        Tarih = t.CreatedAt,
+                        SonIslem = t.UpdatedAt
+                    })
+                    .ToListAsync();
                 
-                 lineChart = new MultiSeriesChartJson
-                 {
-                     Labels = months.Select(m => m.Label).ToList(),
-                     Datasets = new List<ChartDataset>()
-                 };
-
-                 var trendQuery = query.Where(g => g.CreatedAt >= sixMonthsAgo);
-                 var taskData = await trendQuery
-                     .Select(g => new 
-                     {
-                         Month = g.CreatedAt.Month,
-                         Year = g.CreatedAt.Year,
-                         PersonelIds = g.GorevAtamaPersoneller.Select(p => p.PersonelId).ToList()
-                     })
-                     .ToListAsync();
+                // We can't put this directly into the anonymous object below without changing it to the ViewModel or a new structure
+                // But the return type is Json(new { ... })
+                // Let's rely on the dynamic nature of the anonymous object in the return statement
+                // I will add a local variable here to hold the list
+                ViewBag.TempGorevListesi = tasks; 
+            }
+            else
+            {
+                // ========== BİRİM MODU: Çift Çizgili Grafik ==========
+                int monthCount = months == 12 ? 12 : 6;
+                var startDate = DateTime.Now.AddMonths(-(monthCount - 1));
+                var monthList = Enumerable.Range(0, monthCount)
+                   .Select(i => startDate.AddMonths(i))
+                   .Select(d => new { Month = d.Month, Year = d.Year, Label = d.ToString("MM/yyyy") })
+                   .ToList();
                 
-                 var dataPoints = new List<int>();
-                 foreach(var m in months)
-                 {
-                     var pIds = taskData
-                         .Where(x => x.Year == m.Year && x.Month == m.Month)
-                         .SelectMany(x => x.PersonelIds)
-                         .Distinct()
-                         .Count();
-                     dataPoints.Add(pIds);
-                 }
+                lineChart = new MultiSeriesChartJson
+                {
+                    Labels = monthList.Select(m => m.Label).ToList(),
+                    Datasets = new List<ChartDataset>()
+                };
 
-                 lineChart.Datasets.Add(new ChartDataset
-                 {
-                     Label = "Görevli Personel Sayısı",
-                     Data = dataPoints,
-                     BorderColor = "#696cff",
-                     BackgroundColor = "rgba(105, 108, 255, 0.1)"
-                 });
+                // Görev sayısı (her ay oluşturulan görevler)
+                var trendQuery = query.Where(g => g.CreatedAt >= startDate);
+                var taskData = await trendQuery
+                    .Select(g => new 
+                    {
+                        Month = g.CreatedAt.Month,
+                        Year = g.CreatedAt.Year,
+                        PersonelIds = g.GorevAtamaPersoneller.Select(p => p.PersonelId).ToList()
+                    })
+                    .ToListAsync();
+                
+                var gorevSayilari = new List<int>();
+                var personelSayilari = new List<int>();
+
+                foreach(var m in monthList)
+                {
+                    var monthTasks = taskData.Where(x => x.Year == m.Year && x.Month == m.Month).ToList();
+                    gorevSayilari.Add(monthTasks.Count);
+
+                    var uniquePersonel = monthTasks
+                        .SelectMany(x => x.PersonelIds)
+                        .Distinct()
+                        .Count();
+                    personelSayilari.Add(uniquePersonel);
+                }
+
+                // Personel çizgisi (mavi)
+                lineChart.Datasets.Add(new ChartDataset
+                {
+                    Label = "Personel Sayısı",
+                    Data = personelSayilari,
+                    BorderColor = "#696cff",
+                    BackgroundColor = "rgba(105, 108, 255, 0.1)"
+                });
+
+                // Görev çizgisi (turuncu)
+                lineChart.Datasets.Add(new ChartDataset
+                {
+                    Label = "Görev Sayısı",
+                    Data = gorevSayilari,
+                    BorderColor = "#ffab00",
+                    BackgroundColor = "rgba(255, 171, 0, 0.1)"
+                });
             }
 
             return Json(new 
@@ -292,19 +319,20 @@ namespace PersonelTakipSistemi.Controllers
                 {
                      Labels = kategoriData.Select(x => x.Label).ToList(),
                      Data = kategoriData.Select(x => x.Count).ToList(),
-                     Colors = GetColors(kategoriData.Count)
+                     Colors = kategoriData.Select(x => x.Color ?? "#696cff").ToList()
                 },
                 durum = new ChartDataJson
                 {
                     Labels = durumData.Select(x => x.Label).ToList(),
                     Data = durumData.Select(x => x.Count).ToList(),
-                    Colors = durumData.Select(x => GetColorCode(x.RenkSinifi ?? "")).ToList()
+                    Colors = durumData.Select(x => x.Color ?? "#696cff").ToList()
                 },
                 totalGorev = totalTasks,
                 totalPersonel = totalPersonel,
                 totalKoordinatorluk = totalKoordinatorluk,
                 totalKomisyon = totalKomisyon,
-                line = lineChart
+                line = lineChart,
+                gorevListesi = personelId.HasValue ? ViewBag.TempGorevListesi : null
             });
         }
 
@@ -332,6 +360,126 @@ namespace PersonelTakipSistemi.Controllers
                 result.Add(colors[i % colors.Count]);
             }
             return result;
+        }
+
+
+
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> ExportExcel(int? teskilatId, int? koordinatorlukId, int? komisyonId, int? personelId, int months = 6)
+        {
+            // Security check
+            if (!User.IsInRole("Admin") && !User.IsInRole("Yönetici"))
+            {
+                var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                if (int.TryParse(userIdStr, out int uid)) { personelId = uid; teskilatId = null; koordinatorlukId = null; komisyonId = null; }
+                else return Unauthorized();
+            }
+
+            var query = _context.Gorevler.Include(g => g.Kategori).Include(g => g.GorevDurum).AsQueryable();
+
+            if (personelId.HasValue)
+                query = query.Where(g => g.GorevAtamaPersoneller.Any(gap => gap.PersonelId == personelId));
+            else if (komisyonId.HasValue)
+            {
+                var pIds = await _context.PersonelKomisyonlar.Where(pk => pk.KomisyonId == komisyonId).Select(pk => pk.PersonelId).ToListAsync();
+                query = query.Where(g => g.GorevAtamaKomisyonlar.Any(gak => gak.KomisyonId == komisyonId) || g.GorevAtamaPersoneller.Any(gap => pIds.Contains(gap.PersonelId)));
+            }
+            else if (koordinatorlukId.HasValue)
+                query = query.Where(g => g.GorevAtamaKoordinatorlukler.Any(gak => gak.KoordinatorlukId == koordinatorlukId) || g.GorevAtamaKomisyonlar.Any(k => k.Komisyon.KoordinatorlukId == koordinatorlukId));
+            else if (teskilatId.HasValue)
+                query = query.Where(g => g.GorevAtamaKoordinatorlukler.Any(gak => gak.Koordinatorluk.TeskilatId == teskilatId) || g.GorevAtamaKomisyonlar.Any(k => k.Komisyon.Koordinatorluk.TeskilatId == teskilatId));
+
+            using var package = new ExcelPackage();
+            
+            // Sheet 1: Özet ve Kategori Pasta Grafiği
+            var ws1 = package.Workbook.Worksheets.Add("Genel Özet");
+            ws1.Cells["A1"].Value = "Metrik";
+            ws1.Cells["B1"].Value = "Değer";
+            ws1.Cells["A1:B1"].Style.Font.Bold = true;
+            ws1.Cells["A1:B1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            ws1.Cells["A1:B1"].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(105, 108, 255));
+            ws1.Cells["A1:B1"].Style.Font.Color.SetColor(Color.White);
+
+            var totalGorev = await query.CountAsync();
+            ws1.Cells["A2"].Value = "Toplam Görev";
+            ws1.Cells["B2"].Value = totalGorev;
+            ws1.Cells.AutoFitColumns();
+
+            // Kategori Data for Chart
+            var kategoriData = await query.GroupBy(g => g.Kategori.Ad).Select(g => new { Label = g.Key, Count = g.Count() }).ToListAsync();
+            var wsKat = package.Workbook.Worksheets.Add("KategoriData"); // Data sheet, hidden
+            wsKat.Hidden = eWorkSheetHidden.Hidden;
+            wsKat.Cells["A1"].Value = "Kategori";
+            wsKat.Cells["B1"].Value = "Sayı";
+            for(int i=0; i<kategoriData.Count; i++)
+            {
+                wsKat.Cells[i + 2, 1].Value = kategoriData[i].Label;
+                wsKat.Cells[i + 2, 2].Value = kategoriData[i].Count;
+            }
+            
+            // Pie Chart
+            if (kategoriData.Count > 0)
+            {
+                var chart = ws1.Drawings.AddChart("KategoriPastaGrafigi", eChartType.Pie);
+                chart.Title.Text = "Görev Kategori Dağılımı";
+                chart.SetPosition(3, 0, 0, 0);
+                chart.SetSize(600, 400);
+                chart.Series.Add(wsKat.Cells[2, 2, 1 + kategoriData.Count, 2], wsKat.Cells[2, 1, 1 + kategoriData.Count, 1]);
+            }
+
+            // Sheet 2: Durum Analizi ve Sütun Grafik
+            var durumData = await query.GroupBy(g => g.GorevDurum.Ad).Select(g => new { Label = g.Key, Count = g.Count() }).ToListAsync();
+            var ws2 = package.Workbook.Worksheets.Add("Durum Analizi");
+            ws2.Cells["A1"].Value = "Durum";
+            ws2.Cells["B1"].Value = "Görev Sayısı";
+            ws2.Cells["A1:B1"].Style.Font.Bold = true;
+            ws2.Cells["A1:B1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+            ws2.Cells["A1:B1"].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(105, 108, 255));
+            ws2.Cells["A1:B1"].Style.Font.Color.SetColor(Color.White);
+
+            for (int i = 0; i < durumData.Count; i++)
+            {
+                ws2.Cells[i + 2, 1].Value = durumData[i].Label;
+                ws2.Cells[i + 2, 2].Value = durumData[i].Count;
+            }
+            ws2.Cells.AutoFitColumns();
+
+            if (durumData.Count > 0)
+            {
+                var chart2 = ws2.Drawings.AddChart("DurumSutunGrafigi", eChartType.ColumnClustered);
+                chart2.Title.Text = "Görev Durum Analizi";
+                chart2.SetPosition(1, 0, 3, 0);
+                chart2.SetSize(600, 400);
+                chart2.Series.Add(ws2.Cells[2, 2, 1 + durumData.Count, 2], ws2.Cells[2, 1, 1 + durumData.Count, 1]);
+            }
+
+            // Sheet 3: Aktivite (personel seçiliyse)
+            if (personelId.HasValue)
+            {
+                var gorevler = await query.OrderByDescending(g => g.CreatedAt).ToListAsync();
+                var ws3 = package.Workbook.Worksheets.Add("Görev Aktivite");
+                ws3.Cells["A1"].Value = "Görev";
+                ws3.Cells["B1"].Value = "Durum";
+                ws3.Cells["C1"].Value = "Atanma Tarihi";
+                ws3.Cells["D1"].Value = "Son Güncelleme";
+                ws3.Cells["A1:D1"].Style.Font.Bold = true;
+                ws3.Cells["A1:D1"].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                ws3.Cells["A1:D1"].Style.Fill.BackgroundColor.SetColor(Color.FromArgb(105, 108, 255));
+                ws3.Cells["A1:D1"].Style.Font.Color.SetColor(Color.White);
+
+                for (int i = 0; i < gorevler.Count; i++)
+                {
+                    ws3.Cells[i + 2, 1].Value = gorevler[i].Ad;
+                    ws3.Cells[i + 2, 2].Value = gorevler[i].GorevDurum?.Ad ?? "";
+                    ws3.Cells[i + 2, 3].Value = gorevler[i].CreatedAt.ToString("dd.MM.yyyy");
+                    ws3.Cells[i + 2, 4].Value = gorevler[i].UpdatedAt?.ToString("dd.MM.yyyy") ?? "";
+                }
+                ws3.Cells.AutoFitColumns();
+            }
+
+            var fileName = $"Istatistik_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
+            return File(package.GetAsByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
     }
 }

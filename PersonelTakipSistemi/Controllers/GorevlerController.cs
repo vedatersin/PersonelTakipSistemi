@@ -176,7 +176,7 @@ namespace PersonelTakipSistemi.Controllers
                 _context.Gorevler.Add(model);
                 await _context.SaveChangesAsync();
                 
-                await _logService.LogAsync("Görev Ekleme", $"Yeni görev oluşturuldu: {model.Ad}", null, $"Görev ID: {model.GorevId}");
+                await _logService.LogAsync("Görev Ekleme", $"Yeni görev oluşturuldu: {model.Ad}", null, null);
 
                 TempData["SuccessMessage"] = "Görev başarıyla oluşturuldu.";
                 TempData["NewGorevId"] = model.GorevId; // Pass ID for highlighting
@@ -229,7 +229,7 @@ namespace PersonelTakipSistemi.Controllers
                 _context.Update(existing);
                 await _context.SaveChangesAsync();
                 
-                await _logService.LogAsync("Görev Güncelleme", $"Görev güncellendi: {model.Ad}", null, $"Görev ID: {model.GorevId}");
+                await _logService.LogAsync("Görev Güncelleme", $"Görev güncellendi: {model.Ad}", null, null);
                 
                 TempData["SuccessMessage"] = "Görev güncellendi.";
                 return RedirectToAction("Liste");
@@ -250,7 +250,7 @@ namespace PersonelTakipSistemi.Controllers
             _context.Update(task);
             await _context.SaveChangesAsync();
 
-            await _logService.LogAsync("Görev Silme", $"Görev silindi (pasife alındı): {task.Ad}", null, $"Görev ID: {id}");
+            await _logService.LogAsync("Görev Silme", $"Görev silindi (pasife alındı): {task.Ad}", null, null);
 
             return Ok(new { success = true });
         }
@@ -272,7 +272,7 @@ namespace PersonelTakipSistemi.Controllers
                                 .Where(g => ids.Contains(g.GorevId))
                                 .ExecuteDeleteAsync();
 
-                  await _logService.LogAsync("Toplu Görev Silme", $"{ids.Count} adet görev silindi.", null, $"Silinen IDler: {string.Join(",", ids)}");
+                  await _logService.LogAsync("Toplu Görev Silme", $"{ids.Count} adet görev silindi.", null, null);
 
                  return Json(new { success = true, message = $"{ids.Count} görev başarıyla silindi." });
             }
@@ -306,6 +306,7 @@ namespace PersonelTakipSistemi.Controllers
                 model.CreatedAt = DateTime.Now;
                 _context.GorevKategorileri.Add(model);
                 await _context.SaveChangesAsync();
+                await _logService.LogAsync("Kategori Ekleme", $"Yeni görev kategorisi eklendi: {model.Ad}", null, null);
                 TempData["SuccessMessage"] = "Kategori eklendi.";
                 return RedirectToAction("Liste"); // Or stay
             }
@@ -500,6 +501,22 @@ namespace PersonelTakipSistemi.Controllers
             task.GorevDurumId = model.DurumId;
             task.DurumAciklamasi = model.Aciklama;
             task.UpdatedAt = DateTime.Now;
+
+            // Get Current User ID
+            int? userId = null;
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if(int.TryParse(userIdStr, out int uid)) userId = uid;
+
+            // Create History Record
+            var history = new GorevDurumGecmisi
+            {
+                GorevId = task.GorevId,
+                GorevDurumId = model.DurumId,
+                Aciklama = model.Aciklama,
+                Tarih = DateTime.Now,
+                IslemYapanPersonelId = userId
+            };
+            _context.GorevDurumGecmisleri.Add(history);
             
             _context.Update(task);
             await _context.SaveChangesAsync();
@@ -507,7 +524,7 @@ namespace PersonelTakipSistemi.Controllers
             try
             {
                 var statusName = await _context.GorevDurumlari.Where(d => d.GorevDurumId == model.DurumId).Select(d => d.Ad).FirstOrDefaultAsync() ?? "Bilinmiyor";
-                await _logService.LogAsync("Durum", $"Görev durumu değiştirildi: {task.Ad}", null, $"[Görev ID: {task.GorevId}] Yeni Durum: {statusName}, Açıklama: {model.Aciklama}");
+                await _logService.LogAsync("Durum", $"Görev durumu değiştirildi: {task.Ad}", null, $"Yeni Durum: {statusName}, Açıklama: {model.Aciklama}");
             }
             catch (Exception)
             {
@@ -601,12 +618,40 @@ namespace PersonelTakipSistemi.Controllers
             return View(tasks);
         }
 
+
+        // ==============================================================
+        // 8. GET STATUS HISTORY (AJAX)
+        // ==============================================================
+        [HttpGet]
+        public async Task<IActionResult> GetStatusHistory(int id)
+        {
+            var history = await _context.GorevDurumGecmisleri
+                .Include(h => h.IslemYapanPersonel)
+                .Include(h => h.GorevDurum)
+                .Where(h => h.GorevId == id)
+                .OrderByDescending(h => h.Tarih)
+                .Select(h => new {
+                    id = h.Id,
+                    tarih = h.Tarih.ToString("dd.MM.yyyy HH:mm"),
+                    personel = h.IslemYapanPersonel != null ? h.IslemYapanPersonel.Ad + " " + h.IslemYapanPersonel.Soyad : "Sistem",
+                    personelAvatar = (h.IslemYapanPersonel != null && !string.IsNullOrEmpty(h.IslemYapanPersonel.Ad)) ? h.IslemYapanPersonel.Ad.Substring(0,1) + (h.IslemYapanPersonel.Soyad != null ? h.IslemYapanPersonel.Soyad.Substring(0,1) : "") : "-",
+                    durum = h.GorevDurum != null ? h.GorevDurum.Ad : "Bilinmiyor",
+                    durumRenk = h.GorevDurum != null ? h.GorevDurum.RenkSinifi : "bg-secondary",
+                    aciklama = h.Aciklama
+                })
+                .ToListAsync();
+
+            return Json(history);
+        }
+
         [HttpGet]
         public async Task<IActionResult> Detay(int id)
         {
             var task = await _context.Gorevler
                 .Include(g => g.Kategori)
                 .Include(g => g.GorevDurum)
+                .Include(g => g.GorevDurumGecmisleri).ThenInclude(gh => gh.IslemYapanPersonel)
+                .Include(g => g.GorevDurumGecmisleri).ThenInclude(gh => gh.GorevDurum)
                 .Include(g => g.GorevAtamaTeskilatlar).ThenInclude(t => t.Teskilat)
                 .Include(g => g.GorevAtamaKoordinatorlukler).ThenInclude(k => k.Koordinatorluk)
                 .Include(g => g.GorevAtamaKomisyonlar).ThenInclude(k => k.Komisyon)
@@ -615,12 +660,11 @@ namespace PersonelTakipSistemi.Controllers
 
             if (task == null) return NotFound();
 
-            // Fetch History (Logs)
-            ViewBag.History = await _context.SistemLoglar
-                .Where(l => (l.Detay != null && l.Detay.Contains($"Görev ID: {id}")) || 
-                            (l.Aciklama != null && l.Aciklama.Contains(task.Ad) && (l.IslemTuru == "Görev Ekleme" || l.IslemTuru == "Görev Atama" || l.IslemTuru == "Durum")))
-                .OrderByDescending(l => l.Tarih)
-                .ToListAsync();
+            // Fetch History (Logs) - Deprecated for display but kept if needed
+            // ViewBag.History = await ...
+
+            // Populate Status Dropdown for Modal
+            ViewBag.GorevDurumlari = await _context.GorevDurumlari.OrderBy(x => x.Sira).ToListAsync();
 
             return View(task);
         }

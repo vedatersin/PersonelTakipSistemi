@@ -12,7 +12,7 @@ builder.Services.AddMemoryCache();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.INotificationService, PersonelTakipSistemi.Services.NotificationService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.ILogService, PersonelTakipSistemi.Services.LogService>();
-builder.Services.AddScoped<PersonelTakipSistemi.Services.DataSeedingService>();
+
 builder.Services.AddHostedService<PersonelTakipSistemi.Services.NotificationBackgroundService>();
 
 // Connection String
@@ -77,21 +77,7 @@ if (!app.Environment.IsDevelopment())
 
 
 
-// Seed Database
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<PersonelTakipSistemi.Data.TegmPersonelTakipDbContext>();
-        PersonelTakipSistemi.Data.DbSeeder.Seed(context);
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while seeding the database.");
-    }
-}
+
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -106,3 +92,4 @@ app.MapControllerRoute(
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.Run();
+ 

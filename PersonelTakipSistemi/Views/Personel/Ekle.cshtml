@@ -1542,6 +1542,8 @@
                      let allowed = true;
                      // Rule: "Genel Koordinatör" (ID 4) only for "Merkez"
                      if (opt.val == '4' && !isMerkez) allowed = false;
+                     // Rule: "Merkez Birim Koordinatörlüğü" (ID 5) only for "Merkez"
+                     if (opt.val == '5' && !isMerkez) allowed = false;
                      // Rule: "İl Koordinatörü" (ID 3) only for "Taşra"
                      if (opt.val == '3' && isMerkez) allowed = false;
 

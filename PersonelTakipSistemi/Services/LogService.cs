@@ -73,13 +73,7 @@ namespace PersonelTakipSistemi.Services
                 }
 
                 // 3. Handle Target Person (ilgiliPersonelId)
-                // If a target ID is provided, append it to details if not already present
-                if (ilgiliPersonelId.HasValue)
-                {
-                    string targetInfo = $"[Hedef Personel ID: {ilgiliPersonelId}]";
-                    if (string.IsNullOrEmpty(detay)) detay = targetInfo;
-                    else detay = targetInfo + " " + detay;
-                }
+                // PersonelId is stored in the log record, no need to inject into Detay text
 
                 // 4. Create Log
                 var log = new SistemLog

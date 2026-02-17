@@ -46,5 +46,7 @@ namespace PersonelTakipSistemi.Models
         public ICollection<GorevAtamaKoordinatorluk> GorevAtamaKoordinatorlukler { get; set; } = new List<GorevAtamaKoordinatorluk>();
         public ICollection<GorevAtamaKomisyon> GorevAtamaKomisyonlar { get; set; } = new List<GorevAtamaKomisyon>();
         public ICollection<GorevAtamaPersonel> GorevAtamaPersoneller { get; set; } = new List<GorevAtamaPersonel>();
+
+        public ICollection<GorevDurumGecmisi> GorevDurumGecmisleri { get; set; } = new List<GorevDurumGecmisi>();
     }
 }

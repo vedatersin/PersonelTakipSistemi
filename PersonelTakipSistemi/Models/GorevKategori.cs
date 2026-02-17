@@ -16,6 +16,9 @@ namespace PersonelTakipSistemi.Models
         [StringLength(500)]
         public string? Aciklama { get; set; }
 
+        [StringLength(7)]
+        public string? Renk { get; set; }
+
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;

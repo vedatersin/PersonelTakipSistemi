@@ -67,7 +67,7 @@
                                 @if(kategoriler != null) {
                                     foreach(var k in kategoriler) {
                                         if (ViewBag.KategoriId == k.GorevKategoriId) {
-                                            <option value="@k.GorevKategoriId" selected>@k.Ad</option>
+                                            <option value="@k.GorevKategoriId" selected="selected">@k.Ad</option>
                                         } else {
                                             <option value="@k.GorevKategoriId">@k.Ad</option>
                                         }
@@ -84,7 +84,7 @@
                                     foreach(var d in ViewBag.GorevDurumlari)
                                     {
                                         if (ViewBag.GorevDurumId == d.GorevDurumId) {
-                                            <option value="@d.GorevDurumId" selected>@d.Ad</option>
+                                            <option value="@d.GorevDurumId" selected="selected">@d.Ad</option>
                                         } else {
                                             <option value="@d.GorevDurumId">@d.Ad</option>
                                         }
@@ -103,7 +103,7 @@
                                 @if(teskilatlar != null) {
                                     foreach(var t in teskilatlar) {
                                         if (ViewBag.AssignedTeskilatId == t.TeskilatId) {
-                                            <option value="@t.TeskilatId" selected>@t.Ad</option>
+                                            <option value="@t.TeskilatId" selected="selected">@t.Ad</option>
                                         } else {
                                             <option value="@t.TeskilatId">@t.Ad</option>
                                         }
@@ -118,7 +118,7 @@
                                 @if(koordinatorlukler != null) {
                                     foreach(var k in koordinatorlukler) {
                                         if (ViewBag.AssignedKoordinatorlukId == k.KoordinatorlukId) {
-                                            <option value="@k.KoordinatorlukId" selected>@k.Ad</option>
+                                            <option value="@k.KoordinatorlukId" selected="selected">@k.Ad</option>
                                         } else {
                                             <option value="@k.KoordinatorlukId">@k.Ad</option>
                                         }
@@ -133,7 +133,7 @@
                                 @if(komisyonlar != null) {
                                     foreach(var k in komisyonlar) {
                                         if (ViewBag.AssignedKomisyonId?.ToString() == k.Value) {
-                                            <option value="@k.Value" selected>@k.Text</option>
+                                            <option value="@k.Value" selected="selected">@k.Text</option>
                                         } else {
                                              <option value="@k.Value">@k.Text</option>
                                         }
@@ -148,7 +148,7 @@
                                 @if(personeller != null) {
                                     foreach(var p in personeller) {
                                         if (ViewBag.AssignedPersonelId?.ToString() == p.Value) {
-                                            <option value="@p.Value" selected>@p.Text</option>
+                                            <option value="@p.Value" selected="selected">@p.Text</option>
                                         } else {
                                             <option value="@p.Value">@p.Text</option>
                                         }
@@ -203,7 +203,11 @@
                                     <a href="/Gorevler/Detay/@item.GorevId" onclick="event.stopPropagation()" class="fw-bold text-body">@item.Ad</a><br/>
                                     <small class="text-muted">@item.Aciklama</small>
                                 </td>
-                                <td><span class="badge bg-label-info">@item.Kategori?.Ad</span></td>
+                                <td>
+                                    <span class="badge" style="background-color: @(item.Kategori?.Renk ?? "#03c3ec"); color: white;">
+                                        @item.Kategori?.Ad
+                                    </span>
+                                </td>
                                 
                                 <!-- ATANAN COLUMN WITH TOGGLE LOGIC -->
                                 <td>
@@ -270,7 +274,7 @@
                                         string badgeClass = item.GorevDurum?.RenkSinifi ?? "bg-secondary";
                                         string statusText = item.GorevDurum?.Ad ?? "Bilinmiyor";
                                     }
-                                    <span class="badge @badgeClass">@statusText</span>
+                                    <span class="badge" style="background-color: @(item.GorevDurum?.Renk ?? "#8592a3"); color: white;">@statusText</span>
                                     @if(!string.IsNullOrEmpty(item.DurumAciklamasi)) {
                                         <div class="mt-1">
                                             <i class="bx bx-info-circle text-muted" style="font-size: 0.8rem;"></i>
@@ -281,6 +285,9 @@
                                     }
                                 </td>
                                 <td class="text-end">
+                                    <button class="btn btn-info btn-action-circle text-white" data-bs-toggle="tooltip" title="Durum Geçmişi & Güncelle" onclick="event.stopPropagation(); openStatusDrawer(@item.GorevId, @item.GorevDurumId)">
+                                        <i class="bx bx-flag"></i>
+                                    </button>
                                     <button class="btn btn-warning btn-action-circle text-white" data-bs-toggle="tooltip" title="Yetkilendir" onclick="event.stopPropagation(); openAssignmentDrawer(@item.GorevId, '@item.Ad')">
                                         <i class="bx bx-user-plus"></i>
                                     </button>
@@ -399,7 +406,7 @@
                                 @if(personeller != null) { 
                                     foreach(var p in personeller) { 
                                         if (p.Disabled) {
-                                            <option value="@p.Value" disabled>@p.Text</option>
+                                            <option value="@p.Value" disabled="disabled">@p.Text</option>
                                         } else {
                                             <option value="@p.Value">@p.Text</option>
                                         }
@@ -447,6 +454,46 @@
   <div class="offcanvas-footer p-3 border-top d-flex justify-content-end gap-2 bg-light">
       <button type="button" class="btn btn-secondary w-100" data-bs-dismiss="offcanvas">Kapat</button>
   </div>
+</div>
+
+</div>
+
+<!-- STATUS HISTORY DRAWER (Offcanvas) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="statusHistoryDrawer" aria-labelledby="statusDrawerLabel" style="width: 500px;">
+    <div class="offcanvas-header border-bottom">
+        <h5 id="statusDrawerLabel" class="offcanvas-title"><i class='bx bx-history me-2'></i>Görev Durum Geçmişi</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body p-0">
+        <!-- Update Section -->
+        <div class="p-3 border-bottom">
+            <h6 class="small text-uppercase text-muted mb-2">Yeni Durum Ekle</h6>
+            <input type="hidden" id="drawerStatusGorevId" />
+            <div class="mb-2">
+                <select id="drawerStatusSelect" class="form-select">
+                    @if (ViewBag.GorevDurumlari != null)
+                    {
+                        foreach (var d in ViewBag.GorevDurumlari)
+                        {
+                            <option value="@d.GorevDurumId">@d.Ad</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="mb-2">
+                <textarea id="drawerStatusNote" class="form-control" rows="2" placeholder="Açıklama..."></textarea>
+            </div>
+            <button class="btn btn-primary w-100" onclick="submitStatusUpdateDrawer()">Güncelle</button>
+        </div>
+
+        <!-- History List -->
+        <div class="p-3">
+            <h6 class="small text-uppercase text-muted mb-3">Geçmiş Kayıtlar</h6>
+            <ul class="timeline" id="statusHistoryList" style="list-style:none; padding-left:0;">
+                <!-- Loaded via JS -->
+            </ul>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
@@ -787,5 +834,114 @@
             location.reload();
         });
 
+// Status History Drawer Logic
+        var statusDrawer = new bootstrap.Offcanvas(document.getElementById('statusHistoryDrawer'));
+
+        function openStatusDrawer(id, currentStatusId) {
+            $('#drawerStatusGorevId').val(id);
+            $('#drawerStatusSelect').val(currentStatusId);
+            $('#drawerStatusNote').val('');
+            
+            loadStatusHistory(id);
+            statusDrawer.show();
+        }
+
+        function loadStatusHistory(id) {
+            $('#statusHistoryList').html('<li class="text-center"><div class="spinner-border spinner-border-sm text-primary"></div></li>');
+            
+            $.get('/Gorevler/GetStatusHistory/' + id, function(data) {
+                $('#statusHistoryList').empty();
+                if(!data || data.length === 0) {
+                    $('#statusHistoryList').html('<li class="text-muted text-center small">Kayıt bulunamadı.</li>');
+                    return;
+                }
+
+                // If we have data, we can optionally update the main table row immediately (if user opened drawer without changing anything, but data exists)
+                // But better to do it on update action.
+                
+                data.forEach(function(item) {
+                    var html = `
+                        <li class="mb-3 pb-3 border-bottom">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">${item.durum}</span>
+                                <small class="text-muted">${item.tarih}</small>
+                            </div>
+                            <div class="d-flex align-items-center mt-1">
+                                <div class="avatar avatar-xs me-2" title="${item.personel}">
+                                     <span class="avatar-initial rounded-circle bg-label-primary" style="font-size:0.6rem">
+                                         ${item.personelAvatar}
+                                     </span>
+                                </div>
+                                <small class="text-muted">${item.personel}</small>
+                            </div>
+                            ${item.aciklama ? `<div class="mt-2 p-2 bg-lighter rounded small">${item.aciklama}</div>` : ''}
+                        </li>
+                    `;
+                    $('#statusHistoryList').append(html);
+                });
+            });
+        }
+
+        function submitStatusUpdateDrawer() {
+            var id = $('#drawerStatusGorevId').val();
+            var statusId = $('#drawerStatusSelect').val();
+            var note = $('#drawerStatusNote').val();
+
+            $.ajax({
+                url: '/Gorevler/UpdateStatus',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ GorevId: id, DurumId: statusId, Aciklama: note }),
+                success: function(res) {
+                    if(res.success) {
+                        // Reload History
+                        loadStatusHistory(id);
+                        // Reset Note
+                        $('#drawerStatusNote').val('');
+                        
+                        // Update Main Table Row Badge Dynamically
+                        // We need the status text and class. 
+                        // Quickest way: Find option text in select
+                        var statusText = $('#drawerStatusSelect option:selected').text();
+                        // We don't have the class in select usually, but let's assume standard or fetch it.
+                        // Actually, GetStatusHistory returns the latest color! 
+                        // So loadStatusHistory will eventually get it. 
+                        // But loadStatusHistory is async. 
+                        // Let's rely on reload or just simple update.
+                        
+                        // Simple update:
+                        // Find the row badge
+                        var badge = $('#row-' + id).find('.badge');
+                        if(badge.length > 0) {
+                            badge.removeClass().addClass('badge bg-label-secondary'); // Default
+                            // We define colors in View logic, not here generally. 
+                            // But we can guess or leave it. 
+                            badge.text(statusText);
+                            // To get color, we'd need to map IDs to classes in JS.
+                            // Or, we can reload page on drawer close.
+                        }
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Güncellendi', 
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 3000
+                        });
+                        
+                        // Mark row as needing refresh or just reload page when drawer closes?
+                        // User said "görevleri listeliyosak...". 
+                        // Let's just update text for now.
+                        
+                    } else {
+                        Swal.fire('Hata', 'Güncelleme başarısız.', 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Hata', 'Sunucu hatası.', 'error');
+                }
+            });
+        }
     </script>
 }

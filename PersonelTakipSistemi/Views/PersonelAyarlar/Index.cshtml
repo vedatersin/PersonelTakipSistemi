@@ -1,11 +1,11 @@
 @model PersonelTakipSistemi.ViewModels.PersonelAyarlarViewModel
 
 @{
-    ViewData["Title"] = "Personel Ayarları";
+    ViewData["Title"] = "Personel Tanımlar";
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
-    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Ayarlar /</span> Personel Tanımları</h4>
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Ayarlar /</span> Personel Tanımlar</h4>
 
     <div class="row g-4">
         <!-- 1. BRANŞLAR -->
@@ -78,6 +78,17 @@
             $('#addType').val(type);
             $('#addItemName').val('');
             $('#modalTitle').text(title + ' Ekle');
+
+            var placeholders = {
+                'brans': 'Örn: Bilişim Teknolojileri',
+                'kurumsalrol': 'Örn: Komisyon Başkanı',
+                'gorevturu': 'Örn: Görsel İnceleme',
+                'isniteligi': 'Örn: Ders Kitabı',
+                'yazilim': 'Örn: Adobe Illustrator',
+                'uzmanlik': 'Örn: Rehberlik'
+            };
+            $('#addItemName').attr('placeholder', placeholders[type] || 'Örn: Yeni Tanım');
+
             myModal.show();
         }
 
@@ -104,22 +115,96 @@
             });
         }
 
+        // --- INLINE EDIT ---
+        function startEdit(type, id, btn) {
+            var $row = $(btn).closest('li');
+            $row.find('.view-mode').removeClass('d-flex').hide();
+            $row.find('.edit-mode').show();
+            $row.find('.edit-input').focus().select();
+        }
+
+        function cancelEdit(btn) {
+            var $row = $(btn).closest('li');
+            var originalText = $row.find('.item-text').text();
+            $row.find('.edit-input').val(originalText);
+            $row.find('.edit-mode').hide();
+            $row.find('.view-mode').addClass('d-flex').show();
+        }
+
+        function saveEdit(type, id, btn) {
+            var $row = $(btn).closest('li');
+            var newName = $row.find('.edit-input').val().trim();
+
+            if (!newName) {
+                Swal.fire('Hata', 'İsim boş olamaz.', 'warning');
+                return;
+            }
+
+            // Disable buttons during save
+            $row.find('.edit-mode button').prop('disabled', true);
+
+            $.ajax({
+                url: '/PersonelAyarlar/Guncelle',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ Type: type, Id: id, Ad: newName }),
+                success: function(res) {
+                    $row.find('.item-text').text(newName);
+                    $row.find('.edit-mode').hide();
+                    $row.find('.view-mode').addClass('d-flex').show();
+
+                    // Brief green highlight
+                    $row.css('background-color', '#d4edda');
+                    setTimeout(function() { $row.css('background-color', ''); }, 1000);
+                },
+                error: function(xhr) {
+                    $row.find('.edit-mode button').prop('disabled', false);
+                    Swal.fire('Hata', 'Güncelleme başarısız: ' + (xhr.responseText || 'Bilinmeyen hata'), 'error');
+                }
+            });
+        }
+
+        // --- DELETE WITH IMPROVED WARNING ---
         function deleteItem(type, id) {
             Swal.fire({
-                title: 'Emin misiniz?',
-                text: "Bu kayıt silinecek. Eğer kullanımda ise hata alabilirsiniz.",
+                title: 'Bu veriyi silmek istediğinizden emin misiniz?',
+                html: '<span style="color:#d33;font-weight:600;">Bu işlem mevcut personel kayıtlarını etkileyebilir.</span>',
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonText: 'Evet, Sil',
-                cancelButtonText: 'İptal'
+                confirmButtonColor: '#d33',
+                confirmButtonText: '<i class="bx bx-trash me-1"></i> Evet, Sil',
+                cancelButtonText: 'İptal',
+                reverseButtons: true
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.post('/PersonelAyarlar/Sil', { type: type, id: id })
                         .done(function() {
-                            Swal.fire('Silindi', 'Kayıt başarıyla silindi.', 'success').then(() => location.reload());
+                            Swal.fire({
+                                title: 'Silindi',
+                                text: 'Kayıt başarıyla silindi.',
+                                icon: 'success',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(function() {
+                                var $row = $('#row-' + type + '-' + id);
+                                $row.css({
+                                    'background-color': '#f8d7da',
+                                    'transition': 'all 0.3s ease'
+                                });
+                                setTimeout(function() {
+                                    $row.css({
+                                        'opacity': '0',
+                                        'max-height': '0',
+                                        'padding': '0',
+                                        'margin': '0',
+                                        'overflow': 'hidden'
+                                    });
+                                    setTimeout(function() { $row.remove(); }, 300);
+                                }, 400);
+                            });
                         })
                         .fail(function(xhr) {
-                             Swal.fire('Hata', 'Silme başarısız: ' + (xhr.responseText || 'Bu kayıt kullanımda olabilir.'), 'error');
+                            Swal.fire('Hata', 'Silme başarısız: ' + (xhr.responseText || 'Bu kayıt kullanımda olabilir.'), 'error');
                         });
                 }
             });

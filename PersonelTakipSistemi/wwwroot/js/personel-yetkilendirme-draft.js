@@ -509,7 +509,7 @@ function renderUnifiedAddForm(state, data) {
                     <div class="col-12">
                         <select class="form-select form-select-sm" id="addTeskilat" onchange="handleAddChange('tes', this.value)">
                             <option value="">Teşkilat Seçiniz...</option>
-                            ${data.allTeskilatlar.map(t => `<option value="${t.id}">${t.id === addFormSelections.teskilatId ? 'selected' : ''}>${t.ad}</option>`).join('')}
+                            ${data.allTeskilatlar.map(t => `<option value="${t.id}" ${t.id === addFormSelections.teskilatId ? 'selected' : ''}>${t.ad}</option>`).join('')}
                         </select>
                     </div>
 
@@ -568,27 +568,29 @@ function renderKomOptions(data, parentId, selectedId) {
     return koms.map(k => `<option value="${k.id}" ${k.id == selectedId ? 'selected' : ''}>${k.ad}</option>`).join('');
 }
 function renderRoleOptions(selectedId) {
-    // Logic similar to updateRoleOptions but generating HTML string
-    // Simplified: we rely on updateRoleOptions to handle logic usually, but here we want to render roughly correct state.
-    // Ideally we call 'updateRoleOptions' logic. 
-    // Since 'updateRoleOptions' modifies DOM, we can't use it in template string.
-    // Let's allow the DOM to be updated after render? 
-    // renderDrawer replaces HTML.
-    // We should probably rely on a post-render init or just inline the logic.
-    // Inline logic for options:
     let html = '';
-    window.allKurumsalRolOptions.forEach(r => {
-        // ... filtering logic ...
-        // Re-implementing simplified filtering for render
-        let allowed = false;
-        const rid = parseInt(r.value);
-        if (rid === 1) allowed = true;
-        // Other logic depends on 'addFormSelections' which is available.
-        const ROLES = { GENEL_KOORD: 4, IL_KOORD: 3, KOMISYON_BASKANI: 2, PERSONEL: 1, ANKARA_TEGM_KOORD: 1 }; // Context dependent
+    const data = window.drawerRefData;
+    // Check if selected teskilat is "Merkez"
+    let isMerkezTeskilat = false;
+    if (addFormSelections.teskilatId && data && data.allTeskilatlar) {
+        const selectedTes = data.allTeskilatlar.find(t => t.id == addFormSelections.teskilatId);
+        if (selectedTes && selectedTes.ad.indexOf('Merkez') > -1) {
+            isMerkezTeskilat = true;
+        }
+    }
 
-        if (rid === 2 && addFormSelections.komisyonId) allowed = true;
-        if (rid === 3 && addFormSelections.koordinatorlukId && addFormSelections.koordinatorlukId !== ROLES.ANKARA_TEGM_KOORD) allowed = true;
-        if (rid === 4 && addFormSelections.koordinatorlukId === ROLES.ANKARA_TEGM_KOORD) allowed = true;
+    window.allKurumsalRolOptions.forEach(r => {
+        let allowed = true;
+        const rid = parseInt(r.value);
+
+        // Rule: Personel (ID 1) - always allowed
+        // Rule: Komisyon Başkanı (ID 2) - always allowed (shown in dropdown, komisyon context determines usage)
+        // Rule: İl Koordinatörü (ID 3) - only for Taşra
+        if (rid === 3 && isMerkezTeskilat) allowed = false;
+        // Rule: Genel Koordinatör (ID 4) - only for Merkez
+        if (rid === 4 && !isMerkezTeskilat) allowed = false;
+        // Rule: Merkez Birim Koordinatörlüğü (ID 5) - only for Merkez
+        if (rid === 5 && !isMerkezTeskilat) allowed = false;
 
         if (allowed) {
             html += `<option value="${r.value}" ${r.value == selectedId ? 'selected' : ''}>${r.text}</option>`;

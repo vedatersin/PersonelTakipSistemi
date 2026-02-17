@@ -8,9 +8,29 @@
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" />
 
+<style>
+    .time-toggle .btn.active {
+        background-color: #696cff;
+        color: #fff;
+        border-color: #696cff;
+    }
+</style>
+<style media="print">
+    .layout-menu, .layout-navbar, .btn, .time-toggle { display: none !important; }
+    .content-wrapper { padding: 0 !important; margin: 0 !important; }
+</style>
+
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h4 class="fw-bold py-3 mb-0"><span class="text-muted fw-light">Modüller /</span> İstatistikler</h4>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success btn-sm" id="btnIstatistikExcel">
+                <i class="bx bx-download me-1"></i>Excel İndir
+            </button>
+            <button type="button" class="btn btn-info btn-sm" onclick="window.print()">
+                <i class="bx bx-printer me-1"></i>Yazdır
+            </button>
+        </div>
     </div>
 
     <!-- Filters -->
@@ -132,16 +152,48 @@
         </div>
     </div>
 
-    <!-- Charts Row 2 -->
+
+
+    <!-- Charts Row 2: TREND (Line Chart) -->
     <div class="row" id="trendRow">
-         <!-- Line Chart: Personel Sayısı -->
-         <div class="col-12">
+         <!-- Çizgi Grafik -->
+         <div class="col-12" id="lineChartWrapper">
             <div class="card h-100">
                 <div class="card-header d-flex align-items-center justify-content-between">
-                    <h5 class="card-title m-0 me-2">Görevli Personel Sayısı (Son 6 Ay)</h5>
+                    <h5 class="card-title m-0 me-2" id="trendTitle">Birim Trendi (Son 6 Ay)</h5>
+                    <div class="time-toggle btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary active" data-months="6">6 Ay</button>
+                        <button type="button" class="btn btn-outline-secondary" data-months="12">1 Yıl</button>
+                    </div>
                 </div>
                 <div class="card-body">
                      <canvas id="trendChart" style="max-height: 400px;"></canvas>
+                </div>
+            </div>
+         </div>
+    </div>
+
+    <!-- Task List Table (Personel Mode) -->
+    <div class="row" id="taskListRow" style="display:none;">
+         <div class="col-12">
+            <div class="card h-100">
+                <div class="card-header d-flex align-items-center justify-content-between">
+                    <h5 class="card-title m-0 me-2">Personel Görev Listesi</h5>
+                </div>
+                <div class="table-responsive text-nowrap">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Görev</th>
+                                <th>Durum</th>
+                                <th>Atanma Tarihi</th>
+                                <th>Son İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taskListBody">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
          </div>
@@ -153,27 +205,62 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+
+
     <script>
         let kategoriChartInst = null;
         let durumChartInst = null;
         let trendChartInst = null;
+        let currentMonths = 6;
 
         $(document).ready(function() {
             $('.select2').select2({ theme: 'bootstrap-5' });
-
-            // Initialize Charts (Empty or Initial Load - Let's trigger initial fetch)
+            
             initCharts();
-            fetchStats(); // Load initial ALL data
+
+            // URL Params Check for Deep Linking
+            const urlParams = new URLSearchParams(window.location.search);
+            const initTeskilatId = urlParams.get('teskilatId');
+            const initKoordId = urlParams.get('koordinatorlukId');
+            const initKomisyonId = urlParams.get('komisyonId');
+            const initPersonelId = urlParams.get('personelId');
+
+            if(initTeskilatId) {
+                $('#teskilatSelect').val(initTeskilatId).trigger('change.select2');
+                // Chain load
+                loadKoordinatorluk(initTeskilatId, initKoordId, function() {
+                    if(initKoordId) {
+                        loadKomisyon(initKoordId, initKomisyonId, function() {
+                            if(initKomisyonId && initPersonelId) {
+                                loadPersonel(initKomisyonId, initPersonelId, function() {
+                                    fetchStats();
+                                });
+                            } else {
+                                fetchStats();
+                            }
+                        });
+                    } else {
+                        fetchStats();
+                    }
+                });
+            } else if (initPersonelId) {
+                 fetchStats();
+            } else {
+                fetchStats();
+            }
 
             // Filter Events
             $('#teskilatSelect').on('change', function() {
                 var val = $(this).val();
-                // Reset Downstream
                 resetDropdown('#komisyonSelect');
                 resetDropdown('#personelSelect');
                 
-                updateDropdown('#koordinatorlukSelect', '@Url.Action("GetKoordinatorlukler", "Istatistik")', { teskilatId: val });
-                fetchStats();
+                if(val) {
+                    loadKoordinatorluk(val, null, function() { fetchStats(); });
+                } else {
+                     resetDropdown('#koordinatorlukSelect');
+                     fetchStats();
+                }
             });
 
             $('#koordinatorlukSelect').on('change', function() {
@@ -181,39 +268,61 @@
                 resetDropdown('#personelSelect');
 
                 if(val) {
-                    updateDropdown('#komisyonSelect', '@Url.Action("GetKomisyonlar", "Istatistik")', { koordinatorlukId: val });
+                    loadKomisyon(val, null, function() { fetchStats(); });
                 } else {
                      resetDropdown('#komisyonSelect');
+                     fetchStats();
                 }
-                fetchStats();
             });
 
             $('#komisyonSelect').on('change', function() {
                 var val = $(this).val();
                 if(val) {
-                     updateDropdown('#personelSelect', '@Url.Action("GetPersoneller", "Istatistik")', { komisyonId: val });
+                     loadPersonel(val, null, function() { fetchStats(); });
                 } else {
                      resetDropdown('#personelSelect');
+                     fetchStats();
                 }
-                fetchStats();
             });
 
             $('#personelSelect').on('change', function() {
                 fetchStats();
             });
+
+            // Time Toggle
+            $('.time-toggle .btn').on('click', function() {
+                $('.time-toggle .btn').removeClass('active');
+                $(this).addClass('active');
+                currentMonths = parseInt($(this).data('months'));
+                fetchStats();
+            });
         });
+
+        // Helper functions
+        function loadKoordinatorluk(teskilatId, selectedId, callback) {
+            updateDropdown('#koordinatorlukSelect', '@Url.Action("GetKoordinatorlukler", "Istatistik")', { teskilatId: teskilatId }, selectedId, callback);
+        }
+
+        function loadKomisyon(koordId, selectedId, callback) {
+             updateDropdown('#komisyonSelect', '@Url.Action("GetKomisyonlar", "Istatistik")', { koordinatorlukId: koordId }, selectedId, callback);
+        }
+
+        function loadPersonel(komisyonId, selectedId, callback) {
+             updateDropdown('#personelSelect', '@Url.Action("GetPersoneller", "Istatistik")', { komisyonId: komisyonId }, selectedId, callback);
+        }
 
         function resetDropdown(selector) {
             $(selector).empty().append('<option value="">Tümü</option>').prop('disabled', true).trigger('change.select2');
         }
 
-        function updateDropdown(selector, url, data) {
+        function updateDropdown(selector, url, data, selectedId = null, callback = null) {
             var $el = $(selector);
             $el.empty().append('<option value="">Tümü</option>').trigger('change.select2');
             
             var parentKey = Object.keys(data)[0];
             if (!data[parentKey]) { 
                  $el.prop('disabled', true);
+                 if (callback) callback();
                  return;
             }
 
@@ -221,7 +330,14 @@
                 $.each(res, function(i, item) {
                     $el.append($('<option>', { value: item.id, text: item.text }));
                 });
-                $el.prop('disabled', false).trigger('change.select2'); 
+                
+                if (selectedId) {
+                    $el.val(selectedId);
+                }
+                
+                $el.prop('disabled', false).trigger('change.select2');
+                
+                if (callback) callback();
             });
         }
 
@@ -230,17 +346,18 @@
                 teskilatId: $('#teskilatSelect').val(),
                 koordinatorlukId: $('#koordinatorlukSelect').val(),
                 komisyonId: $('#komisyonSelect').val(),
-                personelId: $('#personelSelect').val()
+                personelId: $('#personelSelect').val(),
+                months: currentMonths
             };
 
+            // 1. Main Stats
             $.get('@Url.Action("GetStats", "Istatistik")', params, function(data) {
                 updateCharts(data);
-                 $('#totalGorevCard').text(data.totalGorev);
-                 $('#totalPersonelCard').text(data.totalPersonel);
-                 $('#totalKoordinatorlukCard').text(data.totalKoordinatorluk);
-                 $('#totalKomisyonCard').text(data.totalKomisyon);
+                $('#totalKomisyonCard').text(data.totalKomisyon);
             });
         }
+
+
 
         function initCharts() {
             // Pie
@@ -254,14 +371,55 @@
             durumChartInst = new Chart(document.getElementById('durumChart'), {
                 type: 'bar',
                 data: { labels: [], datasets: [] },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                options: { 
+                    responsive: true, 
+                    scales: { y: { beginAtZero: true } },
+                    plugins: {
+                        // LEGEND START - Explained in task
+                        legend: { 
+                            display: true, // Show legend
+                            position: 'bottom',
+                            labels: {
+                                generateLabels: function(chart) {
+                                    // Custom legend to map colors to statuses
+                                    // Normally dataset label is used. But we have 1 dataset with different bar colors.
+                                    // We can manually return legend items based on data.
+                                    var data = chart.data;
+                                    if (data.labels.length && data.datasets.length) {
+                                        return data.labels.map(function(label, i) {
+                                            var ds = data.datasets[0];
+                                            var color = ds.backgroundColor[i];
+                                            return {
+                                                text: label,
+                                                fillStyle: color,
+                                                hidden: false,
+                                                index: i
+                                            };
+                                        });
+                                    }
+                                    return [];
+                                }
+                            }
+                        }
+                    } 
+                }
             });
 
             // Line
             trendChartInst = new Chart(document.getElementById('trendChart'), {
                 type: 'line',
                 data: { labels: [], datasets: [] },
-                options: { responsive: true, scales: { y: { beginAtZero: true } } }
+                options: { 
+                    responsive: true, 
+                    scales: { y: { beginAtZero: true } },
+                    plugins: {
+                        legend: { position: 'top' }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
             });
         }
 
@@ -289,9 +447,16 @@
             };
             durumChartInst.update();
 
-            // Trend
+            // Decide: Line Chart
+            // Decide: Line Chart OR Task List
             if (data.line) {
-                $('#trendRow').show();
+                // ===== BİRİM MODU: Çizgi Grafik =====
+                $('#lineChartWrapper').show();
+                $('#taskListRow').hide();
+                
+                var label = currentMonths === 12 ? 'Son 1 Yıl' : 'Son 6 Ay';
+                $('#trendTitle').text('Birim Trendi (' + label + ')');
+
                 trendChartInst.data = {
                     labels: data.line.labels,
                     datasets: data.line.datasets.map(ds => ({
@@ -300,14 +465,52 @@
                         borderColor: ds.borderColor,
                         backgroundColor: ds.backgroundColor,
                         tension: 0.4,
-                        fill: true
+                        fill: true,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
                     }))
                 };
                 trendChartInst.update();
+            } else if (data.gorevListesi) {
+                // ===== PERSONEL MODU: Görev Listesi =====
+                $('#lineChartWrapper').hide();
+                $('#taskListRow').show();
+                
+                var $tbody = $('#taskListBody');
+                $tbody.empty();
+                
+                data.gorevListesi.forEach(function(task) {
+                    var dateStr = new Date(task.tarih).toLocaleDateString('tr-TR');
+                    var updateStr = task.sonIslem ? new Date(task.sonIslem).toLocaleDateString('tr-TR') : '-';
+                    var detailUrl = '@Url.Action("Detay", "Gorevler")/' + task.gorevId;
+                    
+                    var row = `<tr onclick="window.location.href='${detailUrl}'" style="cursor:pointer;" title="Görevi görüntülemek için tıklayın">
+                        <td><strong>${task.baslik}</strong></td>
+                        <td><span class="badge" style="background-color: ${task.renkKod || '#696cff'}; color: white;">${task.durum}</span></td>
+                        <td>${dateStr}</td>
+                        <td>${updateStr}</td>
+                    </tr>`;
+                    $tbody.append(row);
+                });
             } else {
-                // Hide Line Chart if no data (e.g. Personel Selected)
-                $('#trendRow').hide();
+                $('#lineChartWrapper').hide();
+                $('#taskListRow').hide();
             }
         }
+
+            // Excel İndir butonu
+            $('#btnIstatistikExcel').on('click', function() {
+                var params = new URLSearchParams();
+                var teskilat = $('#teskilatSelect').val();
+                var koord = $('#koordinatorlukSelect').val();
+                var komisyon = $('#komisyonSelect').val();
+                var personel = $('#personelSelect').val();
+                if (teskilat) params.append('teskilatId', teskilat);
+                if (koord) params.append('koordinatorlukId', koord);
+                if (komisyon) params.append('komisyonId', komisyon);
+                if (personel) params.append('personelId', personel);
+                params.append('months', currentMonths);
+                window.location.href = '@Url.Action("ExportExcel", "Istatistik")' + '?' + params.toString();
+            });
     </script>
 }

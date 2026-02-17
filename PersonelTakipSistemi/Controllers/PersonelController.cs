@@ -2303,17 +2303,23 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        public IActionResult ForceSeed()
+        public async Task<IActionResult> FixTeskilatNames()
         {
-             try
-             {
-                 PersonelTakipSistemi.Data.DbSeeder.Seed(_context);
-                 return Content("Veritabanı başarıyla güncellendi (Seed işlemi tamamlandı). Lütfen sayfayı yenileyiniz.");
-             }
-             catch(Exception ex)
-             {
-                 return Content($"Hata oluştu: {ex.Message}");
-             }
+            try
+            {
+                var merkez = await _context.Teskilatlar.FirstOrDefaultAsync(t => t.Ad.Contains("Merkez"));
+                if (merkez != null) { merkez.Ad = "Merkez"; }
+
+                var tasra = await _context.Teskilatlar.FirstOrDefaultAsync(t => t.Ad.Contains("Taşra"));
+                if (tasra != null) { tasra.Ad = "Taşra"; }
+
+                await _context.SaveChangesAsync();
+                return Content("Teşkilat isimleri güncellendi: Merkez, Taşra");
+            }
+            catch (Exception ex) { return Content($"Hata: {ex.Message}"); }
         }
+
+
+
     }
 }

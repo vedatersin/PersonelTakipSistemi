@@ -1,0 +1,314 @@
+@model PersonelTakipSistemi.ViewModels.GorevTanimlarViewModel
+
+@{
+    ViewData["Title"] = "Görev Tanımları";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4">Görev Tanımları</h4>
+
+    <div class="row g-4">
+        <!-- 1. GÖREV KATEGORİLERİ -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+                    <h5 class="mb-0 text-white"><i class="bx bx-category me-2"></i>Görev Kategorileri</h5>
+                    <button class="btn btn-light text-secondary fw-bold" onclick="openAddModal('kategori')">
+                        <i class="bx bx-plus me-1"></i>Ekle
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush" id="listKategori">
+                        @foreach (var item in Model.Kategoriler)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center" data-id="@item.GorevKategoriId">
+                                <div class="d-flex align-items-center flex-grow-1 view-mode">
+                                    <span class="color-box me-3 rounded shadow-sm" style="width: 20px; height: 20px; background-color: @(item.Renk ?? "#ccc"); display: inline-block;"></span>
+                                    <div>
+                                        <span class="fw-semibold item-name">@item.Ad</span>
+                                        @if (!string.IsNullOrEmpty(item.Aciklama))
+                                        {
+                                            <div class="text-muted small item-desc">@item.Aciklama</div>
+                                        }
+                                        <span class="d-none item-color">@item.Renk</span>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Mode -->
+                                <div class="edit-mode input-group input-group-sm me-2" style="display:none;">
+                                    <input type="color" class="form-control form-control-color edit-color" value="@(item.Renk ?? "#cccccc")" title="Renk Seç">
+                                    <input type="text" class="form-control edit-name" value="@item.Ad" placeholder="Kategori Adı">
+                                    <input type="text" class="form-control edit-desc" value="@item.Aciklama" placeholder="Açıklama (Opsiyonel)">
+                                </div>
+
+                                <div class="btn-group view-actions">
+                                    <button class="btn btn-icon bg-transparent border-0 text-primary fw-bold" onclick="editItem(this)">
+                                        <i class="bx bx-edit-alt fs-4"></i>
+                                    </button>
+                                    <button class="btn btn-icon bg-transparent border-0 text-danger fw-bold" onclick="deleteItem('kategori', @item.GorevKategoriId)">
+                                        <i class="bx bx-trash fs-4"></i>
+                                    </button>
+                                </div>
+
+                                <div class="btn-group edit-actions" style="display:none;">
+                                    <button class="btn btn-icon bg-transparent border-0 text-success fw-bold" onclick="saveEdit('kategori', @item.GorevKategoriId, this)">
+                                        <i class="bx bx-check fs-4"></i>
+                                    </button>
+                                    <button class="btn btn-icon bg-transparent border-0 text-secondary fw-bold" onclick="cancelEdit(this)">
+                                        <i class="bx bx-x fs-4"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        }
+                        @if (!Model.Kategoriler.Any())
+                        {
+                            <li class="list-group-item text-center text-muted py-4">Kayıt bulunamadı.</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. GÖREV DURUMLARI -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center bg-warning text-white">
+                    <h5 class="mb-0 text-white"><i class="bx bx-info-circle me-2"></i>Görev Durumları</h5>
+                    <button class="btn btn-light text-secondary fw-bold" onclick="openAddModal('durum')">
+                        <i class="bx bx-plus me-1"></i>Ekle
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush" id="listDurum">
+                        @foreach (var item in Model.Durumlar)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center" data-id="@item.GorevDurumId">
+                                <div class="d-flex align-items-center flex-grow-1 view-mode">
+                                    <span class="color-box me-3 rounded shadow-sm" style="width: 20px; height: 20px; background-color: @(item.Renk ?? "#ccc"); display: inline-block;"></span>
+                                    <div>
+                                        <span class="fw-semibold item-name">@item.Ad</span>
+                                        <span class="d-none item-color">@item.Renk</span>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Mode -->
+                                <div class="edit-mode input-group input-group-sm me-2" style="display:none;">
+                                    <input type="color" class="form-control form-control-color edit-color" value="@(item.Renk ?? "#cccccc")" title="Renk Seç">
+                                    <input type="text" class="form-control edit-name" value="@item.Ad" placeholder="Durum Adı">
+                                </div>
+
+                                <div class="btn-group view-actions">
+                                    <button class="btn btn-icon bg-transparent border-0 text-primary fw-bold" onclick="editItem(this)">
+                                        <i class="bx bx-edit-alt fs-4"></i>
+                                    </button>
+                                    <button class="btn btn-icon bg-transparent border-0 text-danger fw-bold" onclick="deleteItem('durum', @item.GorevDurumId)">
+                                        <i class="bx bx-trash fs-4"></i>
+                                    </button>
+                                </div>
+
+                                <div class="btn-group edit-actions" style="display:none;">
+                                    <button class="btn btn-icon bg-transparent border-0 text-success fw-bold" onclick="saveEdit('durum', @item.GorevDurumId, this)">
+                                        <i class="bx bx-check fs-4"></i>
+                                    </button>
+                                    <button class="btn btn-icon bg-transparent border-0 text-secondary fw-bold" onclick="cancelEdit(this)">
+                                        <i class="bx bx-x fs-4"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        }
+                        @if (!Model.Durumlar.Any())
+                        {
+                            <li class="list-group-item text-center text-muted py-4">Kayıt bulunamadı.</li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ADD MODAL -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addModalTitle">Yeni Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="addType" />
+                
+                <div class="mb-3">
+                    <label class="form-label">Ad</label>
+                    <input type="text" id="addName" class="form-control" placeholder="Ad giriniz..." />
+                </div>
+                
+                <div class="mb-3" id="divAddDesc">
+                    <label class="form-label">Açıklama</label>
+                    <input type="text" id="addDesc" class="form-control" placeholder="Açıklama (Opsiyonel)" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Temsili Renk</label>
+                    <input type="color" id="addColor" class="form-control form-control-color" value="#566a7f" title="Renk Seç">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" onclick="saveNewItem()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        var addModal;
+
+        $(document).ready(function() {
+            addModal = new bootstrap.Modal(document.getElementById('addModal'));
+        });
+
+        function openAddModal(type) {
+            $('#addType').val(type);
+            $('#addName').val('');
+            $('#addColor').val('#566a7f');
+            
+            if(type === 'kategori') {
+                $('#addModalTitle').text('Yeni Görev Kategorisi');
+                $('#divAddDesc').show();
+                $('#addDesc').val('');
+            } else {
+                $('#addModalTitle').text('Yeni Görev Durumu');
+                $('#divAddDesc').hide();
+            }
+            
+            addModal.show();
+            setTimeout(() => $('#addName').focus(), 500);
+        }
+
+        function saveNewItem() {
+            var type = $('#addType').val();
+            var name = $('#addName').val();
+            var color = $('#addColor').val();
+            var desc = $('#addDesc').val();
+
+            if(!name) {
+                Swal.fire('Hata', 'Lütfen ad giriniz.', 'warning');
+                return;
+            }
+
+            var url = type === 'kategori' ? '/GorevTanimlar/EkleKategori' : '/GorevTanimlar/EkleDurum';
+            var data = { ad: name, renk: color };
+            if(type === 'kategori') data.aciklama = desc;
+
+            $.post(url, data)
+                .done(function() {
+                    Swal.fire({
+                        title: 'Başarılı',
+                        text: 'Kayıt eklendi.',
+                        icon: 'success',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => location.reload());
+                })
+                .fail(function(xhr) {
+                    Swal.fire('Hata', 'Kayıt başarısız: ' + (xhr.responseText || 'Bilinmeyen hata'), 'error');
+                });
+        }
+
+        function deleteItem(type, id) {
+            Swal.fire({
+                title: 'Silmek istediğinizden emin misiniz?',
+                text: "Bu işlem geri alınamaz!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Evet, Sil',
+                cancelButtonText: 'İptal'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var url = type === 'kategori' ? '/GorevTanimlar/SilKategori' : '/GorevTanimlar/SilDurum';
+                    $.post(url, { id: id })
+                        .done(function() {
+                            Swal.fire('Silindi!', 'Kayıt silindi.', 'success').then(() => location.reload());
+                        })
+                        .fail(function(xhr) {
+                            Swal.fire('Hata', 'Silme başarısız: ' + (xhr.responseText || 'Bağlı kayıtlar olabilir.'), 'error');
+                        });
+                }
+            });
+        }
+
+        // Inline Edit Functions
+        function editItem(btn) {
+            var row = $(btn).closest('li');
+            row.find('.view-mode, .view-actions').hide();
+            row.find('.edit-mode, .edit-actions').addClass('d-flex').show(); // Flex needed for inputs
+        }
+
+        function cancelEdit(btn) {
+            var row = $(btn).closest('li');
+            
+            // Reset values
+            var originalName = row.find('.item-name').text();
+            var originalColor = row.find('.item-color').text() || '#cccccc';
+            var originalDesc = row.find('.item-desc').text();
+
+            row.find('.edit-name').val(originalName);
+            row.find('.edit-color').val(originalColor);
+            row.find('.edit-desc').val(originalDesc);
+
+            row.find('.edit-mode, .edit-actions').removeClass('d-flex').hide();
+            row.find('.view-mode, .view-actions').show();
+        }
+
+        function saveEdit(type, id, btn) {
+            var row = $(btn).closest('li');
+            var name = row.find('.edit-name').val();
+            var color = row.find('.edit-color').val();
+            var desc = row.find('.edit-desc').val();
+
+            if(!name) {
+                Swal.fire('Hata', 'Ad boş olamaz.', 'warning');
+                return;
+            }
+
+            var url = type === 'kategori' ? '/GorevTanimlar/GuncelleKategori' : '/GorevTanimlar/GuncelleDurum';
+            var data = { id: id, ad: name, renk: color };
+            if(type === 'kategori') data.aciklama = desc;
+
+            $.post(url, data)
+                .done(function() {
+                    // Update UI directly without reload for better UX
+                    row.find('.item-name').text(name);
+                    row.find('.item-color').text(color);
+                    row.find('.color-box').css('background-color', color);
+                    
+                    if(type === 'kategori') {
+                        var descBox = row.find('.item-desc');
+                        if(desc) {
+                            if(descBox.length === 0) {
+                                row.find('.item-name').after('<div class="text-muted small item-desc"></div>');
+                                descBox = row.find('.item-desc');
+                            }
+                            descBox.text(desc);
+                        } else {
+                            descBox.remove();
+                        }
+                    }
+
+                    row.find('.edit-mode, .edit-actions').removeClass('d-flex').hide();
+                    row.find('.view-mode, .view-actions').show();
+                    
+                    // Optional toast
+                    // Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Güncellendi', timer: 1000, showConfirmButton: false });
+                })
+                .fail(function(xhr) {
+                    Swal.fire('Hata', 'Güncelleme başarısız: ' + (xhr.responseText || 'Bilinmeyen hata'), 'error');
+                });
+        }
+    </script>
+}

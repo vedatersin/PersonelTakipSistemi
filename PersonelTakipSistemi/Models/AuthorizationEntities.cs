@@ -19,6 +19,10 @@ namespace PersonelTakipSistemi.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
         // İlişkiler
+        public int? DaireBaskanligiId { get; set; }
+        [ForeignKey("DaireBaskanligiId")]
+        public DaireBaskanligi? DaireBaskanligi { get; set; }
+
         public ICollection<Koordinatorluk> Koordinatorlukler { get; set; } = new List<Koordinatorluk>();
         public ICollection<PersonelTeskilat> PersonelTeskilatlar { get; set; } = new List<PersonelTeskilat>();
     }
@@ -48,6 +52,8 @@ namespace PersonelTakipSistemi.Models
         [ForeignKey("BaskanPersonelId")]
         public Personel? BaskanPersonel { get; set; }
 
+        public bool TasraTeskilatiVarMi { get; set; } = true; // Default true for existing/Merkez
+
         // İlişkiler
         public ICollection<Komisyon> Komisyonlar { get; set; } = new List<Komisyon>();
         public ICollection<PersonelKoordinatorluk> PersonelKoordinatorlukler { get; set; } = new List<PersonelKoordinatorluk>();
@@ -76,6 +82,11 @@ namespace PersonelTakipSistemi.Models
 
         // İlişkiler
         public ICollection<PersonelKomisyon> PersonelKomisyonlar { get; set; } = new List<PersonelKomisyon>();
+
+        // Taşra teşkilatındaki komisyonun bağlı olduğu Merkez Birim Koordinatörlüğü
+        public int? BagliMerkezKoordinatorlukId { get; set; }
+        [ForeignKey("BagliMerkezKoordinatorlukId")]
+        public Koordinatorluk? BagliMerkezKoordinatorluk { get; set; }
     }
 
     public class KurumsalRol
