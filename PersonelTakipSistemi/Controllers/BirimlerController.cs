@@ -149,7 +149,7 @@ namespace PersonelTakipSistemi.Controllers
                 Aciklama = model.Tanim, 
                 TeskilatId = model.ParentId.Value,
                 IlId = model.IlId ?? 6, // Default Ankara for Merkez
-                TasraTeskilatiVarMi = model.ParentId == 1 ? model.TasraTeskilatiVarMi : false,
+                TasraTeskilatiVarMi = model.ParentId == 1 ? (model.TasraTeskilatiVarMi ?? true) : false,
                 CreatedAt = DateTime.Now, 
                 IsActive = true 
             };
@@ -253,23 +253,61 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
-        [HttpPost]
-        [HttpPost]
         public async Task<IActionResult> GuncelleKoordinatorluk([FromBody] BirimEkleModel model)
         {
             if (model.Id == null || string.IsNullOrEmpty(model.Ad)) return BadRequest("Id ve Ad zorunludur.");
 
-            var item = await _context.Koordinatorlukler.FindAsync(model.Id);
-            if (item == null) return NotFound();
+            var strategy = _context.Database.CreateExecutionStrategy();
+            return await strategy.ExecuteAsync<IActionResult>(async () =>
+            {
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try 
+                {
+                    var item = await _context.Koordinatorlukler.FindAsync(model.Id);
+                    if (item == null) return NotFound();
 
-            item.Ad = model.Ad;
-            if (model.Tanim != null) item.Aciklama = model.Tanim;
+                    item.Ad = model.Ad;
+                    if (model.Tanim != null) item.Aciklama = model.Tanim;
 
-            // Simple update, no complex logic for now as we are reverting
-            await _context.SaveChangesAsync();
-            await _logService.LogAsync("Birim Güncelleme", $"Koordinatörlük güncellendi: {item.Ad}", null, null);
-            
-            return Ok(new { success = true });
+                    List<int> deletedKomisyonIds = new List<int>();
+
+                    // Check for Tasra Organization Toggle
+                    // Only applicable for Merkez Units (typically) but we check model input
+                    if (model.TasraTeskilatiVarMi.HasValue) 
+                    {
+                        bool oldState = item.TasraTeskilatiVarMi;
+                        bool newState = model.TasraTeskilatiVarMi.Value;
+                        item.TasraTeskilatiVarMi = newState;
+
+                        // If switching OFF (true -> false), delete linked provincial commissions
+                        if (oldState && !newState)
+                        {
+                            // Find commissions linked via BagliMerkezKoordinatorlukId
+                            var linkedCommissions = await _context.Komisyonlar
+                                .Where(k => k.BagliMerkezKoordinatorlukId == item.KoordinatorlukId)
+                                .ToListAsync();
+
+                            if (linkedCommissions.Any())
+                            {
+                                deletedKomisyonIds = linkedCommissions.Select(k => k.KomisyonId).ToList();
+                                _context.Komisyonlar.RemoveRange(linkedCommissions);
+                            }
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await _logService.LogAsync("Birim Güncelleme", $"Koordinatörlük güncellendi: {item.Ad} (Taşra: {item.TasraTeskilatiVarMi})", null, null);
+                    
+                    await transaction.CommitAsync();
+                    
+                    return Ok(new { success = true, ad = item.Ad, deletedKomisyonIds = deletedKomisyonIds });
+                }
+                catch(Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return BadRequest("İşlem sırasında bir hata oluştu: " + ex.Message);
+                }
+            });
         }
 
         [HttpPost]

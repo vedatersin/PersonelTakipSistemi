@@ -991,7 +991,15 @@
         function toggleEdit(type, id) {
             var row = $('#row_' + type + '_' + id);
             row.find('.view-mode').removeClass('d-flex').addClass('d-none');
-            row.find('.edit-mode').removeClass('d-none').addClass('d-flex');
+            
+            var editMode = row.find('.edit-mode');
+            editMode.removeClass('d-none');
+            // Check for flex-column (Koordinatorluk Switch)
+            if(editMode.hasClass('flex-column')) {
+                 editMode.addClass('d-flex'); 
+            } else {
+                 editMode.addClass('d-flex');
+            }
         }
 
         function cancelEdit(type, id) {
@@ -1008,10 +1016,17 @@
             var url = '';
             var data = { Id: id, Ad: inputVal };
             
+            // Logic for different types
             if(type === 'daire') url = '/Birimler/GuncelleDaire';
             else if(type === 'tes') url = '/Birimler/GuncelleTeskilat'; 
-            else if(type === 'koord') url = '/Birimler/GuncelleKoordinatorluk';
             else if(type === 'kom') url = '/Birimler/GuncelleKomisyon';
+            else if(type === 'koord') {
+                url = '/Birimler/GuncelleKoordinatorluk';
+                var switchEl = $('#switch_koord_' + id);
+                if(switchEl.length > 0) {
+                    data.TasraTeskilatiVarMi = switchEl.is(':checked');
+                }
+            }
 
             $.ajax({
                 url: url, type: 'POST', contentType: 'application/json',
@@ -1645,6 +1660,64 @@
                     });
                 }
             })
+        }
+        
+        // OVERRIDE saveEdit to handle Koordinatorluk Switch & Deleted Commissions
+        function saveEdit(type, id) {
+            var inputVal = $('#input_' + type + '_' + id).val();
+            if(!inputVal) return Swal.fire('Uyarı', 'Ad boş olamaz.', 'warning');
+
+            var url = '';
+            var data = { Id: id, Ad: inputVal };
+            
+            // Logic for different types
+            if(type === 'daire') url = '/Birimler/GuncelleDaire';
+            else if(type === 'tes') url = '/Birimler/GuncelleTeskilat'; 
+            else if(type === 'kom') url = '/Birimler/GuncelleKomisyon';
+            else if(type === 'koord') {
+                url = '/Birimler/GuncelleKoordinatorluk';
+                var switchEl = $('#switch_koord_' + id);
+                if(switchEl.length > 0) {
+                    data.TasraTeskilatiVarMi = switchEl.is(':checked');
+                }
+            }
+
+            $.ajax({
+                url: url, type: 'POST', contentType: 'application/json',
+                data: JSON.stringify(data),
+                success: function(resp) {
+                     // Check response
+                     cancelEdit(type, id);
+                     
+                     var row = $('#row_' + type + '_' + id);
+                     
+                     if(row.length > 0) {
+                         row.find('.item-name').text(inputVal);
+                         
+                         // Visual Feedback: Blue Highlight
+                         row.removeClass('highlight-gray highlight-red highlight-green').addClass('highlight-blue');
+                         setTimeout(function() { row.removeClass('highlight-blue'); }, 2000);
+                         
+                         // If Coordinator: Handle deleted commissions
+                         if(type === 'koord' && resp && resp.deletedKomisyonIds && resp.deletedKomisyonIds.length > 0) {
+                             resp.deletedKomisyonIds.forEach(function(kid) {
+                                  var kRow = $('#row_kom_' + kid);
+                                  if(kRow.length > 0) {
+                                      kRow.addClass('highlight-red');
+                                      setTimeout(function() { 
+                                          kRow.slideUp(function() { $(this).remove(); }); 
+                                      }, 500);
+                                  }
+                             });
+                         }
+                     } else {
+                         location.reload(); 
+                     }
+                },
+                error: function(xhr) { 
+                    Swal.fire('Hata', xhr.responseText || 'Güncelleme başarısız.', 'error'); 
+                }
+            });
         }
     </script>
 }
