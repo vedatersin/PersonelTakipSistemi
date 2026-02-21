@@ -251,12 +251,22 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetKomisyonlar(int koordinatorlukId)
         {
-            var list = await _context.Komisyonlar
-                .Where(k => k.KoordinatorlukId == koordinatorlukId)
-                .OrderBy(k => k.Ad)
-                .Select(k => new { Value = k.KomisyonId, Text = k.Ad })
+            var data = await _context.Komisyonlar
+                .Include(x => x.Koordinatorluk).ThenInclude(k => k.Il)
+                .Include(x => x.BagliMerkezKoordinatorluk)
+                .Where(x => (x.KoordinatorlukId == koordinatorlukId || x.BagliMerkezKoordinatorlukId == koordinatorlukId) && x.IsActive)
                 .ToListAsync();
-            return Json(list);
+
+            var result = data.Select(x => new { 
+                    Value = x.KomisyonId, 
+                    Text = x.BagliMerkezKoordinatorlukId == koordinatorlukId && x.Koordinatorluk?.Il != null
+                           ? $"{x.Koordinatorluk.Il.Ad} Komisyonu"
+                           : x.Ad 
+                })
+                .OrderBy(x => x.Text)
+                .ToList();
+
+            return Json(result);
         }
     }
 

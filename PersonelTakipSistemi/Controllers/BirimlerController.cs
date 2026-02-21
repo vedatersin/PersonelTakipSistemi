@@ -31,7 +31,7 @@ namespace PersonelTakipSistemi.Controllers
         {
             var model = new BirimAyarlariViewModel
             {
-                Teskilatlar = await _context.Teskilatlar.OrderBy(x => x.Ad).ToListAsync(),
+                Teskilatlar = await _context.Teskilatlar.Include(x => x.DaireBaskanligi).OrderBy(x => x.Ad).ToListAsync(),
                 Koordinatorlukler = await _context.Koordinatorlukler.Include(x => x.Teskilat).Include(x => x.Il).OrderBy(x => x.Ad).ToListAsync(),
                 Komisyonlar = await _context.Komisyonlar.Include(x => x.Koordinatorluk).OrderBy(x => x.Ad).ToListAsync(),
                 Branslar = await _context.Branslar.OrderBy(x => x.Ad).ToListAsync(),
@@ -87,21 +87,119 @@ namespace PersonelTakipSistemi.Controllers
         [HttpPost]
         public async Task<IActionResult> EkleTeskilat([FromBody] BirimEkleModel model)
         {
-            if (!ModelState.IsValid) return BadRequest("Eksik bilgi.");
+            if (!ModelState.IsValid) 
+            {
+                var errors = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+                return BadRequest("Eksik bilgi: " + errors);
+            }
+
+            var cleanAd = model.Ad?.Trim();
+            if (string.IsNullOrEmpty(cleanAd)) return BadRequest("Teşkilat adı boş olamaz.");
+
+            // Duplicate Check
+            var exists = await _context.Teskilatlar.AnyAsync(x => x.Ad.ToLower() == cleanAd.ToLower() && x.DaireBaskanligiId == model.ParentId && x.IsActive);
+            if(exists) return BadRequest("Bu daire başkanlığına bağlı aynı isimde bir teşkilat zaten mevcut.");
 
             // Use ParentId as DaireBaskanligiId
             var t = new Teskilat 
             { 
-                Ad = model.Ad, 
+                Ad = cleanAd, 
                 Aciklama = model.Tanim, 
                 DaireBaskanligiId = model.ParentId, // Nullable
                 CreatedAt = DateTime.Now, 
-                IsActive = true 
+                IsActive = true,
+                Tur = model.Tur ?? "Merkez",
+                TasraOrgutlenmesiVarMi = (model.Tur == "Merkez" && model.TasraTeskilatiVarMi.GetValueOrDefault()),
+                BagliMerkezTeskilatId = (model.Tur == "Taşra" ? model.BagliMerkezTeskilatId : null)
             };
             _context.Teskilatlar.Add(t);
             await _context.SaveChangesAsync();
-            await _logService.LogAsync("Birim Ekleme", $"Teşkilat eklendi: {t.Ad}", null, null);
+            await _logService.LogAsync("Birim Ekleme", $"Teşkilat eklendi: {t.Ad} ({t.Tur})", null, null);
             return Ok(new { success = true, id = t.TeskilatId });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMerkezTeskilatlarForTasra(int? daireId)
+        {
+            var query = _context.Teskilatlar
+                .Where(x => x.IsActive && x.Tur == "Merkez" && x.TasraOrgutlenmesiVarMi);
+                
+            if (daireId.HasValue)
+            {
+                 query = query.Where(x => x.DaireBaskanligiId == daireId.Value);
+            }
+
+            var data = await query
+                .Select(x => new 
+                { 
+                    x.TeskilatId, 
+                    Ad = (x.DaireBaskanligi != null ? x.DaireBaskanligi.Ad + " - " : "") + x.Ad 
+                })
+                .OrderBy(x => x.Ad)
+                .ToListAsync();
+                
+            return Ok(data);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetMerkezKoordinatorluklerForTasra(int tasraKoordinatorlukId)
+        {
+            var tasraKoord = await _context.Koordinatorlukler
+                .Include(k => k.Teskilat)
+                .FirstOrDefaultAsync(k => k.KoordinatorlukId == tasraKoordinatorlukId);
+
+            if (tasraKoord == null || tasraKoord.Teskilat == null)
+                return BadRequest("Taşra Koordinatörlüğü bulunamadı.");
+
+            if (tasraKoord.Teskilat.Tur != "Taşra" || !tasraKoord.Teskilat.BagliMerkezTeskilatId.HasValue)
+                return Ok(new List<object>()); // Empty list if not valid
+
+            var merkezKoords = await _context.Koordinatorlukler
+                .Where(k => k.TeskilatId == tasraKoord.Teskilat.BagliMerkezTeskilatId.Value && k.IsActive && k.TasraTeskilatiVarMi)
+                .Select(k => new
+                {
+                    KoordinatorlukId = k.KoordinatorlukId,
+                    Ad = k.Ad
+                })
+                .OrderBy(k => k.Ad)
+                .ToListAsync();
+
+            return Ok(merkezKoords);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetIlListForMerkezKoordinatorluk(int koordinatorlukId)
+        {
+            var merkezKoord = await _context.Koordinatorlukler
+                .Include(k => k.Teskilat)
+                .FirstOrDefaultAsync(k => k.KoordinatorlukId == koordinatorlukId);
+
+            if (merkezKoord == null || merkezKoord.Teskilat == null) 
+                return BadRequest("Koordinatörlük bulunamadı.");
+
+            // 1. Find the Provincial Organizations linked to the Center Organization
+            var linkedProvincialTeskilatlar = await _context.Teskilatlar
+                .Where(t => t.BagliMerkezTeskilatId == merkezKoord.TeskilatId && t.Tur == "Taşra" && t.IsActive)
+                .Select(t => t.TeskilatId)
+                .ToListAsync();
+
+            if (!linkedProvincialTeskilatlar.Any())
+                return Ok(new List<object>()); // Empty list if no provincial organizations
+
+            // 2. Find Coordinators in those Provincial Organizations, and return their Cities
+            var validCities = await _context.Koordinatorlukler
+                .Where(k => linkedProvincialTeskilatlar.Contains(k.TeskilatId) && k.IlId.HasValue && k.IsActive)
+                .Include(k => k.Il)
+                .Select(k => new 
+                {
+                    IlId = k.IlId.Value,
+                    Ad = k.Il.Ad
+                })
+                .Distinct()
+                .OrderBy(c => c.Ad)
+                .ToListAsync();
+
+            return Ok(validCities);
         }
 
         [HttpPost]
@@ -109,10 +207,13 @@ namespace PersonelTakipSistemi.Controllers
         {
             if (!ModelState.IsValid || model.ParentId == null) return BadRequest("Teşkilat seçimi zorunludur.");
 
-            // 1. Taşra (Id: 2) Logic
-            if (model.ParentId == 2)
+            var teskilat = await _context.Teskilatlar.FindAsync(model.ParentId);
+            if (teskilat == null) return BadRequest("Geçersiz Teşkilat.");
+
+            // 1. Taşra Logic
+            if (teskilat.Tur == "Taşra")
             {
-                 // Is Tasra -> TasraTeskilatiVarMi is likely false or irrelevant
+                 // Is Tasra -> TasraTeskilatiVarMi is false
                  model.TasraTeskilatiVarMi = false; 
 
                  // Get City Name & Auto-Format Name
@@ -121,13 +222,13 @@ namespace PersonelTakipSistemi.Controllers
                  
                  model.Ad = $"{il.Ad} İl Koordinatörlüğü";
                  
-                 // Check Duplicate for City
-                 var exists = await _context.Koordinatorlukler.AnyAsync(x => x.IlId == model.IlId && x.TeskilatId == 2);
-                 if(exists) return BadRequest("Bu il için zaten bir koordinatörlük mevcut.");
+                 // Check Duplicate for City in THIS Teskilat
+                 var exists = await _context.Koordinatorlukler.AnyAsync(x => x.IlId == model.IlId && x.TeskilatId == model.ParentId && x.IsActive);
+                 if(exists) return BadRequest("Bu il için bu teşkilata bağlı bir koordinatörlük zaten mevcut.");
             }
             else
             {
-                // 2. Merkez (Id: 1) or Others
+                // 2. Merkez Logic
                 if (string.IsNullOrEmpty(model.Ad)) return BadRequest("Koordinatörlük adı zorunludur.");
                 
                 // Name Formatting: "insan kaynakları" -> "İnsan Kaynakları Birim Koordinatörlüğü"
@@ -141,6 +242,10 @@ namespace PersonelTakipSistemi.Controllers
                     rawName += " Birim Koordinatörlüğü";
                 }
                 model.Ad = rawName;
+                
+                // Check Duplicate for Merkez Coordinatorship
+                var exists = await _context.Koordinatorlukler.AnyAsync(x => x.Ad.ToLower() == model.Ad.ToLower() && x.TeskilatId == model.ParentId && x.IsActive);
+                if(exists) return BadRequest("Bu teşkilata bağlı aynı isimde bir koordinatörlük zaten mevcut.");
             }
 
             var k = new Koordinatorluk 
@@ -149,7 +254,7 @@ namespace PersonelTakipSistemi.Controllers
                 Aciklama = model.Tanim, 
                 TeskilatId = model.ParentId.Value,
                 IlId = model.IlId ?? 6, // Default Ankara for Merkez
-                TasraTeskilatiVarMi = model.ParentId == 1 ? (model.TasraTeskilatiVarMi ?? true) : false,
+                TasraTeskilatiVarMi = (teskilat.Tur == "Merkez" ? (model.TasraTeskilatiVarMi ?? true) : false),
                 CreatedAt = DateTime.Now, 
                 IsActive = true 
             };
@@ -177,16 +282,24 @@ namespace PersonelTakipSistemi.Controllers
                  if (centralUnit == null) return BadRequest("Merkez birim bulunamadı.");
 
                  // Find Provincial Coordinator for this City
-                 // Assuming standard naming convention or ID structure. 
-                 // We know Taşra TeskilatId = 2.
+                 // 1. Find the Provincial Organization linked to the Center Organization
+                 var linkedProvincialTeskilat = await _context.Teskilatlar
+                     .FirstOrDefaultAsync(t => t.BagliMerkezTeskilatId == centralUnit.TeskilatId && t.Tur == "Taşra");
+
+                 if (linkedProvincialTeskilat == null)
+                 {
+                     return BadRequest("Bu Merkez biriminin (Teşkilatın) bağlı olduğu bir Taşra Teşkilatı tanımı bulunamadı.");
+                 }
+
+                 // 2. Find the Coordinator in that Provincial Organization
                  var provincialUnit = await _context.Koordinatorlukler
-                                         .FirstOrDefaultAsync(k => k.TeskilatId == 2 && k.IlId == model.IlId.Value);
+                                         .FirstOrDefaultAsync(k => k.TeskilatId == linkedProvincialTeskilat.TeskilatId && k.IlId == model.IlId.Value);
                  
                  if (provincialUnit == null)
                  {
                      // Attempt to find by Name pattern if IlId not directly stored on all (though we added it)
                      // Fallback: This might fail if "Ankara İl Koordinatörlüğü" doesn't exist.
-                     return BadRequest("Seçilen ilde bir İl Koordinatörlüğü bulunamadı. Önce İl Koordinatörlüğünü ekleyiniz.");
+                     return BadRequest($"Seçilen ilde ({linkedProvincialTeskilat.Ad}) altında bir İl Koordinatörlüğü bulunamadı. Önce İl Koordinatörlüğünü ekleyiniz.");
                  }
 
                  // SWAP PARENT
@@ -218,8 +331,19 @@ namespace PersonelTakipSistemi.Controllers
               }
               else
               {
-                  if (string.IsNullOrEmpty(model.Ad)) return BadRequest("Komisyon adı zorunludur.");
+                  if (string.IsNullOrEmpty(model.Ad?.Trim())) return BadRequest("Komisyon adı zorunludur.");
+                  model.Ad = model.Ad.Trim();
               }
+
+             // Duplicate Check: Same Name OR Same Linked Central Unit under the same Coordinatorship
+             var exists = await _context.Komisyonlar.AnyAsync(x => 
+                 x.KoordinatorlukId == model.ParentId.Value && 
+                 x.IsActive && 
+                 (x.Ad.ToLower() == model.Ad.ToLower() || 
+                 (model.BagliMerkezKoordinatorlukId.HasValue && x.BagliMerkezKoordinatorlukId == model.BagliMerkezKoordinatorlukId.Value))
+             );
+
+             if(exists) return BadRequest("Bu koordinatörlüğe bağlı aynı isimde veya aynı merkez birime ait bir komisyon zaten eklenmiş.");
 
              var k = new Komisyon
              {
@@ -343,13 +467,75 @@ namespace PersonelTakipSistemi.Controllers
                         var item = await _context.Teskilatlar.FindAsync(id);
                         if (item != null) 
                         { 
-                            // 1. Delete related role assignments
+                            // 1. Delete related role assignments for THIS Teskilat
                             var roles = await _context.PersonelKurumsalRolAtamalari.Where(r => r.TeskilatId == id).ToListAsync();
-                            _context.PersonelKurumsalRolAtamalari.RemoveRange(roles);
+                            if(roles.Any()) _context.PersonelKurumsalRolAtamalari.RemoveRange(roles);
+
+                            // 2. Cascade Delete: If this is a 'Merkez' Teskilat, it might have a linked 'Taşra' Teskilat
+                            var linkedTasra = await _context.Teskilatlar.Where(t => t.BagliMerkezTeskilatId == id).ToListAsync();
+                            if (linkedTasra.Any())
+                            {
+                                var linkedTasraIds = linkedTasra.Select(t => t.TeskilatId).ToList();
+
+                                // 2A. Roles for linked Tasra
+                                var linkedRoles = await _context.PersonelKurumsalRolAtamalari.Where(r => r.TeskilatId.HasValue && linkedTasraIds.Contains(r.TeskilatId.Value)).ToListAsync();
+                                if(linkedRoles.Any()) _context.PersonelKurumsalRolAtamalari.RemoveRange(linkedRoles);
+
+                                // 2B. Koordinatorlukler under linked Tasra
+                                var linkedKoords = await _context.Koordinatorlukler.Where(k => linkedTasraIds.Contains(k.TeskilatId)).ToListAsync();
+                                if (linkedKoords.Any())
+                                {
+                                    var linkedKoordIds = linkedKoords.Select(k => k.KoordinatorlukId).ToList();
+                                    
+                                    // Roles for these Koords
+                                    var kRoles = await _context.PersonelKurumsalRolAtamalari.Where(r => r.KoordinatorlukId.HasValue && linkedKoordIds.Contains(r.KoordinatorlukId.Value)).ToListAsync();
+                                    if(kRoles.Any()) _context.PersonelKurumsalRolAtamalari.RemoveRange(kRoles);
+
+                                    // Commissions under these Koords
+                                    // Since we are also deleting the Merkez Koordinatorluks later, their linked provincial commissions will also be removed.
+                                    var linkedKomis = await _context.Komisyonlar.Where(k => linkedKoordIds.Contains(k.KoordinatorlukId)).ToListAsync();
+                                    if (linkedKomis.Any())
+                                    {
+                                         var komIds = linkedKomis.Select(k => k.KomisyonId).ToList();
+                                         var komRoles = await _context.PersonelKurumsalRolAtamalari.Where(r => r.KomisyonId.HasValue && komIds.Contains(r.KomisyonId.Value)).ToListAsync();
+                                         if(komRoles.Any()) _context.PersonelKurumsalRolAtamalari.RemoveRange(komRoles);
+                                         
+                                         _context.Komisyonlar.RemoveRange(linkedKomis);
+                                    }
+
+                                    _context.Koordinatorlukler.RemoveRange(linkedKoords);
+                                }
+
+                                _context.Teskilatlar.RemoveRange(linkedTasra);
+                            }
+
+                            // 3. Similarly, process child elements of the current Teskilat
+                            var koords = await _context.Koordinatorlukler.Where(k => k.TeskilatId == id).ToListAsync();
+                            if(koords.Any())
+                            {
+                                var koordIds = koords.Select(k => k.KoordinatorlukId).ToList();
+                                
+                                var kRoles = await _context.PersonelKurumsalRolAtamalari.Where(r => r.KoordinatorlukId.HasValue && koordIds.Contains(r.KoordinatorlukId.Value)).ToListAsync();
+                                if(kRoles.Any()) _context.PersonelKurumsalRolAtamalari.RemoveRange(kRoles);
+
+                                // Direct commissions and linked provincial commissions
+                                var komis = await _context.Komisyonlar.Where(k => koordIds.Contains(k.KoordinatorlukId) || (k.BagliMerkezKoordinatorlukId.HasValue && koordIds.Contains(k.BagliMerkezKoordinatorlukId.Value))).ToListAsync();
+                                if(komis.Any())
+                                {
+                                     var komIds = komis.Select(k => k.KomisyonId).ToList();
+                                     var komRoles = await _context.PersonelKurumsalRolAtamalari.Where(r => r.KomisyonId.HasValue && komIds.Contains(r.KomisyonId.Value)).ToListAsync();
+                                     if(komRoles.Any()) _context.PersonelKurumsalRolAtamalari.RemoveRange(komRoles);
+                                     
+                                     _context.Komisyonlar.RemoveRange(komis);
+                                }
+                                
+                                _context.Koordinatorlukler.RemoveRange(koords);
+                            }
     
+                            // Finally delete the Teskilat itself
                             _context.Teskilatlar.Remove(item); 
                             await _context.SaveChangesAsync();
-                            await _logService.LogAsync("Birim Silme", $"Teşkilat silindi: {item.Ad}", null, null);
+                            await _logService.LogAsync("Birim Silme", $"Teşkilat ve Bağlı Alt Birim/Kayıtlar silindi: {item.Ad}", null, null);
                         }
                     }
                     else if (type == "koord")
@@ -484,7 +670,7 @@ namespace PersonelTakipSistemi.Controllers
             var model = new TopluAtamaViewModel
             {
                 // Only Active Personnel
-                Personeller = await _context.Personeller.Include(p => p.GorevliIl).OrderBy(p => p.Ad).ThenBy(p => p.Soyad).ToListAsync(),
+                Personeller = await _context.Personeller.Include(p => p.GorevliIl).Include(p => p.KadroIl).OrderBy(p => p.Ad).ThenBy(p => p.Soyad).ToListAsync(),
                 Teskilatlar = await _context.Teskilatlar.OrderBy(x => x.Ad).ToListAsync()
             };
             return View(model);
@@ -644,8 +830,15 @@ namespace PersonelTakipSistemi.Controllers
         public async Task<IActionResult> GetKoordinatorlukler(int teskilatId)
         {
             var data = await _context.Koordinatorlukler
+                .Include(x => x.Teskilat)
                 .Where(x => x.TeskilatId == teskilatId && x.IsActive)
-                .Select(x => new { x.KoordinatorlukId, x.Ad, x.TasraTeskilatiVarMi })
+                .Select(x => new { 
+                    x.KoordinatorlukId, 
+                    x.Ad, 
+                    x.TasraTeskilatiVarMi,
+                    Tur = (x.Teskilat.BagliMerkezTeskilatId != null) ? "Taşra" : (x.Teskilat.Tur ?? "Merkez"),
+                    x.IlId
+                })
                 .OrderBy(x => x.Ad)
                 .ToListAsync();
             return Ok(data);
@@ -655,11 +848,21 @@ namespace PersonelTakipSistemi.Controllers
         public async Task<IActionResult> GetKomisyonlar(int koordinatorlukId)
         {
             var data = await _context.Komisyonlar
-                .Where(x => x.KoordinatorlukId == koordinatorlukId && x.IsActive)
-                .Select(x => new { x.KomisyonId, x.Ad })
-                .OrderBy(x => x.Ad)
+                .Include(x => x.Koordinatorluk).ThenInclude(k => k.Il)
+                .Include(x => x.BagliMerkezKoordinatorluk)
+                .Where(x => (x.KoordinatorlukId == koordinatorlukId || x.BagliMerkezKoordinatorlukId == koordinatorlukId) && x.IsActive)
                 .ToListAsync();
-            return Ok(data);
+
+            var result = data.Select(x => new { 
+                    x.KomisyonId, 
+                    Ad = x.BagliMerkezKoordinatorlukId == koordinatorlukId && x.Koordinatorluk?.Il != null
+                         ? $"{x.Koordinatorluk.Il.Ad} Komisyonu"
+                         : x.Ad 
+                })
+                .OrderBy(x => x.Ad)
+                .ToList();
+
+            return Ok(result);
         }
     }
 }

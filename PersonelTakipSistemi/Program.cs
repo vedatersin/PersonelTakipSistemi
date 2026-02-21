@@ -14,6 +14,7 @@ builder.Services.AddScoped<PersonelTakipSistemi.Services.INotificationService, P
 builder.Services.AddScoped<PersonelTakipSistemi.Services.ILogService, PersonelTakipSistemi.Services.LogService>();
 
 builder.Services.AddHostedService<PersonelTakipSistemi.Services.NotificationBackgroundService>();
+builder.Services.AddScoped<PersonelTakipSistemi.Services.IExcelService, PersonelTakipSistemi.Services.ExcelService>();
 
 // Connection String
 string connectionString = builder.Configuration.GetConnectionString("TegmPersonelTakipDB") ?? "";

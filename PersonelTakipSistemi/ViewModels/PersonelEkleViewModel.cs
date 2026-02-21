@@ -40,6 +40,12 @@ namespace PersonelTakipSistemi.ViewModels
         [Range(1, int.MaxValue, ErrorMessage = "Branş seçimi zorunludur.")]
         public int BransId { get; set; }
         
+        [Required(ErrorMessage = "Kadro İli seçimi zorunludur.")]
+        public int? KadroIlId { get; set; }
+
+        [Required(ErrorMessage = "Kadro İlçesi seçimi zorunludur.")]
+        public int? KadroIlceId { get; set; }
+
         [Required(ErrorMessage = "Kadro/Kurum zorunludur.")]
         public string KadroKurum { get; set; } = null!;
         public bool AktifMi { get; set; } = true;
@@ -87,6 +93,7 @@ namespace PersonelTakipSistemi.ViewModels
         public List<LookupItemVm> GorevTurleri { get; set; } = new List<LookupItemVm>();
         public List<LookupItemVm> IsNitelikleri { get; set; } = new List<LookupItemVm>();
         public List<LookupItemVm> Iller { get; set; } = new List<LookupItemVm>();
+        public List<LookupItemVm> KadroIlceler { get; set; } = new List<LookupItemVm>();
 
         public List<LookupItemVm> Branslar { get; set; } = new List<LookupItemVm>();
         

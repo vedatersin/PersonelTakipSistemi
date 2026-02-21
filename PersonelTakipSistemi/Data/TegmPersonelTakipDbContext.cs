@@ -15,6 +15,7 @@ namespace PersonelTakipSistemi.Data
         public DbSet<GorevTuru> GorevTurleri { get; set; }
         public DbSet<IsNiteligi> IsNitelikleri { get; set; }
         public DbSet<Il> Iller { get; set; }
+        public DbSet<Ilce> Ilceler { get; set; } = null!; // New
         public DbSet<Brans> Branslar { get; set; }
 
         public DbSet<PersonelYazilim> PersonelYazilimlar { get; set; }
@@ -64,6 +65,7 @@ namespace PersonelTakipSistemi.Data
             modelBuilder.Entity<GorevTuru>().ToTable("GorevTurleri");
             modelBuilder.Entity<IsNiteligi>().ToTable("IsNitelikleri");
             modelBuilder.Entity<Il>().ToTable("Iller");
+            modelBuilder.Entity<Ilce>().ToTable("Ilceler"); // New
             modelBuilder.Entity<Brans>().ToTable("Branslar");
 
             // Daire Başkanlıkları Seed
@@ -143,6 +145,22 @@ namespace PersonelTakipSistemi.Data
                     new Il { IlId = 79, Ad = "Kilis" }, new Il { IlId = 80, Ad = "Osmaniye" }, new Il { IlId = 81, Ad = "Düzce" }
                 );
             });
+
+            // Ilce Configuration & Seed
+             modelBuilder.Entity<Ilce>(entity =>
+            {
+                entity.HasKey(e => e.IlceId);
+                entity.Property(e => e.Ad).IsRequired().HasMaxLength(100);
+                
+                entity.HasOne(d => d.Il)
+                    .WithMany(p => p.Ilceler)
+                    .HasForeignKey(d => d.IlId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Full Seed Data from IlceSeeder
+                entity.HasData(IlceSeeder.GetDistricts());
+            });
+
 
 
             // Personel Constraints
@@ -301,8 +319,8 @@ namespace PersonelTakipSistemi.Data
                       .OnDelete(DeleteBehavior.Cascade); // Kademeli silme için Cascade
 
                 entity.HasData(
-                    new Teskilat { TeskilatId = 1, Ad = "Merkez", DaireBaskanligiId = 9 },
-                    new Teskilat { TeskilatId = 2, Ad = "Taşra", DaireBaskanligiId = 9 }
+                    new Teskilat { TeskilatId = 1, Ad = "Merkez", DaireBaskanligiId = 9, Tur = "Merkez", TasraOrgutlenmesiVarMi = true },
+                    new Teskilat { TeskilatId = 2, Ad = "Taşra", DaireBaskanligiId = 9, Tur = "Taşra", BagliMerkezTeskilatId = 1 }
                 );
             });
 

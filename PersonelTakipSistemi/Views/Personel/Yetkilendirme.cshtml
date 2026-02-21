@@ -31,6 +31,19 @@
         }
     </style>
 
+    <style>
+        /* Highlight for newly added personnel rows */
+        @@keyframes newRowGlow {
+            0% { background-color: #cce5ff; }
+            70% { background-color: #cce5ff; }
+            100% { background-color: transparent; }
+        }
+        .highlight-new-row {
+            animation: newRowGlow 5s ease-out;
+            border-left: 4px solid #696cff;
+        }
+    </style>
+
 <div class="row h-100">
     <div class="col-md-12">
         
@@ -156,6 +169,7 @@
                             var isStr = string.Join(",", p.IsNitelikleri);
                             
                             <tr class="cursor-pointer" onclick="openDrawer(@p.PersonelId)"
+                                data-personel-id="@p.PersonelId"
                                 data-search="@p.AdSoyad.ToLower()"
                                 data-teskilat="@teskilatStr"
                                 data-koordinatorluk="@koordinatorlukStr"
@@ -530,6 +544,40 @@
             
             filterTable();
         }
+        // Toplu Atama'dan gelen highlight parametresini işle
+        function highlightFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const highlightStr = params.get('highlight');
+            if (!highlightStr) return;
+
+            const highlightIds = highlightStr.split(',').map(Number);
+            if (!highlightIds.length) return;
+
+            const $tbody = $('#personelTable tbody');
+            const rowsToMove = [];
+
+            // Highlight edilen satırları bul ve topla
+            highlightIds.forEach(function(pid) {
+                const $row = $tbody.find('tr[data-personel-id="' + pid + '"]');
+                if ($row.length) {
+                    $row.addClass('highlight-new-row');
+                    rowsToMove.push($row);
+                }
+            });
+
+            // Satırları tablonun en üstüne taşı (ters sıra ile prepend)
+            for (let i = rowsToMove.length - 1; i >= 0; i--) {
+                $tbody.prepend(rowsToMove[i]);
+            }
+
+            // Sayfanın en üstüne scroll yap
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Sayfa yüklendiğinde highlight kontrolü yap
+        $(function() {
+            highlightFromUrl();
+        });
     </script>
     <script src="~/js/personel-yetkilendirme-draft.js" asp-append-version="true"></script>
 }

@@ -21,6 +21,14 @@ namespace PersonelTakipSistemi.Models
         public Brans Brans { get; set; } = null!;
         
         public string KadroKurum { get; set; } = null!;
+        
+        // Kadro Yeri (New)
+        public int? KadroIlId { get; set; }
+        public Il? KadroIl { get; set; }
+        
+        public int? KadroIlceId { get; set; }
+        public Ilce? KadroIlce { get; set; }
+
         public bool AktifMi { get; set; }
         public string? FotografYolu { get; set; }
         

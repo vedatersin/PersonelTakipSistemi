@@ -542,7 +542,85 @@
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
               return new bootstrap.Tooltip(tooltipTriggerEl)
-            })
+            });
+
+            // --- CASCADING FILTERS FOR ASSIGNMENT ---
+            var ddlTeskilat = $('select[name="assignedTeskilatId"]');
+            var ddlKoordinatorluk = $('select[name="assignedKoordinatorlukId"]');
+            var ddlKomisyon = $('select[name="assignedKomisyonId"]');
+            var ddlPersonel = $('select[name="assignedPersonelId"]');
+
+            // 1. Teşkilat Değişince
+            ddlTeskilat.on('change', function () {
+                var teskilatId = $(this).val();
+                
+                // Reset child dropdowns
+                ddlKoordinatorluk.empty().append('<option value="">Tümü</option>').trigger('change');
+                ddlKomisyon.empty().append('<option value="">Tümü</option>').trigger('change');
+                ddlPersonel.empty().append('<option value="">Tümü</option>').trigger('change');
+                
+                if (teskilatId) {
+                    // Koordinatörlükleri Getir
+                    $.get('/Personel/GetKoordinatorluklerByTeskilat', { teskilatId: teskilatId }, function (data) {
+                        if (data && data.length > 0) {
+                            $.each(data, function (i, item) {
+                                ddlKoordinatorluk.append($('<option>', {
+                                    value: item.id,
+                                    text: item.text
+                                }));
+                            });
+                            ddlKoordinatorluk.trigger('change');
+                        }
+                    });
+                }
+            });
+
+            // 2. Koordinatörlük Değişince
+            ddlKoordinatorluk.on('change', function () {
+                var koordinatorlukId = $(this).val();
+                
+                // Reset grandchild dropdown
+                ddlKomisyon.empty().append('<option value="">Tümü</option>').trigger('change');
+                ddlPersonel.empty().append('<option value="">Tümü</option>').trigger('change');
+                
+                if (koordinatorlukId) {
+                    // Komisyonları Getir
+                    $.get('/Personel/GetKomisyonlarByKoordinatorluk', { koordinatorlukId: koordinatorlukId }, function (data) {
+                        if (data && data.length > 0) {
+                            $.each(data, function (i, item) {
+                                ddlKomisyon.append($('<option>', {
+                                    value: item.id,
+                                    text: item.text // Uses the updated text formatting from API
+                                }));
+                            });
+                            ddlKomisyon.trigger('change');
+                        }
+                    });
+                }
+            });
+
+            // 3. Komisyon Değişince
+            ddlKomisyon.on('change', function () {
+                var komisyonId = $(this).val();
+                
+                // Reset grandchild dropdown
+                ddlPersonel.empty().append('<option value="">Tümü</option>').trigger('change');
+                
+                if (komisyonId) {
+                    // Personelleri Getir
+                    $.get('/Personel/GetPersonellerByKomisyon', { komisyonId: komisyonId }, function (data) {
+                        if (data && data.length > 0) {
+                            $.each(data, function (i, item) {
+                                ddlPersonel.append($('<option>', {
+                                    value: item.id,
+                                    text: item.text
+                                }));
+                            });
+                            ddlPersonel.trigger('change');
+                        }
+                    });
+                }
+            });
         });
         
         // --- BULK ACTION SCRIPTS ---

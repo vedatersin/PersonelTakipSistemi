@@ -27,6 +27,11 @@ namespace PersonelTakipSistemi.ViewModels
         public int? ParentId { get; set; } // Koordinatorluk için TeskilatId, Komisyon için KoordinatorlukId
         public int? IlId { get; set; } // Koordinatorluk için İl
         public bool? TasraTeskilatiVarMi { get; set; } // Default null (değişiklik yok), true/false (değişiklik var)
+        
+        // Yeni Alanlar (Teşkilat İçin)
+        public string? Tur { get; set; } // "Merkez", "Taşra"
+        public int? BagliMerkezTeskilatId { get; set; } // Taşra teşkilatı için
+
         public int? KomisyonBaskaniBirimId { get; set; } // Komisyon için opsiyonel branş vb.
         public int? BagliMerkezKoordinatorlukId { get; set; } // Taşra Komisyonu için Merkez Birim Linki
     }

@@ -24,8 +24,8 @@
             background-color: #dfe1e5;
         }
         .personel-card.selected {
-            border-color: #71dd37; /* Success Color */
-            background-color: #d1e7dd; /* Light green for selected */
+            border-color: #71dd37 !important; /* Success Color */
+            background-color: #d1e7dd !important; /* Light green for selected */
         }
         .check-badge {
             display: none;
@@ -45,62 +45,84 @@
         }
         .sticky-toolbar {
             position: sticky;
-            top: 10px;
-            z-index: 100;
+            top: 45px; /* Adjust based on your top navbar height */
+            z-index: 1020;
             background: rgba(255,255,255,0.95);
             backdrop-filter: blur(5px);
             border-radius: 0.5rem;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: box-shadow 0.3s;
+        }
+        @@keyframes blueGlow {
+            0% { box-shadow: 0 0 0 0 rgba(105,108,255,0.5); }
+            50% { box-shadow: 0 0 25px 8px rgba(105,108,255,0.35); }
+            100% { box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        }
+        .highlight-blue-sticky {
+            animation: blueGlow 1.5s ease-in-out 2;
+            border: 2px solid #696cff;
         }
     </style>
 }
 
-<div class="row">
-    <!-- Filters & Action Bar -->
-    <div class="col-12 mb-4">
-        <div class="card sticky-toolbar">
-            <div class="card-body p-3">
+<div class="card sticky-toolbar mb-4">
+    <div class="card-body p-3">
                 
-                <!-- ROW 1: Target Unit Selection -->
-                <div class="row g-3 align-items-end mb-3 pb-3 border-bottom">
-                     <div class="col-md-3">
-                        <label class="form-label small text-uppercase text-muted">Hedef Teşkilat</label>
-                        <select id="targetTeskilat" class="form-select">
-                            <option value="">Seçiniz</option>
-                            @foreach(var t in Model.Teskilatlar) { <option value="@t.TeskilatId">@t.Ad</option> }
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label small text-uppercase text-muted">Hedef Koordinatörlük</label>
-                        <select id="targetKoordinatorluk" class="form-select" disabled>
-                            <option value="">Önce Teşkilat Seçiniz</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                         <label class="form-label small text-uppercase text-muted">Hedef Komisyon</label>
-                        <select id="targetKomisyon" class="form-select" disabled>
-                            <option value="">Önce Koordinatörlük Seçiniz</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3 d-grid">
-                        <button class="btn btn-primary" onclick="submitAssignments()" id="btnSubmit" disabled>
-                            <i class='bx bx-check-double me-1'></i> Seçilileri Ekle (<span id="selectedCount">0</span>)
+                 <!-- ROW 1: Target Unit Selection -->
+                 <div class="d-flex flex-wrap flex-md-nowrap align-items-center justify-content-between mb-0 mb-md-2 border-bottom border-md-0 pb-2 pb-md-0">
+                     <!-- Mobile Toggle Button (Visible only on <md) -->
+                     <button class="btn btn-sm btn-outline-secondary d-md-none me-2" type="button" data-bs-toggle="collapse" data-bs-target="#topFilterCollapse" aria-expanded="false" aria-controls="topFilterCollapse">
+                         <i class="bx bx-chevron-up fs-4" id="topFilterToggleIcon"></i>
+                     </button>
+                     
+                     <div class="ms-auto w-100 w-md-auto d-md-none mt-2">
+                        <button class="btn btn-primary w-100" onclick="submitAssignments()" id="btnSubmitMobile" disabled>
+                            <i class='bx bx-check-double me-1'></i> Seçilileri Ekle (<span id="selectedCountMobile">0</span>)
                         </button>
+                     </div>
+                 </div>
+
+                 <div class="collapse d-md-flex show" id="topFilterCollapse">
+                    <div class="row g-3 w-100 flex-grow-1 align-items-end mb-3 pb-3 border-bottom">
+                         <div class="col-12 col-md-3">
+                            <label class="form-label small text-uppercase text-muted">Hedef Teşkilat</label>
+                            <select id="targetTeskilat" class="form-select">
+                                <option value="">Seçiniz</option>
+                                @foreach(var t in Model.Teskilatlar) { <option value="@t.TeskilatId">@t.Ad</option> }
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label small text-uppercase text-muted">Hedef Koordinatörlük</label>
+                            <select id="targetKoordinatorluk" class="form-select" disabled>
+                                <option value="">Önce Teşkilat Seçiniz</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3">
+                             <label class="form-label small text-uppercase text-muted">Hedef Komisyon</label>
+                            <select id="targetKomisyon" class="form-select" disabled>
+                                <option value="">Önce Koordinatörlük Seçiniz</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3 d-none d-md-grid">
+                            <button class="btn btn-primary h-100" onclick="submitAssignments()" id="btnSubmitDesktop" disabled>
+                                <i class='bx bx-check-double me-1'></i> Seçilileri Ekle (<span id="selectedCountDesktop">0</span>)
+                            </button>
+                        </div>
                     </div>
-                </div>
+                 </div>
 
 
 
-            </div>
-        </div>
     </div>
+</div>
 
+<div class="row">
     <!-- Personnel Grid -->
     <div class="col-12">
-        <div class="row row-cols-1 row-cols-md-4 row-cols-lg-5 g-3" id="personelGrid">
+        <div class="row row-cols-1 row-cols-md-4 row-cols-lg-5 g-3" id="personelGrid" style="min-height: calc(100vh - 280px); align-content: flex-start;">
             @foreach(var p in Model.Personeller)
             {
-                <div class="col personel-col" data-search="@p.Ad.ToLower() @p.Soyad.ToLower()" data-city="@(p.GorevliIl?.Ad ?? "")">
+                <div class="col personel-col" data-search="@p.Ad.ToLower() @p.Soyad.ToLower()" data-city="@(p.GorevliIl?.Ad ?? "")" data-kadro-city="@(p.KadroIl?.Ad ?? "")">
                     <div class="card h-100 personel-card @(!p.AktifMi ? "passive" : "")" onclick="@(!p.AktifMi ? "" : "toggleSelection(this)")" data-id="@p.PersonelId">
                         <div class="card-body text-center">
                             <div class="check-badge"><i class='bx bx-check'></i></div>
@@ -124,38 +146,71 @@
             }
         </div>
     </div>
-    </div>
+</div>
 
     <!-- Sticky Bottom Filter Bar -->
-    <div class="col-12 mt-4" style="position: sticky; bottom: 74px; z-index: 1020;">
+    <div style="position: sticky; bottom: 54px; z-index: 1020;">
         <div class="card border-0 shadow-lg rounded-3" style="box-shadow: 0 0 45px rgba(0,0,0,0.30) !important;">
              <div class="card-body p-3 bg-white rounded-3">
-                  <div class="row g-3 align-items-center">
-                    <!-- Search by Name -->
-                    <div class="col-md-5">
-                        <div class="input-group input-group-merge">
-                             <span class="input-group-text bg-transparent border-end-0"><i class='bx bx-search'></i></span>
-                             <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Ad Soyada göre filtrele..." onkeyup="filterPersonnel()">
-                        </div>
-                    </div>
-                    <!-- Filter by City -->
-                    <div class="col-md-4">
-                        <select id="cityFilter" class="form-select">
-                            <option value="">Görevli olduğu ile göre filtrele</option>
-                            @{
-                                var uniqueCities = Model.Personeller.Where(p => p.GorevliIl != null).Select(p => p.GorevliIl.Ad).Distinct().OrderBy(x => x);
-                                foreach(var city in uniqueCities)
-                                {
-                                    <option value="@city">@city</option>
-                                }
-                            }
-                        </select>
-                    </div>
+                 <!-- Main Always Visible Header/Action Row -->
+                 <div class="d-flex flex-wrap flex-md-nowrap align-items-center justify-content-between mb-0 mb-md-2 border-bottom border-md-0 pb-2 pb-md-0">
+                     <!-- Mobile Toggle Button (Visible only on <md) -->
+                     <button class="btn btn-sm btn-outline-secondary d-md-none me-2" type="button" data-bs-toggle="collapse" data-bs-target="#filterCollapse" aria-expanded="false" aria-controls="filterCollapse">
+                         <i class="bx bx-chevron-down fs-4" id="filterToggleIcon"></i>
+                     </button>
+                     
                      <!-- Selected Count Display -->
-                    <div class="col-md-3">
-                        <div class="badge bg-label-primary w-100 p-3 d-flex align-items-center justify-content-between fs-6">
-                            <span><i class='bx bx-check-circle me-2'></i>Seçili Kişi Sayısı:</span>
-                            <strong id="selectedCountDisplay">0</strong>
+                     <div class="badge bg-label-primary px-3 py-2 d-flex align-items-center fs-6 ms-0 ms-md-0 me-auto mb-2 mb-md-0 flex-grow-1 flex-md-grow-0" style="min-width: 200px; justify-content: space-between;">
+                         <span><i class='bx bx-check-circle me-2'></i>Seçili Kişi Sayısı:</span>
+                         <strong id="selectedCountDisplay">0</strong>
+                     </div>
+
+                     <!-- Clear Filters & Selection Buttons -->
+                     <div class="d-flex gap-2 ms-2">
+                         <button class="btn btn-label-secondary fw-bold" onclick="clearFilters()">
+                             <i class='bx bx-filter-alt me-1 d-none d-md-inline-block'></i> Filtreleri Temizle
+                         </button>
+                         <button class="btn btn-label-danger fw-bold" onclick="clearSelection()">
+                             <i class='bx bx-trash me-1 d-none d-md-inline-block'></i> Seçimi Temizle
+                         </button>
+                     </div>
+                 </div>
+
+                 <!-- Collapsible Filters Area (Always flex on md and above) -->
+                 <div class="collapse d-md-flex mt-3 mt-md-0 pt-1" id="filterCollapse">
+                      <div class="row g-3 align-items-center w-100 flex-grow-1">
+                        <!-- Search by Name -->
+                        <div class="col-12 col-md-4">
+                            <div class="input-group input-group-merge">
+                                 <span class="input-group-text bg-transparent border-end-0"><i class='bx bx-search'></i></span>
+                                 <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Ad Soyada göre filtrele..." onkeyup="filterPersonnel()">
+                            </div>
+                        </div>
+                        <!-- Filter by City -->
+                        <div class="col-12 col-md-4">
+                            <select id="cityFilter" class="form-select">
+                                <option value="">Görevli olduğu ile göre filtrele</option>
+                                @{
+                                    var uniqueCities = Model.Personeller.Where(p => p.GorevliIl != null).Select(p => p.GorevliIl.Ad).Distinct().OrderBy(x => x);
+                                    foreach(var city in uniqueCities)
+                                    {
+                                        <option value="@city">@city</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <!-- Filter by Kadro City -->
+                        <div class="col-12 col-md-4">
+                            <select id="kadroCityFilter" class="form-select">
+                                <option value="">Kadro iline göre filtrele</option>
+                                @{
+                                    var uniqueKadroCities = Model.Personeller.Where(p => p.KadroIl != null).Select(p => p.KadroIl.Ad).Distinct().OrderBy(x => x);
+                                    foreach(var city in uniqueKadroCities)
+                                    {
+                                        <option value="@city">@city</option>
+                                    }
+                                }
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -173,7 +228,7 @@
 
         $(document).ready(function() {
             // Select2 Init
-            $('#cityFilter').select2({
+            $('#cityFilter, #kadroCityFilter').select2({
                 theme: 'bootstrap-5',
                 width: '100%', 
                 dropdownParent: $('body')
@@ -189,23 +244,83 @@
             
             // Fix Select2 width issue in input-group if needed, or just let it replace.
             
-            $('#cityFilter').on('change', function() {
+            $('#cityFilter, #kadroCityFilter').on('change', function() {
                 filterPersonnel();
             });
+
+            // Handle Mobile Toggle Icon Flip
+            $('#filterCollapse').on('show.bs.collapse', function () {
+                $('#filterToggleIcon').removeClass('bx-chevron-down').addClass('bx-chevron-up');
+            });
+            $('#filterCollapse').on('hide.bs.collapse', function () {
+                $('#filterToggleIcon').removeClass('bx-chevron-up').addClass('bx-chevron-down');
+            });
+
+            $('#topFilterCollapse').on('show.bs.collapse', function () {
+                $('#topFilterToggleIcon').removeClass('bx-chevron-up').addClass('bx-chevron-down');
+            });
+            $('#topFilterCollapse').on('hide.bs.collapse', function () {
+                $('#topFilterToggleIcon').removeClass('bx-chevron-down').addClass('bx-chevron-up');
+            });
+
+            // URL Parametreleri ile Otomatik Dropdown Doldurma
+            autoFillFromUrl();
         });
         
+        // Clear Filters
+        function clearFilters() {
+            $('#searchInput').val('');
+            $('#cityFilter').val('').trigger('change.select2');
+            $('#kadroCityFilter').val('').trigger('change.select2');
+            filterPersonnel(); // Refresh List
+            reorderSelectedToTop(); // Seçilileri üste topla
+        }
+
+        // Clear Selection
+        function clearSelection() {
+            selectedIds.clear();
+            const items = document.getElementsByClassName('personel-col');
+            for(let i = 0; i < items.length; i++) {
+                const card = items[i].querySelector('.personel-card');
+                if(card.classList.contains('selected')) {
+                    card.classList.remove('selected');
+                }
+                items[i].style.order = ''; // Eski sıralamaya dön
+            }
+            updateUI();
+            filterPersonnel();
+        }
+
+        // Seçili kartları üste toplayan yardımcı fonksiyon
+        function reorderSelectedToTop() {
+            const items = document.getElementsByClassName('personel-col');
+            for(let i = 0; i < items.length; i++) {
+                const card = items[i].querySelector('.personel-card');
+                if(card && card.classList.contains('selected')) {
+                    items[i].style.order = '-1';
+                } else {
+                    items[i].style.order = '';
+                }
+            }
+        }
+
         // Search & Filter Logic
         function filterPersonnel() {
             const nameInput = document.getElementById('searchInput');
             const cityInput = $('#cityFilter').val(); // Use jQuery for Select2 value
+            const kadroCityInput = $('#kadroCityFilter').val();
             const nameFilter = nameInput.value.toLowerCase();
             const cityFilter = cityInput;
+            const kadroCityFilter = kadroCityInput;
 
             const items = document.getElementsByClassName('personel-col');
 
             for (let i = 0; i < items.length; i++) {
                 const searchData = items[i].getAttribute('data-search');
                 const cityData = items[i].getAttribute('data-city');
+                const kadroCityData = items[i].getAttribute('data-kadro-city');
+                const card = items[i].querySelector('.personel-card');
+                const isSelected = card && card.classList.contains('selected');
 
                 // Check Name Match
                 const nameMatch = searchData.includes(nameFilter);
@@ -213,12 +328,19 @@
                 // Check City Match
                 const cityMatch = cityFilter === "" || cityData === cityFilter;
 
-                if (nameMatch && cityMatch) {
+                // Check Kadro City Match
+                const kadroCityMatch = kadroCityFilter === "" || kadroCityData === kadroCityFilter;
+
+                // Seçili kişiler her zaman görünsün, filtrelemeye tabi tutulmasın
+                if (isSelected || (nameMatch && cityMatch && kadroCityMatch)) {
                     items[i].style.display = ""; // Show
                 } else {
                     items[i].style.display = "none"; // Hide
                 }
             }
+
+            // Filtre uygulandıktan sonra seçilileri üste topla
+            reorderSelectedToTop();
         }
 
         // Toggle Selection
@@ -237,14 +359,14 @@
 
         function updateUI() {
             const count = selectedIds.size;
-            $('#selectedCount').text(count); // Update Button Text
+            $('#selectedCountDesktop, #selectedCountMobile').text(count); // Update Button Text
             $('#selectedCountDisplay').text(count); // Update new Label in Filter Row
             
             // Enable submit if at least Teskilat selected AND at least 1 person
             const validUnit = targetUnit.tesId || targetUnit.koordId || targetUnit.komId;
             const validIds = count > 0;
             
-            $('#btnSubmit').prop('disabled', !(validUnit && validIds));
+            $('#btnSubmitDesktop, #btnSubmitMobile').prop('disabled', !(validUnit && validIds));
         }
 
         // Dropdown Logic
@@ -295,8 +417,10 @@
                  KomisyonId: targetUnit.komId
              };
 
-             const btn = $('#btnSubmit');
-             btn.prop('disabled', true).html('Kaydediliyor...');
+             const btnDesk = $('#btnSubmitDesktop');
+             const btnMob = $('#btnSubmitMobile');
+             btnDesk.prop('disabled', true).html('Kaydediliyor...');
+             btnMob.prop('disabled', true).html('Kaydediliyor...');
 
              $.ajax({
                 url: '/Birimler/YapTopluAtama', type: 'POST', contentType: 'application/json',
@@ -305,15 +429,19 @@
                     Swal.fire({
                         icon: 'success', 
                         title: 'Tamamlandı', 
-                        text: resp.count + ' kişi başarıyla eklendi.',
-                        timer: 2000
-                    }).then(() => location.reload()); 
+                        text: resp.count + ' kişi başarıyla eklendi. Yetkilendirme sayfasına yönlendiriliyorsunuz...',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        // Yetkilendirme sayfasına at ve eklenen kişileri highlight et
+                        const ids = Array.from(selectedIds).join(',');
+                        window.location.href = '/Personel/Yetkilendirme?highlight=' + ids;
+                    }); 
                 },
                 error: function(xhr) { 
                     let errMsg = 'İşlem başarısız.';
                     if (xhr.responseText) {
                          try {
-                             // Try parsing as JSON first (if ProblemDetails)
                              const json = JSON.parse(xhr.responseText);
                              errMsg = json.message || json.title || xhr.responseText;
                          } catch(e) {
@@ -321,9 +449,57 @@
                          }
                     }
                     Swal.fire('Uyarı', errMsg, 'warning');
-                    btn.prop('disabled', false).html('Tekrar Dene');
+                    btnDesk.prop('disabled', false).html("<i class='bx bx-check-double me-1'></i> Seçilileri Ekle (" + selectedIds.size + ")");
+                    btnMob.prop('disabled', false).html("<i class='bx bx-check-double me-1'></i> Seçilileri Ekle (" + selectedIds.size + ")");
                 }
             });
+        }
+
+        // URL parametrelerinden otomatik cascading dropdown doldurma
+        function autoFillFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const tesId = params.get('teskilatId');
+            const koordId = params.get('koordinatorlukId');
+            const komId = params.get('komisyonId');
+
+            if (!tesId) return;
+
+            // Mavi highlight animasyonu
+            $('.sticky-toolbar').addClass('highlight-blue-sticky');
+            setTimeout(() => { $('.sticky-toolbar').removeClass('highlight-blue-sticky'); }, 3000);
+
+            // 1. Teşkilat seç
+            $('#targetTeskilat').val(tesId).trigger('change');
+
+            // 2. Koordinatörlük dolsun ve seçilsin
+            if (koordId) {
+                setTimeout(function() {
+                    $.get('/Birimler/GetKoordinatorlukler?teskilatId=' + tesId, function(data) {
+                        const $koord = $('#targetKoordinatorluk');
+                        $koord.empty().append('<option value="">Seçiniz</option>');
+                        data.forEach(x => $koord.append(new Option(x.ad, x.koordinatorlukId)));
+                        $koord.prop('disabled', false);
+                        $koord.val(koordId).trigger('change');
+                        targetUnit.koordId = koordId;
+
+                        // 3. Komisyon dolsun ve seçilsin
+                        if (komId) {
+                            setTimeout(function() {
+                                $.get('/Birimler/GetKomisyonlar?koordinatorlukId=' + koordId, function(komData) {
+                                    const $kom = $('#targetKomisyon');
+                                    $kom.empty().append('<option value="">Seçiniz (Opsiyonel)</option>');
+                                    komData.forEach(x => $kom.append(new Option(x.ad, x.komisyonId)));
+                                    $kom.prop('disabled', false);
+                                    $kom.val(komId).trigger('change');
+                                    targetUnit.komId = komId;
+                                    updateUI();
+                                });
+                            }, 300);
+                        }
+                        updateUI();
+                    });
+                }, 300);
+            }
         }
     </script>
 }

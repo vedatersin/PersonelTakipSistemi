@@ -159,8 +159,8 @@
                      @foreach(var t in Model.Teskilatlar)
                      {
                          var hasChildrenKoord = Model.Koordinatorlukler.Any(x => x.TeskilatId == t.TeskilatId);
-                         var passiveClass = hasChildrenKoord ? "" : "daire-passive"; 
-                         var onClick = hasChildrenKoord ? $"selectTeskilat(this, {t.TeskilatId})" : "";
+                         var passiveClass = hasChildrenKoord ? "" : "tes-passive"; 
+                         var onClick = $"selectTeskilat(this, {t.TeskilatId})";
                          
                          // Determine initial visibility: Hidden unless it belongs to default active Daire (ID 9)
                          // But since we handle this in document.ready now, we can just start hidden or data-attribute based.
@@ -171,15 +171,17 @@
                              onclick="@onClick"
                              data-id="@t.TeskilatId"
                              data-parent-id="@parentId" 
+                             data-bagli-merkez-id="@(t.BagliMerkezTeskilatId ?? 0)"
                              style="display:none;"
                              id="row_tes_@t.TeskilatId">
                              
                              <div class="view-mode w-100 d-flex justify-content-between align-items-center">
-                                 <div>
-                                     <span class="fw-bold item-name">@t.Ad</span>
-                                     <br/><small class="text-muted">@t.Aciklama</small>
-                                 </div>
-                                 <div style="min-width: 80px; text-align: right;">
+                                  <div>
+                                      <span class="fw-bold item-name">@t.Ad</span>
+                                      <br/><small class="text-muted">@t.Aciklama</small>
+                                  </div>
+                                 <div style="min-width: 110px; text-align: right;">
+                                     <button class="btn btn-sm btn-icon text-success me-1" title="Toplu Personel Ekle" onclick="event.stopPropagation(); goToTopluAtama('tes', @t.TeskilatId)"><i class="bx bx-user-plus"></i></button>
                                      <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('tes', @t.TeskilatId)"><i class="bx bx-edit"></i></button>
                                      <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('tes', @t.TeskilatId)"><i class="bx bx-trash"></i></button>
                                  </div>
@@ -215,10 +217,14 @@
                  <ul class="list-group list-group-flush" id="listKoordinatorluk">
                      @foreach(var k in Model.Koordinatorlukler)
                      {
-                          <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center k-item" 
+                          var hasChildrenKomisyon = Model.Komisyonlar.Any(x => x.KoordinatorlukId == k.KoordinatorlukId || x.BagliMerkezKoordinatorlukId == k.KoordinatorlukId);
+                          var passiveClass = hasChildrenKomisyon ? "" : "k-passive";
+                          var onClick = $"selectKoordinatorluk(this, {k.KoordinatorlukId})";
+
+                          <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center k-item @passiveClass" 
                               data-parent-id="@k.TeskilatId"
                               data-id="@k.KoordinatorlukId"
-                              onclick="selectKoordinatorluk(this, @k.KoordinatorlukId)"
+                              onclick="@onClick"
                               style="display:none;"
                               id="row_koord_@k.KoordinatorlukId">
 
@@ -227,7 +233,8 @@
                                      <span class="fw-bold item-name">@k.Ad</span>
                                      <br/><small class="text-muted">@k.Aciklama</small>
                                  </div>
-                                 <div style="min-width: 80px; text-align: right;">
+                                 <div style="min-width: 110px; text-align: right;">
+                                      <button class="btn btn-sm btn-icon text-success me-1" title="Toplu Personel Ekle" onclick="event.stopPropagation(); goToTopluAtama('koord', @k.KoordinatorlukId)"><i class="bx bx-user-plus"></i></button>
                                       <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('koord', @k.KoordinatorlukId)"><i class="bx bx-edit"></i></button>
                                      <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('koord', @k.KoordinatorlukId)"><i class="bx bx-trash"></i></button>
                                  </div>
@@ -276,7 +283,8 @@
                                      <span class="fw-bold item-name">@k.Ad</span>
                                      <br/><small class="text-muted">@k.Koordinatorluk?.Ad</small>
                                  </div>
-                                 <div style="min-width: 80px; text-align: right;">
+                                 <div style="min-width: 110px; text-align: right;">
+                                     <button class="btn btn-sm btn-icon text-success me-1" title="Toplu Personel Ekle" onclick="event.stopPropagation(); goToTopluAtama('kom', @k.KomisyonId)"><i class="bx bx-user-plus"></i></button>
                                      <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('kom', @k.KomisyonId)"><i class="bx bx-edit"></i></button>
                                      <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('kom', @k.KomisyonId)"><i class="bx bx-trash"></i></button>
                                  </div>
@@ -343,6 +351,40 @@
               @foreach(var d in Model.DaireBaskanliklari) { <option value="@d.Id">@d.Ad</option> }
           </select>
         </div>
+        
+        <!-- Type Selection -->
+        <div class="mb-3">
+            <label class="form-label d-block">Teşkilat Tipi</label>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="tesType" id="tesTypeMerkez" value="Merkez" checked onchange="toggleTeskilatFields()">
+                <label class="form-check-label" for="tesTypeMerkez">Merkez</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="tesType" id="tesTypeTasra" value="Taşra" onchange="toggleTeskilatFields()">
+                <label class="form-check-label" for="tesTypeTasra">Taşra</label>
+            </div>
+        </div>
+
+        <!-- Fields for Merkez -->
+        <div id="divTesMerkezFields">
+            <div class="mb-3 form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="addTesTasraVar" checked>
+                <label class="form-check-label" for="addTesTasraVar">Taşra Örgütlenmesi Var Mı?</label>
+            </div>
+        </div>
+
+        <!-- Fields for Tasra -->
+        <div id="divTesTasraFields" style="display:none;">
+            <div class="mb-3">
+                <label class="form-label">Bağlı Olduğu Merkez Teşkilat</label>
+                <select id="addTesBagliMerkez" class="form-select">
+                    <option value="">Seçiniz...</option>
+                    <!-- Will be populated via AJAX -->
+                </select>
+                <small class="text-muted">Sadece taşra örgütlenmesi olan merkez teşkilatlar listelenir.</small>
+            </div>
+        </div>
+
         <div class="mb-3">
           <label class="form-label">Teşkilat Adı</label>
           <input type="text" id="addTesAd" class="form-control" placeholder="Örn: Merkez Teşkilatı">
@@ -373,7 +415,7 @@
           <label class="form-label">Bağlı Teşkilat</label>
           <select id="addKoordParent" class="form-select">
               <option value="">Seçiniz...</option>
-              @foreach(var t in Model.Teskilatlar) { <option value="@t.TeskilatId">@t.Ad</option> }
+              @foreach(var t in Model.Teskilatlar) { <option value="@t.TeskilatId" data-tur="@t.Tur">@t.Ad</option> }
           </select>
         </div>
         
@@ -434,7 +476,7 @@
           <select id="addKomParent" class="form-select">
               <option value="">Seçiniz...</option>
               @foreach(var k in Model.Koordinatorlukler) { 
-                  <option value="@k.KoordinatorlukId" data-teskilat-id="@k.TeskilatId" data-tasra-var-mi="@k.TasraTeskilatiVarMi.ToString().ToLower()">@k.Ad</option> 
+                  <option value="@k.KoordinatorlukId" data-teskilat-id="@k.TeskilatId" data-tasra-var-mi="@k.TasraTeskilatiVarMi.ToString().ToLower()" data-tur="@k.Teskilat?.Tur" data-il-id="@k.IlId">@k.Ad</option> 
               }
           </select>
         </div>
@@ -444,22 +486,20 @@
           <label class="form-label">Bağlı Merkez Birim</label>
           <select id="addKomBagliMerkez" class="form-select">
               <option value="">Seçiniz...</option>
-              @foreach(var mk in Model.Koordinatorlukler.Where(x => x.TeskilatId == 1 && x.TasraTeskilatiVarMi)) {
-                  <option value="@mk.KoordinatorlukId">@mk.Ad</option>
-              }
+              <!-- Will be populated dynamically via AJAX for Taşra -->
           </select>
           <small class="text-muted">Seçilen birim adına göre komisyon adı otomatik oluşturulur.</small>
         </div>
         
         <!-- Merkez - İl Seçimi (Redirection) -->
         <div class="mb-3" id="divKomIlContainer" style="display:none;">
-             <div class="alert alert-danger" role="alert">
+             <div id="alertKomIlMerkez" class="alert alert-danger" role="alert" style="display:none;">
                  <i class="bx bx-error me-1"></i> Bu koordinatörlüğün Taşra Örgütlenmesi bulunmaktadır. Lütfen komisyonu eklemek istediğiniz İli seçiniz. Komisyon ilgili ilin altına eklenecektir.
              </div>
              <label class="form-label">Şehir (İl) Seçiniz</label>
              <select id="addKomIl" class="form-select">
                 <option value="">Seçiniz...</option>
-                @if(iller != null) { foreach(var i in iller) { 
+                @if(ViewBag.Iller != null) { foreach(var i in ViewBag.Iller) { 
                     <option value="@i.IlId">@i.Ad</option> 
                 } }
              </select>
@@ -493,12 +533,18 @@
         var selectedTeskilatId = null;
         var selectedKoordId = null;
 
-        // List of City IDs that have a Provincial Coordinatorship (TeskilatId = 2)
-        var validTasraCityIds = @Html.Raw(Json.Serialize(Model.Koordinatorlukler.Where(x => x.TeskilatId == 2 && x.IlId.HasValue).Select(x => x.IlId.Value).Distinct().ToList()));
+        // List of City IDs that have a Provincial Coordinatorship (Teskilat.Tur = "Taşra")
+        var validTasraCityIds = @Html.Raw(Json.Serialize(Model.Koordinatorlukler.Where(x => x.Teskilat != null && x.Teskilat.Tur == "Taşra" && x.IlId.HasValue).Select(x => x.IlId.Value).Distinct().ToList()));
 
         $(document).ready(function() {
             console.log('[Ayarlar] Document ready. Initializing cascading...');
             
+            // Initial Sorting for all lists
+            sortListDynamically($('#listDaire'), 'daire-passive');
+            sortListDynamically($('#listTeskilat'), 'tes-passive');
+            sortListDynamically($('#listKoordinatorluk'), 'k-passive');
+            sortListDynamically($('#listKomisyon'), '');
+
             // Debug: log all tes-item data
             $('.tes-item').each(function() {
                 console.log('[Ayarlar] Teskilat item:', $(this).data('id'), 'parent:', $(this).attr('data-parent-id'));
@@ -514,12 +560,76 @@
             
             // 2. Modal Show Event: Pre-select Daire dropdown
             // 2. Modal Show Event: Pre-select Daire dropdown
+            // 2. Modal Show Event: Pre-select Daire dropdown
             $('#modalTeskilat').on('show.bs.modal', function () {
+                // Reset Fields
+                $('#addTesAd').val('');
+                $('#addTesTanim').val('');
+                $('#addTesTasraVar').prop('checked', true);
+                $('input[name="tesType"][value="Merkez"]').prop('checked', true);
+                toggleTeskilatFields();
+
                 if(selectedDaireId) {
                     console.log('[Ayarlar] Pre-selecting Daire in Modal:', selectedDaireId);
-                    $('#addTesParent').val(selectedDaireId);
+                    $('#addTesParent').val(selectedDaireId).trigger('change');
                 } else {
-                    $('#addTesParent').val('');
+                    // Try to finding active item in list
+                    var activeItem = $('#listDaire .daire-item.active');
+                    if(activeItem.length > 0) {
+                        var dId = activeItem.data('id');
+                        $('#addTesParent').val(dId).trigger('change');
+                    } else {
+                        // Inherit first option if available (User expectation: "seçili geleni otomatik doldur")
+                        var firstOption = $('#addTesParent option:eq(1)').val();
+                        if(firstOption) {
+                             $('#addTesParent').val(firstOption).trigger('change');
+                        } else {
+                             $('#addTesParent').val('').trigger('change');
+                        }
+                    }
+                }
+            });
+
+            // Toggle Logic for Teskilat Modal
+            window.toggleTeskilatFields = function() {
+                var type = $('input[name="tesType"]:checked').val();
+                if(type === 'Merkez') {
+                    $('#divTesMerkezFields').show();
+                    $('#divTesTasraFields').hide();
+                } else {
+                    $('#divTesMerkezFields').hide();
+                    $('#divTesTasraFields').show();
+                    loadMerkezTeskilatlar();
+                }
+            };
+
+            function loadMerkezTeskilatlar() {
+                var daireId = $('#addTesParent').val();
+                var $select = $('#addTesBagliMerkez');
+                
+                // Clear and show loading state
+                $select.empty().append('<option value="">Yükleniyor...</option>');
+                
+                var url = '/Birimler/GetMerkezTeskilatlarForTasra';
+                if(daireId) {
+                     url += '?daireId=' + daireId;
+                }
+
+                $.get(url, function(data) {
+                    $select.empty().append('<option value="">Seçiniz...</option>');
+                    if(data && data.length > 0) {
+                        data.forEach(function(item) {
+                             $select.append(new Option(item.ad, item.teskilatId));
+                        });
+                    }
+                });
+            }
+
+            // Reload Merkez Teskilatlar when Daire changes (if Tasra is selected)
+            $('#addTesParent').change(function() {
+                var type = $('input[name="tesType"]:checked').val();
+                if(type === 'Taşra') {
+                    loadMerkezTeskilatlar();
                 }
             });
 
@@ -534,50 +644,42 @@
                         $('#addKoordTanim').val('');
                         $('#addKoordIl').val('').trigger('change'); 
                         
-                        // Smart Filtering: Disable cities that are already added for ParentId=2 (Taşra)
-                        // Assume ParentId=2 is selected by default or user will select it.
-                        // We check currently visible items in the list to know what's added.
-                        // Or better: Checking all items in #listKoordinatorluk with data-parent-id="2".
-                        
-                        var existingCityIds = [];
-                        $('#listKoordinatorluk .k-item[data-parent-id="2"]').each(function() {
-                            // The easiest way to get the City ID is if we stored it in data-something.
-                            // But usually the name is "Adana İl Koordinatörlüğü". Parsing name is risky.
-                            // Let's assume we can't easily know the ID from DOM unless we added it on creation.
-                            // However, we can match by TEXT.
-                            
-                            var text = $(this).find('.item-name').text().trim();
-                            // "Adana İl Koordinatörlüğü" -> "Adana"
-                            var cityName = text.replace(' İl Koordinatörlüğü', '').trim();
-                            existingCityIds.push(cityName); 
-                        });
-                        
-                        // Since text matching is fragile, let's rely on backend check mostly, BUT 
-                        // to improve UX, let's try to disable options by Text Matching for now.
-                        // Ideally we should add data-il-id to the list item on creation/render.
-                        
-                        var $citySelect = $('#addKoordIl');
-                        $citySelect.find('option').prop('disabled', false); // Reset
-                        
-                        $citySelect.find('option').each(function() {
-                            var optText = $(this).text();
-                            if(existingCityIds.includes(optText)) {
-                                $(this).prop('disabled', true);
-                            }
-                        });
-                        
-                        // Select2 might need refresh if disabled status changed? 
-                         // Select2 usually respects disabled property on init or render.
-                         // But for dynamic changes, sometimes we need to destroy/re-init or trigger change.
-                         // Actually, just triggering change won't hide them.
-                         // Let's rely on standard 'disabled' attribute which Select2 supports.
-                        
                         if(selectedTeskilatId) {
                             $('#addKoordParent').val(selectedTeskilatId).trigger('change');
                         } else {
                             $('#addKoordParent').val('').trigger('change');
                         }
+                        
+                        // Trigger filtering based on initial value
+                        filterUsedCities();
                 });
+                
+                $('#addKoordParent').change(function() {
+                     filterUsedCities();
+                });
+
+                function filterUsedCities() {
+                    var parentId = $('#addKoordParent').val();
+                    if(!parentId) return;
+
+                    var $citySelect = $('#addKoordIl');
+                    $citySelect.find('option').prop('disabled', false); // Reset
+
+                    // Find added cities for this parent
+                    var existingCities = [];
+                    $('#listKoordinatorluk .k-item[data-parent-id="' + parentId + '"]').each(function() {
+                        var text = $(this).find('.item-name').text().trim();
+                        var cityName = text.replace(' İl Koordinatörlüğü', '').trim();
+                        existingCities.push(cityName); 
+                    });
+
+                    $citySelect.find('option').each(function() {
+                        var optText = $(this).text();
+                        if(existingCities.includes(optText)) {
+                            $(this).prop('disabled', true);
+                        }
+                    });
+                }
             }
             
             // NEW: Komisyon Modal Show Logic
@@ -619,11 +721,16 @@
                                      var id = item.koordinatorlukId || item.KoordinatorlukId;
                                      var title = item.ad || item.Ad;
                                      var tasra = (item.tasraTeskilatiVarMi !== undefined) ? item.tasraTeskilatiVarMi : item.TasraTeskilatiVarMi;
+                                     var tur = item.tur || item.Tur;
+                                     var ilId = item.ilId || item.IlId;
                                      
                                      // data-tasra-var-mi attribute added
                                      var option = new Option(title, id);
                                      $(option).attr('data-tasra-var-mi', tasra);
                                      $(option).attr('data-teskilat-id', selectedTeskilatId);
+                                     if(tur) $(option).attr('data-tur', tur);
+                                     if(ilId) $(option).attr('data-il-id', ilId);
+
                                      $select.append(option);
                                  });
                              }
@@ -654,21 +761,41 @@
             }
             
             $('#addKoordParent').change(function() {
+                var $selectedOption = $(this).find('option:selected');
                 var val = $(this).val();
+                
+                // Get pre-stored or data- bound type from option if exists, 
+                // Alternatively, we can inspect the DOM list item corresponding to this teskilat for 'Merkez' vs 'Taşra'
+                var tesType = '';
+                var $domRow = $('#row_tes_' + val);
+                if ($domRow.length > 0) {
+                     var domText = $domRow.find('.item-name').text();
+                     // In the current system, Teskilat lists are divided by Type or we can tell by the parent Daire/BagliMerkez
+                     // From previous modifications, "Tur" is "Merkez" or "Taşra". Since we don't have that directly on DOM easily without data attr,
+                     // Let's use the 'data-tur' or simply check if it has a BagliMerkezId (which means it's Tasra). 
+                     // The most robust way is to read 'data-tur' if we added it, but let's assume `data-tur` will be added to options.
+                }
+                
+                // Read from option's data attribute which we will populate
+                tesType = $selectedOption.attr('data-tur');
+
                 updateKoordPreview();
 
-                // 2 is Taşra ID
-                if(val == '2') {
+                if(!val) {
+                    $('#divKoordAdContainer').hide();
+                    $('#divKoordTasraSwitch').hide(); 
+                    $('#divKoordIlContainer').hide();
+                    return;
+                }
+
+                if(tesType === 'Taşra') {
                     $('#divKoordAdContainer').hide();
                     $('#divKoordTasraSwitch').hide(); // Hide switch for Tasra
                     $('#divKoordIlContainer').show();
                 } else {
                     // Merkez or others
                     $('#divKoordAdContainer').show();
-                    // Only show switch if Merkez (1)
-                    if(val == '1') $('#divKoordTasraSwitch').show();
-                    else $('#divKoordTasraSwitch').hide();
-                    
+                    $('#divKoordTasraSwitch').show();
                     $('#divKoordIlContainer').hide();
                 }
             });
@@ -705,68 +832,111 @@
             // NEW: Komisyon Modal Logic
             // ===================================
              $('#addKomParent').change(function() {
-                var selectedOption = $(this).find('option:selected');
-                var teskilatId = selectedOption.data('teskilat-id');
-                var tasraVarMi = selectedOption.attr('data-tasra-var-mi') === 'true'; // Check string attribute
-                
-                // Reset
-                $('#divKomBagliMerkez').hide();
-                $('#divKomIlContainer').hide();
-                $('#divKomAdContainer').hide();
+                 var selectedOption = $(this).find('option:selected');
+                 var teskilatId = selectedOption.data('teskilat-id');
+                 var tur = (selectedOption.attr('data-tur') || '').trim(); // e.g. "Merkez" or "Taşra"
+                 var tasraVarMi = selectedOption.attr('data-tasra-var-mi') === 'true'; // Check string attribute
+                 var ilId = selectedOption.attr('data-il-id');
+                 var targetKoordId = $(this).val(); 
+                 
+                 // Reset
+                 $('#divKomBagliMerkez').hide();
+                 $('#divKomIlContainer').hide();
+                 $('#divKomAdContainer').hide();
+                 $('#alertKomIlMerkez').hide();
 
-                // Logic
-                // 1. If Parent is Taşra (TeskilatId=2) -> Show "Bağlı Merkez"
-                if(teskilatId == 2) {
-                    $('#divKomBagliMerkez').show();
-                    // Name is auto-generated so hide Ad
-                } 
-                // 2. If Parent is Merkez (or others)
-                else {
-                    // Check if Parent has provincial organization
-                    if(tasraVarMi) {
-                         // Redirect to Il selection
-                         $('#divKomIlContainer').show();
+                 // Enable and reset city dropdown
+                 var $citySelect = $('#addKomIl');
+                 $citySelect.prop('disabled', false);
+                 $citySelect.find('option').remove();
+                 if ($citySelect.data('select2')) {
+                     $citySelect.select2('destroy');
+                 }
+
+                 // Logic
+                 if(tur === 'Taşra') {
+                     // 1. If Parent is Taşra -> Show "Bağlı Merkez" and Pre-selected "İl"
+                     $('#divKomBagliMerkez').show();
+                     $('#divKomIlContainer').show();
+                     
+                     // Pre-fill and disable the "İl" dropdown
+                     if(ilId) {
+                         // Find the province name from the global ViewBag.Iller or original select
+                         var originalSelectHtml = `@Html.Raw(ViewBag.Iller != null ? string.Join("", ((IEnumerable<PersonelTakipSistemi.Models.Il>)ViewBag.Iller).Select(i => $"<option value='{i.IlId}'>{i.Ad}</option>")) : "")`;
+                         $citySelect.html('<option value="">Seçiniz...</option>' + originalSelectHtml);
+                         $citySelect.val(ilId);
+                     }
+                     
+                     $citySelect.prop('disabled', true);
+                     if ($citySelect.data('select2')) {
+                         // Fallback init
+                     } else {
+                         $citySelect.select2({theme: 'bootstrap-5', dropdownParent: $citySelect.closest('.modal'), width: '100%'});
+                     }
+
+                     // Populate "Bağlı Merkez Birim" dynamically
+                     var $merkezSelect = $('#addKomBagliMerkez');
+                     $merkezSelect.empty().append('<option value="">Yükleniyor...</option>');
+                     if ($merkezSelect.data('select2')) $merkezSelect.val('').trigger('change.select2');
+
+                     $.get('/Birimler/GetMerkezKoordinatorluklerForTasra?tasraKoordinatorlukId=' + targetKoordId, function(data) {
+                          $merkezSelect.empty().append('<option value="">Seçiniz...</option>');
+                          if(data && data.length > 0) {
+                              data.forEach(function(mk) {
+                                  $merkezSelect.append(new Option(mk.ad, mk.koordinatorlukId));
+                              });
+                          } else {
+                              $merkezSelect.empty().append('<option value="">(Birim Bulunamadı)</option>');
+                          }
+                          if ($merkezSelect.data('select2')) {
+                              $merkezSelect.select2('destroy').select2({theme: 'bootstrap-5', dropdownParent: $merkezSelect.closest('.modal'), width: '100%'});
+                          }
+                     });
+
+                 } 
+                 // 2. If Parent is Merkez (or others)
+                 else {
+                     // Check if Parent has provincial organization
+                     if(tasraVarMi) {
+                          // Redirect to Il selection
+                          $('#divKomIlContainer').show();
+                          $('#alertKomIlMerkez').show();
                          
                          // Filter City Dropdown: Show only valid cities
+                         // Filter City Dropdown: Fetch valid cities from Server
                          var $citySelect = $('#addKomIl');
-                         $citySelect.val('').trigger('change'); // Reset selection
+                         var targetKoordId = $(this).val(); // The currently selected Koordinatorluk ID
                          
-                         $citySelect.find('option').each(function() {
-                             var val = $(this).val();
-                             if(val === "") return; // Skip default option
-                             
-                             var cityId = parseInt(val);
-                             var currentText = $(this).text();
-
-                             if(validTasraCityIds.includes(cityId)) {
-                                 // Show/Enable
-                                 $(this).prop('disabled', false);
-                                 
-                                 // Append Suffix if not present
-                                 if(!currentText.includes('İl Koordinatörlüğü')) {
-                                     $(this).text(currentText + ' İl Koordinatörlüğü');
-                                 }
-                             } else {
-                                 // Hide/Disable/Remove
-                                 // User requested they should not be seen ("görülmemeli")
-                                 // Since validTasraCityIds is static for the session, removing is safe.
-                                 $(this).remove();
-                             }
-                         });
-                         
-                         // Refresh Select2 to apply disabled state
-                         // Note: standard Bootstrap 5 theme might not visually hide disabled items perfectly in dropdown 
-                         // but they should be unselectable. 
-                         // For better UX, we might want to recreate the options, but disabling is a good start.
-                         // Actually, Select2 requires full re-init to update disabled state visuals sometimes.
-                         // Let's try destroying and re-initing if needed, or just let Select2 handle it.
+                         $citySelect.empty().append('<option value="">Yükleniyor...</option>');
                          if ($citySelect.data('select2')) {
-                             $citySelect.select2('destroy').select2({
-                                 theme: 'bootstrap-5',
-                                 dropdownParent: $citySelect.closest('.modal'),
-                                 width: '100%'
-                             });
+                             $citySelect.val('').trigger('change.select2'); // Reset selection
                          }
+                         
+                         $.get('/Birimler/GetIlListForMerkezKoordinatorluk?koordinatorlukId=' + targetKoordId, function(data) {
+                              $citySelect.empty().append('<option value="">Seçiniz...</option>');
+                              
+                              if(data && data.length > 0) {
+                                  data.forEach(function(city) {
+                                      // Append Suffix if not present
+                                      var cityName = city.ad;
+                                      if(!cityName.trim().endsWith('İl Koordinatörlüğü')) {
+                                          cityName = cityName + ' İl Koordinatörlüğü';
+                                      }
+                                      $citySelect.append(new Option(cityName, city.ilId));
+                                  });
+                              } else {
+                                  $citySelect.empty().append('<option value="">(Bağlı Taşra Koordinatörlüğü Bulunamadı)</option>');
+                              }
+                              
+                              // Refresh Select2
+                              if ($citySelect.data('select2')) {
+                                  $citySelect.select2('destroy').select2({
+                                      theme: 'bootstrap-5',
+                                      dropdownParent: $citySelect.closest('.modal'),
+                                      width: '100%'
+                                  });
+                              }
+                         });
 
                     } else {
                         // Standard Manual Entry
@@ -860,7 +1030,7 @@
                  var firstValid = null;
                  tesItems.each(function() {
                      var parentId = parseInt($(this).attr('data-parent-id'));
-                     if(parentId === id && !$(this).hasClass('daire-passive')) {
+                     if(parentId === id && !$(this).hasClass('tes-passive')) {
                          firstValid = this;
                          return false; // break
                      }
@@ -878,7 +1048,12 @@
         // ============================================
         // 2. TESKILAT SELECTION
         // ============================================
-        function selectTeskilat(el, id) {
+        function selectTeskilat(el, id, force) {
+            // Prevent clicking on passive items unless forced
+            if($(el).hasClass('tes-passive') && force !== true) {
+                return;
+            }
+
             selectedTeskilatId = id;
             console.log('[Ayarlar] selectTeskilat called with id:', id);
 
@@ -911,11 +1086,11 @@
             if(matchCount > 0) {
                 $('#koordInfo').css('display', 'none');
                 
-                // Auto-select first Koordinatorluk
+                // Auto-select first non-passive Koordinatorluk
                 var firstKoord = null;
                 koordItems.each(function() {
                     var parentId = parseInt($(this).attr('data-parent-id'));
-                    if(parentId === id) {
+                    if(parentId === id && !$(this).hasClass('k-passive')) {
                         firstKoord = this;
                         return false; // break
                     }
@@ -935,7 +1110,12 @@
         // ============================================
         // 3. KOORDINATORLUK SELECTION
         // ============================================
-        function selectKoordinatorluk(el, id) {
+        function selectKoordinatorluk(el, id, force) {
+            // Prevent clicking on passive items unless forced
+            if($(el).hasClass('k-passive') && force !== true) {
+                return;
+            }
+
             selectedKoordId = id;
             console.log('[Ayarlar] selectKoordinatorluk called with id:', id);
 
@@ -1058,7 +1238,139 @@
         // ============================================
         // CRUD Operations
         // ============================================
+        // HELPER FUNCTIONS FOR DOM SORTING & STATUS
+        // ============================================
 
+        // Removes passive class from a parent item if it exists
+        function updateParentPassiveState(type, parentId) {
+            if(!parentId) return;
+            var $parentRow;
+            if (type === 'daire') $parentRow = $('#row_daire_' + parentId);
+            else if (type === 'tes') $parentRow = $('#row_tes_' + parentId);
+            else if (type === 'koord') $parentRow = $('#row_koord_' + parentId);
+
+            if($parentRow && $parentRow.length > 0) {
+                // Determine passive class name based on type
+                var passiveClass = type === 'daire' ? 'daire-passive' : (type === 'tes' ? 'tes-passive' : 'k-passive');
+                
+                if($parentRow.hasClass(passiveClass)) {
+                    $parentRow.removeClass(passiveClass);
+                    // Also sort the parent's list since its status changed from passive to active
+                    var $listContainer = $parentRow.closest('ul');
+                    if($listContainer.length > 0) {
+                         sortListDynamically($listContainer, passiveClass);
+                    }
+                }
+            }
+        }
+
+        // Adds passive class to a parent item if it has no children left
+        function checkAndApplyPassiveState(type, parentId) {
+            if(!parentId) return;
+            var childClass;
+            var parentType;
+            if(type === 'tes') { parentType = 'daire'; childClass = '.tes-item'; }
+            else if(type === 'koord') { parentType = 'tes'; childClass = '.k-item'; }
+            else if(type === 'kom') { parentType = 'koord'; childClass = '.kom-item'; }
+            
+            if(!parentType) return;
+            
+            // Count children with this parentId that are STILL visible/existing (excluding just removed ones or those hidden intentionally differently? 
+            // Better to check DOM elements directly
+            var childCount = $(childClass + '[data-parent-id="' + parentId + '"]').length;
+            
+            // Also account for komisyon's provincial links
+            if(type === 'kom') {
+                 childCount += $('.kom-item[data-bagli-merkez-id="' + parentId + '"]').length;
+            }
+
+            if(childCount === 0) {
+                 var $parentRow = $('#row_' + parentType + '_' + parentId);
+                 if($parentRow.length > 0) {
+                     var passiveClass = parentType === 'daire' ? 'daire-passive' : (parentType === 'tes' ? 'tes-passive' : 'k-passive');
+                     if(!$parentRow.hasClass(passiveClass)) {
+                         $parentRow.addClass(passiveClass);
+                         var $listContainer = $parentRow.closest('ul');
+                         if($listContainer.length > 0) {
+                              sortListDynamically($listContainer, passiveClass);
+                              
+                              // Automatically select the first active sibling if the newly passive item was selected
+                              if ($parentRow.hasClass('active')) {
+                                  var parentIdAttr = $parentRow.attr('data-parent-id');
+                                  var selector = 'li:not(.' + passiveClass + ')';
+                                  if (parentIdAttr !== undefined && parentIdAttr !== false) {
+                                      selector += '[data-parent-id="' + parentIdAttr + '"]';
+                                  }
+                                  
+                                  var $firstActiveSibling = $listContainer.children(selector).first();
+                                  
+                                  if($firstActiveSibling.length > 0) {
+                                      var siblingId = parseInt($firstActiveSibling.attr('data-id'));
+                                      if (parentType === 'daire') selectDaire($firstActiveSibling[0], siblingId);
+                                      else if (parentType === 'tes') selectTeskilat($firstActiveSibling[0], siblingId);
+                                      else if (parentType === 'koord') selectKoordinatorluk($firstActiveSibling[0], siblingId);
+                                  } else {
+                                      // If no active sibling found, just deselect visually and reset downstream variables
+                                      $parentRow.removeClass('active');
+                                      if (parentType === 'daire') {
+                                           selectedDaireId = null;
+                                           selectedTeskilatId = null;
+                                           selectedKoordinatorlukId = null;
+                                           $('.tes-item, .k-item, .kom-item').hide().removeClass('d-flex');
+                                           $('#tesInfo').show();
+                                           $('#koordInfo').show();
+                                           $('#komInfo').show();
+                                      } else if (parentType === 'tes') {
+                                          selectedTeskilatId = null;
+                                          selectedKoordinatorlukId = null;
+                                          $('.k-item, .kom-item').hide().removeClass('d-flex');
+                                          $('#koordInfo').show();
+                                          $('#komInfo').show();
+                                      } else if (parentType === 'koord') {
+                                          selectedKoordinatorlukId = null;
+                                          $('.kom-item').hide().removeClass('d-flex');
+                                          $('#komInfo').show();
+                                      }
+                                  }
+                              }
+                         }
+                     }
+                 }
+            }
+        }
+
+        // Sorts a ul list. First active items (alphabetical), then passive items (alphabetical)
+        function sortListDynamically($listContainer, passiveClass) {
+            var items = $listContainer.children('li.list-group-item:not([id$="Info"])').get();
+            
+            items.sort(function(a, b) {
+                var $a = $(a);
+                var $b = $(b);
+                
+                var aIsPassive = $a.hasClass(passiveClass);
+                var bIsPassive = $b.hasClass(passiveClass);
+                
+                // 1. Group by active/passive
+                if (aIsPassive && !bIsPassive) return 1;  // a is passive, b is active -> b comes first
+                if (!aIsPassive && bIsPassive) return -1; // a is active, b is passive -> a comes first
+                
+                // 2. Alphabetical sort within the same group
+                var aText = $a.find('.item-name').text().trim().toLowerCase();
+                var bText = $b.find('.item-name').text().trim().toLowerCase();
+                
+                // Turkish character sorting
+                return aText.localeCompare(bText, 'tr');
+            });
+
+            // Re-append sorted items
+            $.each(items, function(idx, itm) { $listContainer.append(itm); });
+        }
+
+
+        // ============================================
+        // MODALS AND AJAX SAVES
+        // ============================================
+        
         function addDaireModal() {
             $('#modalDaire').modal('show');
         }
@@ -1122,16 +1434,25 @@
         }
         
         function saveTeskilat() {
+            var type = $('input[name="tesType"]:checked').val();
             var data = { 
                 Ad: $('#addTesAd').val(), 
                 Tanim: $('#addTesTanim').val(),
-                ParentId: $('#addTesParent').val()
+                ParentId: $('#addTesParent').val(),
+                Tur: type,
+                TasraTeskilatiVarMi: $('#addTesTasraVar').is(':checked'),
+                BagliMerkezTeskilatId: $('#addTesBagliMerkez').val() || null
             };
 
             if(!data.ParentId) return Swal.fire('Uyarı', 'Lütfen bağlı daire başkanlığını seçiniz.', 'warning');
             if(!data.Ad) return Swal.fire('Uyarı', 'Teşkilat adı zorunludur.', 'warning');
             
+            if(type === 'Taşra' && !data.BagliMerkezTeskilatId) {
+                return Swal.fire('Uyarı', 'Taşra teşkilatı için bağlı merkez teşkilat seçimi zorunludur.', 'warning');
+            }
+
             data.ParentId = parseInt(data.ParentId);
+            if(data.BagliMerkezTeskilatId) data.BagliMerkezTeskilatId = parseInt(data.BagliMerkezTeskilatId);
 
             $.ajax({
                 url: '/Birimler/EkleTeskilat', type: 'POST', contentType: 'application/json',
@@ -1144,18 +1465,19 @@
                          
                          var newId = resp.id;
                          var newRowHtml = `
-                             <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center tes-item" 
+                             <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center tes-item tes-passive" 
                                  onclick="selectTeskilat(this, ${newId})"
                                  data-id="${newId}"
                                  data-parent-id="${data.ParentId}" 
+                                 data-bagli-merkez-id="${data.BagliMerkezTeskilatId || 0}"
                                  style="display:none;"
                                  id="row_tes_${newId}">
                                  
-                                 <div class="view-mode w-100 d-flex justify-content-between align-items-center">
-                                     <div>
-                                         <span class="fw-bold item-name">${resp.ad || data.Ad}</span>
-                                         <br/><small class="text-muted">${data.Tanim || ''}</small>
-                                     </div>
+                                  <div class="view-mode w-100 d-flex justify-content-between align-items-center">
+                                      <div>
+                                          <span class="fw-bold item-name" id="tesName_${newId}">${resp.ad || data.Ad}</span>
+                                          <br/><small class="text-muted">${data.Tanim || ''}</small>
+                                      </div>
                                      <div style="min-width: 80px; text-align: right;">
                                          <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('tes', ${newId})"><i class="bx bx-edit"></i></button>
                                          <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('tes', ${newId})"><i class="bx bx-trash"></i></button>
@@ -1171,17 +1493,22 @@
                                  </div>
                              </li>`;
                          
-                         $('#listTeskilat').append(newRowHtml);
+                         var $container = $('#listTeskilat');
+                         $container.append(newRowHtml);
+                         
+                         // Sort the current container
+                         sortListDynamically($container, 'tes-passive');
                          
                          // Update Dropdown in Koordinatorluk Modal
                          var newOption = new Option(data.Ad, newId, false, false);
+                         $(newOption).attr('data-tur', type);
                          $('#addKoordParent').append(newOption);
                          
                          // 1. Find and Select the Parent Daire
                          var parentRow = $('#row_daire_' + data.ParentId);
                          if(parentRow.length > 0) {
-                             // Remove passive state visually & logically
-                             parentRow.removeClass('daire-passive');
+                             // Update parent's state and trigger sorting of parent list
+                             updateParentPassiveState('daire', data.ParentId);
                              
                              // Force selection 
                              selectDaire(parentRow[0], data.ParentId, true);
@@ -1343,11 +1670,11 @@
                              }
                          }
                     } else {
-                        // ADD UI
+                         // ADD UI
                         if(resp.success) {
                              var newId = resp.id;
                              var newRowHtml = `
-                               <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center k-item" 
+                               <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center k-item k-passive" 
                                    data-parent-id="${data.ParentId}"
                                    data-id="${newId}"
                                    onclick="selectKoordinatorluk(this, ${newId})"
@@ -1366,7 +1693,11 @@
                                    </div>
                                </li>`;
                              
-                             $('#listKoordinatorluk').prepend(newRowHtml);
+                             var $container = $('#listKoordinatorluk');
+                             $container.append(newRowHtml);
+                             
+                             // Sort the current container
+                             sortListDynamically($container, 'k-passive');
                              
                              // Show/Highlight if visible context
                              if(selectedTeskilatId == data.ParentId || (!selectedTeskilatId && data.ParentId==2)) { // 2=Tasra special case maybe?
@@ -1378,10 +1709,22 @@
                                  row[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                              }
                              
+                             // Update Parent Teskilat Passive Status
+                             updateParentPassiveState('tes', data.ParentId);
+                             
+                             // +++ NEW: Automatically select the parent Teşkilat and scroll to it +++
+                             var parentTesRow = $('#row_tes_' + data.ParentId);
+                             if (parentTesRow.length > 0) {
+                                 selectTeskilat(parentTesRow[0], data.ParentId, true);
+                                 parentTesRow[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                             }
+                             
                              // Update Option in Komisyon Modal
+                             var tesType = $('#addKoordParent option:selected').attr('data-tur') || 'Merkez';
                              var newOption = new Option(resp.ad, newId, false, false);
                              $(newOption).attr('data-teskilat-id', data.ParentId);
                              $(newOption).attr('data-tasra-var-mi', data.TasraTeskilatiVarMi);
+                             $(newOption).attr('data-tur', tesType);
                              $('#addKomParent').append(newOption);
                         } else {
                             location.reload();
@@ -1402,7 +1745,8 @@
                 Ad: $('#addKomAd').val(), 
                 Tanim: $('#addKomTanim').val(),
                 ParentId: rawParentVal,
-                BagliMerkezKoordinatorlukId: $('#addKomBagliMerkez').val()
+                BagliMerkezKoordinatorlukId: null,
+                IlId: null
             };
 
             // Fix for [Required] Ad property in backend
@@ -1417,23 +1761,21 @@
             }
 
             if(!data.ParentId) return Swal.fire('Uyarı', 'Bağlı Koordinatörlük zorunludur.', 'warning');
+            
+            data.ParentId = parseInt(data.ParentId);
 
-            // Sanitize IDs
-            console.log('[Ayarlar] Save Data Before Parse:', data);
-            
-            data.ParentId = data.ParentId ? parseInt(data.ParentId) : null;
-            data.BagliMerkezKoordinatorlukId = data.BagliMerkezKoordinatorlukId ? parseInt(data.BagliMerkezKoordinatorlukId) : null;
-            var ilId = $('#addKomIl').val();
-            if(ilId) data.IlId = parseInt(ilId);
-            
             if($('#divKomBagliMerkez').is(':visible')) {
-                if(!data.BagliMerkezKoordinatorlukId) return Swal.fire('Uyarı', 'Bağlı Merkez Birim zorunludur.', 'warning');
+                var bmId = $('#addKomBagliMerkez').val();
+                if(!bmId) return Swal.fire('Uyarı', 'Bağlı Merkez Birim zorunludur.', 'warning');
+                data.BagliMerkezKoordinatorlukId = parseInt(bmId);
             } 
             else if($('#divKomIlContainer').is(':visible')) {
-                if(!data.IlId) return Swal.fire('Uyarı', 'Lütfen komisyonun ekleneceği İli seçiniz.', 'warning');
+                var ilId = $('#addKomIl').val();
+                if(!ilId) return Swal.fire('Uyarı', 'Lütfen komisyonun ekleneceği İli seçiniz.', 'warning');
+                data.IlId = parseInt(ilId);
             }
             else {
-                if(!data.Ad) return Swal.fire('Uyarı', 'Komisyon Adı zorunludur.', 'warning');
+                if(!data.Ad || data.Ad === "Otomatik") return Swal.fire('Uyarı', 'Komisyon Adı zorunludur.', 'warning');
             }
 
             var parentName = $("#addKomParent option:selected").text();
@@ -1445,7 +1787,9 @@
                     console.log('[Ayarlar] EkleKomisyon Success:', resp); 
                     if(resp.success) {
                         // CAPTURE STATE IMMEDIATELY (Before Modal Close/Clear)
-                        var isRedirected = $('#divKomIlContainer').is(':visible');
+                        // isRedirected is ONLY true if we are redirecting from Center -> Province.
+                        // In that case, divKomIlContainer is visible but divKomBagliMerkez is HIDDEN.
+                        var isRedirected = $('#divKomIlContainer').is(':visible') && !$('#divKomBagliMerkez').is(':visible');
                         var selectedCityText = $("#addKomIl option:selected").text();
                         var selectedParentText = $("#addKomParent option:selected").text();
 
@@ -1485,19 +1829,37 @@
                                        // When viewing under FEN BILIMLERI, the selectKoordinatorluk logic will rename it to "Adana".
                                        newItemName = resp.ad; 
                                        parentName = cityOnly + " İl Koordinatörlüğü"; 
+                                       
+                                       var provKoordId = -1;
+                                       var $provRow = $('#listKoordinatorluk .k-item .item-name').filter(function() {
+                                           return $(this).text().trim() === parentName;
+                                       }).closest('.k-item');
+                                       if($provRow.length > 0) {
+                                            provKoordId = parseInt($provRow.attr('data-id'));
+                                       }
 
                                        // FORCE RENAMING LOGIC:
-                                       // selectKoordinatorluk renames IF (bagliMerkezId == currentId && parentId != currentId)
-                                       // currentId is data.ParentId (Central Unit).
-                                       // So we must set bagliMerkezIdOfNewItem = data.ParentId
-                                       // And parentIdOfNewItem = something else (e.g. -1)
                                        bagliMerkezIdOfNewItem = data.ParentId; 
-                                       parentIdOfNewItem = -1; 
+                                       parentIdOfNewItem = provKoordId; 
                                   } else {
+                                       // STANDARD OR PROVINCIAL TO CENTRAL LINK (e.g. Adana -> C Merkez)
                                        parentName = selectedParentText; // Use captured text
+                                       
+                                       // CRUCIAL FIX: When adding to a Provincial Unit and linking to a Central Unit,
+                                       // data.BagliMerkezKoordinatorlukId holds the Central Unit's ID.
+                                       // We must ensure 'bagliMerkezIdOfNewItem' contains this so selectKoordinatorluk can find it!
+                                       if(data.BagliMerkezKoordinatorlukId) {
+                                           bagliMerkezIdOfNewItem = data.BagliMerkezKoordinatorlukId;
+                                           
+                                           // We also need the Central Unit's name assigned to `data-parent-name` for proper renaming logic!
+                                           // selectKoordinatorluk expects `parentName` to be the Provincial Unit's name (e.g., "Adana İl Koordinatörlüğü")
+                                           // to extract "Adana" and rename the commission to "Adana Komisyonu" when viewing the Central Unit.
+                                           // Currently, `parentName` is indeed the Provincial Unit because `selectedParentText` is the dropdown's selected text ("Adana İl Koordinatörlüğü").
+                                           // So this is correct!
+                                       }
                                   }
 
-                                 var newRowHtml = `
+                                  var newRowHtml = `
                                    <li class="list-group-item list-group-item-action cursor-pointer justify-content-between align-items-center kom-item" 
                                        data-parent-id="${parentIdOfNewItem}"
                                        data-bagli-merkez-id="${bagliMerkezIdOfNewItem}"
@@ -1508,7 +1870,7 @@
                                       
                                       <div class="view-mode w-100 d-flex justify-content-between align-items-center">
                                           <div>
-                                              <span class="fw-bold item-name">${resp.ad}</span>
+                                              <span class="fw-bold item-name">${newItemName}</span>
                                               <br/><small class="text-muted">${parentName}</small>
                                           </div>
                                           <div style="min-width: 80px; text-align: right;">
@@ -1518,7 +1880,7 @@
                                       </div>
                                       
                                       <div class="edit-mode w-100 d-none justify-content-between align-items-center">
-                                          <input type="text" class="edit-input me-2" value="${resp.ad}" id="input_kom_${resp.id}" onclick="event.stopPropagation()">
+                                          <input type="text" class="edit-input me-2" value="${newItemName}" id="input_kom_${resp.id}" onclick="event.stopPropagation()">
                                            <div style="min-width: 80px; text-align: right;">
                                               <button class="btn btn-sm btn-icon text-success me-1" onclick="event.stopPropagation(); saveEdit('kom', ${resp.id})"><i class="bx bx-check"></i></button>
                                               <button class="btn btn-sm btn-icon text-dark" onclick="event.stopPropagation(); cancelEdit('kom', ${resp.id})"><i class="bx bx-x"></i></button>
@@ -1526,19 +1888,37 @@
                                       </div>
                                    </li>`;
 
-                                 // Simple Append
+                                 // Append item
                                  var $container = $('#listKomisyon');
-                                 $container.prepend(newRowHtml); 
+                                 $container.append(newRowHtml); 
 
-                                 // Re-apply filters to show/hide and rename properly
-                                 if(selectedKoordId) {
-                                      var $activeKoord = $('#listKoordinatorluk .k-item.active');
-                                      if($activeKoord.length > 0) {
-                                           selectKoordinatorluk($activeKoord[0], selectedKoordId);
+                                 // Sort the current container
+                                 // Komisyon itself does not have passive children state, so no passiveClass is needed here
+                                 // We just pass empty string to let alphabetical sort work
+                                 sortListDynamically($container, '');
+
+                                  // Update Parent Koordinatorluk Passive Status
+                                  // If it was added to a Merkez -> Province (bagliMerkezId), both should actially be updated.
+                                  // Update the immediate parent (Centeral Unit)
+                                  updateParentPassiveState('koord', selectedKoordId || data.ParentId); 
+                                  
+                                  // If there's a province unit, ideally update it too, but we might not have the ID here reliably without querying.
+                                  if(parentIdOfNewItem && parentIdOfNewItem > 0 && bagliMerkezIdOfNewItem > 0) {
+                                       updateParentPassiveState('koord', parentIdOfNewItem);
+                                  }
+
+                                  // Re-apply filters to show/hide and rename properly
+                                  // Also explicitly select the parent Koordinatorluk
+                                  var targetKoordId = selectedKoordId || data.ParentId;
+                                  if(targetKoordId) {
+                                      var parentKoordRow = $('#row_koord_' + targetKoordId);
+                                      if(parentKoordRow.length > 0) {
+                                          selectKoordinatorluk(parentKoordRow[0], targetKoordId, true);
+                                          parentKoordRow[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                                       }
-                                 }
-                                 
-                                 // Highlight the new item
+                                  }
+                                  
+                                  // Highlight the new item
                                  var $newItem = $('#row_kom_' + resp.id);
                                  if($newItem.is(':visible')) {
                                      $newItem.addClass('highlight-green');
@@ -1559,9 +1939,28 @@
         }
 
         function deleteItem(type, id) {
+            var warnTitle = 'Silmek istediğinize emin misiniz?';
+            var warnText = "Bu işlem geri alınamaz!";
+            var warnHtml = "";
+
+            if (type === 'tes') {
+                var isMerkez = false;
+                var $row = $('#row_tes_' + id);
+                if ($row.length > 0) {
+                     // Check if it's Merkez via DOM or our added data-tur or visually. 
+                     // We know from backend logic that deleting Merkez cascades to Tasra.
+                     // The safest way on frontend is to check if it's in the Merkez list or Tasra list, 
+                     // or just show this warning for any organization but highlight the cascading part.
+                     var text = $row.find('.item-name').text();
+                     // Let's assume we want this specific warning when we hit delete to be very explicit.
+                     warnHtml = "Bu birime bağlı silinemeyen alt kayıtlar var. (Örn: Görev Atamaları). <br><br><b>Eğer Merkez Teşkilatı siliyorsanız, buna bağlı olan Taşra teşkilatı, altındaki tüm koordinatörlükler, komisyonlar ve personellerin üzerindeki ilgili görevler de silinecektir/boşa düşecektir.</b><br><br>Devam etmek istiyor musunuz?";
+                }
+            }
+
             Swal.fire({
-                title: 'Silmek istediğinize emin misiniz?',
-                text: "Bu işlem geri alınamaz!",
+                title: warnTitle,
+                text: warnText,
+                html: warnHtml || undefined,
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Evet, Sil'
@@ -1577,6 +1976,9 @@
                             row.addClass('highlight-red');
                             setTimeout(function() {
                                 row.slideUp(function() { 
+                                    var pId = $(this).attr('data-parent-id');
+                                    var bmId = $(this).attr('data-bagli-merkez-id');
+                                    
                                     $(this).remove(); 
                                     
                                     // If deleted item was a Coordinator, also remove its linked Commissions from DOM
@@ -1602,10 +2004,6 @@
                                             setTimeout(function() {
                                                 $relatedTes.slideUp(function() { 
                                                     $(this).remove(); 
-                                                    // Also remove from dropdowns if any related teskilats were in them
-                                                    // Since we don't know IDs easily without looping, we rely on server sync mostly.
-                                                    // BUT we can remove the Daire option itself from Daire dropdowns if exist
-                                                    // (though currently no add-something-under-daire dropdown other than Teskilat Parent)
                                                 });
                                             }, 500);
                                         }
@@ -1629,6 +2027,18 @@
 
                                     // If deleted item was Teskilat
                                     if(type === 'tes') {
+                                        var $row = $('#row_tes_' + id);
+                                        var pId = $row.attr('data-parent-id');
+                                        var $childTasra = $('.tes-item[data-bagli-merkez-id="' + id + '"]');
+                                        if ($childTasra.length > 0) {
+                                            var tasraId = $childTasra.attr('data-id');
+                                            $childTasra.addClass('highlight-red');
+                                            setTimeout(function() {
+                                                $childTasra.slideUp(function() { $(this).remove(); });
+                                            }, 500);
+                                            $('.k-item[data-parent-id="' + tasraId + '"]').remove();
+                                            $('#addKoordParent option[value="' + tasraId + '"]').remove();
+                                        }
                                         // Remove from Koordinatorluk Add Modal -> Parent Select
                                         $('#addKoordParent option[value="' + id + '"]').remove();
                                         
@@ -1650,6 +2060,15 @@
                                         // Remove from Komisyon Add Modal -> BagliMerkez Select
                                         $('#addKomBagliMerkez option[value="' + id + '"]').remove();
                                     }
+                                    
+                                    // Apply passive state to parent if it has no children left
+                                    if(pId && pId != "0" && pId != "null") {
+                                        checkAndApplyPassiveState(type, parseInt(pId));
+                                    }
+                                    if(bmId && bmId != "0" && bmId != "null" && type === 'kom') {
+                                        checkAndApplyPassiveState(type, parseInt(bmId));
+                                    }
+
                                 });
                             }, 500);
                         } else {
@@ -1718,6 +2137,31 @@
                     Swal.fire('Hata', xhr.responseText || 'Güncelleme başarısız.', 'error'); 
                 }
             });
+        }
+        // Toplu Atama sayfasına yönlendirme (birim hiyerarşisiyle)
+        function goToTopluAtama(type, id) {
+            let url = '/Birimler/TopluAtama?';
+            
+            if (type === 'tes') {
+                url += 'teskilatId=' + id;
+            } 
+            else if (type === 'koord') {
+                // Koordinatörlüğün bağlı olduğu teşkilat ID'sini DOM'dan al
+                const koordRow = document.getElementById('row_koord_' + id);
+                const tesId = koordRow ? koordRow.getAttribute('data-parent-id') : '';
+                url += 'teskilatId=' + tesId + '&koordinatorlukId=' + id;
+            } 
+            else if (type === 'kom') {
+                // Komisyonun bağlı olduğu koordinatörlük ID'sini DOM'dan al
+                const komRow = document.getElementById('row_kom_' + id);
+                const koordId = komRow ? komRow.getAttribute('data-parent-id') : '';
+                // Koordinatörlüğün bağlı olduğu teşkilat ID'sini DOM'dan al
+                const koordRow = document.getElementById('row_koord_' + koordId);
+                const tesId = koordRow ? koordRow.getAttribute('data-parent-id') : '';
+                url += 'teskilatId=' + tesId + '&koordinatorlukId=' + koordId + '&komisyonId=' + id;
+            }
+
+            window.location.href = url;
         }
     </script>
 }

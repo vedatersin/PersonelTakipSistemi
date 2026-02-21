@@ -170,3 +170,38 @@
 .app-brand {
   background-color: transparent !important;
 }
+
+/* Global Tick (bx-check) Icon Styling: Darker green & 15% thicker */
+.text-success .bx-check,
+.text-success.bx-check,
+.btn-success .bx-check {
+  color: #28a745 !important;
+  /* Daha koyu yeşil (Bootstrap default success) */
+  font-weight: 800 !important;
+  -webkit-text-stroke: 0.5px currentColor !important;
+  /* %15 civarı ekstra kalınlık */
+}
+
+/* Passive Elements Styling (Grayed out) */
+.daire-passive,
+.tes-passive,
+.k-passive {
+  background-color: #f8f9fa !important;
+  color: #adb5bd !important;
+  opacity: 0.6;
+}
+
+.daire-passive .text-dark,
+.daire-passive .text-secondary,
+.tes-passive .text-dark,
+.tes-passive .text-secondary,
+.k-passive .text-dark,
+.k-passive .text-secondary {
+  color: #adb5bd !important;
+}
+
+.daire-passive .text-muted,
+.tes-passive .text-muted,
+.k-passive .text-muted {
+  color: #dee2e6 !important;
+}

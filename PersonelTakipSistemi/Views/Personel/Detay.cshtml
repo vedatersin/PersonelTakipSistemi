@@ -129,11 +129,15 @@
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">Telefon</td>
-                                        <td>@Model.Telefon</td>
+                                        <td>@(string.IsNullOrEmpty(Model.Telefon) ? "-" : (Model.Telefon.Length >= 5 ? Model.Telefon.Substring(0, 3) + new string('*', Model.Telefon.Length - 5) + Model.Telefon.Substring(Model.Telefon.Length - 2) : new string('*', Model.Telefon.Length)))</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">E-posta</td>
                                         <td>@Model.Eposta</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Cinsiyet</td>
+                                        <td>@Model.Cinsiyet</td>
                                     </tr>
                                     <tr>
                                         <td class="fw-bold">Kayıt Tarihi</td>
@@ -146,16 +150,20 @@
                             <table class="table table-borderless">
                                 <tbody>
                                      <tr>
-                                        <td class="fw-bold" style="width: 35%;">İl</td>
+                                        <td class="fw-bold" style="width: 35%;">Görevli İl</td>
                                         <td>@Model.GorevliIl</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Kadro İli</td>
+                                        <td>@(Model.KadroIl ?? "-")</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="fw-bold">Kadro İlçesi</td>
+                                        <td>@(Model.KadroIlce ?? "-")</td>
                                     </tr>
                                      <tr>
                                         <td class="fw-bold">Kurum</td>
                                         <td>@Model.KadroKurum</td>
-                                    </tr>
-                                     <tr>
-                                        <td class="fw-bold">Cinsiyet</td>
-                                        <td>@Model.Cinsiyet</td>
                                     </tr>
                                 </tbody>
                             </table>

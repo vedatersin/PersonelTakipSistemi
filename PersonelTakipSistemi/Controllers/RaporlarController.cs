@@ -52,11 +52,18 @@ namespace PersonelTakipSistemi.Controllers
             // 3. Komisyon (koordinatörlüğe bağlı)
             if (koordinatorlukId.HasValue)
             {
-                model.KomisyonList = await _context.Komisyonlar
-                    .Where(k => k.KoordinatorlukId == koordinatorlukId)
-                    .OrderBy(k => k.Ad)
-                    .Select(k => new SelectListItem { Value = k.KomisyonId.ToString(), Text = k.Ad })
+                var koms = await _context.Komisyonlar
+                    .Include(k => k.Koordinatorluk).ThenInclude(koord => koord.Il)
+                    .Where(k => (k.KoordinatorlukId == koordinatorlukId || k.BagliMerkezKoordinatorlukId == koordinatorlukId) && k.IsActive)
                     .ToListAsync();
+
+                model.KomisyonList = koms
+                    .Select(k => new SelectListItem { 
+                        Value = k.KomisyonId.ToString(), 
+                        Text = k.BagliMerkezKoordinatorlukId == koordinatorlukId && k.Koordinatorluk?.Il != null ? $"{k.Koordinatorluk.Il.Ad} Komisyonu" : k.Ad 
+                    })
+                    .OrderBy(k => k.Text)
+                    .ToList();
             }
 
             // 4. Performans Raporu — Personel Bazlı

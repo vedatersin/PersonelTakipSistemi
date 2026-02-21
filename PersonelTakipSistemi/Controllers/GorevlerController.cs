@@ -109,18 +109,30 @@ namespace PersonelTakipSistemi.Controllers
             ViewBag.Koordinatorlukler = await _context.Koordinatorlukler.OrderBy(x => x.Ad).ToListAsync();
             
             // Assign SelectListItem to ViewBag
-            var komisyonList = await _context.Komisyonlar
-                                        .Include(k => k.Koordinatorluk)
-                                        .OrderBy(x => x.Ad)
-                                        .ToListAsync();
+            var komisyonQuery = _context.Komisyonlar
+                                        .Include(k => k.Koordinatorluk).ThenInclude(koord => koord.Il)
+                                        .AsQueryable();
+
+            if (assignedKoordinatorlukId.HasValue)
+            {
+                komisyonQuery = komisyonQuery.Where(k => k.KoordinatorlukId == assignedKoordinatorlukId.Value || k.BagliMerkezKoordinatorlukId == assignedKoordinatorlukId.Value);
+            }
+
+            var komisyonList = await komisyonQuery.OrderBy(x => x.Ad).ToListAsync();
 
             ViewBag.Komisyonlar = komisyonList.Select(k => new SelectListItem {
                                             Value = k.KomisyonId.ToString(),
-                                            Text = k.Ad + (k.Koordinatorluk != null ? " (" + k.Koordinatorluk.Ad + ")" : "")
+                                            Text = (k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null ? $"{k.Koordinatorluk.Il.Ad} Komisyonu" : k.Ad)
                                         }).ToList();
             
             // Use SelectListItem to avoid "internal anonymous type" visibility issues in Razor
-            ViewBag.Personeller = await _context.Personeller//.Where(x => x.AktifMi) -- Allow passive
+            var personelQuery = _context.Personeller.AsQueryable();
+            if (assignedKomisyonId.HasValue)
+            {
+                personelQuery = personelQuery.Where(p => p.PersonelKomisyonlar.Any(pk => pk.KomisyonId == assignedKomisyonId.Value));
+            }
+
+            ViewBag.Personeller = await personelQuery//.Where(x => x.AktifMi) -- Allow passive
                                           .OrderBy(x => x.Ad).ThenBy(x => x.Soyad)
                                           .Select(x => new SelectListItem { 
                                               Value = x.PersonelId.ToString(), 
@@ -347,8 +359,14 @@ namespace PersonelTakipSistemi.Controllers
                         .ToListAsync(),
                     Komisyonlar = await _context.GorevAtamaKomisyonlar
                         .Where(x => x.GorevId == id)
-                        .Include(x => x.Komisyon)
-                        .Select(x => new IdNamePair { Id = x.KomisyonId, Name = x.Komisyon != null ? x.Komisyon.Ad : "Silinmiş", Type = "Komisyon" })
+                        .Include(x => x.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(koord => koord.Il)
+                        .Select(x => new IdNamePair { 
+                            Id = x.KomisyonId, 
+                            Name = x.Komisyon != null ? 
+                                   (x.Komisyon.BagliMerkezKoordinatorlukId != null && x.Komisyon.Koordinatorluk != null && x.Komisyon.Koordinatorluk.Il != null ? $"{x.Komisyon.Koordinatorluk.Il.Ad} Komisyonu" : x.Komisyon.Ad) 
+                                   : "Silinmiş", 
+                            Type = "Komisyon" 
+                        })
                         .ToListAsync(),
                     Personeller = await _context.GorevAtamaPersoneller
                         .Where(x => x.GorevId == id)
@@ -560,8 +578,12 @@ namespace PersonelTakipSistemi.Controllers
             else if (type == "Komisyon")
             {
                  var list = await _context.Komisyonlar
-                    .Where(x => x.Ad.ToLower().Contains(q))
-                    .Select(x => new { id = x.KomisyonId, text = x.Ad })
+                    .Include(x => x.Koordinatorluk).ThenInclude(koord => koord.Il)
+                    .Where(x => x.Ad.ToLower().Contains(q) || (x.BagliMerkezKoordinatorlukId != null && x.Koordinatorluk != null && x.Koordinatorluk.Il != null && x.Koordinatorluk.Il.Ad.ToLower().Contains(q)))
+                    .Select(x => new { 
+                        id = x.KomisyonId, 
+                        text = (x.BagliMerkezKoordinatorlukId != null && x.Koordinatorluk != null && x.Koordinatorluk.Il != null ? $"{x.Koordinatorluk.Il.Ad} Komisyonu" : x.Ad)
+                    })
                     .Take(20)
                     .ToListAsync();
                 return Json(list);
@@ -654,7 +676,7 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(g => g.GorevDurumGecmisleri).ThenInclude(gh => gh.GorevDurum)
                 .Include(g => g.GorevAtamaTeskilatlar).ThenInclude(t => t.Teskilat)
                 .Include(g => g.GorevAtamaKoordinatorlukler).ThenInclude(k => k.Koordinatorluk)
-                .Include(g => g.GorevAtamaKomisyonlar).ThenInclude(k => k.Komisyon)
+                .Include(g => g.GorevAtamaKomisyonlar).ThenInclude(k => k.Komisyon).ThenInclude(kom => kom.Koordinatorluk).ThenInclude(koord => koord.Il)
                 .Include(g => g.GorevAtamaPersoneller).ThenInclude(p => p.Personel)
                 .FirstOrDefaultAsync(x => x.GorevId == id);
 

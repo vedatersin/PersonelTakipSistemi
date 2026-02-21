@@ -18,6 +18,15 @@ namespace PersonelTakipSistemi.Models
         public bool IsActive { get; set; } = true;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        // Yeni Alanlar
+        [StringLength(20)]
+        public string Tur { get; set; } = "Merkez"; // "Merkez", "Taşra"
+        public bool TasraOrgutlenmesiVarMi { get; set; } = false; // Sadece Merkez için
+
+        public int? BagliMerkezTeskilatId { get; set; } // Sadece Taşra için
+        [ForeignKey("BagliMerkezTeskilatId")]
+        public Teskilat? BagliMerkezTeskilat { get; set; }
+
         // İlişkiler
         public int? DaireBaskanligiId { get; set; }
         [ForeignKey("DaireBaskanligiId")]

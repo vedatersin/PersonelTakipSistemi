@@ -349,6 +349,28 @@
                   <span asp-validation-for="BransId" class="text-danger"></span>
               </div>
 
+               <div class="mb-3">
+                  <label asp-for="KadroIlId" class="form-label">Kadro İli *</label>
+                  <select class="form-select select2" asp-for="KadroIlId" id="KadroIlId">
+                      <option value="">Seçiniz...</option>
+                      @if(Model.Iller != null) { 
+                          foreach(var item in Model.Iller) { <option value="@item.Id">@item.Ad</option> } 
+                      }
+                  </select>
+                  <span asp-validation-for="KadroIlId" class="text-danger"></span>
+              </div>
+
+               <div class="mb-3">
+                  <label asp-for="KadroIlceId" class="form-label">Kadro İlçesi *</label>
+                  <select class="form-select select2" asp-for="KadroIlceId" id="KadroIlceId">
+                      <option value="">Seçiniz...</option>
+                      @if(Model.KadroIlceler != null) { 
+                          foreach(var item in Model.KadroIlceler) { <option value="@item.Id">@item.Ad</option> } 
+                      }
+                  </select>
+                  <span asp-validation-for="KadroIlceId" class="text-danger"></span>
+              </div>
+
               <div class="mb-3">
                   <label asp-for="KadroKurum" class="form-label">Kadro Kurum *</label>
                   <input type="text" asp-for="KadroKurum" class="form-control" id="personelKadroKurum">
@@ -1634,6 +1656,24 @@
                           confirmButtonText: 'Tamam'
                       });
                  }
+             });
+
+             // --- Kadro Il/Ilce Cascade ---
+             $('#KadroIlId').on('change', function() {
+                var ilId = $(this).val();
+                var $ilce = $('#KadroIlceId');
+                
+                // Clear and Disable
+                $ilce.empty().append('<option value="">Seçiniz...</option>').prop('disabled', true).trigger('change.select2');
+                
+                if(ilId) {
+                    $.get('@Url.Action("GetIlceler", "Personel")?ilId=' + ilId, function(data) {
+                        $.each(data, function(i, item) {
+                            $ilce.append(new Option(item.ad, item.id));
+                        });
+                        $ilce.prop('disabled', false).trigger('change.select2');
+                    });
+                }
              });
 
         }); // End Ready

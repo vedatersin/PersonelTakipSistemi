@@ -20,6 +20,8 @@ namespace PersonelTakipSistemi.ViewModels
         public int? BransId { get; set; }
 
         public int? GorevliIlId { get; set; }
+        public int? KadroIlId { get; set; }
+        public int? KadroIlceId { get; set; }
         public int? TeskilatId { get; set; }
         public int? KoordinatorlukId { get; set; }
         public int? KomisyonId { get; set; }
@@ -40,6 +42,8 @@ namespace PersonelTakipSistemi.ViewModels
         public string AdSoyad { get; set; } = null!;
         public string? Brans { get; set; }
         public string? GorevliIl { get; set; }
+        public string? KadroIl { get; set; }
+        public string? KadroIlce { get; set; }
         public string Eposta { get; set; } = null!;
         public bool AktifMi { get; set; }
         public string? FotografYolu { get; set; }
@@ -72,5 +76,6 @@ namespace PersonelTakipSistemi.ViewModels
         public List<LookupItemVm> Uzmanliklar { get; set; } = new List<LookupItemVm>();
         public List<LookupItemVm> GorevTurleri { get; set; } = new List<LookupItemVm>();
         public List<LookupItemVm> IsNitelikleri { get; set; } = new List<LookupItemVm>();
+        public List<LookupItemVm> KadroIlceler { get; set; } = new List<LookupItemVm>();
     }
 }

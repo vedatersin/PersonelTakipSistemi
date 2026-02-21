@@ -15,6 +15,8 @@ namespace PersonelTakipSistemi.ViewModels
         public string GorevliIl { get; set; } = null!;
         public string Brans { get; set; } = null!;
         public string KadroKurum { get; set; } = null!;
+        public string? KadroIl { get; set; }
+        public string? KadroIlce { get; set; }
         public bool AktifMi { get; set; }
         public string? FotografYolu { get; set; }
         public DateTime CreatedAt { get; set; }

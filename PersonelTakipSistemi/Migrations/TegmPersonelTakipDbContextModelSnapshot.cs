@@ -712,7 +712,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 11, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6734),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5168),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 1,
@@ -726,7 +726,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 11, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6751),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5181),
                             GorevDurumId = 3,
                             IsActive = true,
                             KategoriId = 1,
@@ -739,7 +739,7 @@ namespace PersonelTakipSistemi.Migrations
                             Ad = "Kimya 11 Yazım Denetimi",
                             BaslangicTarihi = new DateTime(2025, 12, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6754),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5226),
                             GorevDurumId = 1,
                             IsActive = true,
                             KategoriId = 1,
@@ -753,7 +753,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
                             BitisTarihi = new DateTime(2025, 12, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6756),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5228),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 2,
@@ -766,7 +766,7 @@ namespace PersonelTakipSistemi.Migrations
                             Ad = "YKS Deneme Seti",
                             BaslangicTarihi = new DateTime(2025, 11, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6758),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5230),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 2,
@@ -780,7 +780,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 10, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 10, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6761),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5233),
                             GorevDurumId = 4,
                             IsActive = true,
                             KategoriId = 2,
@@ -793,7 +793,7 @@ namespace PersonelTakipSistemi.Migrations
                             Ad = "EBA Video Montaj",
                             BaslangicTarihi = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 1,
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6763),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5235),
                             GorevDurumId = 1,
                             IsActive = true,
                             KategoriId = 3,
@@ -807,7 +807,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 12, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6765),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5237),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 3,
@@ -821,7 +821,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
                             BitisTarihi = new DateTime(2025, 11, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6768),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5239),
                             GorevDurumId = 4,
                             IsActive = true,
                             KategoriId = 3,
@@ -834,7 +834,7 @@ namespace PersonelTakipSistemi.Migrations
                             Ad = "Müfredat İncelemesi",
                             BaslangicTarihi = new DateTime(2025, 12, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6771),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5241),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 4,
@@ -847,7 +847,7 @@ namespace PersonelTakipSistemi.Migrations
                             Ad = "Kazanım Eşleştirme",
                             BaslangicTarihi = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6772),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5243),
                             GorevDurumId = 1,
                             IsActive = true,
                             KategoriId = 4,
@@ -861,7 +861,7 @@ namespace PersonelTakipSistemi.Migrations
                             BaslangicTarihi = new DateTime(2025, 11, 28, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 1,
                             BitisTarihi = new DateTime(2025, 11, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(6774),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(5244),
                             GorevDurumId = 4,
                             IsActive = true,
                             KategoriId = 4,
@@ -1077,7 +1077,7 @@ namespace PersonelTakipSistemi.Migrations
                             GorevKategoriId = 1,
                             Aciklama = "Ders kitabı hazırlık işleri",
                             Ad = "Ders Kitapları",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(4011),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(2445),
                             IsActive = true,
                             Renk = "#3B82F6"
                         },
@@ -1086,7 +1086,7 @@ namespace PersonelTakipSistemi.Migrations
                             GorevKategoriId = 2,
                             Aciklama = "Soru bankası ve etkinlikler",
                             Ad = "Yardımcı Kaynaklar",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(4019),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(2452),
                             IsActive = true,
                             Renk = "#10B981"
                         },
@@ -1095,7 +1095,7 @@ namespace PersonelTakipSistemi.Migrations
                             GorevKategoriId = 3,
                             Aciklama = "Video ve animasyon işleri",
                             Ad = "Dijital İçerik",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(4021),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(2453),
                             IsActive = true,
                             Renk = "#F59E0B"
                         },
@@ -1104,7 +1104,7 @@ namespace PersonelTakipSistemi.Migrations
                             GorevKategoriId = 4,
                             Aciklama = "Müfredat çalışmaları",
                             Ad = "Programlar",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 511, DateTimeKind.Local).AddTicks(4021),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 498, DateTimeKind.Local).AddTicks(2454),
                             IsActive = true,
                             Renk = "#8B5CF6"
                         });
@@ -1605,6 +1605,5863 @@ namespace PersonelTakipSistemi.Migrations
                         });
                 });
 
+            modelBuilder.Entity("PersonelTakipSistemi.Models.Ilce", b =>
+                {
+                    b.Property<int>("IlceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IlceId"));
+
+                    b.Property<string>("Ad")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("IlId")
+                        .HasColumnType("int");
+
+                    b.HasKey("IlceId");
+
+                    b.HasIndex("IlId");
+
+                    b.ToTable("Ilceler", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            IlceId = 1,
+                            Ad = "Seyhan",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 2,
+                            Ad = "Yüreğir",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 3,
+                            Ad = "Çukurova",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 4,
+                            Ad = "Sarıçam",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 5,
+                            Ad = "Ceyhan",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 6,
+                            Ad = "Kozan",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 7,
+                            Ad = "İmamoğlu",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 8,
+                            Ad = "Karataş",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 9,
+                            Ad = "Karaisalı",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 10,
+                            Ad = "Pozantı",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 11,
+                            Ad = "Yumurtalık",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 12,
+                            Ad = "Tufanbeyli",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 13,
+                            Ad = "Feke",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 14,
+                            Ad = "Aladağ",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 15,
+                            Ad = "Saimbeyli",
+                            IlId = 1
+                        },
+                        new
+                        {
+                            IlceId = 16,
+                            Ad = "Adıyaman Merkez",
+                            IlId = 2
+                        },
+                        new
+                        {
+                            IlceId = 17,
+                            Ad = "Kahta",
+                            IlId = 2
+                        },
+                        new
+                        {
+                            IlceId = 18,
+                            Ad = "Besni",
+                            IlId = 2
+                        },
+                        new
+                        {
+                            IlceId = 19,
+                            Ad = "Gölbaşı",
+                            IlId = 2
+                        },
+                        new
+                        {
+                            IlceId = 20,
+                            Ad = "Gerger",
+                            IlId = 2
+                        },
+                        new
+                        {
+                            IlceId = 21,
+                            Ad = "Sincik",
+                            IlId = 2
+                        },
+                        new
+                        {
+                            IlceId = 22,
+                            Ad = "Çelikhan",
+                            IlId = 2
+                        },
+                        new
+                        {
+                            IlceId = 23,
+                            Ad = "Tut",
+                            IlId = 2
+                        },
+                        new
+                        {
+                            IlceId = 24,
+                            Ad = "Samsat",
+                            IlId = 2
+                        },
+                        new
+                        {
+                            IlceId = 25,
+                            Ad = "Afyonkarahisar Merkez",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 26,
+                            Ad = "Sandıklı",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 27,
+                            Ad = "Dinar",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 28,
+                            Ad = "Bolvadin",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 29,
+                            Ad = "Sinanpaşa",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 30,
+                            Ad = "Emirdağ",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 31,
+                            Ad = "Şuhut",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 32,
+                            Ad = "Çay",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 33,
+                            Ad = "İhsaniye",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 34,
+                            Ad = "İscehisar",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 35,
+                            Ad = "Sultandağı",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 36,
+                            Ad = "Çobanlar",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 37,
+                            Ad = "Dazkırı",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 38,
+                            Ad = "Başmakçı",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 39,
+                            Ad = "Hocalar",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 40,
+                            Ad = "Bayat",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 41,
+                            Ad = "Evciler",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 42,
+                            Ad = "Kızılören",
+                            IlId = 3
+                        },
+                        new
+                        {
+                            IlceId = 43,
+                            Ad = "Ağrı Merkez",
+                            IlId = 4
+                        },
+                        new
+                        {
+                            IlceId = 44,
+                            Ad = "Patnos",
+                            IlId = 4
+                        },
+                        new
+                        {
+                            IlceId = 45,
+                            Ad = "Doğubayazıt",
+                            IlId = 4
+                        },
+                        new
+                        {
+                            IlceId = 46,
+                            Ad = "Diyadin",
+                            IlId = 4
+                        },
+                        new
+                        {
+                            IlceId = 47,
+                            Ad = "Eleşkirt",
+                            IlId = 4
+                        },
+                        new
+                        {
+                            IlceId = 48,
+                            Ad = "Tutak",
+                            IlId = 4
+                        },
+                        new
+                        {
+                            IlceId = 49,
+                            Ad = "Taşlıçay",
+                            IlId = 4
+                        },
+                        new
+                        {
+                            IlceId = 50,
+                            Ad = "Hamur",
+                            IlId = 4
+                        },
+                        new
+                        {
+                            IlceId = 51,
+                            Ad = "Amasya Merkez",
+                            IlId = 5
+                        },
+                        new
+                        {
+                            IlceId = 52,
+                            Ad = "Merzifon",
+                            IlId = 5
+                        },
+                        new
+                        {
+                            IlceId = 53,
+                            Ad = "Suluova",
+                            IlId = 5
+                        },
+                        new
+                        {
+                            IlceId = 54,
+                            Ad = "Taşova",
+                            IlId = 5
+                        },
+                        new
+                        {
+                            IlceId = 55,
+                            Ad = "Gümüşhacıköy",
+                            IlId = 5
+                        },
+                        new
+                        {
+                            IlceId = 56,
+                            Ad = "Göynücek",
+                            IlId = 5
+                        },
+                        new
+                        {
+                            IlceId = 57,
+                            Ad = "Hamamözü",
+                            IlId = 5
+                        },
+                        new
+                        {
+                            IlceId = 58,
+                            Ad = "Çankaya",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 59,
+                            Ad = "Keçiören",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 60,
+                            Ad = "Yenimahalle",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 61,
+                            Ad = "Mamak",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 62,
+                            Ad = "Etimesgut",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 63,
+                            Ad = "Sincan",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 64,
+                            Ad = "Altındağ",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 65,
+                            Ad = "Pursaklar",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 66,
+                            Ad = "Gölbaşı",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 67,
+                            Ad = "Polatlı",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 68,
+                            Ad = "Çubuk",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 69,
+                            Ad = "Kahramankazan",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 70,
+                            Ad = "Beypazarı",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 71,
+                            Ad = "Elmadağ",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 72,
+                            Ad = "Şereflikoçhisar",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 73,
+                            Ad = "Akyurt",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 74,
+                            Ad = "Nallıhan",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 75,
+                            Ad = "Haymana",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 76,
+                            Ad = "Kızılcahamam",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 77,
+                            Ad = "Bala",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 78,
+                            Ad = "Kalecik",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 79,
+                            Ad = "Ayaş",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 80,
+                            Ad = "Güdül",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 81,
+                            Ad = "Çamlıdere",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 82,
+                            Ad = "Evren",
+                            IlId = 6
+                        },
+                        new
+                        {
+                            IlceId = 83,
+                            Ad = "Kepez",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 84,
+                            Ad = "Muratpaşa",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 85,
+                            Ad = "Alanya",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 86,
+                            Ad = "Manavgat",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 87,
+                            Ad = "Konyaaltı",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 88,
+                            Ad = "Serik",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 89,
+                            Ad = "Aksu",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 90,
+                            Ad = "Kumluca",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 91,
+                            Ad = "Döşemealtı",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 92,
+                            Ad = "Kaş",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 93,
+                            Ad = "Korkuteli",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 94,
+                            Ad = "Gazipaşa",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 95,
+                            Ad = "Finike",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 96,
+                            Ad = "Kemer",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 97,
+                            Ad = "Elmalı",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 98,
+                            Ad = "Demre",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 99,
+                            Ad = "Akseki",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 100,
+                            Ad = "Gündoğmuş",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 101,
+                            Ad = "İbradı",
+                            IlId = 7
+                        },
+                        new
+                        {
+                            IlceId = 102,
+                            Ad = "Artvin Merkez",
+                            IlId = 8
+                        },
+                        new
+                        {
+                            IlceId = 103,
+                            Ad = "Hopa",
+                            IlId = 8
+                        },
+                        new
+                        {
+                            IlceId = 104,
+                            Ad = "Borçka",
+                            IlId = 8
+                        },
+                        new
+                        {
+                            IlceId = 105,
+                            Ad = "Yusufeli",
+                            IlId = 8
+                        },
+                        new
+                        {
+                            IlceId = 106,
+                            Ad = "Arhavi",
+                            IlId = 8
+                        },
+                        new
+                        {
+                            IlceId = 107,
+                            Ad = "Şavşat",
+                            IlId = 8
+                        },
+                        new
+                        {
+                            IlceId = 108,
+                            Ad = "Ardanuç",
+                            IlId = 8
+                        },
+                        new
+                        {
+                            IlceId = 109,
+                            Ad = "Murgul",
+                            IlId = 8
+                        },
+                        new
+                        {
+                            IlceId = 110,
+                            Ad = "Kemalpaşa",
+                            IlId = 8
+                        },
+                        new
+                        {
+                            IlceId = 111,
+                            Ad = "Efeler",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 112,
+                            Ad = "Nazilli",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 113,
+                            Ad = "Söke",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 114,
+                            Ad = "Kuşadası",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 115,
+                            Ad = "Didim",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 116,
+                            Ad = "İncirliova",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 117,
+                            Ad = "Çine",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 118,
+                            Ad = "Germencik",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 119,
+                            Ad = "Bozdoğan",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 120,
+                            Ad = "Köşk",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 121,
+                            Ad = "Kuyucak",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 122,
+                            Ad = "Sultanhisar",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 123,
+                            Ad = "Karacasu",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 124,
+                            Ad = "Buharkent",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 125,
+                            Ad = "Yenipazar",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 126,
+                            Ad = "Karpuzlu",
+                            IlId = 9
+                        },
+                        new
+                        {
+                            IlceId = 127,
+                            Ad = "Altıeylül",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 128,
+                            Ad = "Karesi",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 129,
+                            Ad = "Edremit",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 130,
+                            Ad = "Bandırma",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 131,
+                            Ad = "Gönen",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 132,
+                            Ad = "Ayvalık",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 133,
+                            Ad = "Burhaniye",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 134,
+                            Ad = "Bigadiç",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 135,
+                            Ad = "Susurluk",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 136,
+                            Ad = "Dursunbey",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 137,
+                            Ad = "Sındırgı",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 138,
+                            Ad = "İvrindi",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 139,
+                            Ad = "Erdek",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 140,
+                            Ad = "Havran",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 141,
+                            Ad = "Kepsut",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 142,
+                            Ad = "Manyas",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 143,
+                            Ad = "Savaştepe",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 144,
+                            Ad = "Balya",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 145,
+                            Ad = "Gömeç",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 146,
+                            Ad = "Marmara",
+                            IlId = 10
+                        },
+                        new
+                        {
+                            IlceId = 147,
+                            Ad = "Bilecik Merkez",
+                            IlId = 11
+                        },
+                        new
+                        {
+                            IlceId = 148,
+                            Ad = "Bozüyük",
+                            IlId = 11
+                        },
+                        new
+                        {
+                            IlceId = 149,
+                            Ad = "Osmaneli",
+                            IlId = 11
+                        },
+                        new
+                        {
+                            IlceId = 150,
+                            Ad = "Söğüt",
+                            IlId = 11
+                        },
+                        new
+                        {
+                            IlceId = 151,
+                            Ad = "Gölpazarı",
+                            IlId = 11
+                        },
+                        new
+                        {
+                            IlceId = 152,
+                            Ad = "Pazaryeri",
+                            IlId = 11
+                        },
+                        new
+                        {
+                            IlceId = 153,
+                            Ad = "İnhisar",
+                            IlId = 11
+                        },
+                        new
+                        {
+                            IlceId = 154,
+                            Ad = "Yenipazar",
+                            IlId = 11
+                        },
+                        new
+                        {
+                            IlceId = 155,
+                            Ad = "Bingöl Merkez",
+                            IlId = 12
+                        },
+                        new
+                        {
+                            IlceId = 156,
+                            Ad = "Genç",
+                            IlId = 12
+                        },
+                        new
+                        {
+                            IlceId = 157,
+                            Ad = "Solhan",
+                            IlId = 12
+                        },
+                        new
+                        {
+                            IlceId = 158,
+                            Ad = "Karlıova",
+                            IlId = 12
+                        },
+                        new
+                        {
+                            IlceId = 159,
+                            Ad = "Adaklı",
+                            IlId = 12
+                        },
+                        new
+                        {
+                            IlceId = 160,
+                            Ad = "Kiğı",
+                            IlId = 12
+                        },
+                        new
+                        {
+                            IlceId = 161,
+                            Ad = "Yedisu",
+                            IlId = 12
+                        },
+                        new
+                        {
+                            IlceId = 162,
+                            Ad = "Yayladere",
+                            IlId = 12
+                        },
+                        new
+                        {
+                            IlceId = 163,
+                            Ad = "Tatvan",
+                            IlId = 13
+                        },
+                        new
+                        {
+                            IlceId = 164,
+                            Ad = "Bitlis Merkez",
+                            IlId = 13
+                        },
+                        new
+                        {
+                            IlceId = 165,
+                            Ad = "Güroymak",
+                            IlId = 13
+                        },
+                        new
+                        {
+                            IlceId = 166,
+                            Ad = "Ahlat",
+                            IlId = 13
+                        },
+                        new
+                        {
+                            IlceId = 167,
+                            Ad = "Hizan",
+                            IlId = 13
+                        },
+                        new
+                        {
+                            IlceId = 168,
+                            Ad = "Mutki",
+                            IlId = 13
+                        },
+                        new
+                        {
+                            IlceId = 169,
+                            Ad = "Adilcevaz",
+                            IlId = 13
+                        },
+                        new
+                        {
+                            IlceId = 170,
+                            Ad = "Bolu Merkez",
+                            IlId = 14
+                        },
+                        new
+                        {
+                            IlceId = 171,
+                            Ad = "Gerede",
+                            IlId = 14
+                        },
+                        new
+                        {
+                            IlceId = 172,
+                            Ad = "Mudurnu",
+                            IlId = 14
+                        },
+                        new
+                        {
+                            IlceId = 173,
+                            Ad = "Göynük",
+                            IlId = 14
+                        },
+                        new
+                        {
+                            IlceId = 174,
+                            Ad = "Mengen",
+                            IlId = 14
+                        },
+                        new
+                        {
+                            IlceId = 175,
+                            Ad = "Yeniçağa",
+                            IlId = 14
+                        },
+                        new
+                        {
+                            IlceId = 176,
+                            Ad = "Dörtdivan",
+                            IlId = 14
+                        },
+                        new
+                        {
+                            IlceId = 177,
+                            Ad = "Seben",
+                            IlId = 14
+                        },
+                        new
+                        {
+                            IlceId = 178,
+                            Ad = "Kıbrıscık",
+                            IlId = 14
+                        },
+                        new
+                        {
+                            IlceId = 179,
+                            Ad = "Burdur Merkez",
+                            IlId = 15
+                        },
+                        new
+                        {
+                            IlceId = 180,
+                            Ad = "Bucak",
+                            IlId = 15
+                        },
+                        new
+                        {
+                            IlceId = 181,
+                            Ad = "Gölhisar",
+                            IlId = 15
+                        },
+                        new
+                        {
+                            IlceId = 182,
+                            Ad = "Yeşilova",
+                            IlId = 15
+                        },
+                        new
+                        {
+                            IlceId = 183,
+                            Ad = "Çavdır",
+                            IlId = 15
+                        },
+                        new
+                        {
+                            IlceId = 184,
+                            Ad = "Tefenni",
+                            IlId = 15
+                        },
+                        new
+                        {
+                            IlceId = 185,
+                            Ad = "Ağlasun",
+                            IlId = 15
+                        },
+                        new
+                        {
+                            IlceId = 186,
+                            Ad = "Karamanlı",
+                            IlId = 15
+                        },
+                        new
+                        {
+                            IlceId = 187,
+                            Ad = "Altınyayla",
+                            IlId = 15
+                        },
+                        new
+                        {
+                            IlceId = 188,
+                            Ad = "Çeltikçi",
+                            IlId = 15
+                        },
+                        new
+                        {
+                            IlceId = 189,
+                            Ad = "Kemer",
+                            IlId = 15
+                        },
+                        new
+                        {
+                            IlceId = 190,
+                            Ad = "Osmangazi",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 191,
+                            Ad = "Yıldırım",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 192,
+                            Ad = "Nilüfer",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 193,
+                            Ad = "İnegöl",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 194,
+                            Ad = "Gemlik",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 195,
+                            Ad = "Mustafakemalpaşa",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 196,
+                            Ad = "Mudanya",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 197,
+                            Ad = "Gürsu",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 198,
+                            Ad = "Karacabey",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 199,
+                            Ad = "Orhangazi",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 200,
+                            Ad = "Kestel",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 201,
+                            Ad = "Yenişehir",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 202,
+                            Ad = "İznik",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 203,
+                            Ad = "Orhaneli",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 204,
+                            Ad = "Keles",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 205,
+                            Ad = "Büyükorhan",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 206,
+                            Ad = "Harmancık",
+                            IlId = 16
+                        },
+                        new
+                        {
+                            IlceId = 207,
+                            Ad = "Çanakkale Merkez",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 208,
+                            Ad = "Biga",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 209,
+                            Ad = "Çan",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 210,
+                            Ad = "Gelibolu",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 211,
+                            Ad = "Ayvacık",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 212,
+                            Ad = "Yenice",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 213,
+                            Ad = "Ezine",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 214,
+                            Ad = "Bayramiç",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 215,
+                            Ad = "Lapseki",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 216,
+                            Ad = "Eceabat",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 217,
+                            Ad = "Gökçeada",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 218,
+                            Ad = "Bozcaada",
+                            IlId = 17
+                        },
+                        new
+                        {
+                            IlceId = 219,
+                            Ad = "Çankırı Merkez",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 220,
+                            Ad = "Çerkeş",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 221,
+                            Ad = "Ilgaz",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 222,
+                            Ad = "Orta",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 223,
+                            Ad = "Şabanözü",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 224,
+                            Ad = "Kurşunlu",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 225,
+                            Ad = "Yapraklı",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 226,
+                            Ad = "Kızılırmak",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 227,
+                            Ad = "Eldivan",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 228,
+                            Ad = "Atkaracalar",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 229,
+                            Ad = "Korgun",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 230,
+                            Ad = "Bayramören",
+                            IlId = 18
+                        },
+                        new
+                        {
+                            IlceId = 231,
+                            Ad = "Çorum Merkez",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 232,
+                            Ad = "Sungurlu",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 233,
+                            Ad = "Osmancık",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 234,
+                            Ad = "İskilip",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 235,
+                            Ad = "Alaca",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 236,
+                            Ad = "Bayat",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 237,
+                            Ad = "Mecitözü",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 238,
+                            Ad = "Kargı",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 239,
+                            Ad = "Ortaköy",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 240,
+                            Ad = "Uğurludağ",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 241,
+                            Ad = "Dodurga",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 242,
+                            Ad = "Oğuzlar",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 243,
+                            Ad = "Laçin",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 244,
+                            Ad = "Boğazkale",
+                            IlId = 19
+                        },
+                        new
+                        {
+                            IlceId = 245,
+                            Ad = "Pamukkale",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 246,
+                            Ad = "Merkezefendi",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 247,
+                            Ad = "Çivril",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 248,
+                            Ad = "Acıpayam",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 249,
+                            Ad = "Tavas",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 250,
+                            Ad = "Honaz",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 251,
+                            Ad = "Sarayköy",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 252,
+                            Ad = "Buldan",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 253,
+                            Ad = "Kale",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 254,
+                            Ad = "Çal",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 255,
+                            Ad = "Serinhisar",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 256,
+                            Ad = "Çameli",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 257,
+                            Ad = "Bozkurt",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 258,
+                            Ad = "Güney",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 259,
+                            Ad = "Çardak",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 260,
+                            Ad = "Bekilli",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 261,
+                            Ad = "Beyağaç",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 262,
+                            Ad = "Babadağ",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 263,
+                            Ad = "Baklan",
+                            IlId = 20
+                        },
+                        new
+                        {
+                            IlceId = 264,
+                            Ad = "Bağlar",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 265,
+                            Ad = "Kayapınar",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 266,
+                            Ad = "Yenişehir",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 267,
+                            Ad = "Sur",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 268,
+                            Ad = "Ergani",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 269,
+                            Ad = "Bismil",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 270,
+                            Ad = "Silvan",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 271,
+                            Ad = "Çınar",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 272,
+                            Ad = "Çermik",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 273,
+                            Ad = "Dicle",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 274,
+                            Ad = "Kulp",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 275,
+                            Ad = "Hani",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 276,
+                            Ad = "Lice",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 277,
+                            Ad = "Eğil",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 278,
+                            Ad = "Hazro",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 279,
+                            Ad = "Kocaköy",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 280,
+                            Ad = "Çüngüş",
+                            IlId = 21
+                        },
+                        new
+                        {
+                            IlceId = 281,
+                            Ad = "Edirne Merkez",
+                            IlId = 22
+                        },
+                        new
+                        {
+                            IlceId = 282,
+                            Ad = "Keşan",
+                            IlId = 22
+                        },
+                        new
+                        {
+                            IlceId = 283,
+                            Ad = "Uzunköprü",
+                            IlId = 22
+                        },
+                        new
+                        {
+                            IlceId = 284,
+                            Ad = "İpsala",
+                            IlId = 22
+                        },
+                        new
+                        {
+                            IlceId = 285,
+                            Ad = "Havsa",
+                            IlId = 22
+                        },
+                        new
+                        {
+                            IlceId = 286,
+                            Ad = "Meriç",
+                            IlId = 22
+                        },
+                        new
+                        {
+                            IlceId = 287,
+                            Ad = "Enez",
+                            IlId = 22
+                        },
+                        new
+                        {
+                            IlceId = 288,
+                            Ad = "Süloğlu",
+                            IlId = 22
+                        },
+                        new
+                        {
+                            IlceId = 289,
+                            Ad = "Lalapaşa",
+                            IlId = 22
+                        },
+                        new
+                        {
+                            IlceId = 290,
+                            Ad = "Elazığ Merkez",
+                            IlId = 23
+                        },
+                        new
+                        {
+                            IlceId = 291,
+                            Ad = "Kovancılar",
+                            IlId = 23
+                        },
+                        new
+                        {
+                            IlceId = 292,
+                            Ad = "Karakoçan",
+                            IlId = 23
+                        },
+                        new
+                        {
+                            IlceId = 293,
+                            Ad = "Palu",
+                            IlId = 23
+                        },
+                        new
+                        {
+                            IlceId = 294,
+                            Ad = "Arıcak",
+                            IlId = 23
+                        },
+                        new
+                        {
+                            IlceId = 295,
+                            Ad = "Baskil",
+                            IlId = 23
+                        },
+                        new
+                        {
+                            IlceId = 296,
+                            Ad = "Maden",
+                            IlId = 23
+                        },
+                        new
+                        {
+                            IlceId = 297,
+                            Ad = "Sivrice",
+                            IlId = 23
+                        },
+                        new
+                        {
+                            IlceId = 298,
+                            Ad = "Alacakaya",
+                            IlId = 23
+                        },
+                        new
+                        {
+                            IlceId = 299,
+                            Ad = "Keban",
+                            IlId = 23
+                        },
+                        new
+                        {
+                            IlceId = 300,
+                            Ad = "Ağın",
+                            IlId = 23
+                        },
+                        new
+                        {
+                            IlceId = 301,
+                            Ad = "Erzincan Merkez",
+                            IlId = 24
+                        },
+                        new
+                        {
+                            IlceId = 302,
+                            Ad = "Tercan",
+                            IlId = 24
+                        },
+                        new
+                        {
+                            IlceId = 303,
+                            Ad = "Üzümlü",
+                            IlId = 24
+                        },
+                        new
+                        {
+                            IlceId = 304,
+                            Ad = "Çayırlı",
+                            IlId = 24
+                        },
+                        new
+                        {
+                            IlceId = 305,
+                            Ad = "İliç",
+                            IlId = 24
+                        },
+                        new
+                        {
+                            IlceId = 306,
+                            Ad = "Kemah",
+                            IlId = 24
+                        },
+                        new
+                        {
+                            IlceId = 307,
+                            Ad = "Kemaliye",
+                            IlId = 24
+                        },
+                        new
+                        {
+                            IlceId = 308,
+                            Ad = "Otlukbeli",
+                            IlId = 24
+                        },
+                        new
+                        {
+                            IlceId = 309,
+                            Ad = "Refahiye",
+                            IlId = 24
+                        },
+                        new
+                        {
+                            IlceId = 310,
+                            Ad = "Yakutiye",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 311,
+                            Ad = "Palandöken",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 312,
+                            Ad = "Aziziye",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 313,
+                            Ad = "Horasan",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 314,
+                            Ad = "Oltu",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 315,
+                            Ad = "Pasinler",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 316,
+                            Ad = "Karayazı",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 317,
+                            Ad = "Hınıs",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 318,
+                            Ad = "Tekman",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 319,
+                            Ad = "Karaçoban",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 320,
+                            Ad = "Aşkale",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 321,
+                            Ad = "Şenkaya",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 322,
+                            Ad = "Çat",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 323,
+                            Ad = "Köprüköy",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 324,
+                            Ad = "İspir",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 325,
+                            Ad = "Tortum",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 326,
+                            Ad = "Narman",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 327,
+                            Ad = "Uzundere",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 328,
+                            Ad = "Olur",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 329,
+                            Ad = "Pazaryolu",
+                            IlId = 25
+                        },
+                        new
+                        {
+                            IlceId = 330,
+                            Ad = "Odunpazarı",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 331,
+                            Ad = "Tepebaşı",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 332,
+                            Ad = "Sivrihisar",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 333,
+                            Ad = "Çifteler",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 334,
+                            Ad = "Seyitgazi",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 335,
+                            Ad = "Alpu",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 336,
+                            Ad = "Mihalıççık",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 337,
+                            Ad = "Mahmudiye",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 338,
+                            Ad = "Beylikova",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 339,
+                            Ad = "İnönü",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 340,
+                            Ad = "Günyüzü",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 341,
+                            Ad = "Han",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 342,
+                            Ad = "Mihalgazi",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 343,
+                            Ad = "Sarıcakaya",
+                            IlId = 26
+                        },
+                        new
+                        {
+                            IlceId = 344,
+                            Ad = "Şahinbey",
+                            IlId = 27
+                        },
+                        new
+                        {
+                            IlceId = 345,
+                            Ad = "Şehitkamil",
+                            IlId = 27
+                        },
+                        new
+                        {
+                            IlceId = 346,
+                            Ad = "Nizip",
+                            IlId = 27
+                        },
+                        new
+                        {
+                            IlceId = 347,
+                            Ad = "İslahiye",
+                            IlId = 27
+                        },
+                        new
+                        {
+                            IlceId = 348,
+                            Ad = "Nurdağı",
+                            IlId = 27
+                        },
+                        new
+                        {
+                            IlceId = 349,
+                            Ad = "Oğuzeli",
+                            IlId = 27
+                        },
+                        new
+                        {
+                            IlceId = 350,
+                            Ad = "Araban",
+                            IlId = 27
+                        },
+                        new
+                        {
+                            IlceId = 351,
+                            Ad = "Yavuzeli",
+                            IlId = 27
+                        },
+                        new
+                        {
+                            IlceId = 352,
+                            Ad = "Karkamış",
+                            IlId = 27
+                        },
+                        new
+                        {
+                            IlceId = 353,
+                            Ad = "Giresun Merkez",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 354,
+                            Ad = "Bulancak",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 355,
+                            Ad = "Espiye",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 356,
+                            Ad = "Görele",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 357,
+                            Ad = "Tirebolu",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 358,
+                            Ad = "Dereli",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 359,
+                            Ad = "Şebinkarahisar",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 360,
+                            Ad = "Keşap",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 361,
+                            Ad = "Yağlıdere",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 362,
+                            Ad = "Piraziz",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 363,
+                            Ad = "Eynesil",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 364,
+                            Ad = "Alucra",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 365,
+                            Ad = "Çamoluk",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 366,
+                            Ad = "Güce",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 367,
+                            Ad = "Doğankent",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 368,
+                            Ad = "Çanakçı",
+                            IlId = 28
+                        },
+                        new
+                        {
+                            IlceId = 369,
+                            Ad = "Gümüşhane Merkez",
+                            IlId = 29
+                        },
+                        new
+                        {
+                            IlceId = 370,
+                            Ad = "Kelkit",
+                            IlId = 29
+                        },
+                        new
+                        {
+                            IlceId = 371,
+                            Ad = "Şiran",
+                            IlId = 29
+                        },
+                        new
+                        {
+                            IlceId = 372,
+                            Ad = "Kürtün",
+                            IlId = 29
+                        },
+                        new
+                        {
+                            IlceId = 373,
+                            Ad = "Torul",
+                            IlId = 29
+                        },
+                        new
+                        {
+                            IlceId = 374,
+                            Ad = "Köse",
+                            IlId = 29
+                        },
+                        new
+                        {
+                            IlceId = 375,
+                            Ad = "Yüksekova",
+                            IlId = 30
+                        },
+                        new
+                        {
+                            IlceId = 376,
+                            Ad = "Hakkari Merkez",
+                            IlId = 30
+                        },
+                        new
+                        {
+                            IlceId = 377,
+                            Ad = "Şemdinli",
+                            IlId = 30
+                        },
+                        new
+                        {
+                            IlceId = 378,
+                            Ad = "Çukurca",
+                            IlId = 30
+                        },
+                        new
+                        {
+                            IlceId = 379,
+                            Ad = "Derecik",
+                            IlId = 30
+                        },
+                        new
+                        {
+                            IlceId = 380,
+                            Ad = "Antakya",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 381,
+                            Ad = "İskenderun",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 382,
+                            Ad = "Defne",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 383,
+                            Ad = "Dörtyol",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 384,
+                            Ad = "Samandağ",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 385,
+                            Ad = "Kırıkhan",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 386,
+                            Ad = "Reyhanlı",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 387,
+                            Ad = "Arsuz",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 388,
+                            Ad = "Altınözü",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 389,
+                            Ad = "Hassa",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 390,
+                            Ad = "Payas",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 391,
+                            Ad = "Erzin",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 392,
+                            Ad = "Yayladağı",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 393,
+                            Ad = "Belen",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 394,
+                            Ad = "Kumlu",
+                            IlId = 31
+                        },
+                        new
+                        {
+                            IlceId = 395,
+                            Ad = "Isparta Merkez",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 396,
+                            Ad = "Yalvaç",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 397,
+                            Ad = "Eğirdir",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 398,
+                            Ad = "Şarkikaraağaç",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 399,
+                            Ad = "Gelendost",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 400,
+                            Ad = "Keçiborlu",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 401,
+                            Ad = "Senirkent",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 402,
+                            Ad = "Sütçüler",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 403,
+                            Ad = "Gönen",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 404,
+                            Ad = "Uluborlu",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 405,
+                            Ad = "Atabey",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 406,
+                            Ad = "Aksu",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 407,
+                            Ad = "Yenişarbademli",
+                            IlId = 32
+                        },
+                        new
+                        {
+                            IlceId = 408,
+                            Ad = "Tarsus",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 409,
+                            Ad = "Toroslar",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 410,
+                            Ad = "Yenişehir",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 411,
+                            Ad = "Akdeniz",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 412,
+                            Ad = "Mezitli",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 413,
+                            Ad = "Erdemli",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 414,
+                            Ad = "Silifke",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 415,
+                            Ad = "Mut",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 416,
+                            Ad = "Anamur",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 417,
+                            Ad = "Bozyazı",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 418,
+                            Ad = "Aydıncık",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 419,
+                            Ad = "Gülnar",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 420,
+                            Ad = "Çamlıyayla",
+                            IlId = 33
+                        },
+                        new
+                        {
+                            IlceId = 421,
+                            Ad = "Esenyurt",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 422,
+                            Ad = "Küçükçekmece",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 423,
+                            Ad = "Bağcılar",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 424,
+                            Ad = "Ümraniye",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 425,
+                            Ad = "Pendik",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 426,
+                            Ad = "Bahçelievler",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 427,
+                            Ad = "Sultangazi",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 428,
+                            Ad = "Maltepe",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 429,
+                            Ad = "Üsküdar",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 430,
+                            Ad = "Gaziosmanpaşa",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 431,
+                            Ad = "Kadıköy",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 432,
+                            Ad = "Kartal",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 433,
+                            Ad = "Başakşehir",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 434,
+                            Ad = "Esenler",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 435,
+                            Ad = "Avcılar",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 436,
+                            Ad = "Kağıthane",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 437,
+                            Ad = "Fatih",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 438,
+                            Ad = "Sancaktepe",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 439,
+                            Ad = "Ataşehir",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 440,
+                            Ad = "Eyüpsultan",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 441,
+                            Ad = "Beylikdüzü",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 442,
+                            Ad = "Sarıyer",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 443,
+                            Ad = "Sultanbeyli",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 444,
+                            Ad = "Zeytinburnu",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 445,
+                            Ad = "Güngören",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 446,
+                            Ad = "Arnavutköy",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 447,
+                            Ad = "Şişli",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 448,
+                            Ad = "Bayrampaşa",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 449,
+                            Ad = "Tuzla",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 450,
+                            Ad = "Çekmeköy",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 451,
+                            Ad = "Büyükçekmece",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 452,
+                            Ad = "Beykoz",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 453,
+                            Ad = "Beyoğlu",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 454,
+                            Ad = "Bakırköy",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 455,
+                            Ad = "Silivri",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 456,
+                            Ad = "Beşiktaş",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 457,
+                            Ad = "Çatalca",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 458,
+                            Ad = "Şile",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 459,
+                            Ad = "Adalar",
+                            IlId = 34
+                        },
+                        new
+                        {
+                            IlceId = 460,
+                            Ad = "Buca",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 461,
+                            Ad = "Karabağlar",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 462,
+                            Ad = "Bornova",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 463,
+                            Ad = "Konak",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 464,
+                            Ad = "Karşıyaka",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 465,
+                            Ad = "Bayraklı",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 466,
+                            Ad = "Çiğli",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 467,
+                            Ad = "Torbalı",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 468,
+                            Ad = "Menemen",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 469,
+                            Ad = "Gaziemir",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 470,
+                            Ad = "Ödemiş",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 471,
+                            Ad = "Kemalpaşa",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 472,
+                            Ad = "Bergama",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 473,
+                            Ad = "Aliağa",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 474,
+                            Ad = "Menderes",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 475,
+                            Ad = "Tire",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 476,
+                            Ad = "Balçova",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 477,
+                            Ad = "Narlıdere",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 478,
+                            Ad = "Urla",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 479,
+                            Ad = "Kiraz",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 480,
+                            Ad = "Dikili",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 481,
+                            Ad = "Çeşme",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 482,
+                            Ad = "Bayındır",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 483,
+                            Ad = "Seferihisar",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 484,
+                            Ad = "Selçuk",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 485,
+                            Ad = "Güzelbahçe",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 486,
+                            Ad = "Foça",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 487,
+                            Ad = "Kınık",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 488,
+                            Ad = "Beydağ",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 489,
+                            Ad = "Karaburun",
+                            IlId = 35
+                        },
+                        new
+                        {
+                            IlceId = 490,
+                            Ad = "Kars Merkez",
+                            IlId = 36
+                        },
+                        new
+                        {
+                            IlceId = 491,
+                            Ad = "Kağızman",
+                            IlId = 36
+                        },
+                        new
+                        {
+                            IlceId = 492,
+                            Ad = "Sarıkamış",
+                            IlId = 36
+                        },
+                        new
+                        {
+                            IlceId = 493,
+                            Ad = "Selim",
+                            IlId = 36
+                        },
+                        new
+                        {
+                            IlceId = 494,
+                            Ad = "Digor",
+                            IlId = 36
+                        },
+                        new
+                        {
+                            IlceId = 495,
+                            Ad = "Arpaçay",
+                            IlId = 36
+                        },
+                        new
+                        {
+                            IlceId = 496,
+                            Ad = "Akyaka",
+                            IlId = 36
+                        },
+                        new
+                        {
+                            IlceId = 497,
+                            Ad = "Susuz",
+                            IlId = 36
+                        },
+                        new
+                        {
+                            IlceId = 498,
+                            Ad = "Kastamonu Merkez",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 499,
+                            Ad = "Tosya",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 500,
+                            Ad = "Taşköprü",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 501,
+                            Ad = "Cide",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 502,
+                            Ad = "İnebolu",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 503,
+                            Ad = "Araç",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 504,
+                            Ad = "Devrekani",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 505,
+                            Ad = "Bozkurt",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 506,
+                            Ad = "Daday",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 507,
+                            Ad = "Azdavay",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 508,
+                            Ad = "Çatalzeytin",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 509,
+                            Ad = "Küre",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 510,
+                            Ad = "Doğanyurt",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 511,
+                            Ad = "İhsangazi",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 512,
+                            Ad = "Pınarbaşı",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 513,
+                            Ad = "Şenpazar",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 514,
+                            Ad = "Abana",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 515,
+                            Ad = "Seydiler",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 516,
+                            Ad = "Hanönü",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 517,
+                            Ad = "Ağlı",
+                            IlId = 37
+                        },
+                        new
+                        {
+                            IlceId = 518,
+                            Ad = "Melikgazi",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 519,
+                            Ad = "Kocasinan",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 520,
+                            Ad = "Talas",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 521,
+                            Ad = "Develi",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 522,
+                            Ad = "Yahyalı",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 523,
+                            Ad = "Bünyan",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 524,
+                            Ad = "Pınarbaşı",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 525,
+                            Ad = "Tomarza",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 526,
+                            Ad = "İncesu",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 527,
+                            Ad = "Yeşilhisar",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 528,
+                            Ad = "Sarıoğlan",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 529,
+                            Ad = "Hacılar",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 530,
+                            Ad = "Sarız",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 531,
+                            Ad = "Akkışla",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 532,
+                            Ad = "Felahiye",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 533,
+                            Ad = "Özvatan",
+                            IlId = 38
+                        },
+                        new
+                        {
+                            IlceId = 534,
+                            Ad = "Lüleburgaz",
+                            IlId = 39
+                        },
+                        new
+                        {
+                            IlceId = 535,
+                            Ad = "Kırklareli Merkez",
+                            IlId = 39
+                        },
+                        new
+                        {
+                            IlceId = 536,
+                            Ad = "Babaeski",
+                            IlId = 39
+                        },
+                        new
+                        {
+                            IlceId = 537,
+                            Ad = "Vize",
+                            IlId = 39
+                        },
+                        new
+                        {
+                            IlceId = 538,
+                            Ad = "Pınarhisar",
+                            IlId = 39
+                        },
+                        new
+                        {
+                            IlceId = 539,
+                            Ad = "Demirköy",
+                            IlId = 39
+                        },
+                        new
+                        {
+                            IlceId = 540,
+                            Ad = "Pehlivanköy",
+                            IlId = 39
+                        },
+                        new
+                        {
+                            IlceId = 541,
+                            Ad = "Kofçaz",
+                            IlId = 39
+                        },
+                        new
+                        {
+                            IlceId = 542,
+                            Ad = "Kırşehir Merkez",
+                            IlId = 40
+                        },
+                        new
+                        {
+                            IlceId = 543,
+                            Ad = "Kaman",
+                            IlId = 40
+                        },
+                        new
+                        {
+                            IlceId = 544,
+                            Ad = "Mucur",
+                            IlId = 40
+                        },
+                        new
+                        {
+                            IlceId = 545,
+                            Ad = "Çiçekdağı",
+                            IlId = 40
+                        },
+                        new
+                        {
+                            IlceId = 546,
+                            Ad = "Akpınar",
+                            IlId = 40
+                        },
+                        new
+                        {
+                            IlceId = 547,
+                            Ad = "Boztepe",
+                            IlId = 40
+                        },
+                        new
+                        {
+                            IlceId = 548,
+                            Ad = "Akçakent",
+                            IlId = 40
+                        },
+                        new
+                        {
+                            IlceId = 549,
+                            Ad = "Gebze",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 550,
+                            Ad = "İzmit",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 551,
+                            Ad = "Darıca",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 552,
+                            Ad = "Körfez",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 553,
+                            Ad = "Gölcük",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 554,
+                            Ad = "Derince",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 555,
+                            Ad = "Çayırova",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 556,
+                            Ad = "Kartepe",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 557,
+                            Ad = "Başiskele",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 558,
+                            Ad = "Karamürsel",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 559,
+                            Ad = "Kandıra",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 560,
+                            Ad = "Dilovası",
+                            IlId = 41
+                        },
+                        new
+                        {
+                            IlceId = 561,
+                            Ad = "Selçuklu",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 562,
+                            Ad = "Meram",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 563,
+                            Ad = "Karatay",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 564,
+                            Ad = "Ereğli",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 565,
+                            Ad = "Akşehir",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 566,
+                            Ad = "Beyşehir",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 567,
+                            Ad = "Çumra",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 568,
+                            Ad = "Seydişehir",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 569,
+                            Ad = "Ilgın",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 570,
+                            Ad = "Cihanbeyli",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 571,
+                            Ad = "Kulu",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 572,
+                            Ad = "Karapınar",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 573,
+                            Ad = "Kadınhanı",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 574,
+                            Ad = "Sarayönü",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 575,
+                            Ad = "Bozkır",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 576,
+                            Ad = "Yunak",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 577,
+                            Ad = "Doğanhisar",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 578,
+                            Ad = "Hüyük",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 579,
+                            Ad = "Altınekin",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 580,
+                            Ad = "Hadim",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 581,
+                            Ad = "Çeltik",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 582,
+                            Ad = "Güneysınır",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 583,
+                            Ad = "Emirgazi",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 584,
+                            Ad = "Taşkent",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 585,
+                            Ad = "Tuzlukçu",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 586,
+                            Ad = "Derebucak",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 587,
+                            Ad = "Akören",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 588,
+                            Ad = "Ahırlı",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 589,
+                            Ad = "Derbent",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 590,
+                            Ad = "Halkapınar",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 591,
+                            Ad = "Yalıhüyük",
+                            IlId = 42
+                        },
+                        new
+                        {
+                            IlceId = 592,
+                            Ad = "Kütahya Merkez",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 593,
+                            Ad = "Tavşanlı",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 594,
+                            Ad = "Simav",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 595,
+                            Ad = "Gediz",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 596,
+                            Ad = "Emet",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 597,
+                            Ad = "Altıntaş",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 598,
+                            Ad = "Domaniç",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 599,
+                            Ad = "Hisarcık",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 600,
+                            Ad = "Aslanapa",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 601,
+                            Ad = "Çavdarhisar",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 602,
+                            Ad = "Şaphane",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 603,
+                            Ad = "Pazarlar",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 604,
+                            Ad = "Dumlupınar",
+                            IlId = 43
+                        },
+                        new
+                        {
+                            IlceId = 605,
+                            Ad = "Battalgazi",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 606,
+                            Ad = "Yeşilyurt",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 607,
+                            Ad = "Doğanşehir",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 608,
+                            Ad = "Akçadağ",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 609,
+                            Ad = "Darende",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 610,
+                            Ad = "Hekimhan",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 611,
+                            Ad = "Yazıhan",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 612,
+                            Ad = "Pütürge",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 613,
+                            Ad = "Arapgir",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 614,
+                            Ad = "Kuluncak",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 615,
+                            Ad = "Arguvan",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 616,
+                            Ad = "Kale",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 617,
+                            Ad = "Doğanyol",
+                            IlId = 44
+                        },
+                        new
+                        {
+                            IlceId = 618,
+                            Ad = "Yunusemre",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 619,
+                            Ad = "Şehzadeler",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 620,
+                            Ad = "Akhisar",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 621,
+                            Ad = "Turgutlu",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 622,
+                            Ad = "Salihli",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 623,
+                            Ad = "Soma",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 624,
+                            Ad = "Alaşehir",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 625,
+                            Ad = "Saruhanlı",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 626,
+                            Ad = "Kula",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 627,
+                            Ad = "Kırkağaç",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 628,
+                            Ad = "Demirci",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 629,
+                            Ad = "Sarıgöl",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 630,
+                            Ad = "Gördes",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 631,
+                            Ad = "Selendi",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 632,
+                            Ad = "Ahmetli",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 633,
+                            Ad = "Gölmarmara",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 634,
+                            Ad = "Köprübaşı",
+                            IlId = 45
+                        },
+                        new
+                        {
+                            IlceId = 635,
+                            Ad = "Onikişubat",
+                            IlId = 46
+                        },
+                        new
+                        {
+                            IlceId = 636,
+                            Ad = "Dulkadiroğlu",
+                            IlId = 46
+                        },
+                        new
+                        {
+                            IlceId = 637,
+                            Ad = "Elbistan",
+                            IlId = 46
+                        },
+                        new
+                        {
+                            IlceId = 638,
+                            Ad = "Afşin",
+                            IlId = 46
+                        },
+                        new
+                        {
+                            IlceId = 639,
+                            Ad = "Türkoğlu",
+                            IlId = 46
+                        },
+                        new
+                        {
+                            IlceId = 640,
+                            Ad = "Pazarcık",
+                            IlId = 46
+                        },
+                        new
+                        {
+                            IlceId = 641,
+                            Ad = "Göksun",
+                            IlId = 46
+                        },
+                        new
+                        {
+                            IlceId = 642,
+                            Ad = "Andırın",
+                            IlId = 46
+                        },
+                        new
+                        {
+                            IlceId = 643,
+                            Ad = "Çağlayancerit",
+                            IlId = 46
+                        },
+                        new
+                        {
+                            IlceId = 644,
+                            Ad = "Nurhak",
+                            IlId = 46
+                        },
+                        new
+                        {
+                            IlceId = 645,
+                            Ad = "Ekinözü",
+                            IlId = 46
+                        },
+                        new
+                        {
+                            IlceId = 646,
+                            Ad = "Kızıltepe",
+                            IlId = 47
+                        },
+                        new
+                        {
+                            IlceId = 647,
+                            Ad = "Artuklu",
+                            IlId = 47
+                        },
+                        new
+                        {
+                            IlceId = 648,
+                            Ad = "Midyat",
+                            IlId = 47
+                        },
+                        new
+                        {
+                            IlceId = 649,
+                            Ad = "Nusaybin",
+                            IlId = 47
+                        },
+                        new
+                        {
+                            IlceId = 650,
+                            Ad = "Derik",
+                            IlId = 47
+                        },
+                        new
+                        {
+                            IlceId = 651,
+                            Ad = "Mazıdağı",
+                            IlId = 47
+                        },
+                        new
+                        {
+                            IlceId = 652,
+                            Ad = "Dargeçit",
+                            IlId = 47
+                        },
+                        new
+                        {
+                            IlceId = 653,
+                            Ad = "Savur",
+                            IlId = 47
+                        },
+                        new
+                        {
+                            IlceId = 654,
+                            Ad = "Yeşilli",
+                            IlId = 47
+                        },
+                        new
+                        {
+                            IlceId = 655,
+                            Ad = "Ömerli",
+                            IlId = 47
+                        },
+                        new
+                        {
+                            IlceId = 656,
+                            Ad = "Bodrum",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 657,
+                            Ad = "Fethiye",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 658,
+                            Ad = "Milas",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 659,
+                            Ad = "Menteşe",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 660,
+                            Ad = "Marmaris",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 661,
+                            Ad = "Seydikemer",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 662,
+                            Ad = "Ortaca",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 663,
+                            Ad = "Dalaman",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 664,
+                            Ad = "Yatağan",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 665,
+                            Ad = "Köyceğiz",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 666,
+                            Ad = "Ula",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 667,
+                            Ad = "Datça",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 668,
+                            Ad = "Kavaklıdere",
+                            IlId = 48
+                        },
+                        new
+                        {
+                            IlceId = 669,
+                            Ad = "Muş Merkez",
+                            IlId = 49
+                        },
+                        new
+                        {
+                            IlceId = 670,
+                            Ad = "Bulanık",
+                            IlId = 49
+                        },
+                        new
+                        {
+                            IlceId = 671,
+                            Ad = "Malazgirt",
+                            IlId = 49
+                        },
+                        new
+                        {
+                            IlceId = 672,
+                            Ad = "Varto",
+                            IlId = 49
+                        },
+                        new
+                        {
+                            IlceId = 673,
+                            Ad = "Hasköy",
+                            IlId = 49
+                        },
+                        new
+                        {
+                            IlceId = 674,
+                            Ad = "Korkut",
+                            IlId = 49
+                        },
+                        new
+                        {
+                            IlceId = 675,
+                            Ad = "Nevşehir Merkez",
+                            IlId = 50
+                        },
+                        new
+                        {
+                            IlceId = 676,
+                            Ad = "Ürgüp",
+                            IlId = 50
+                        },
+                        new
+                        {
+                            IlceId = 677,
+                            Ad = "Avanos",
+                            IlId = 50
+                        },
+                        new
+                        {
+                            IlceId = 678,
+                            Ad = "Gülşehir",
+                            IlId = 50
+                        },
+                        new
+                        {
+                            IlceId = 679,
+                            Ad = "Derinkuyu",
+                            IlId = 50
+                        },
+                        new
+                        {
+                            IlceId = 680,
+                            Ad = "Acıgöl",
+                            IlId = 50
+                        },
+                        new
+                        {
+                            IlceId = 681,
+                            Ad = "Kozaklı",
+                            IlId = 50
+                        },
+                        new
+                        {
+                            IlceId = 682,
+                            Ad = "Hacıbektaş",
+                            IlId = 50
+                        },
+                        new
+                        {
+                            IlceId = 683,
+                            Ad = "Niğde Merkez",
+                            IlId = 51
+                        },
+                        new
+                        {
+                            IlceId = 684,
+                            Ad = "Bor",
+                            IlId = 51
+                        },
+                        new
+                        {
+                            IlceId = 685,
+                            Ad = "Çiftlik",
+                            IlId = 51
+                        },
+                        new
+                        {
+                            IlceId = 686,
+                            Ad = "Ulukışla",
+                            IlId = 51
+                        },
+                        new
+                        {
+                            IlceId = 687,
+                            Ad = "Altunhisar",
+                            IlId = 51
+                        },
+                        new
+                        {
+                            IlceId = 688,
+                            Ad = "Çamardı",
+                            IlId = 51
+                        },
+                        new
+                        {
+                            IlceId = 689,
+                            Ad = "Altınordu",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 690,
+                            Ad = "Ünye",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 691,
+                            Ad = "Fatsa",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 692,
+                            Ad = "Perşembe",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 693,
+                            Ad = "Kumru",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 694,
+                            Ad = "Korgan",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 695,
+                            Ad = "Gölköy",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 696,
+                            Ad = "Ulubey",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 697,
+                            Ad = "Gülyalı",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 698,
+                            Ad = "Mesudiye",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 699,
+                            Ad = "Aybastı",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 700,
+                            Ad = "İkizce",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 701,
+                            Ad = "Akkuş",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 702,
+                            Ad = "Gürgentepe",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 703,
+                            Ad = "Çatalpınar",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 704,
+                            Ad = "Çaybaşı",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 705,
+                            Ad = "Kabataş",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 706,
+                            Ad = "Kabadüz",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 707,
+                            Ad = "Çamaş",
+                            IlId = 52
+                        },
+                        new
+                        {
+                            IlceId = 708,
+                            Ad = "Rize Merkez",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 709,
+                            Ad = "Çayeli",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 710,
+                            Ad = "Ardeşen",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 711,
+                            Ad = "Pazar",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 712,
+                            Ad = "Fındıklı",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 713,
+                            Ad = "Güneysu",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 714,
+                            Ad = "Kalkandere",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 715,
+                            Ad = "İyidere",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 716,
+                            Ad = "Derepazarı",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 717,
+                            Ad = "Çamlıhemşin",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 718,
+                            Ad = "İkizdere",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 719,
+                            Ad = "Hemşin",
+                            IlId = 53
+                        },
+                        new
+                        {
+                            IlceId = 720,
+                            Ad = "Adapazarı",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 721,
+                            Ad = "Serdivan",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 722,
+                            Ad = "Akyazı",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 723,
+                            Ad = "Erenler",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 724,
+                            Ad = "Hendek",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 725,
+                            Ad = "Karasu",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 726,
+                            Ad = "Geyve",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 727,
+                            Ad = "Arifiye",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 728,
+                            Ad = "Sapanca",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 729,
+                            Ad = "Pamukova",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 730,
+                            Ad = "Ferizli",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 731,
+                            Ad = "Kaynarca",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 732,
+                            Ad = "Kocaali",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 733,
+                            Ad = "Söğütlü",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 734,
+                            Ad = "Karapürçek",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 735,
+                            Ad = "Taraklı",
+                            IlId = 54
+                        },
+                        new
+                        {
+                            IlceId = 736,
+                            Ad = "İlkadım",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 737,
+                            Ad = "Atakum",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 738,
+                            Ad = "Bafra",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 739,
+                            Ad = "Çarşamba",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 740,
+                            Ad = "Canik",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 741,
+                            Ad = "Vezirköprü",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 742,
+                            Ad = "Terme",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 743,
+                            Ad = "Tekkeköy",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 744,
+                            Ad = "Havza",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 745,
+                            Ad = "Alaçam",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 746,
+                            Ad = "19 Mayıs",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 747,
+                            Ad = "Ayvacık",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 748,
+                            Ad = "Kavak",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 749,
+                            Ad = "Salıpazarı",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 750,
+                            Ad = "Asarcık",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 751,
+                            Ad = "Ladik",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 752,
+                            Ad = "Yakakent",
+                            IlId = 55
+                        },
+                        new
+                        {
+                            IlceId = 753,
+                            Ad = "Siirt Merkez",
+                            IlId = 56
+                        },
+                        new
+                        {
+                            IlceId = 754,
+                            Ad = "Kurtalan",
+                            IlId = 56
+                        },
+                        new
+                        {
+                            IlceId = 755,
+                            Ad = "Pervari",
+                            IlId = 56
+                        },
+                        new
+                        {
+                            IlceId = 756,
+                            Ad = "Baykan",
+                            IlId = 56
+                        },
+                        new
+                        {
+                            IlceId = 757,
+                            Ad = "Şirvan",
+                            IlId = 56
+                        },
+                        new
+                        {
+                            IlceId = 758,
+                            Ad = "Eruh",
+                            IlId = 56
+                        },
+                        new
+                        {
+                            IlceId = 759,
+                            Ad = "Tillo",
+                            IlId = 56
+                        },
+                        new
+                        {
+                            IlceId = 760,
+                            Ad = "Sinop Merkez",
+                            IlId = 57
+                        },
+                        new
+                        {
+                            IlceId = 761,
+                            Ad = "Boyabat",
+                            IlId = 57
+                        },
+                        new
+                        {
+                            IlceId = 762,
+                            Ad = "Gerze",
+                            IlId = 57
+                        },
+                        new
+                        {
+                            IlceId = 763,
+                            Ad = "Ayancık",
+                            IlId = 57
+                        },
+                        new
+                        {
+                            IlceId = 764,
+                            Ad = "Durağan",
+                            IlId = 57
+                        },
+                        new
+                        {
+                            IlceId = 765,
+                            Ad = "Türkeli",
+                            IlId = 57
+                        },
+                        new
+                        {
+                            IlceId = 766,
+                            Ad = "Erfelek",
+                            IlId = 57
+                        },
+                        new
+                        {
+                            IlceId = 767,
+                            Ad = "Dikmen",
+                            IlId = 57
+                        },
+                        new
+                        {
+                            IlceId = 768,
+                            Ad = "Saraydüzü",
+                            IlId = 57
+                        },
+                        new
+                        {
+                            IlceId = 769,
+                            Ad = "Sivas Merkez",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 770,
+                            Ad = "Şarkışla",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 771,
+                            Ad = "Yıldızeli",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 772,
+                            Ad = "Suşehri",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 773,
+                            Ad = "Gemerek",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 774,
+                            Ad = "Zara",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 775,
+                            Ad = "Kangal",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 776,
+                            Ad = "Gürün",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 777,
+                            Ad = "Divriği",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 778,
+                            Ad = "Koyulhisar",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 779,
+                            Ad = "Hafik",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 780,
+                            Ad = "Ulaş",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 781,
+                            Ad = "Altınyayla",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 782,
+                            Ad = "İmranlı",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 783,
+                            Ad = "Akıncılar",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 784,
+                            Ad = "Gölova",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 785,
+                            Ad = "Doğanşar",
+                            IlId = 58
+                        },
+                        new
+                        {
+                            IlceId = 786,
+                            Ad = "Çorlu",
+                            IlId = 59
+                        },
+                        new
+                        {
+                            IlceId = 787,
+                            Ad = "Süleymanpaşa",
+                            IlId = 59
+                        },
+                        new
+                        {
+                            IlceId = 788,
+                            Ad = "Çerkezköy",
+                            IlId = 59
+                        },
+                        new
+                        {
+                            IlceId = 789,
+                            Ad = "Kapaklı",
+                            IlId = 59
+                        },
+                        new
+                        {
+                            IlceId = 790,
+                            Ad = "Ergene",
+                            IlId = 59
+                        },
+                        new
+                        {
+                            IlceId = 791,
+                            Ad = "Malkara",
+                            IlId = 59
+                        },
+                        new
+                        {
+                            IlceId = 792,
+                            Ad = "Saray",
+                            IlId = 59
+                        },
+                        new
+                        {
+                            IlceId = 793,
+                            Ad = "Hayrabolu",
+                            IlId = 59
+                        },
+                        new
+                        {
+                            IlceId = 794,
+                            Ad = "Şarköy",
+                            IlId = 59
+                        },
+                        new
+                        {
+                            IlceId = 795,
+                            Ad = "Muratlı",
+                            IlId = 59
+                        },
+                        new
+                        {
+                            IlceId = 796,
+                            Ad = "Marmaraereğlisi",
+                            IlId = 59
+                        },
+                        new
+                        {
+                            IlceId = 797,
+                            Ad = "Tokat Merkez",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 798,
+                            Ad = "Erbaa",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 799,
+                            Ad = "Turhal",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 800,
+                            Ad = "Niksar",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 801,
+                            Ad = "Zile",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 802,
+                            Ad = "Reşadiye",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 803,
+                            Ad = "Almus",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 804,
+                            Ad = "Pazar",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 805,
+                            Ad = "Yeşilyurt",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 806,
+                            Ad = "Artova",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 807,
+                            Ad = "Sulusaray",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 808,
+                            Ad = "Başçiftlik",
+                            IlId = 60
+                        },
+                        new
+                        {
+                            IlceId = 809,
+                            Ad = "Ortahisar",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 810,
+                            Ad = "Akçaabat",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 811,
+                            Ad = "Araklı",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 812,
+                            Ad = "Of",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 813,
+                            Ad = "Yomra",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 814,
+                            Ad = "Arsin",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 815,
+                            Ad = "Vakfıkebir",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 816,
+                            Ad = "Sürmene",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 817,
+                            Ad = "Maçka",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 818,
+                            Ad = "Beşikdüzü",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 819,
+                            Ad = "Çarşıbaşı",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 820,
+                            Ad = "Tonya",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 821,
+                            Ad = "Düzköy",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 822,
+                            Ad = "Çaykara",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 823,
+                            Ad = "Şalpazarı",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 824,
+                            Ad = "Hayrat",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 825,
+                            Ad = "Köprübaşı",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 826,
+                            Ad = "Dernekpazarı",
+                            IlId = 61
+                        },
+                        new
+                        {
+                            IlceId = 827,
+                            Ad = "Tunceli Merkez",
+                            IlId = 62
+                        },
+                        new
+                        {
+                            IlceId = 828,
+                            Ad = "Pertek",
+                            IlId = 62
+                        },
+                        new
+                        {
+                            IlceId = 829,
+                            Ad = "Mazgirt",
+                            IlId = 62
+                        },
+                        new
+                        {
+                            IlceId = 830,
+                            Ad = "Çemişgezek",
+                            IlId = 62
+                        },
+                        new
+                        {
+                            IlceId = 831,
+                            Ad = "Hozat",
+                            IlId = 62
+                        },
+                        new
+                        {
+                            IlceId = 832,
+                            Ad = "Ovacık",
+                            IlId = 62
+                        },
+                        new
+                        {
+                            IlceId = 833,
+                            Ad = "Pülümür",
+                            IlId = 62
+                        },
+                        new
+                        {
+                            IlceId = 834,
+                            Ad = "Nazımiye",
+                            IlId = 62
+                        },
+                        new
+                        {
+                            IlceId = 835,
+                            Ad = "Eyyübiye",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 836,
+                            Ad = "Haliliye",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 837,
+                            Ad = "Siverek",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 838,
+                            Ad = "Viranşehir",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 839,
+                            Ad = "Karaköprü",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 840,
+                            Ad = "Akçakale",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 841,
+                            Ad = "Suruç",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 842,
+                            Ad = "Birecik",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 843,
+                            Ad = "Harran",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 844,
+                            Ad = "Ceylanpınar",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 845,
+                            Ad = "Bozova",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 846,
+                            Ad = "Hilvan",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 847,
+                            Ad = "Halfeti",
+                            IlId = 63
+                        },
+                        new
+                        {
+                            IlceId = 848,
+                            Ad = "Uşak Merkez",
+                            IlId = 64
+                        },
+                        new
+                        {
+                            IlceId = 849,
+                            Ad = "Banaz",
+                            IlId = 64
+                        },
+                        new
+                        {
+                            IlceId = 850,
+                            Ad = "Eşme",
+                            IlId = 64
+                        },
+                        new
+                        {
+                            IlceId = 851,
+                            Ad = "Sivaslı",
+                            IlId = 64
+                        },
+                        new
+                        {
+                            IlceId = 852,
+                            Ad = "Ulubey",
+                            IlId = 64
+                        },
+                        new
+                        {
+                            IlceId = 853,
+                            Ad = "Karahallı",
+                            IlId = 64
+                        },
+                        new
+                        {
+                            IlceId = 854,
+                            Ad = "İpekyolu",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 855,
+                            Ad = "Erciş",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 856,
+                            Ad = "Tuşba",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 857,
+                            Ad = "Edremit",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 858,
+                            Ad = "Özalp",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 859,
+                            Ad = "Çaldıran",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 860,
+                            Ad = "Başkale",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 861,
+                            Ad = "Muradiye",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 862,
+                            Ad = "Gürpınar",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 863,
+                            Ad = "Gevaş",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 864,
+                            Ad = "Saray",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 865,
+                            Ad = "Çatak",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 866,
+                            Ad = "Bahçesaray",
+                            IlId = 65
+                        },
+                        new
+                        {
+                            IlceId = 867,
+                            Ad = "Yozgat Merkez",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 868,
+                            Ad = "Sorgun",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 869,
+                            Ad = "Akdağmadeni",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 870,
+                            Ad = "Yerköy",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 871,
+                            Ad = "Boğazlıyan",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 872,
+                            Ad = "Sarıkaya",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 873,
+                            Ad = "Çekerek",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 874,
+                            Ad = "Şefaatli",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 875,
+                            Ad = "Saraykent",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 876,
+                            Ad = "Çayıralan",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 877,
+                            Ad = "Kadışehri",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 878,
+                            Ad = "Aydıncık",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 879,
+                            Ad = "Yenifakılı",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 880,
+                            Ad = "Çandır",
+                            IlId = 66
+                        },
+                        new
+                        {
+                            IlceId = 881,
+                            Ad = "Ereğli",
+                            IlId = 67
+                        },
+                        new
+                        {
+                            IlceId = 882,
+                            Ad = "Zonguldak Merkez",
+                            IlId = 67
+                        },
+                        new
+                        {
+                            IlceId = 883,
+                            Ad = "Çaycuma",
+                            IlId = 67
+                        },
+                        new
+                        {
+                            IlceId = 884,
+                            Ad = "Devrek",
+                            IlId = 67
+                        },
+                        new
+                        {
+                            IlceId = 885,
+                            Ad = "Kozlu",
+                            IlId = 67
+                        },
+                        new
+                        {
+                            IlceId = 886,
+                            Ad = "Alaplı",
+                            IlId = 67
+                        },
+                        new
+                        {
+                            IlceId = 887,
+                            Ad = "Kilimli",
+                            IlId = 67
+                        },
+                        new
+                        {
+                            IlceId = 888,
+                            Ad = "Gökçebey",
+                            IlId = 67
+                        },
+                        new
+                        {
+                            IlceId = 889,
+                            Ad = "Aksaray Merkez",
+                            IlId = 68
+                        },
+                        new
+                        {
+                            IlceId = 890,
+                            Ad = "Ortaköy",
+                            IlId = 68
+                        },
+                        new
+                        {
+                            IlceId = 891,
+                            Ad = "Eskil",
+                            IlId = 68
+                        },
+                        new
+                        {
+                            IlceId = 892,
+                            Ad = "Gülağaç",
+                            IlId = 68
+                        },
+                        new
+                        {
+                            IlceId = 893,
+                            Ad = "Güzelyurt",
+                            IlId = 68
+                        },
+                        new
+                        {
+                            IlceId = 894,
+                            Ad = "Sultanhanı",
+                            IlId = 68
+                        },
+                        new
+                        {
+                            IlceId = 895,
+                            Ad = "Ağaçören",
+                            IlId = 68
+                        },
+                        new
+                        {
+                            IlceId = 896,
+                            Ad = "Sarıyahşi",
+                            IlId = 68
+                        },
+                        new
+                        {
+                            IlceId = 897,
+                            Ad = "Bayburt Merkez",
+                            IlId = 69
+                        },
+                        new
+                        {
+                            IlceId = 898,
+                            Ad = "Demirözü",
+                            IlId = 69
+                        },
+                        new
+                        {
+                            IlceId = 899,
+                            Ad = "Aydıntepe",
+                            IlId = 69
+                        },
+                        new
+                        {
+                            IlceId = 900,
+                            Ad = "Karaman Merkez",
+                            IlId = 70
+                        },
+                        new
+                        {
+                            IlceId = 901,
+                            Ad = "Ermenek",
+                            IlId = 70
+                        },
+                        new
+                        {
+                            IlceId = 902,
+                            Ad = "Sarıveliler",
+                            IlId = 70
+                        },
+                        new
+                        {
+                            IlceId = 903,
+                            Ad = "Ayrancı",
+                            IlId = 70
+                        },
+                        new
+                        {
+                            IlceId = 904,
+                            Ad = "Başyayla",
+                            IlId = 70
+                        },
+                        new
+                        {
+                            IlceId = 905,
+                            Ad = "Kazımkarabekir",
+                            IlId = 70
+                        },
+                        new
+                        {
+                            IlceId = 906,
+                            Ad = "Kırıkkale Merkez",
+                            IlId = 71
+                        },
+                        new
+                        {
+                            IlceId = 907,
+                            Ad = "Yahşihan",
+                            IlId = 71
+                        },
+                        new
+                        {
+                            IlceId = 908,
+                            Ad = "Keskin",
+                            IlId = 71
+                        },
+                        new
+                        {
+                            IlceId = 909,
+                            Ad = "Delice",
+                            IlId = 71
+                        },
+                        new
+                        {
+                            IlceId = 910,
+                            Ad = "Bahşılı",
+                            IlId = 71
+                        },
+                        new
+                        {
+                            IlceId = 911,
+                            Ad = "Sulakyurt",
+                            IlId = 71
+                        },
+                        new
+                        {
+                            IlceId = 912,
+                            Ad = "Balışeyh",
+                            IlId = 71
+                        },
+                        new
+                        {
+                            IlceId = 913,
+                            Ad = "Karakeçili",
+                            IlId = 71
+                        },
+                        new
+                        {
+                            IlceId = 914,
+                            Ad = "Çelebi",
+                            IlId = 71
+                        },
+                        new
+                        {
+                            IlceId = 915,
+                            Ad = "Batman Merkez",
+                            IlId = 72
+                        },
+                        new
+                        {
+                            IlceId = 916,
+                            Ad = "Kozluk",
+                            IlId = 72
+                        },
+                        new
+                        {
+                            IlceId = 917,
+                            Ad = "Sason",
+                            IlId = 72
+                        },
+                        new
+                        {
+                            IlceId = 918,
+                            Ad = "Beşiri",
+                            IlId = 72
+                        },
+                        new
+                        {
+                            IlceId = 919,
+                            Ad = "Gercüş",
+                            IlId = 72
+                        },
+                        new
+                        {
+                            IlceId = 920,
+                            Ad = "Hasankeyf",
+                            IlId = 72
+                        },
+                        new
+                        {
+                            IlceId = 921,
+                            Ad = "Cizre",
+                            IlId = 73
+                        },
+                        new
+                        {
+                            IlceId = 922,
+                            Ad = "Silopi",
+                            IlId = 73
+                        },
+                        new
+                        {
+                            IlceId = 923,
+                            Ad = "Şırnak Merkez",
+                            IlId = 73
+                        },
+                        new
+                        {
+                            IlceId = 924,
+                            Ad = "İdil",
+                            IlId = 73
+                        },
+                        new
+                        {
+                            IlceId = 925,
+                            Ad = "Uludere",
+                            IlId = 73
+                        },
+                        new
+                        {
+                            IlceId = 926,
+                            Ad = "Beytüşşebap",
+                            IlId = 73
+                        },
+                        new
+                        {
+                            IlceId = 927,
+                            Ad = "Güçlükonak",
+                            IlId = 73
+                        },
+                        new
+                        {
+                            IlceId = 928,
+                            Ad = "Bartın Merkez",
+                            IlId = 74
+                        },
+                        new
+                        {
+                            IlceId = 929,
+                            Ad = "Ulus",
+                            IlId = 74
+                        },
+                        new
+                        {
+                            IlceId = 930,
+                            Ad = "Amasra",
+                            IlId = 74
+                        },
+                        new
+                        {
+                            IlceId = 931,
+                            Ad = "Kurucaşile",
+                            IlId = 74
+                        },
+                        new
+                        {
+                            IlceId = 932,
+                            Ad = "Ardahan Merkez",
+                            IlId = 75
+                        },
+                        new
+                        {
+                            IlceId = 933,
+                            Ad = "Göle",
+                            IlId = 75
+                        },
+                        new
+                        {
+                            IlceId = 934,
+                            Ad = "Çıldır",
+                            IlId = 75
+                        },
+                        new
+                        {
+                            IlceId = 935,
+                            Ad = "Hanak",
+                            IlId = 75
+                        },
+                        new
+                        {
+                            IlceId = 936,
+                            Ad = "Posof",
+                            IlId = 75
+                        },
+                        new
+                        {
+                            IlceId = 937,
+                            Ad = "Damal",
+                            IlId = 75
+                        },
+                        new
+                        {
+                            IlceId = 938,
+                            Ad = "Iğdır Merkez",
+                            IlId = 76
+                        },
+                        new
+                        {
+                            IlceId = 939,
+                            Ad = "Tuzluca",
+                            IlId = 76
+                        },
+                        new
+                        {
+                            IlceId = 940,
+                            Ad = "Aralık",
+                            IlId = 76
+                        },
+                        new
+                        {
+                            IlceId = 941,
+                            Ad = "Karakoyunlu",
+                            IlId = 76
+                        },
+                        new
+                        {
+                            IlceId = 942,
+                            Ad = "Yalova Merkez",
+                            IlId = 77
+                        },
+                        new
+                        {
+                            IlceId = 943,
+                            Ad = "Çiftlikköy",
+                            IlId = 77
+                        },
+                        new
+                        {
+                            IlceId = 944,
+                            Ad = "Çınarcık",
+                            IlId = 77
+                        },
+                        new
+                        {
+                            IlceId = 945,
+                            Ad = "Altınova",
+                            IlId = 77
+                        },
+                        new
+                        {
+                            IlceId = 946,
+                            Ad = "Armutlu",
+                            IlId = 77
+                        },
+                        new
+                        {
+                            IlceId = 947,
+                            Ad = "Termal",
+                            IlId = 77
+                        },
+                        new
+                        {
+                            IlceId = 948,
+                            Ad = "Karabük Merkez",
+                            IlId = 78
+                        },
+                        new
+                        {
+                            IlceId = 949,
+                            Ad = "Safranbolu",
+                            IlId = 78
+                        },
+                        new
+                        {
+                            IlceId = 950,
+                            Ad = "Yenice",
+                            IlId = 78
+                        },
+                        new
+                        {
+                            IlceId = 951,
+                            Ad = "Eskipazar",
+                            IlId = 78
+                        },
+                        new
+                        {
+                            IlceId = 952,
+                            Ad = "Eflani",
+                            IlId = 78
+                        },
+                        new
+                        {
+                            IlceId = 953,
+                            Ad = "Ovacık",
+                            IlId = 78
+                        },
+                        new
+                        {
+                            IlceId = 954,
+                            Ad = "Kilis Merkez",
+                            IlId = 79
+                        },
+                        new
+                        {
+                            IlceId = 955,
+                            Ad = "Musabeyli",
+                            IlId = 79
+                        },
+                        new
+                        {
+                            IlceId = 956,
+                            Ad = "Elbeyli",
+                            IlId = 79
+                        },
+                        new
+                        {
+                            IlceId = 957,
+                            Ad = "Polateli",
+                            IlId = 79
+                        },
+                        new
+                        {
+                            IlceId = 958,
+                            Ad = "Osmaniye Merkez",
+                            IlId = 80
+                        },
+                        new
+                        {
+                            IlceId = 959,
+                            Ad = "Kadirli",
+                            IlId = 80
+                        },
+                        new
+                        {
+                            IlceId = 960,
+                            Ad = "Düziçi",
+                            IlId = 80
+                        },
+                        new
+                        {
+                            IlceId = 961,
+                            Ad = "Bahçe",
+                            IlId = 80
+                        },
+                        new
+                        {
+                            IlceId = 962,
+                            Ad = "Toprakkale",
+                            IlId = 80
+                        },
+                        new
+                        {
+                            IlceId = 963,
+                            Ad = "Sumbas",
+                            IlId = 80
+                        },
+                        new
+                        {
+                            IlceId = 964,
+                            Ad = "Hasanbeyli",
+                            IlId = 80
+                        },
+                        new
+                        {
+                            IlceId = 965,
+                            Ad = "Düzce Merkez",
+                            IlId = 81
+                        },
+                        new
+                        {
+                            IlceId = 966,
+                            Ad = "Akçakoca",
+                            IlId = 81
+                        },
+                        new
+                        {
+                            IlceId = 967,
+                            Ad = "Kaynaşlı",
+                            IlId = 81
+                        },
+                        new
+                        {
+                            IlceId = 968,
+                            Ad = "Gölyaka",
+                            IlId = 81
+                        },
+                        new
+                        {
+                            IlceId = 969,
+                            Ad = "Çilimli",
+                            IlId = 81
+                        },
+                        new
+                        {
+                            IlceId = 970,
+                            Ad = "Yığılca",
+                            IlId = 81
+                        },
+                        new
+                        {
+                            IlceId = 971,
+                            Ad = "Gümüşova",
+                            IlId = 81
+                        },
+                        new
+                        {
+                            IlceId = 972,
+                            Ad = "Cumayeri",
+                            IlId = 81
+                        });
+                });
+
             modelBuilder.Entity("PersonelTakipSistemi.Models.IsNiteligi", b =>
                 {
                     b.Property<int>("IsNiteligiId")
@@ -1773,7 +7630,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 4,
                             Ad = "Fen Bilimleri Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2885),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8214),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1782,7 +7639,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 5,
                             Ad = "İngilizce Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2889),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8217),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1791,7 +7648,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 6,
                             Ad = "İlkokul Türkçe Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2890),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8218),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1800,7 +7657,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 7,
                             Ad = "İlkokul Hayat Bilgisi Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2891),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8219),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1809,7 +7666,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 8,
                             Ad = "Ortaokul Matematik Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2892),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8220),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1818,7 +7675,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 9,
                             Ad = "İlkokul Matematik Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2893),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8221),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1827,7 +7684,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 10,
                             Ad = "Ortaokul Türkçe Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2894),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8221),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1836,7 +7693,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 11,
                             Ad = "Sosyal Bilgiler Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2895),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8222),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1845,7 +7702,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 12,
                             Ad = "T.C. İnkılap Tarihi ve Atatürkçülük Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2896),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8223),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1854,7 +7711,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 13,
                             Ad = "Almanca Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2897),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8224),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1863,7 +7720,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 14,
                             Ad = "Görsel Tasarım Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2897),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8225),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1872,7 +7729,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 15,
                             Ad = "Mebi Dijital Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2898),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8226),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1881,7 +7738,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 16,
                             Ad = "Müzik Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2899),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8227),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1890,7 +7747,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 17,
                             Ad = "Uzmanlar Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2900),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8227),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1899,7 +7756,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 18,
                             Ad = "BÖTE Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2900),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8242),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1908,7 +7765,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 19,
                             Ad = "Dil İnceleme Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2901),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8243),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -1917,7 +7774,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 2,
                             Ad = "Mardin İl Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2902),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8244),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 2
@@ -1926,7 +7783,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             KoordinatorlukId = 3,
                             Ad = "İzmir İl Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(2903),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(8245),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 2
@@ -2014,6 +7871,12 @@ namespace PersonelTakipSistemi.Migrations
                     b.Property<int>("GorevliIlId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("KadroIlId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("KadroIlceId")
+                        .HasColumnType("int");
+
                     b.Property<string>("KadroKurum")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -2061,6 +7924,10 @@ namespace PersonelTakipSistemi.Migrations
                         .IsUnique();
 
                     b.HasIndex("GorevliIlId");
+
+                    b.HasIndex("KadroIlId");
+
+                    b.HasIndex("KadroIlceId");
 
                     b.HasIndex("SistemRolId");
 
@@ -2315,6 +8182,9 @@ namespace PersonelTakipSistemi.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("BagliMerkezTeskilatId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -2324,7 +8194,17 @@ namespace PersonelTakipSistemi.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("TasraOrgutlenmesiVarMi")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Tur")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.HasKey("TeskilatId");
+
+                    b.HasIndex("BagliMerkezTeskilatId");
 
                     b.HasIndex("DaireBaskanligiId");
 
@@ -2335,17 +8215,22 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             TeskilatId = 1,
                             Ad = "Merkez",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(1783),
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(7210),
                             DaireBaskanligiId = 9,
-                            IsActive = true
+                            IsActive = true,
+                            TasraOrgutlenmesiVarMi = true,
+                            Tur = "Merkez"
                         },
                         new
                         {
                             TeskilatId = 2,
                             Ad = "Taşra",
-                            CreatedAt = new DateTime(2026, 2, 17, 12, 35, 4, 507, DateTimeKind.Local).AddTicks(1795),
+                            BagliMerkezTeskilatId = 1,
+                            CreatedAt = new DateTime(2026, 2, 19, 14, 23, 7, 493, DateTimeKind.Local).AddTicks(7223),
                             DaireBaskanligiId = 9,
-                            IsActive = true
+                            IsActive = true,
+                            TasraOrgutlenmesiVarMi = false,
+                            Tur = "Taşra"
                         });
                 });
 
@@ -2730,6 +8615,17 @@ namespace PersonelTakipSistemi.Migrations
                     b.Navigation("IslemYapanPersonel");
                 });
 
+            modelBuilder.Entity("PersonelTakipSistemi.Models.Ilce", b =>
+                {
+                    b.HasOne("PersonelTakipSistemi.Models.Il", "Il")
+                        .WithMany("Ilceler")
+                        .HasForeignKey("IlId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Il");
+                });
+
             modelBuilder.Entity("PersonelTakipSistemi.Models.Komisyon", b =>
                 {
                     b.HasOne("PersonelTakipSistemi.Models.Koordinatorluk", "BagliMerkezKoordinatorluk")
@@ -2792,6 +8688,14 @@ namespace PersonelTakipSistemi.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("PersonelTakipSistemi.Models.Il", "KadroIl")
+                        .WithMany("KadroPersonelleri")
+                        .HasForeignKey("KadroIlId");
+
+                    b.HasOne("PersonelTakipSistemi.Models.Ilce", "KadroIlce")
+                        .WithMany("KadroPersonelleri")
+                        .HasForeignKey("KadroIlceId");
+
                     b.HasOne("PersonelTakipSistemi.Models.SistemRol", "SistemRol")
                         .WithMany()
                         .HasForeignKey("SistemRolId")
@@ -2800,6 +8704,10 @@ namespace PersonelTakipSistemi.Migrations
                     b.Navigation("Brans");
 
                     b.Navigation("GorevliIl");
+
+                    b.Navigation("KadroIl");
+
+                    b.Navigation("KadroIlce");
 
                     b.Navigation("SistemRol");
                 });
@@ -2978,10 +8886,16 @@ namespace PersonelTakipSistemi.Migrations
 
             modelBuilder.Entity("PersonelTakipSistemi.Models.Teskilat", b =>
                 {
+                    b.HasOne("PersonelTakipSistemi.Models.Teskilat", "BagliMerkezTeskilat")
+                        .WithMany()
+                        .HasForeignKey("BagliMerkezTeskilatId");
+
                     b.HasOne("PersonelTakipSistemi.Models.DaireBaskanligi", "DaireBaskanligi")
                         .WithMany("Teskilatlar")
                         .HasForeignKey("DaireBaskanligiId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("BagliMerkezTeskilat");
 
                     b.Navigation("DaireBaskanligi");
                 });
@@ -3042,7 +8956,16 @@ namespace PersonelTakipSistemi.Migrations
 
             modelBuilder.Entity("PersonelTakipSistemi.Models.Il", b =>
                 {
+                    b.Navigation("Ilceler");
+
+                    b.Navigation("KadroPersonelleri");
+
                     b.Navigation("Personeller");
+                });
+
+            modelBuilder.Entity("PersonelTakipSistemi.Models.Ilce", b =>
+                {
+                    b.Navigation("KadroPersonelleri");
                 });
 
             modelBuilder.Entity("PersonelTakipSistemi.Models.IsNiteligi", b =>

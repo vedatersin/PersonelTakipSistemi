@@ -38,6 +38,23 @@
 
 
 
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h4 class="py-3 mb-0">
+        <span class="text-muted fw-light">Personel /</span> Personel Listesi
+    </h4>
+    <div>
+        <a asp-action="DownloadTemplate" class="btn btn-outline-secondary me-2">
+            <i class="bx bx-download me-1"></i> Şablon İndir
+        </a>
+        <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#importModal">
+            <i class="bx bx-upload me-1"></i> Excel Yükle
+        </button>
+        <a asp-action="Yeni" class="btn btn-primary">
+            <i class="bx bx-plus me-1"></i> Yeni Personel
+        </a>
+    </div>
+</div>
+
 <div class="card mb-4">
     <div class="card-body">
         <form asp-action="Index" method="get" id="filterForm">
@@ -64,6 +81,26 @@
                     <select class="form-select select2" asp-for="Filter.BransId">
                         <option value="">Branş Seçiniz...</option>
                         @foreach (var x in Model.Lookups.Branslar) { <option value="@x.Id">@x.Ad</option> }
+                    </select>
+                </div>
+            </div>
+
+            <!-- SATIR: Kadro Yeri (İl / İlçe) -->
+             <div class="row g-3 mt-1">
+                 <div class="col-12 col-lg-3">
+                    <label class="form-label">Kadro İli</label>
+                    <select class="form-select select2" asp-for="Filter.KadroIlId" id="filterKadroIlId">
+                        <option value="">İl Seçiniz...</option>
+                        @foreach (var x in Model.Lookups.Iller) { <option value="@x.Id">@x.Ad</option> }
+                    </select>
+                </div>
+                <div class="col-12 col-lg-3">
+                     <label class="form-label">Kadro İlçesi</label>
+                    <select class="form-select select2" asp-for="Filter.KadroIlceId" id="filterKadroIlceId">
+                        <option value="">İlçe Seçiniz...</option>
+                        @if(Model.Lookups.KadroIlceler != null) { 
+                            foreach(var item in Model.Lookups.KadroIlceler) { <option value="@item.Id">@item.Ad</option> } 
+                        }
                     </select>
                 </div>
             </div>
@@ -222,6 +259,7 @@
                     <th>Görev Türü</th>
                     <th>İş Niteliği</th> 
                     <th>Görevli İl</th>
+                    <th>Kadro Yeri</th>
                     <th>Durum</th>
                 </tr>
             </thead>
@@ -415,6 +453,14 @@
                         </td>
                         <td>@item.GorevliIl</td>
                         <td>
+                            @if(!string.IsNullOrEmpty(item.KadroIl))
+                            {
+                                @item.KadroIl 
+                                @if(!string.IsNullOrEmpty(item.KadroIlce)) { <small class="text-muted"> / @item.KadroIlce</small> }
+                            }
+                            else { <span class="text-muted">-</span> }
+                        </td>
+                        <td>
                             @if (item.AktifMi)
                             {
                                 <span class="badge bg-label-success me-1">Aktif</span>
@@ -495,7 +541,89 @@
     }
 </div>
 
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Excel ile Personel Yükle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                     <i class="bx bx-info-circle me-1"></i> Lütfen önce "Şablon İndir" butonu ile güncel şablonu indirip doldurunuz.
+                </div>
+                <div class="mb-3">
+                    <label for="excelFile" class="form-label">Excel Dosyası Seçin</label>
+                    <input class="form-control" type="file" id="excelFile" accept=".xlsx, .xls">
+                </div>
+                <div id="importResult" class="d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                <button type="button" class="btn btn-primary" onclick="uploadExcel()">Yükle</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
+    function uploadExcel() {
+        var input = document.getElementById('excelFile');
+        if (!input.files || input.files.length === 0) {
+            Swal.fire('Uyarı', 'Lütfen bir dosya seçiniz.', 'warning');
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append('file', input.files[0]);
+
+        Swal.fire({
+            title: 'Yükleniyor...',
+            text: 'Personel verileri işleniyor, lütfen bekleyiniz.',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        $.ajax({
+            url: '/Personel/ImportExcel',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                if (response.success) {
+                    Swal.fire({
+                        title: 'Başarılı!',
+                        text: response.message,
+                        icon: 'success'
+                    }).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    var errorHtml = '<ul class="text-start">';
+                    if(response.errors && response.errors.length > 0) {
+                        response.errors.forEach(function(err) {
+                            errorHtml += '<li>' + err + '</li>';
+                        });
+                    } else {
+                         errorHtml += '<li>' + response.message + '</li>';
+                    }
+                    errorHtml += '</ul>';
+
+                    Swal.fire({
+                        title: 'Hata',
+                        html: errorHtml,
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function() {
+                Swal.fire('Hata', 'Sunucu ile iletişim kurulamadı.', 'error');
+            }
+        });
+    }
+
     function changePage(page) {
         document.getElementById('pageInput').value = page;
         document.getElementById('filterForm').submit();
@@ -689,6 +817,23 @@
                   // If Koord cleared but Teskilat selected, Komisyon should be effectively cleared or maybe "All" depending on rule.
                   // Usually: Clear Komisyon.
                   $komSelect.empty().append('<option value="">Önce Koordinatörlük Seçiniz...</option>');
+              }
+          });
+
+          // Kadro Il -> Kadro Ilce Filter
+          $('#filterKadroIlId').on('change', function() {
+              var ilId = $(this).val();
+              var $ilceSelect = $('#filterKadroIlceId');
+              
+              $ilceSelect.empty().append('<option value="">Seçiniz...</option>').prop('disabled', true);
+              
+              if(ilId) {
+                  $.get('@Url.Action("GetIlceler", "Personel")?ilId=' + ilId, function(data) {
+                      $.each(data, function(i, item) {
+                          $ilceSelect.append(new Option(item.ad, item.id));
+                      });
+                      $ilceSelect.prop('disabled', false).trigger('change.select2');
+                  });
               }
           });
 
