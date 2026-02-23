@@ -42,6 +42,10 @@
             animation: newRowGlow 5s ease-out;
             border-left: 4px solid #696cff;
         }
+        .template-row {
+            background-color: rgba(3, 195, 236, 0.1) !important;
+            border-left: 4px solid #03c3ec;
+        }
     </style>
 
 <div class="row h-100">
@@ -168,7 +172,7 @@
                             var gorevStr = string.Join(",", p.GorevTurleri);
                             var isStr = string.Join(",", p.IsNitelikleri);
                             
-                            <tr class="cursor-pointer" onclick="openDrawer(@p.PersonelId)"
+                            <tr class="cursor-pointer @(p.AddedViaTemplate ? "template-row" : "")" onclick="openDrawer(@p.PersonelId)"
                                 data-personel-id="@p.PersonelId"
                                 data-search="@p.AdSoyad.ToLower()"
                                 data-teskilat="@teskilatStr"
@@ -445,12 +449,17 @@
 
                 if (teskilatAd) {
                     if (isMerkez) {
-                        // Merkez: hide İl Koordinatörü
+                        // Merkez: hide İl Koordinatörü (ID 3)
                         if (txt.indexOf('İl Koordinat') > -1) allowed = false;
                     } else {
-                        // Taşra: hide Merkez Birim Koordinatörlüğü + Genel Koordinatör
+                        // Taşra: hide Merkez specific roles
                         if (txt.indexOf('Merkez Birim') > -1) allowed = false;
                         if (txt.indexOf('Genel Koordinat') > -1) allowed = false;
+                        if (txt.indexOf('Uzman') > -1) allowed = false;
+                        if (txt.indexOf('Şube Müdürü') > -1) allowed = false;
+                        if (txt.indexOf('Şef') > -1) allowed = false;
+                        if (txt.indexOf('Daire Başkanı') > -1) allowed = false;
+                        if (txt.indexOf('Genel Müdür') > -1) allowed = false;
                     }
                 }
 
@@ -498,20 +507,26 @@
                 const rGorevTuru = $row.data('gorevturu') || '';
                 const rIsNiteligi = $row.data('isniteligi') || '';
 
-                const mSearch = !search || rSearch.includes(search);
-                const mTeskilat = !teskilat || rTeskilat.includes(teskilat);
-                const mKoordinatorluk = !koordinatorluk || rKoordinatorluk.includes(koordinatorluk);
-                const mSistem = !sistem || rSistem === sistem;
-                const mKurumsal = !kurumsal || rKurumsal.includes(kurumsal);
-                const mKomisyon = !komisyon || rKomisyon.includes(komisyon);
+                let mSearch = true; if(search) { if(!rSearch.includes(search)) mSearch = false; }
+                let mTeskilat = true; if(teskilat) { if(!rTeskilat.includes(teskilat)) mTeskilat = false; }
+                let mKoordinatorluk = true; if(koordinatorluk) { if(!rKoordinatorluk.includes(koordinatorluk)) mKoordinatorluk = false; }
+                let mSistem = true; if(sistem) { if(rSistem !== sistem) mSistem = false; }
+                let mKurumsal = true; if(kurumsal) { if(!rKurumsal.includes(kurumsal)) mKurumsal = false; }
+                let mKomisyon = true; if(komisyon) { if(!rKomisyon.includes(komisyon)) mKomisyon = false; }
                 
-                const mBrans = !brans || rBrans === brans;
-                const mYazilim = !yazilim || rYazilim.includes(yazilim);
-                const mUzmanlik = !uzmanlik || rUzmanlik.includes(uzmanlik);
-                const mGorevTuru = !gorevTuru || rGorevTuru.includes(gorevTuru);
-                const mIsNiteligi = !isNiteligi || rIsNiteligi.includes(isNiteligi);
+                let mBrans = true; if(brans) { if(rBrans !== brans) mBrans = false; }
+                let mYazilim = true; if(yazilim) { if(!rYazilim.includes(yazilim)) mYazilim = false; }
+                let mUzmanlik = true; if(uzmanlik) { if(!rUzmanlik.includes(uzmanlik)) mUzmanlik = false; }
+                let mGorevTuru = true; if(gorevTuru) { if(!rGorevTuru.includes(gorevTuru)) mGorevTuru = false; }
+                let mIsNiteligi = true; if(isNiteligi) { if(!rIsNiteligi.includes(isNiteligi)) mIsNiteligi = false; }
 
-                if(mSearch && mTeskilat && mKoordinatorluk && mSistem && mKurumsal && mKomisyon && mBrans && mYazilim && mUzmanlik && mGorevTuru && mIsNiteligi) {
+                let isVisible = false;
+                if(mSearch) { if(mTeskilat) { if(mKoordinatorluk) { if(mSistem) { if(mKurumsal) { if(mKomisyon) {
+                if(mBrans) { if(mYazilim) { if(mUzmanlik) { if(mGorevTuru) { if(mIsNiteligi) {
+                    isVisible = true;
+                }}}}}}}}}}}
+
+                if(isVisible) {
                     $row.show();
                     visibleCount++;
                 } else {

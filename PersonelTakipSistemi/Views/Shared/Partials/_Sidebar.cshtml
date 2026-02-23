@@ -1,4 +1,5 @@
 @using System.Security.Claims
+@inject PersonelTakipSistemi.Data.TegmPersonelTakipDbContext _sidebarContext
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
   <div class="app-brand demo" style="height: auto; min-height: 80px; padding-top: 1rem; padding-bottom: 1rem;">
@@ -26,7 +27,22 @@
     @{
         var userRole = User.FindFirstValue(ClaimTypes.Role);
         var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        
+        int currentUserIdInt = int.Parse(currentUserIdStr ?? "0");
+
+        // Fetch Corporate Roles for Special Menus
+        var userCorporateRoles = currentUserIdStr != null 
+            ? _sidebarContext.PersonelKurumsalRolAtamalari
+                .Where(a => a.PersonelId == currentUserIdInt)
+                .Select(a => new { a.KurumsalRolId, a.KoordinatorlukId, a.KomisyonId, KomisyonAd = a.Komisyon.Ad })
+                .ToList()
+                .Select(x => (dynamic)x)
+                .ToList()
+            : new List<dynamic>();
+
+        bool isCoordinator = userCorporateRoles.Any(r => (int)r.KurumsalRolId == 3 || (int)r.KurumsalRolId == 5);
+        var chairedCommissions = userCorporateRoles.Where(r => (int)r.KurumsalRolId == 2).ToList();
+        bool isCommissionChair = chairedCommissions.Any();
+
         string currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
         string currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
         bool isIdPresent = ViewContext.RouteData.Values.ContainsKey("id") || Context.Request.Query.ContainsKey("id");
@@ -84,9 +100,9 @@
         </li>
     }
 
-    @if (userRole == "Admin" || userRole == "Yönetici")
+    @if (userRole == "Admin" || userRole == "Yönetici" || isCoordinator || isCommissionChair)
     {
-        <!-- Bildirim Modülü (Admin, Yönetici) -->
+        <!-- Bildirim Modülü (Admin, Yönetici, Koordinatör, Komisyon Başkanı) -->
         <li class="menu-item @(string.Equals(currentController, "BildirimModulu", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
           <a asp-controller="BildirimModulu" asp-action="Index" class="menu-link">
             <i class="menu-icon tf-icons bx bx-broadcast"></i>
@@ -95,9 +111,9 @@
         </li>
     }
 
-    @if (userRole == "Admin" || userRole == "Yönetici")
+    @if (userRole == "Admin")
     {
-        <!-- Loglar Modülü (Admin, Yönetici) -->
+        <!-- Loglar Modülü (Admin Only) -->
         <li class="menu-item @(string.Equals(currentController, "Loglar", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
           <a asp-controller="Loglar" asp-action="Index" class="menu-link">
             <i class="menu-icon tf-icons bx bx-history"></i>
@@ -126,16 +142,58 @@
         </li>
     }
 
-    @if (userRole == "Admin" || userRole == "Yönetici" || userRole == "Editör")
+    @if (userRole == "Admin" || userRole == "Yönetici" || userRole == "Editör" || isCoordinator)
     {
-        <!-- Yetkilendirme Modülü (New) -->
-        <!-- Yetkilendirme Modülü (New - Direct Link) -->
+        <!-- Yetkilendirme Modülü (Admin, Yönetici, Editör, Koordinatör) -->
         <li class="menu-item @(isYetkilendirmeActive ? "active" : "")">
            <a asp-controller="Personel" asp-action="Yetkilendirme" class="menu-link">
             <i class="menu-icon tf-icons bx bx-shield-quarter"></i>
-            <div class="text-truncate" data-i18n="Yetkilendirme Modülü">Yetkilendirme Modülü</div>
+            <div class="text-truncate fw-bold" data-i18n="Yetkilendirme Modülü">Yetkilendirme Modülü</div>
           </a>
         </li>
+    }
+
+    <!-- ÖZEL YÖNETİM MODÜLLERİ (Koordinatörlük ve Komisyon) -->
+    @if (isCoordinator)
+    {
+        <li class="menu-item @(string.Equals(currentController, "BirimYonetimi", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "KordinatorlukYonetimi", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+          <a asp-controller="BirimYonetimi" asp-action="KordinatorlukYonetimi" class="menu-link">
+            <i class="menu-icon tf-icons bx bx-buildings"></i>
+            <div class="text-truncate fw-bold" data-i18n="Koordinatörlük Yönetimi">Koordinatörlük Yönetimi</div>
+          </a>
+        </li>
+    }
+
+    @if (isCommissionChair)
+    {
+        @if (chairedCommissions.Count() == 1)
+        {
+            <li class="menu-item @(string.Equals(currentController, "BirimYonetimi", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "KomisyonYonetimi", StringComparison.OrdinalIgnoreCase) && Context.Request.Query["id"] == chairedCommissions.First().KomisyonId.ToString() ? "active" : "")">
+              <a asp-controller="BirimYonetimi" asp-action="KomisyonYonetimi" asp-route-id="@chairedCommissions.First().KomisyonId" class="menu-link">
+                <i class="menu-icon tf-icons bx bx-group"></i>
+                <div class="text-truncate fw-bold" data-i18n="Komisyon Yönetimi">Komisyon Yönetimi</div>
+              </a>
+            </li>
+        }
+        else
+        {
+            <li class="menu-item @(string.Equals(currentController, "BirimYonetimi", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "KomisyonYonetimi", StringComparison.OrdinalIgnoreCase) ? "active open" : "")">
+              <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-group"></i>
+                <div class="text-truncate fw-bold" data-i18n="Komisyon Yönetimi">Komisyon Yönetimi</div>
+              </a>
+              <ul class="menu-sub">
+                @foreach (var kom in chairedCommissions)
+                {
+                    <li class="menu-item @(Context.Request.Query["id"] == kom.KomisyonId.ToString() ? "active" : "")">
+                        <a asp-controller="BirimYonetimi" asp-action="KomisyonYonetimi" asp-route-id="@kom.KomisyonId" class="menu-link">
+                            <div class="text-truncate">@kom.KomisyonAd</div>
+                        </a>
+                    </li>
+                }
+              </ul>
+            </li>
+        }
     }
 
 
@@ -146,6 +204,7 @@
          var isBirimlerController = string.Equals(currentController, "Birimler", StringComparison.OrdinalIgnoreCase);
          var isBirimAyarlar = isBirimlerController && string.Equals(currentAction, "Ayarlar", StringComparison.OrdinalIgnoreCase);
          var isBirimTopluAtama = isBirimlerController && string.Equals(currentAction, "TopluAtama", StringComparison.OrdinalIgnoreCase);
+         var isBirimListele = isBirimlerController && (string.Equals(currentAction, "BirimListele", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "KomisyonDetay", StringComparison.OrdinalIgnoreCase));
          var isBirimlerOpen = isBirimlerController;
 
         <li class="menu-item @(isBirimlerOpen ? "active open" : "")">
@@ -157,6 +216,11 @@
             <li class="menu-item @(isBirimAyarlar ? "active" : "")">
               <a asp-controller="Birimler" asp-action="Ayarlar" class="menu-link">
                 <div class="text-truncate" data-i18n="Birim Tanımları">Birim Tanımları</div>
+              </a>
+            </li>
+            <li class="menu-item @(isBirimListele ? "active" : "")">
+              <a asp-controller="Birimler" asp-action="BirimListele" class="menu-link">
+                <div class="text-truncate" data-i18n="Birimleri Listele">Birimleri Listele</div>
               </a>
             </li>
             <li class="menu-item @(isBirimTopluAtama ? "active" : "")">

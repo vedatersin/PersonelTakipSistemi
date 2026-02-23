@@ -222,7 +222,9 @@
             // --- TAB PERSISTENCE & DATE LOGIC ---
             // Sayfa yüklendiğinde son aktif olan tabı aç (localStorage)
             var activeTabSelector = localStorage.getItem('raporActiveTab');
-            if (activeTabSelector && activeTabSelector !== '#' && activeTabSelector.startsWith('#')) {
+            if (activeTabSelector) {
+                if (activeTabSelector !== '#') {
+                    if (activeTabSelector.startsWith('#')) {
                 try {
                     var tabTriggerEl = document.querySelector('button[data-bs-target="' + activeTabSelector + '"]');
                     if(tabTriggerEl) {
@@ -296,14 +298,25 @@
                 var endDate = $bitis.val();
                 
                 // Validate
-                if (startDate && endDate && startDate > endDate) {
+                let isInvalid = false;
+                if (startDate) {
+                    if (endDate) {
+                        if (startDate > endDate) {
+                            isInvalid = true;
+                        }
+                    }
+                }
+                if (isInvalid) {
                     // Conflict found. 
                     // Since we don't know which one changed easily (without separate handlers),
                     // let's assume if Start > End, we reset the field required to make it valid.
                     // But simpler: just Swap? No, confusing.
                     // Clear the OTHER one. 
                     // Actually, let's verify which one is `this`.
-                    if ($(this).is($baslangic)) {
+                    let isStartField = false;
+                    if ($(this).is($baslangic)) isStartField = true;
+
+                    if (isStartField) {
                         // User changed Start. It is now > End. So End is invalid.
                         $bitis.val(''); 
                     } else {
@@ -325,9 +338,14 @@
             $(document).on('click', '.clickable-row', function() {
                 var personelId = $(this).data('personel-id');
                 // Row üzerindeki (personelin kendi) birim bilgileri, filtredekilerden önceliklidir
-                var teskilatId = $(this).data('teskilat-id') || $teskilat.val();
-                var koordId = $(this).data('koord-id') || $koordinatorluk.val();
-                var komisyonId = $(this).data('komisyon-id') || $komisyon.val();
+                let teskilatId = $(this).data('teskilat-id');
+                if(!teskilatId) teskilatId = $teskilat.val();
+
+                let koordId = $(this).data('koord-id');
+                if(!koordId) koordId = $koordinatorluk.val();
+
+                let komisyonId = $(this).data('komisyon-id');
+                if(!komisyonId) komisyonId = $komisyon.val();
 
                 var url = '@Url.Action("Index", "Istatistik")' + '?personelId=' + personelId;
                 if (teskilatId) url += '&teskilatId=' + teskilatId;

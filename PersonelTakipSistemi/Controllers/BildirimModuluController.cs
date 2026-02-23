@@ -55,9 +55,37 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetFilterData()
         {
-            var iller = await _context.Iller.OrderBy(i => i.Ad).Select(i => new { Id = i.IlId, i.Ad }).ToListAsync();
-            var koordinatorlukler = await _context.Koordinatorlukler.OrderBy(k => k.Ad).Select(k => new { k.KoordinatorlukId, k.Ad, k.TeskilatId }).ToListAsync();
-            var komisyonlar = await _context.Komisyonlar.OrderBy(k => k.Ad).Select(k => new { k.KomisyonId, k.Ad, k.KoordinatorlukId }).ToListAsync();
+            int currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            bool isAdmin = User.IsInRole("Admin");
+
+            var illerQuery = _context.Iller.AsQueryable();
+            var koordQuery = _context.Koordinatorlukler.AsQueryable();
+            var komQuery = _context.Komisyonlar.AsQueryable();
+
+            if (!isAdmin)
+            {
+                var authRoles = await _context.PersonelKurumsalRolAtamalari
+                    .Where(a => a.PersonelId == currentUserId)
+                    .Select(a => new { a.KurumsalRolId, a.KoordinatorlukId, a.KomisyonId })
+                    .ToListAsync();
+
+                var authKoordIds = authRoles.Where(r => r.KoordinatorlukId.HasValue).Select(r => r.KoordinatorlukId!.Value).ToList();
+                var authKomIds = authRoles.Where(r => r.KomisyonId.HasValue).Select(r => r.KomisyonId!.Value).ToList();
+
+                // Add provincial commissions linked to Merkez Coordinators
+                var linkedKomIds = await _context.Komisyonlar
+                    .Where(k => authKoordIds.Contains(k.BagliMerkezKoordinatorlukId ?? 0))
+                    .Select(k => k.KomisyonId)
+                    .ToListAsync();
+                authKomIds.AddRange(linkedKomIds);
+
+                koordQuery = koordQuery.Where(k => authKoordIds.Contains(k.KoordinatorlukId));
+                komQuery = komQuery.Where(k => authKomIds.Contains(k.KomisyonId) || authKoordIds.Contains(k.KoordinatorlukId));
+            }
+
+            var iller = await illerQuery.OrderBy(i => i.Ad).Select(i => new { Id = i.IlId, i.Ad }).ToListAsync();
+            var koordinatorlukler = await koordQuery.OrderBy(k => k.Ad).Select(k => new { k.KoordinatorlukId, k.Ad, k.TeskilatId }).ToListAsync();
+            var komisyonlar = await komQuery.OrderBy(k => k.Ad).Select(k => new { k.KomisyonId, k.Ad, k.KoordinatorlukId }).ToListAsync();
             var sistemRoller = await _context.SistemRoller.OrderBy(r => r.Ad).Select(r => new { r.SistemRolId, r.Ad }).ToListAsync();
             var kurumsalRoller = await _context.KurumsalRoller.OrderBy(r => r.Ad).Select(r => new { r.KurumsalRolId, r.Ad }).ToListAsync();
 
@@ -78,8 +106,45 @@ namespace PersonelTakipSistemi.Controllers
             string? gorevTuruAd,
             string? isNiteligiAd)
         {
+            // Get Current User ID
+            int currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            bool isAdmin = User.IsInRole("Admin");
+
             // Filter logic
             var query = _context.Personeller.AsQueryable();
+
+            if (!isAdmin)
+            {
+                // Get authorized units (Coordinatorships or Commissions)
+                var authorizedRoles = await _context.PersonelKurumsalRolAtamalari
+                    .Where(a => a.PersonelId == currentUserId && (a.KurumsalRolId == 2 || a.KurumsalRolId == 3 || a.KurumsalRolId == 5))
+                    .Select(a => new { a.KurumsalRolId, a.KoordinatorlukId, a.KomisyonId })
+                    .ToListAsync();
+
+                if (authorizedRoles.Any())
+                {
+                    var authorizedKoordIds = authorizedRoles.Where(r => r.KoordinatorlukId.HasValue).Select(r => r.KoordinatorlukId!.Value).ToList();
+                    var authorizedKomIds = authorizedRoles.Where(r => r.KomisyonId.HasValue).Select(r => r.KomisyonId!.Value).ToList();
+
+                    // For Merkez Coordinators, include linked provincial commissions
+                    var linkedKomIds = await _context.Komisyonlar
+                        .Where(k => authorizedKoordIds.Contains(k.BagliMerkezKoordinatorlukId ?? 0))
+                        .Select(k => k.KomisyonId)
+                        .ToListAsync();
+
+                    authorizedKomIds.AddRange(linkedKomIds);
+
+                    query = query.Where(p => 
+                        p.PersonelKoordinatorlukler.Any(pk => authorizedKoordIds.Contains(pk.KoordinatorlukId)) ||
+                        p.PersonelKomisyonlar.Any(pk => authorizedKomIds.Contains(pk.KomisyonId))
+                    );
+                }
+                else if (!User.IsInRole("Yönetici"))
+                {
+                    // If neither Admin nor Manager with corporate role, return empty
+                    return Json(new List<object>());
+                }
+            }
 
             // Exclude Inactive
             // Exclude Inactive -- Removed to show passive users

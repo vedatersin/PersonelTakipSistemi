@@ -31,6 +31,10 @@
       .passive-row td {
            color: #6c757d;
       }
+      .template-row {
+          background-color: rgba(3, 195, 236, 0.1) !important; /* Soft Info Blue */
+          border-left: 4px solid #03c3ec;
+      }
       
       tr { cursor: pointer; }
   </style>
@@ -42,16 +46,22 @@
     <h4 class="py-3 mb-0">
         <span class="text-muted fw-light">Personel /</span> Personel Listesi
     </h4>
-    <div>
-        <a asp-action="DownloadTemplate" class="btn btn-outline-secondary me-2">
-            <i class="bx bx-download me-1"></i> Şablon İndir
+    <div class="d-flex gap-2">
+        <a asp-action="DownloadTemplate" class="btn btn-outline-secondary">
+            <i class="bx bx-download me-1"></i> Detaylı Şablon
         </a>
-        <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#importModal">
-            <i class="bx bx-upload me-1"></i> Excel Yükle
-        </button>
-        <a asp-action="Yeni" class="btn btn-primary">
-            <i class="bx bx-plus me-1"></i> Yeni Personel
+        <a asp-action="IndirBasitSablon" class="btn btn-outline-info">
+            <i class="bx bx-download me-1"></i> Basit Şablon
         </a>
+        @if (User.IsInRole("Admin"))
+        {
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importModal">
+                <i class="bx bx-upload me-1"></i> Excel Yükle
+            </button>
+            <a asp-action="Yeni" class="btn btn-primary">
+                <i class="bx bx-plus me-1"></i> Yeni Personel
+            </a>
+        }
     </div>
 </div>
 
@@ -268,6 +278,7 @@
                 {
                     var rowClass = "";
                     if (!item.AktifMi) { rowClass += " passive-row"; }
+                    if (item.AddedViaTemplate) { rowClass += " template-row"; }
                     if (ViewBag.HighlightId != null && (int)ViewBag.HighlightId == item.PersonelId)
                     {
                         rowClass += " highlight-row";
@@ -555,7 +566,13 @@
                 </div>
                 <div class="mb-3">
                     <label for="excelFile" class="form-label">Excel Dosyası Seçin</label>
-                    <input class="form-control" type="file" id="excelFile" accept=".xlsx, .xls">
+                    <input class="form-control" type="file" id="excelFile" accept=".xlsx, .csv">
+                </div>
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="isSimpleCheck">
+                    <label class="form-check-label" for="isSimpleCheck">
+                        Basit Yükleme (Sadece temel bilgiler)
+                    </label>
                 </div>
                 <div id="importResult" class="d-none"></div>
             </div>
@@ -577,6 +594,7 @@
 
         var formData = new FormData();
         formData.append('file', input.files[0]);
+        formData.append('isSimple', document.getElementById('isSimpleCheck').checked);
 
         Swal.fire({
             title: 'Yükleniyor...',
@@ -730,7 +748,10 @@
                                  if(json.message) errMsg = json.message;
                              } catch(e) {
                                  // Use status text if available
-                                 errMsg += " (" + (error || status) + ")";
+                                 let detail = "";
+                                 if (error) detail = error;
+                                 else if (status) detail = status;
+                                 if (detail) errMsg += " (" + detail + ")";
                                  console.error("Server Error:", xhr.responseText);
                              }
                         }
@@ -825,14 +846,34 @@
               var ilId = $(this).val();
               var $ilceSelect = $('#filterKadroIlceId');
               
-              $ilceSelect.empty().append('<option value="">Seçiniz...</option>').prop('disabled', true);
+              // Destroy Select2 before modifying options
+              if ($ilceSelect.hasClass('select2-hidden-accessible')) {
+                  $ilceSelect.select2('destroy');
+              }
+              
+              $ilceSelect.empty().append('<option value="">İlçe Seçiniz...</option>').prop('disabled', true);
               
               if(ilId) {
                   $.get('@Url.Action("GetIlceler", "Personel")?ilId=' + ilId, function(data) {
                       $.each(data, function(i, item) {
                           $ilceSelect.append(new Option(item.ad, item.id));
                       });
-                      $ilceSelect.prop('disabled', false).trigger('change.select2');
+                      $ilceSelect.prop('disabled', false);
+                      // Reinitialize Select2
+                      $ilceSelect.select2({
+                          width: '100%',
+                          placeholder: 'Seçiniz...',
+                          allowClear: false,
+                          language: { noResults: function () { return "Sonuç bulunamadı"; } }
+                      });
+                  });
+              } else {
+                  // Reinitialize Select2 for disabled state
+                  $ilceSelect.select2({
+                      width: '100%',
+                      placeholder: 'Seçiniz...',
+                      allowClear: false,
+                      language: { noResults: function () { return "Sonuç bulunamadı"; } }
                   });
               }
           });

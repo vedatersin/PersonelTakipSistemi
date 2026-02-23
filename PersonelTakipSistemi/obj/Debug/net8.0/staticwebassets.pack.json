@@ -57,6 +57,10 @@
       "PackagePath": "staticwebassets\\js\\site.js"
     },
     {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\js\\turkey-map.js",
+      "PackagePath": "staticwebassets\\js\\turkey-map.js"
+    },
+    {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\lib\\bootstrap\\LICENSE",
       "PackagePath": "staticwebassets\\lib\\bootstrap"
     },
@@ -283,6 +287,30 @@
     {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.map"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\lib\\svg-turkiye-haritasi-master\\.gitignore",
+      "PackagePath": "staticwebassets\\lib\\svg-turkiye-haritasi-master\\.gitignore"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\lib\\svg-turkiye-haritasi-master\\LICENSE",
+      "PackagePath": "staticwebassets\\lib\\svg-turkiye-haritasi-master"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\lib\\svg-turkiye-haritasi-master\\README.md",
+      "PackagePath": "staticwebassets\\lib\\svg-turkiye-haritasi-master\\README.md"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\lib\\svg-turkiye-haritasi-master\\css\\svg-turkiye-haritasi.css",
+      "PackagePath": "staticwebassets\\lib\\svg-turkiye-haritasi-master\\css\\svg-turkiye-haritasi.css"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\lib\\svg-turkiye-haritasi-master\\index.html",
+      "PackagePath": "staticwebassets\\lib\\svg-turkiye-haritasi-master\\index.html"
+    },
+    {
+      "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\lib\\svg-turkiye-haritasi-master\\js\\svg-turkiye-haritasi.js",
+      "PackagePath": "staticwebassets\\lib\\svg-turkiye-haritasi-master\\js\\svg-turkiye-haritasi.js"
     },
     {
       "Id": "C:\\Users\\vedat\\source\\repos\\PersonelTakipSistemi\\PersonelTakipSistemi\\wwwroot\\sevilay-tema\\CHANGELOG.md",

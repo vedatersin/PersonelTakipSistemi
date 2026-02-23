@@ -38,8 +38,20 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQmlyaW1sZXJcQXlhcmxhci5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Birimler/BirimListele.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQmlyaW1sZXJcQmlyaW1MaXN0ZWxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Birimler/KomisyonDetay.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQmlyaW1sZXJcS29taXN5b25EZXRheS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Birimler/TopluAtama.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQmlyaW1sZXJcVG9wbHVBdGFtYS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/BirimYonetimi/KordinatorlukYonetimi.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQmlyaW1Zb25ldGltaVxLb3JkaW5hdG9ybHVrWW9uZXRpbWkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Gorevler/Detay.cshtml]
@@ -132,6 +144,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Shared/_LookupCard.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Mb29rdXBDYXJkLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Shared/_TurkeyMap.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9UdXJrZXlNYXAuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/vedat/source/repos/PersonelTakipSistemi/PersonelTakipSistemi/Views/Shared/_ValidationScriptsPartial.cshtml]

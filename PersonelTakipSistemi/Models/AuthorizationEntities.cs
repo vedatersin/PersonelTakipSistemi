@@ -106,6 +106,8 @@ namespace PersonelTakipSistemi.Models
         [Required]
         [StringLength(100)]
         public string Ad { get; set; } = null!; // "Komisyon Başkanı", "İl Koordinatörü" vb.
+
+        public bool SadeceMerkezMi { get; set; } = false;
     }
 
     // MANY-TO-MANY İLİŞKİ TABLOLARI

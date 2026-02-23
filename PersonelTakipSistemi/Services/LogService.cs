@@ -24,8 +24,16 @@ namespace PersonelTakipSistemi.Services
                 
                 // 1. IP Address
                 string ip = context?.Connection?.RemoteIpAddress?.ToString() ?? "Unknown";
+                
+                // Handle X-Forwarded-For (Get the first IP if multiple exist)
                 if (context?.Request?.Headers?.ContainsKey("X-Forwarded-For") == true)
-                    ip = context.Request.Headers["X-Forwarded-For"].ToString();
+                {
+                    var forwardedHeader = context.Request.Headers["X-Forwarded-For"].ToString();
+                    if (!string.IsNullOrEmpty(forwardedHeader))
+                    {
+                        ip = forwardedHeader.Split(',')[0].Trim();
+                    }
+                }
 
                 // 2. Identify Performer (The one logged in)
                 int? performerId = null;

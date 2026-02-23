@@ -1,4 +1,4 @@
-@model PersonelTakipSistemi.ViewModels.PersonelEkleViewModel
+﻿@model PersonelTakipSistemi.ViewModels.PersonelEkleViewModel
 @{
     ViewData["Title"] = "Personel Ekle";
 }
@@ -169,11 +169,14 @@
       <div class="step-name">Kişisel</div>
     </div>
     
-    <!-- NEW: Yetkiler -->
-    <div class="step-item" data-step="tab_auth" onclick="handleStepClick('tab_auth')">
-      <div class="step-counter"><i class='bx bx-shield-quarter'></i></div>
-      <div class="step-name">Yetkiler</div>
-    </div>
+    @if (User.IsInRole("Admin"))
+    {
+        <!-- NEW: Yetkiler -->
+        <div class="step-item" data-step="tab_auth" onclick="handleStepClick('tab_auth')">
+          <div class="step-counter"><i class='bx bx-shield-quarter'></i></div>
+          <div class="step-name">Yetkiler</div>
+        </div>
+    }
     
     <!-- 2. Beceriler -->
     <div class="step-item" data-step="tab2" onclick="handleStepClick('tab2')">
@@ -387,115 +390,118 @@
 
 
 
-                            <!-- 5. Yetkiler Tabı (Auth) -->
-                            <div id="tab_auth" class="tab-content">
-                                <h4 class="mb-4 text-primary"><i class="fas fa-user-shield me-2"></i>Sistem & Kurumsal Yetkiler</h4>
-                                
-                                <input type="hidden" id="IsAuthSkipped" name="IsAuthSkipped" value="false" />
-                                <input type="hidden" id="AtananRollerJson" name="AtananRollerJson" />
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <!-- 5. Yetkiler Tabı (Auth) -->
+                                <div id="tab_auth" class="tab-content">
+                                    <h4 class="mb-4 text-primary"><i class="fas fa-user-shield me-2"></i>Sistem & Kurumsal Yetkiler</h4>
+                                    
+                                    <input type="hidden" id="IsAuthSkipped" name="IsAuthSkipped" value="false" />
+                                    @* <input type="hidden" id="AtananRollerJson" name="AtananRollerJson" /> *@ @* Already in top of form *@
 
-                                <div id="authContentArea">
-                                    <div class="row g-4">
-                                        <!-- Sol Kolon: Kurumsal Rol Atama -->
-                                        <div class="col-md-6">
-                                            <div class="card h-100 border-0 shadow-sm">
-                                                <div class="card-body">
-                                                    <h6 class="card-title text-secondary mb-3">Kurumsal Görevlendirmeler</h6>
+                                    <div id="authContentArea">
+                                        <div class="row g-4">
+                                            <!-- Sol Kolon: Kurumsal Rol Atama -->
+                                            <div class="col-md-6">
+                                                <div class="card h-100 border-0 shadow-sm">
+                                                    <div class="card-body">
+                                                        <h6 class="card-title text-secondary mb-3">Kurumsal Görevlendirmeler</h6>
 
-                                                    <!-- Ekleme Formu -->
-                                                    <div class="d-flex flex-column gap-2 mb-3">
-                                                        <select class="form-select select2" id="newRoleTeskilat">
-                                                            <option value="">Seçiniz...</option>
-                                                            @foreach (var item in Model.Teskilatlar)
-                                                            {
-                                                                <option value="@item.Id">@item.Ad</option>
-                                                            }
-                                                        </select>
-                                                        
-                                                        <div class="d-flex gap-2">
-                                                            <select class="form-select select2" id="newRoleKoord" disabled>
-                                                                <option>Koordinatörlük</option>
-                                                            </select>
-                                                            <select class="form-select select2" id="newRoleKom" disabled>
-                                                                <option>Komisyon</option>
-                                                            </select>
-                                                        </div>
-
-                                                        <div class="d-flex gap-2">
-                                                            <select class="form-select select2" id="newRoleType">
-                                                                <option value="">Rol Seçiniz...</option>
-                                                                @foreach (var item in Model.KurumsalRoller)
+                                                        <!-- Ekleme Formu -->
+                                                        <div class="d-flex flex-column gap-2 mb-3">
+                                                            <select class="form-select select2" id="newRoleTeskilat">
+                                                                <option value="">Seçiniz...</option>
+                                                                @foreach (var item in Model.Teskilatlar)
                                                                 {
                                                                     <option value="@item.Id">@item.Ad</option>
                                                                 }
                                                             </select>
-                                                            <button type="button" class="btn btn-primary text-nowrap" id="btnAddRole">
-                                                                <i class="fas fa-plus"></i> Ekle
-                                                            </button>
-                                                            <button type="button" class="btn btn-secondary text-nowrap d-none" id="btnCancelEditRole" onclick="cancelEditRole()">
-                                                                <i class="fas fa-times"></i> Vazgeç
-                                                            </button>
+                                                            
+                                                            <div class="d-flex gap-2">
+                                                                <select class="form-select select2" id="newRoleKoord" disabled>
+                                                                    <option>Koordinatörlük</option>
+                                                                </select>
+                                                                <select class="form-select select2" id="newRoleKom" disabled>
+                                                                    <option>Komisyon</option>
+                                                                </select>
+                                                            </div>
+
+                                                            <div class="d-flex gap-2">
+                                                                <select class="form-select select2" id="newRoleType">
+                                                                    <option value="">Rol Seçiniz...</option>
+                                                                    @foreach (var item in Model.KurumsalRoller)
+                                                                    {
+                                                                        <option value="@item.Id">@item.Ad</option>
+                                                                    }
+                                                                </select>
+                                                                <button type="button" class="btn btn-primary text-nowrap" id="btnAddRole">
+                                                                    <i class="fas fa-plus"></i> Ekle
+                                                                </button>
+                                                                <button type="button" class="btn btn-secondary text-nowrap d-none" id="btnCancelEditRole" onclick="cancelEditRole()">
+                                                                    <i class="fas fa-times"></i> Vazgeç
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Liste -->
+                                                        <div class="table-responsive" style="max-height: 250px; overflow-y:auto;">
+                                                            <table class="table table-hover align-middle mb-0" id="rolesTable">
+                                                                <thead class="table-light sticky-top">
+                                                                    <tr>
+                                                                        <th>Rol</th>
+                                                                        <th>Birim/Kapsam</th>
+                                                                        <th style="width:50px"></th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody id="assignedRolesBody">
+                                                                    <tr><td colspan="3" class="text-center text-muted py-3">Henüz rol eklenmedi.</td></tr>
+                                                                </tbody>
+                                                            </table>
                                                         </div>
                                                     </div>
+                                                </div>
+                                            </div>
 
-                                                    <!-- Liste -->
-                                                    <div class="table-responsive" style="max-height: 250px; overflow-y:auto;">
-                                                        <table class="table table-hover align-middle mb-0" id="rolesTable">
-                                                            <thead class="table-light sticky-top">
-                                                                <tr>
-                                                                    <th>Rol</th>
-                                                                    <th>Birim/Kapsam</th>
-                                                                    <th style="width:50px"></th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody id="assignedRolesBody">
-                                                                <tr><td colspan="3" class="text-center text-muted py-3">Henüz rol eklenmedi.</td></tr>
-                                                            </tbody>
-                                                        </table>
+                                            <!-- Sağ Kolon: Sistem Rolü -->
+                                            <div class="col-md-6">
+                                                <div class="card h-100 border-0 shadow-sm">
+                                                    <div class="card-body">
+                                                        <h6 class="card-title text-secondary mb-3">Sistem Erişimi</h6>
+                                                        
+                                                        <div class="mb-4">
+                                                            <label asp-for="SistemRolId" class="form-label fw-bold">Sistem Rolü</label>
+                                                            <select asp-for="SistemRolId" class="form-select select2" id="sistemRolSelect">
+                                                                <option value="">Seçiniz...</option>
+                                                                @foreach (var item in Model.SistemRolleri)
+                                                                {
+                                                                    <option value="@item.Id">@item.Ad</option>
+                                                                }
+                                                            </select>
+                                                            <span asp-validation-for="SistemRolId" class="text-danger"></span>
+                                                        </div>
+                                                        <!-- Yetki Kapsamı Removed -->
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
 
-                                        <!-- Sağ Kolon: Sistem Rolü -->
-                                        <div class="col-md-6">
-                                            <div class="card h-100 border-0 shadow-sm">
-                                                <div class="card-body">
-                                                    <h6 class="card-title text-secondary mb-3">Sistem Erişimi</h6>
-                                                    
-                                                    <div class="mb-4">
-                                                        <label asp-for="SistemRolId" class="form-label fw-bold">Sistem Rolü</label>
-                                                        <select asp-for="SistemRolId" class="form-select select2" id="sistemRolSelect">
-                                                            <option value="">Seçiniz...</option>
-                                                            @foreach (var item in Model.SistemRolleri)
-                                                            {
-                                                                <option value="@item.Id">@item.Ad</option>
-                                                            }
-                                                        </select>
-                                                        <span asp-validation-for="SistemRolId" class="text-danger"></span>
-                                                    </div>
-                                                    <!-- Yetki Kapsamı Removed -->
-                                                </div>
-                                            </div>
+                                    <div class="d-flex justify-content-between mt-4 align-items-center">
+                                        <div class="d-flex justify-content-start">
+                                            @if (!Model.IsEditMode)
+                                            {
+                                                <button type="button" class="btn btn-outline-warning" id="btnSkipAuth">
+                                                    <i class="fas fa-fast-forward me-2"></i>Yetkilendirme İşlemini Atla
+                                                </button>
+                                            }
+                                        </div>
+                                        <div class="d-flex justify-content-end gap-2">
+                                             <button type="button" class="btn btn-outline-secondary" onclick="clearTabAuth()">Temizle</button>
+                                             <button type="button" class="btn btn-primary px-4" id="next_auth">İlerle <i class="fas fa-arrow-right ms-2"></i></button>
                                         </div>
                                     </div>
                                 </div>
-
-                                <div class="d-flex justify-content-between mt-4 align-items-center">
-                                    <div class="d-flex justify-content-start">
-                                        @if (!Model.IsEditMode)
-                                        {
-                                            <button type="button" class="btn btn-outline-warning" id="btnSkipAuth">
-                                                <i class="fas fa-fast-forward me-2"></i>Yetkilendirme İşlemini Atla
-                                            </button>
-                                        }
-                                    </div>
-                                    <div class="d-flex justify-content-end gap-2">
-                                         <button type="button" class="btn btn-outline-secondary" onclick="clearTabAuth()">Temizle</button>
-                                         <button type="button" class="btn btn-primary px-4" id="next_auth">İlerle <i class="fas fa-arrow-right ms-2"></i></button>
-                                    </div>
-                                </div>
-                            </div>
+                            }
 
 
   <!-- TAB2 BECERİLER -->
@@ -696,99 +702,89 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.8/jquery.inputmask.min.js"></script>
+    
     <script>
         // --- 1. GLOBAL STATE & CONFIGURATION (CRITICAL: Must run first) ---
-        
+
         // Robust Edit Mode Detection
-        // We check the hidden input strictly, fallback to Model value.
         var isEditMode = false;
         try {
             var hiddenVal = document.querySelector('input[name="IsEditMode"]')?.value;
-            if(hiddenVal === "True" || hiddenVal === "true") isEditMode = true;
+            let check1 = false;
+            if (hiddenVal === "True") check1 = true;
+            if (hiddenVal === "true") check1 = true;
+
+            if (check1) isEditMode = true;
             else if (@(Model.IsEditMode.ToString().ToLowerInvariant())) isEditMode = true;
-        } catch(e) { console.error("EditMode detect error", e); }
-        
+        } catch (e) { console.error("EditMode detect error", e); }
+
         console.log("Wizard Initialized. Mode:", isEditMode ? "EDIT" : "CREATE");
 
         // State Container
         window.wizardState = {
             unlockedTabs: new Set(["tab1"]),
-            // Standard Tab Order
-            tabOrder: ["tab1", "tab_auth", "tab2", "tab3", "tab4", "tab5", "tab6"],
+            tabOrder: @Html.Raw(User.IsInRole("Admin")
+           ? "[\"tab1\", \"tab_auth\", \"tab2\", \"tab3\", \"tab4\", \"tab5\", \"tab6\"]"
+           : "[\"tab1\", \"tab2\", \"tab3\", \"tab4\", \"tab5\", \"tab6\"]"),
             assignedRoles: @Html.Raw(Model.AtananRollerJson ?? "[]")
         };
 
         // Edit Mode: Unlock All Tabs Immediately
         if (isEditMode) {
-             // Add password tab if needed
-             if (!window.wizardState.tabOrder.includes("tab_password")) {
-                 const idx = window.wizardState.tabOrder.indexOf("tab6");
-                 if(idx > -1) window.wizardState.tabOrder.splice(idx, 0, "tab_password");
-             }
-             // Unlock all
-             window.wizardState.tabOrder.forEach(t => window.wizardState.unlockedTabs.add(t));
+            if (!window.wizardState.tabOrder.includes("tab_password")) {
+                const idx = window.wizardState.tabOrder.indexOf("tab6");
+                if (idx > -1) window.wizardState.tabOrder.splice(idx, 0, "tab_password");
+            }
+            window.wizardState.tabOrder.forEach(function (t) { window.wizardState.unlockedTabs.add(t); });
         }
 
         // --- 2. GLOBAL NAVIGATION HANDLERS (Must be available for onclick) ---
-        
+
         window.handleStepClick = function (tabId) {
-            // Safety check
-            if(!window.wizardState) { console.error("Wizard State not ready"); return; }
+            if (!window.wizardState) { console.error("Wizard State not ready"); return; }
             activateTab(tabId);
         };
 
-        window.activateTab = function(tabId) {
-            // Permission Check
-            if (!window.wizardState.unlockedTabs.has(tabId) && !isEditMode) {
-                // Double check isEditMode in case strictly unlocked
+        window.activateTab = function (tabId) {
+            let isAllowed = false;
+            if (window.wizardState.unlockedTabs.has(tabId)) isAllowed = true;
+            if (isEditMode) isAllowed = true;
+
+            if (!isAllowed) {
                 console.warn("Tab locked:", tabId);
                 return;
             }
 
-            // 1. Toggle Content
             const contents = document.querySelectorAll(".tab-content");
-            contents.forEach(c => {
-                 // Use direct style/class manipulation for speed
-                 const isActive = c.id === tabId;
-                 c.classList.toggle("active", isActive);
-                 // c.style.display = isActive ? 'block' : 'none'; // Optional: Use CSS class for cleaner handling
+            contents.forEach(function (c) {
+                const isActive = c.id === tabId;
+                c.classList.toggle("active", isActive);
             });
 
-            // 2. Update Stepper UI
             updateStepperUI(tabId);
 
-            // 3. Tab Specific Logic
             if (tabId === "tab6") {
-                if(typeof fillKontrolOzet === 'function') fillKontrolOzet();
-                if(typeof updateControlPhoto === 'function') updateControlPhoto();
+                if (typeof fillKontrolOzet === 'function') fillKontrolOzet();
+                if (typeof updateControlPhoto === 'function') updateControlPhoto();
             }
         };
 
-
-        window.updateStepperUI = function(activeTabId) {
+        window.updateStepperUI = function (activeTabId) {
             const buttons = document.querySelectorAll(".step-item");
-            buttons.forEach(btn => {
+            buttons.forEach(function (btn) {
                 const stepId = btn.getAttribute("data-step");
-                
-                // Reset basic state
-                btn.classList.remove("active", "completed");
-                btn.style.opacity = "0.6"; 
 
-                // Determine Highlighting
+                btn.classList.remove("active", "completed");
+                btn.style.opacity = "0.6";
+
                 const isUnlocked = window.wizardState.unlockedTabs.has(stepId);
                 const isActive = stepId === activeTabId;
 
                 if (isEditMode) {
-                    // Edit Mode: All unlocked/visible are technically 'completed'/'accessible'
-                    // Just highlight active one specifically
-                    btn.classList.add("completed"); 
+                    btn.classList.add("completed");
                     btn.style.opacity = "1";
-                    
-                    if (isActive) {
-                         btn.classList.add("active");
-                    }
+                    if (isActive) btn.classList.add("active");
                 } else {
-                    // Create Mode
                     if (isActive) {
                         btn.classList.add("active");
                         btn.style.opacity = "1";
@@ -800,117 +796,110 @@
             });
         };
 
-
         function fillKontrolOzet() {
-             const leftBody = document.getElementById("kontrolTableBodyLeft");
-             const rightBody = document.getElementById("kontrolTableBodyRight");
-             if (!leftBody || !rightBody) return;
-             
-             leftBody.innerHTML = ""; 
-             rightBody.innerHTML = "";
+            const leftBody = document.getElementById("kontrolTableBodyLeft");
+            const rightBody = document.getElementById("kontrolTableBodyRight");
+            if (!leftBody || !rightBody) return;
 
-             const addRow = (targetBody, label, value) => {
-                 const tr = document.createElement("tr");
-                 tr.innerHTML = `<td style="width:40%; font-weight:600;">${label}</td><td>${value && value.trim() !== "" ? value : "-"}</td>`;
-                 targetBody.appendChild(tr);
-             };
+            leftBody.innerHTML = "";
+            rightBody.innerHTML = "";
 
-             // --- SOL ---
-             const ad = document.getElementById("personelAdi")?.value || "";
-             const soyad = document.getElementById("personelSoyadi")?.value || "";
-             addRow(leftBody, "Ad Soyad", `${ad} ${soyad}`);
-             addRow(leftBody, "TC Kimlik No", document.getElementById("personelTcKimlik")?.value);
-             addRow(leftBody, "Telefon", document.getElementById("personeltelefon")?.value);
-             addRow(leftBody, "E-posta", document.getElementById("personelemail")?.value);
-             
-             let cinsiyet = "-";
-             if (document.getElementById("cinsiyetKadin")?.checked) cinsiyet = "Kadın";
-             else if (document.getElementById("cinsiyetErkek")?.checked) cinsiyet = "Erkek";
-             addRow(leftBody, "Cinsiyet", cinsiyet);
+            const addRow = function (targetBody, label, value) {
+                const tr = document.createElement("tr");
+                let displayVal = "-";
+                if (value && String(value).trim() !== "") displayVal = value;
+                tr.innerHTML = `<td style="width:40%; font-weight:600;">${label}</td><td>${displayVal}</td>`;
+                targetBody.appendChild(tr);
+            };
 
-             const aktifMi = document.getElementById("gorevAktif")?.checked ? "Aktif" : "Pasif";
-             addRow(leftBody, "Durum", aktifMi);
+            const ad = document.getElementById("personelAdi")?.value || "";
+            const soyad = document.getElementById("personelSoyadi")?.value || "";
+            addRow(leftBody, "Ad Soyad", `${ad} ${soyad}`);
+            addRow(leftBody, "TC Kimlik No", document.getElementById("personelTcKimlik")?.value);
+            addRow(leftBody, "Telefon", document.getElementById("personeltelefon")?.value);
+            addRow(leftBody, "E-posta", document.getElementById("personelemail")?.value);
 
-             // --- SAĞ ---
-             addRow(rightBody, "Kadro Kurum", document.getElementById("personelKadroKurum")?.value);
+            let cinsiyet = "-";
+            if (document.getElementById("cinsiyetKadin")?.checked) cinsiyet = "Kadın";
+            else if (document.getElementById("cinsiyetErkek")?.checked) cinsiyet = "Erkek";
+            addRow(leftBody, "Cinsiyet", cinsiyet);
 
-             const gorevliIl = document.getElementById("personelgorevli_il");
-             if (gorevliIl && gorevliIl.selectedIndex > 0) {
-                  addRow(rightBody, "Görevli İl", gorevliIl.options[gorevliIl.selectedIndex].text);
-             } else {
-                  addRow(rightBody, "Görevli İl", "-");
-             }
+            const aktifMiEl = document.getElementById("gorevAktif");
+            const aktifMi = aktifMiEl ? (aktifMiEl.checked ? "Aktif" : "Pasif") : "Aktif";
+            addRow(leftBody, "Durum", aktifMi);
 
-             const brans = document.getElementById("personelBrans");
-             if (brans && brans.selectedIndex > 0) {
-                 addRow(rightBody, "Branş", brans.options[brans.selectedIndex].text);
-             } else {
-                  addRow(rightBody, "Branş", "-");
-             }
+            addRow(rightBody, "Kadro Kurum", document.getElementById("personelKadroKurum")?.value);
 
-             const getLabels_ = (name) => {
+            const gorevliIl = document.getElementById("personelgorevli_il");
+            addRow(rightBody, "Görevli İl", gorevliIl?.selectedIndex > 0 ? gorevliIl.options[gorevliIl.selectedIndex].text : "-");
+
+            const brans = document.getElementById("personelBrans");
+            addRow(rightBody, "Branş", brans?.selectedIndex > 0 ? brans.options[brans.selectedIndex].text : "-");
+
+            const getLabels_ = function (name) {
                 const checkedInputs = document.querySelectorAll(`input[name="${name}"]:checked`);
                 if (checkedInputs.length === 0) return "-";
                 const labels = [];
-                checkedInputs.forEach(input => {
-                     // Check parent label or custom card
-                     const parent = input.closest('.custom-checkbox-card');
-                     if(parent) {
-                         labels.push(parent.querySelector('span').innerText);
-                     } else {
-                         // Fallback
-                         const labelEl = document.querySelector(`label[for="${input.id}"]`);
-                         if(labelEl) labels.push(labelEl.textContent.trim());
-                     }
+                checkedInputs.forEach(function (input) {
+                    const parent = input.closest('.custom-checkbox-card');
+                    if (parent) labels.push(parent.querySelector('span')?.innerText || "");
+                    else {
+                        const labelEl = document.querySelector(`label[for="${input.id}"]`);
+                        if (labelEl) labels.push(labelEl.textContent.trim());
+                    }
                 });
-                return labels.join(", ");
-             };
+                return labels.filter(Boolean).join(", ");
+            };
 
-             addRow(rightBody, "Beceriler", getLabels_("SeciliYazilimIdleri"));
-             addRow(rightBody, "Uzmanlıklar", getLabels_("SeciliUzmanlikIdleri"));
-             addRow(rightBody, "Görev Türü", getLabels_("SeciliGorevTuruIdleri"));
-             addRow(rightBody, "İş Niteliği", getLabels_("SeciliIsNiteligiIdleri"));
+            addRow(rightBody, "Beceriler", getLabels_("SeciliYazilimIdleri"));
+            addRow(rightBody, "Uzmanlıklar", getLabels_("SeciliUzmanlikIdleri"));
+            addRow(rightBody, "Görev Türü", getLabels_("SeciliGorevTuruIdleri"));
+            addRow(rightBody, "İş Niteliği", getLabels_("SeciliIsNiteligiIdleri"));
 
-             // --- ROLES (NEW SECTION) ---
-             const rolesBody = document.getElementById("kontrolTableBodyRoles");
-             if(rolesBody) {
-                 rolesBody.innerHTML = "";
-                 
-                 // 1. Sistem Rolü
-                 let sistemRolText = $("#sistemRolSelect option:selected").text();
-                 const sysVal = $("#sistemRolSelect").val();
-                 if(!sysVal || sysVal === "") {
-                     const isSkipped = $('#IsAuthSkipped').val() === 'true';
-                     sistemRolText = isSkipped ? "Standart Kullanıcı (Atlandı)" : "-";
-                 }
-                 // Add Row to Roles Table
-                 const trSys = document.createElement("tr");
-                 trSys.innerHTML = `<td style="width:20%; font-weight:600;">Sistem Rolü</td><td>${sistemRolText}</td>`;
-                 rolesBody.appendChild(trSys);
+            const rolesBody = document.getElementById("kontrolTableBodyRoles");
+            if (rolesBody) {
+                rolesBody.innerHTML = "";
 
-                 // 2. Kurumsal Roller
-                 let kRollerHtml = "-";
-                 if(wizardState.assignedRoles && wizardState.assignedRoles.length > 0) {
-                     kRollerHtml = wizardState.assignedRoles.map(r => {
-                          let loc = r.teskilatAd || "";
-                          if(r.koordinatorlukAd) loc += ` > ${r.koordinatorlukAd}`;
-                          if(r.komisyonAd) loc += ` > ${r.komisyonAd}`;
-                          
-                          let roleDisplay = r.rolAd;
-                          let styleClass = "";
-                          if(r.isImplicit === true || r.rolAd === "") {
-                              roleDisplay = "<span class='text-danger'>(Rolü Yok)</span>";
-                              styleClass = "border-start border-3 border-danger ps-2";
-                          }
-                          
-                          return `<div class='mb-2 ${styleClass}'><strong>${roleDisplay}</strong> <br><small class='text-muted'>${loc}</small></div>`;
-                     }).join("");
-                 }
-                 
-                 const trCorp = document.createElement("tr");
-                 trCorp.innerHTML = `<td style="width:20%; font-weight:600;">Kurumsal Roller</td><td>${kRollerHtml}</td>`;
-                 rolesBody.appendChild(trCorp);
-             }
+                let sistemRolText = $("#sistemRolSelect option:selected").text();
+                const sysVal = $("#sistemRolSelect").val();
+                const isNullOrEmpty = (!sysVal || sysVal === "");
+
+                if (isNullOrEmpty) {
+                    const isSkipped = $('#IsAuthSkipped').val() === 'true';
+                    sistemRolText = isSkipped ? "Standart Kullanıcı (Atlandı)" : "-";
+                }
+
+                const trSys = document.createElement("tr");
+                trSys.innerHTML = `<td style="width:20%; font-weight:600;">Sistem Rolü</td><td>${sistemRolText}</td>`;
+                rolesBody.appendChild(trSys);
+
+                let kRollerHtml = "-";
+                if (wizardState.assignedRoles && wizardState.assignedRoles.length > 0) {
+                    kRollerHtml = wizardState.assignedRoles.map(function (r) {
+                        let loc = r.teskilatAd ? r.teskilatAd : "";
+                        if (r.koordinatorlukAd) loc += ` > ${r.koordinatorlukAd}`;
+                        if (r.komisyonAd) loc += ` > ${r.komisyonAd}`;
+
+                        let roleDisplay = r.rolAd;
+                        let styleClass = "";
+
+                        let isNoRole = false;
+                        if (r.isImplicit === true) isNoRole = true;
+                        if (r.rolAd === "") isNoRole = true;
+
+                        if (isNoRole) {
+                            roleDisplay = "<span class='text-danger'>(Rolü Yok)</span>";
+                            styleClass = "border-start border-3 border-danger ps-2";
+                        }
+
+                        return `<div class='mb-2 ${styleClass}'><strong>${roleDisplay}</strong> <br><small class='text-muted'>${loc}</small></div>`;
+                    }).join("");
+                }
+
+                const trCorp = document.createElement("tr");
+                trCorp.innerHTML = `<td style="width:20%; font-weight:600;">Kurumsal Roller</td><td>${kRollerHtml}</td>`;
+                rolesBody.appendChild(trCorp);
+            }
         }
 
         // --- Role Management State ---
@@ -919,28 +908,30 @@
         // --- Role Render Logic ---
         function renderRoles() {
             const container = document.getElementById('assignedRolesBody');
-            if(!container) return; 
-            
+            if (!container) return;
+
             container.innerHTML = '';
-            
-            if(wizardState.assignedRoles.length === 0) {
-                 container.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">Henüz rol eklenmedi.</td></tr>';
-                 // Explicitly set empty array for backend deletion logic
-                 const jsonInput = document.getElementById('AtananRollerJson');
-                 if(jsonInput) jsonInput.value = '[]'; 
-                 // Also update control summary if needed
-                 if(typeof fillKontrolOzet === 'function') fillKontrolOzet();
-                 return;
+
+            if (!wizardState.assignedRoles || wizardState.assignedRoles.length === 0) {
+                container.innerHTML = '<tr><td colspan="3" class="text-center text-muted py-3">Henüz rol eklenmedi.</td></tr>';
+                const jsonInput = document.getElementById('AtananRollerJson');
+                if (jsonInput) jsonInput.value = '[]';
+                if (typeof fillKontrolOzet === 'function') fillKontrolOzet();
+                return;
             }
 
-            wizardState.assignedRoles.forEach((role, idx) => {
+            // ✅ FIX: forEachfunction -> forEach(function...)
+            wizardState.assignedRoles.forEach(function (role, idx) {
                 const tr = document.createElement('tr');
-                
-                let ctx = role.teskilatAd || "";
-                if(role.koordinatorlukAd) ctx += ` > ${role.koordinatorlukAd}`;
-                if(role.komisyonAd) ctx += ` > ${role.komisyonAd}`;
 
-                const isImplicit = role.isImplicit === true || role.rolAd === "";
+                let ctx = role.teskilatAd ? role.teskilatAd : "";
+                if (role.koordinatorlukAd) ctx += ` > ${role.koordinatorlukAd}`;
+                if (role.komisyonAd) ctx += ` > ${role.komisyonAd}`;
+
+                let isImplicit = false;
+                if (role.isImplicit === true) isImplicit = true;
+                if (role.rolAd === "") isImplicit = true;
+
                 let roleNameDisplay = role.rolAd;
                 let roleStyle = "fw-bold text-dark small";
 
@@ -949,17 +940,11 @@
                     tr.classList.add("border", "border-danger");
                 }
 
+                let isLegacy = false;
+                if (!role.teskilatAd && !role.koordinatorlukAd && !role.komisyonAd) isLegacy = true;
+                if (isLegacy) ctx = "<i class='bx bx-error-circle'></i> <em>Kapsam Belirtilmemiş (Eski Kayıt)</em>";
 
-
-                let isLegacy = !role.teskilatAd && !role.koordinatorlukAd && !role.komisyonAd;
-                if(isLegacy) {
-                     ctx = "<i class='bx bx-error-circle'></i> <em>Kapsam Belirtilmemiş (Eski Kayıt)</em>";
-                }
-                
-                // Highlight row being edited
-                if(editingRoleIndex === idx) {
-                    tr.classList.add("table-primary");
-                }
+                if (editingRoleIndex === idx) tr.classList.add("table-primary");
 
                 tr.innerHTML = `
                     <td>
@@ -978,95 +963,64 @@
                     </td>`;
                 container.appendChild(tr);
             });
-            
-            // Sync Hidden Input
+
             const jsonInput = document.getElementById('AtananRollerJson');
-            if(jsonInput) jsonInput.value = JSON.stringify(wizardState.assignedRoles);
-            
-            // Re-render Control Tab Summary if needed
-            if(typeof fillKontrolOzet === 'function') fillKontrolOzet();
+            if (jsonInput) jsonInput.value = JSON.stringify(wizardState.assignedRoles);
+
+            if (typeof fillKontrolOzet === 'function') fillKontrolOzet();
         }
 
-        window.removeRole = function(index) {
-            if(confirm("Bu rolü silmek istediğinize emin misiniz?")) {
-                if(editingRoleIndex === index) cancelEditRole();
+        window.removeRole = function (index) {
+            if (confirm("Bu rolü silmek istediğinize emin misiniz?")) {
+                if (editingRoleIndex === index) cancelEditRole();
                 wizardState.assignedRoles.splice(index, 1);
                 renderRoles();
             }
         };
 
-        window.editRole = async function(index) {
+        window.editRole = async function (index) {
             const role = wizardState.assignedRoles[index];
             editingRoleIndex = index;
-            
+
             console.group("Edit Role Debug");
             console.log("Editing Role Object:", role);
 
-            // Re-render (highlighting)
             renderRoles();
-            
-            // Set Flag to suppress default change handlers
             window.isEditingCascade = true;
 
             try {
-                // 1. Teskilat
-                if(role.teskilatId) {
+                if (role.teskilatId) {
                     const $tes = $('#newRoleTeskilat');
-                    
-                    // Verify Option Exists
                     const tesVal = String(role.teskilatId);
-                    if($tes.find(`option[value="${tesVal}"]`).length === 0) {
-                        console.warn(`Teskilat ID ${tesVal} not found in options!`, $tes.html());
+
+                    if ($tes.find(`option[value="${tesVal}"]`).length === 0) {
+                        console.warn(`Teskilat ID ${tesVal} not found in options!`);
                         alert(`Hata: Teşkilat ID (${tesVal}) listede bulunamadı!`);
                     } else {
-                        console.log(`Setting Teskilat to ${tesVal}`);
                         $tes.val(tesVal).trigger('change.select2');
                     }
-                    
-                    // Filter Roles based on Teskilat immediately
-                    if(window.updateRoleOptions) window.updateRoleOptions(role.teskilatId);
 
-                    // 2. Load Koordinatorluk
-                    if(window.loadKoordinatorlukler) {
-                        try {
-                            await window.loadKoordinatorlukler(role.teskilatId, role.koordinatorlukId);
-                            console.log("Loaded Koordinatorluk for:", role.teskilatId);
-                            
-                            // Check if value was set (it should be set inside loadKoordinatorlukler)
-                            const currentKoord = $('#newRoleKoord').val();
-                            if(role.koordinatorlukId && String(currentKoord) !== String(role.koordinatorlukId)) {
-                                console.warn(`Failed to set Koordinatorluk ID ${role.koordinatorlukId}. Current val: ${currentKoord}`);
-                                // Retry manual set just in case? Or alert?
-                                // alert(`Uyarı: Koordinatörlük ID (${role.koordinatorlukId}) listede yok!`);
-                            }
-                        } catch(err) { console.error("Error loading Koord", err); }
+                    if (window.updateRoleOptions) window.updateRoleOptions(role.teskilatId);
+
+                    if (window.loadKoordinatorlukler) {
+                        await window.loadKoordinatorlukler(role.teskilatId, role.koordinatorlukId);
                     }
 
-                    // 3. Load Komisyon
-                    if(role.koordinatorlukId && window.loadKomisyonlar) {
-                        try {
-                            await window.loadKomisyonlar(role.koordinatorlukId, role.komisyonId);
-                            console.log("Loaded Komisyon for:", role.koordinatorlukId);
-                            
-                            const currentKom = $('#newRoleKom').val();
-                            if(role.komisyonId && String(currentKom) !== String(role.komisyonId)) {
-                                console.warn(`Failed to set Komisyon ID ${role.komisyonId}. Current val: ${currentKom}`);
-                            }
-                        } catch(err) { console.error("Error loading Kom", err); }
+                    if (role.koordinatorlukId && window.loadKomisyonlar) {
+                        await window.loadKomisyonlar(role.koordinatorlukId, role.komisyonId);
                     }
                 }
-            } catch(e) {
+            } catch (e) {
                 console.error("Edit cascade failed", e);
             } finally {
                 window.isEditingCascade = false;
                 console.groupEnd();
             }
 
-            // Role Select
             const $roleType = $('#newRoleType');
-            if(role.rolId && role.rolId !== "0" && role.rolId !== "") {
+            if (role.rolId && role.rolId !== "0" && role.rolId !== "") {
                 const rVal = String(role.rolId);
-                if($roleType.find(`option[value="${rVal}"]`).length > 0) {
+                if ($roleType.find(`option[value="${rVal}"]`).length > 0) {
                     $roleType.val(rVal).trigger('change.select2');
                 } else {
                     console.warn(`Role ID ${rVal} not found in options!`);
@@ -1074,607 +1028,419 @@
             } else {
                 $roleType.val(null).trigger('change.select2');
             }
-            
-            // Update Buttons
-            $('#btnAddRole').html('<i class="bx bx-save me-1"></i>Güncelle').removeClass('btn-primary').addClass('btn-warning');
+
+            $('#btnAddRole').html('<i class="bx bx-save me-1"></i>Güncelle')
+                .removeClass('btn-primary').addClass('btn-warning');
             $('#btnCancelEditRole').removeClass('d-none');
 
-            // Scroll to Form
-            document.querySelector('#newRoleTeskilat').scrollIntoView({behavior: 'smooth'});
+            document.querySelector('#newRoleTeskilat').scrollIntoView({ behavior: 'smooth' });
         };
-        
-        window.cancelEditRole = function() {
+
+        window.cancelEditRole = function () {
             editingRoleIndex = null;
-            
-            // Reset Form (Clear values)
-            $('#newRoleTeskilat').val('').trigger('change.select2'); // Ensure select2 trigger
-            $('#newRoleKoord').val('').empty().append('<option>Koordinatörlük</option>').prop('disabled', true).trigger('change.select2');
-            $('#newRoleKom').val('').empty().append('<option>Komisyon</option>').prop('disabled', true).trigger('change.select2');
+
+            $('#newRoleTeskilat').val('').trigger('change.select2');
+            $('#newRoleKoord').val('').empty().append('<option value="">Koordinatörlük</option>').prop('disabled', true).trigger('change.select2');
+            $('#newRoleKom').val('').empty().append('<option value="">Komisyon</option>').prop('disabled', true).trigger('change.select2');
             $('#newRoleType').val('').trigger('change.select2');
-            
-            // Reset Buttons
-            $('#btnAddRole').html('<i class="bx bx-plus-circle me-1"></i>Ekle').removeClass('btn-warning').addClass('btn-primary');
+
+            $('#btnAddRole').html('<i class="bx bx-plus-circle me-1"></i>Ekle')
+                .removeClass('btn-warning').addClass('btn-primary');
             $('#btnCancelEditRole').addClass('d-none');
-            
+
             renderRoles();
         };
 
         // --- Add/Update Role ---
-        $('#btnAddRole').on('click', function() {
-             const tesSelect = document.getElementById('newRoleTeskilat');
-             const koordSelect = document.getElementById('newRoleKoord');
-             const komSelect = document.getElementById('newRoleKom');
-             const rolSelect = document.getElementById('newRoleType');
-             
-             // Validation Logic
-             if(!rolSelect.value || !tesSelect.value) {
-                 Swal.fire('Uyarı', 'Teşkilat ve Rol seçimi zorunludur.', 'warning');
-                 return;
-             }
-             
-             const data = {
-                   rolId: rolSelect.value,
-                   rolAd: rolSelect.options[rolSelect.selectedIndex].text,
-                   teskilatId: tesSelect.value,
-                   teskilatAd: tesSelect.options[tesSelect.selectedIndex].text,
-                   koordinatorlukId: koordSelect.value || null,
-                   koordinatorlukAd: koordSelect.selectedIndex > 0 ? koordSelect.options[koordSelect.selectedIndex].text : null,
-                   komisyonId: komSelect.value || null,
-                   komisyonAd: komSelect.selectedIndex > 0 ? komSelect.options[komSelect.selectedIndex].text : null
-             };
-             
-             // Add or Update logic
-             if(editingRoleIndex !== null) {
-                 wizardState.assignedRoles[editingRoleIndex] = data;
-                 Swal.fire({ position: 'top-end', icon: 'success', title: 'Rol güncellendi', showConfirmButton: false, timer: 1500 });
-                 
-                 // Reset UI (Cancel Mode)
-                 cancelEditRole();
-             } else {
-                 wizardState.assignedRoles.push(data);
-                 
-                 // Just Clear Inputs (Reuse cancelEditRole logic as it clears everything and resets state)
-                 cancelEditRole(); 
-             }
-        });
+        $('#btnAddRole').on('click', function () {
+            const tesSelect = document.getElementById('newRoleTeskilat');
+            const koordSelect = document.getElementById('newRoleKoord');
+            const komSelect = document.getElementById('newRoleKom');
+            const rolSelect = document.getElementById('newRoleType');
 
+            const rid = parseInt(rolSelect.value);
+            const isHierarchy = [4, 7, 8, 9, 10].includes(rid);
+
+            if (!rolSelect.value || !tesSelect.value) {
+                Swal.fire('Uyarı', 'Teşkilat ve Rol seçimi zorunludur.', 'warning');
+                return;
+            }
+
+            if (!isHierarchy && !koordSelect.value) {
+                Swal.fire('Uyarı', 'Lütfen bir Koordinatörlük seçiniz.', 'warning');
+                return;
+            }
+
+            const data = {
+                rolId: rolSelect.value,
+                rolAd: rolSelect.options[rolSelect.selectedIndex].text,
+                teskilatId: tesSelect.value,
+                teskilatAd: tesSelect.options[tesSelect.selectedIndex].text,
+                koordinatorlukId: koordSelect.value ? koordSelect.value : null,
+                koordinatorlukAd: koordSelect.selectedIndex > 0 ? koordSelect.options[koordSelect.selectedIndex].text : null,
+                komisyonId: komSelect.value ? komSelect.value : null,
+                komisyonAd: komSelect.selectedIndex > 0 ? komSelect.options[komSelect.selectedIndex].text : null
+            };
+
+            if (editingRoleIndex !== null) {
+                wizardState.assignedRoles[editingRoleIndex] = data;
+                Swal.fire({ position: 'top-end', icon: 'success', title: 'Rol güncellendi', showConfirmButton: false, timer: 1500 });
+                cancelEditRole();
+            } else {
+                wizardState.assignedRoles.push(data);
+                cancelEditRole();
+            }
+        });
 
         // --- Photo Logic ---
         function updateControlPhoto() {
             const previewImg = document.getElementById("photoPreview");
             const controlImg = document.getElementById("kontrolFoto");
             const controlIcon = document.getElementById("controlIcon");
-
             if (!controlImg) return;
-            
-            // Sync logic
-            if (previewImg && previewImg.src && previewImg.style.display !== "none" && previewImg.src !== "" && previewImg.src !== window.location.href) {
-                 controlImg.src = previewImg.src;
-                 controlImg.style.display = "block";
-                 if(controlIcon) controlIcon.style.display = "none";
-            } 
-            else {
-                 controlImg.style.display = "none";
-                 if(controlIcon) controlIcon.style.display = "block";
+
+            let hasValidPreview = false;
+            if (previewImg && previewImg.src && previewImg.style.display !== "none") {
+                if (previewImg.src !== "" && previewImg.src !== window.location.href) {
+                    hasValidPreview = true;
+                }
+            }
+
+            if (hasValidPreview) {
+                controlImg.src = previewImg.src;
+                controlImg.style.display = "block";
+                if (controlIcon) controlIcon.style.display = "none";
+            } else {
+                controlImg.style.display = "none";
+                if (controlIcon) controlIcon.style.display = "block";
             }
         }
 
+        // ✅ FIX: restorePhotoFromHidden kapanışları düzeltildi
         function restorePhotoFromHidden() {
             const hiddenBase64 = document.getElementById("FotografBase64");
             const hiddenYolu = document.getElementById("FotografYolu");
             const previewImg = document.getElementById("photoPreview");
-            
-            // Priority: Base64 (New Upload) > Yolu (Existing)
-            let src = "";
-            if(hiddenBase64 && hiddenBase64.value) src = hiddenBase64.value;
-            else if(hiddenYolu && hiddenYolu.value) src = hiddenYolu.value;
 
-            if(src && previewImg) {
+            let src = "";
+            if (hiddenBase64 && hiddenBase64.value) src = hiddenBase64.value;
+            if (!src && hiddenYolu && hiddenYolu.value) src = hiddenYolu.value;
+
+            if (src && previewImg) {
                 previewImg.src = src;
-                
-                // Show it
+
                 const container = previewImg.parentElement;
-                const icon = container.querySelector("i");
-                if(icon) icon.style.display = "none";
+                const icon = container ? container.querySelector("i") : null;
+                if (icon) icon.style.display = "none";
                 previewImg.style.display = "block";
             }
         }
 
-
         // --- Clear Handlers ---
-        // --- Clear Handlers ---
-        window.clearTab1 = function() {
+        window.clearTab1 = function () {
             const inputs = document.querySelectorAll('#tab1 input:not([type="hidden"]):not([type="radio"])');
-            inputs.forEach(i => i.value = "");
+            inputs.forEach(function (i) { i.value = ""; });
             $('#personelgorevli_il').val(null).trigger('change');
             $('#personelBrans').val(null).trigger('change');
-            
-            // Explicitly Reset ID and EditMode for "New Record" Intent
+
             $('input[name="PersonelId"]').val(0);
             $('input[name="IsEditMode"]').val('False');
-            
-            // Reset Photo
+
             const preview = document.getElementById("photoPreview");
             const icon = document.querySelector("#previewContainer i");
-            if(preview) { preview.src = ""; preview.style.display = 'none'; }
-            if(icon) icon.style.display = 'block';
+            if (preview) { preview.src = ""; preview.style.display = 'none'; }
+            if (icon) icon.style.display = 'block';
             document.getElementById("personelFoto").value = "";
         };
 
-        window.clearCheckboxes = function(tabId) {
-             const container = document.getElementById(tabId);
-             if(!container) return;
-             const checkboxes = container.querySelectorAll('input[type="checkbox"]');
-             checkboxes.forEach(cb => cb.checked = false);
+        window.clearCheckboxes = function (tabId) {
+            const container = document.getElementById(tabId);
+            if (!container) return;
+            const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(function (cb) { cb.checked = false; });
         };
 
-        window.clearTabAuth = function() {
-             $('#sistemRolSelect').val('').trigger('change.select2');
-             $('input[name="YetkiKapsami"][value="Self"]').prop('checked', true);
-             
-             wizardState.assignedRoles = [];
-             renderRoles();
-             
-             $('#newRoleTeskilat').val('').trigger('change.select2');
-             $('#newRoleType').val('').trigger('change.select2');
-        };
+        window.clearTabAuth = function () {
+            $('#sistemRolSelect').val('').trigger('change.select2');
 
+            wizardState.assignedRoles = [];
+            renderRoles();
+
+            $('#newRoleTeskilat').val('').trigger('change.select2');
+            $('#newRoleType').val('').trigger('change.select2');
+        };
 
         // --- 3. DOM READY INITIALIZATION ---
-        $(document).ready(function() {
-             // A. Init UI Components
-             updateStepperUI("tab1"); // Default active
-             renderRoles();
-             restorePhotoFromHidden();
+        $(document).ready(function () {
+            updateStepperUI("tab1");
+            renderRoles();
+            restorePhotoFromHidden();
 
-             // B. Input Masks & Plugins
-             $('.select2').select2({
-                 width: '100%', allowClear:true, placeholder: 'Seçiniz...',
-                 language: { noResults: () => "Sonuç bulunamadı" }
-             });
-             
-             $('#personeltelefon').inputmask({
-                 mask: "0 (999) 999 99 99", showMaskOnHover: false, clearIncomplete: false
-             });
+            // Init Select2
+            $('.select2').select2({
+                width: '100%',
+                allowClear: true,
+                placeholder: 'Seçiniz...',
+                language: { noResults: function () { return "Sonuç bulunamadı"; } }
+            });
 
-             // Validate on Change
-             $('.select2').on('change', function() { $(this).valid(); });
+            // Telefon mask
+            $('#personeltelefon').inputmask({
+                mask: "0 (999) 999 99 99",
+                showMaskOnHover: false,
+                clearIncomplete: false
+            });
 
-             // C. Validation Override (Password UX)
-             var form = $('form');
-             var validator = form.data('validator');
-             if(validator) {
-                  var defaultOnFocusOut = validator.settings.onfocusout;
-                  var defaultOnKeyUp = validator.settings.onkeyup;
-                  validator.settings.onfocusout = function(element) {
-                      if (element.type === "password" || element.id === "personeltelefon") return;
-                      if (defaultOnFocusOut) defaultOnFocusOut.call(this, element);
-                  };
-                  validator.settings.onkeyup = function(element, event) {
-                       if (element.type === "password") {
-                            // Check mismatch manually
-                            var p1 = $('#NewPassword').val();
-                            var p2 = $('#NewPasswordConfirm').val();
-                            if(element.id === "NewPasswordConfirm" && p1 && p2 && p1 !== p2) {
-                                 var span = $('span[data-valmsg-for="NewPasswordConfirm"]');
-                                 span.removeClass('field-validation-valid').addClass('field-validation-error').text('Şifreler eşleşmiyor.');
-                            } else if (element.id === "NewPasswordConfirm") {
-                                 $('span[data-valmsg-for="NewPasswordConfirm"]').text('');
-                            }
+            // Validate on Change
+            
+            $('.select2').on('change', function (e) {
+                // Kullanıcı tetiklemediyse (programatik trigger/destroy/reinit), validasyon basma
+                if (!e.originalEvent) return;
+                $(this).valid();
+            });
+
+
+            // --- Kadro Il/Ilce Cascade (SAĞLAM) ---
+            $('#KadroIlId').on('change', function () {
+                const ilId = $(this).val();
+                const $ilce = $('#KadroIlceId');
+
+                // Destroy Select2 before modifying options
+                if ($ilce.hasClass('select2-hidden-accessible')) {
+                    $ilce.select2('destroy');
+                }
+
+                $ilce.empty()
+                    .append('<option value="">Seçiniz...</option>')
+                    .prop('disabled', true);
+
+                if (!ilId) {
+                    $ilce.select2({
+                        width: '100%',
+                        allowClear: true,
+                        placeholder: 'Seçiniz...',
+                        language: { noResults: function () { return "Sonuç bulunamadı"; } }
+                    });
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("GetIlceler", "Personel")',
+                    type: 'GET',
+                    data: { ilId: ilId },
+                    success: function (data) {
+                        if (Array.isArray(data)) {
+                            data.forEach(function (item) {
+                                const optionId = item.id ?? item.Id;
+                                const optionAd = item.ad ?? item.Ad;
+                                if (optionId && optionAd) {
+                                    $ilce.append(new Option(optionAd, optionId));
+                                }
+                            });
+                        }
+
+                        $ilce.prop('disabled', false);
+
+                        $ilce.select2({
+                            width: '100%',
+                            allowClear: true,
+                            placeholder: 'Seçiniz...',
+                            language: { noResults: function () { return "Sonuç bulunamadı"; } }
+                        });
+
+                        $ilce.trigger('change');
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Kadro İlçe Cascade Error:", status, error, xhr?.responseText);
+                        $ilce.prop('disabled', false);
+
+                        $ilce.select2({
+                            width: '100%',
+                            allowClear: true,
+                            placeholder: 'Seçiniz...',
+                            language: { noResults: function () { return "Sonuç bulunamadı"; } }
+                        });
+                    }
+                });
+            });
+
+            // Photo Upload Change
+            $('#personelFoto').change(function (e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 2 * 1024 * 1024) { alert("Max 2MB"); this.value = ""; return; }
+                    const r = new FileReader();
+                    r.onload = function (evt) {
+                        $('#FotografBase64').val(evt.target.result);
+                        const img = document.getElementById("photoPreview");
+                        if (img) {
+                            img.src = evt.target.result;
+                            img.style.display = 'block';
+                            $(img).siblings('i').hide();
+                            if ($('#tab6').hasClass('active')) updateControlPhoto();
+                        }
+                    };
+                    r.readAsDataURL(file);
+                }
+            });
+
+            // --- Next buttons helper ---
+            const setupNextBtn = function (btnId, currentTabId, checkBoxName) {
+                const btn = document.getElementById(btnId);
+                if (!btn) return;
+
+                btn.addEventListener("click", function () {
+                    const $tabInputs = $('#' + currentTabId).find(':input');
+                    if (!$tabInputs.valid()) {
+                        Swal.fire({ title: 'Eksik Bilgi', text: 'Zorunlu alanları doldurunuz.', icon: 'warning', timer: 2000, showConfirmButton: false });
+                        return;
+                    }
+                    if (checkBoxName) {
+                        if (document.querySelectorAll(`input[name="${checkBoxName}"]:checked`).length === 0) {
+                            Swal.fire({ title: 'Seçim Yapılmadı', text: "En az bir seçenek seçiniz.", icon: 'warning', confirmButtonText: 'Tamam' });
                             return;
-                       }
-                       if (defaultOnKeyUp) defaultOnKeyUp.call(this, element, event);
-                  };
-             }
+                        }
+                    }
 
+                    const idx = wizardState.tabOrder.indexOf(currentTabId);
+                    if (idx > -1 && idx < wizardState.tabOrder.length - 1) {
+                        const nextId = wizardState.tabOrder[idx + 1];
+                        wizardState.unlockedTabs.add(nextId);
+                        activateTab(nextId);
+                    }
+                });
+            };
 
-             // D. Button Setup Helper
-             const setupNextBtn = (btnId, currentTabId, checkBoxName) => {
-                  const btn = document.getElementById(btnId);
-                  if(!btn) return;
-                  
-                  btn.addEventListener("click", () => {
-                      const $tabInputs = $('#' + currentTabId).find(':input');
-                      if (!$tabInputs.valid()) {
-                           console.warn("Validation Failed on tab:", currentTabId);
-                           console.log("Invalid Elements:", $('#' + currentTabId).find('.input-validation-error'));
-                           Swal.fire({ title: 'Eksik Bilgi', text: 'Zorunlu alanları doldurunuz.', icon: 'warning', timer: 2000, showConfirmButton: false });
-                           return;
-                      }
-                      if (checkBoxName) {
-                          if (document.querySelectorAll(`input[name="${checkBoxName}"]:checked`).length === 0) {
-                              Swal.fire({ title: 'Seçim Yapılmadı', text: "En az bir seçenek seçiniz.", icon: 'warning', confirmButtonText: 'Tamam' });
-                              return;
-                          }
-                      }
-                      // Go Next
-                      const idx = wizardState.tabOrder.indexOf(currentTabId);
-                      if(idx > -1 && idx < wizardState.tabOrder.length - 1) {
-                          const nextId = wizardState.tabOrder[idx + 1];
-                          wizardState.unlockedTabs.add(nextId);
-                          activateTab(nextId);
-                      }
-                  });
-             };
+            setupNextBtn("next2", "tab2", "SeciliYazilimIdleri");
+            setupNextBtn("next3", "tab3", "SeciliUzmanlikIdleri");
+            setupNextBtn("next4", "tab4", "SeciliGorevTuruIdleri");
+            setupNextBtn("next5", "tab5", "SeciliIsNiteligiIdleri");
 
-             // setupNextBtn("next_auth", "tab_auth"); // Custom handler used below
-             setupNextBtn("next2", "tab2", "SeciliYazilimIdleri");
-             
-             // --- CUSTOM: Auth Next Logic with Skip Support ---
-             const btnNextAuth = document.getElementById("next_auth");
-             if (btnNextAuth) {
-                  btnNextAuth.addEventListener("click", () => {
-                      const isSkipped = $('#IsAuthSkipped').val() === 'true';
+            // --- Next 1 (AJAX Check) ---
+            const btnNext1 = document.getElementById("next1");
+            if (btnNext1) {
+                btnNext1.addEventListener("click", function () {
+                    const $tc = $('#personelTcKimlik');
+                    if ($tc.val().indexOf('*') !== -1) {
+                        $tc.rules("remove");
+                        $tc.removeClass("input-validation-error");
+                        $tc.next("span").text("");
+                    }
 
-                      if (!isSkipped) {
-                          // Standard Validation
-                          // 1. System Role Check
-                          const sysRole = $('#sistemRolSelect').val();
-                          if (!sysRole) {
-                               Swal.fire({ title: 'Eksik Bilgi', text: 'Sistem Rolü seçimi zorunludur.', icon: 'warning' });
-                               return;
-                          }
-                          // 2. Institutional Role Check
-                          // Edit Mode: Allow 0 roles if user wants to clear them (or re-assign later)
-                          if (!isEditMode && wizardState.assignedRoles.length === 0) {
-                               Swal.fire({ title: 'Rol Eksik', text: 'En az bir kurumsal rol ekleyiniz veya işlemlerden vazgeçmek için "Yetkilendirme İşlemini Atla" butonunu kullanınız.', icon: 'warning' });
-                               return;
-                          }
-                      }
+                    const $inputs = $('#tab1').find(':input');
+                    if (!$inputs.valid()) {
+                        Swal.fire({ title: 'Eksik Bilgi', text: 'Zorunlu alanları doldurunuz.', icon: 'warning', timer: 2000, showConfirmButton: false });
+                        return;
+                    }
 
-                      // Unlock Next
-                      wizardState.unlockedTabs.add("tab2");
-                      activateTab("tab2");
-                  });
-             }
+                    const tc = $tc.val();
+                    const email = $('#personelemail').val();
+                    const pid = '@Model.PersonelId';
 
-             // --- Skip Button Logic ---
-             $('#btnSkipAuth').click(function() {
-                  const $btn = $(this);
-                  const $content = $('#authContentArea');
-                  const $input = $('#IsAuthSkipped');
-                  
-                  // Toggle State
-                  const isCurrentlySkipped = $input.val() === 'true';
-                  
-                  if (!isCurrentlySkipped) {
-                       // Activate Skip Mode
-                       $input.val('true');
-                       $content.addClass('disabled-div'); // Ensure CSS class exists or use inline
-                       $content.css({ 'opacity': '0.5', 'pointer-events': 'none' });
-                       $btn.removeClass('btn-outline-warning').addClass('btn-warning').html('<i class="fas fa-undo me-2"></i>İşlemi Etkinleştir');
-                  } else {
-                       // Deactivate Skip Mode
-                       $input.val('false');
-                       $content.css({ 'opacity': '1', 'pointer-events': 'auto' });
-                       $btn.removeClass('btn-warning').addClass('btn-outline-warning').html('<i class="fas fa-fast-forward me-2"></i>Yetkilendirme İşlemini Atla');
-                  }
-             });
-             setupNextBtn("next3", "tab3", "SeciliUzmanlikIdleri");
-             setupNextBtn("next4", "tab4", "SeciliGorevTuruIdleri");
-             setupNextBtn("next5", "tab5", "SeciliIsNiteligiIdleri");
-
-             // E. Custom Handlers (Tab 1 & Password & Roles)
-             
-             // --- Next 1 (AJAX Check) ---
-             const btnNext1 = document.getElementById("next1");
-             if(btnNext1) {
-                 btnNext1.addEventListener("click", () => {
-                      // Bypass masked TC validation
-                      const $tc = $('#personelTcKimlik');
-                      if($tc.val().indexOf('*') !== -1) {
-                          $tc.rules("remove");
-                          $tc.removeClass("input-validation-error");
-                          $tc.next("span").text(""); // clear error
-                      }
-                      
-                      const $inputs = $('#tab1').find(':input');
-                      if(!$inputs.valid()) {
-                           Swal.fire({ title: 'Eksik Bilgi', text: 'Zorunlu alanları doldurunuz.', icon: 'warning', timer: 2000, showConfirmButton: false });
-                           return;
-                      }
-
-                      // Check Duplicates
-                      const tc = $tc.val();
-                      const email = $('#personelemail').val();
-                      const pid = '@Model.PersonelId';
-                      
-                      btnNext1.disabled = true;
-                      $.get('@Url.Action("CheckDuplicates", "Personel")', { id: pid, tc: tc, email: email })
-                       .done(function(res) {
+                    btnNext1.disabled = true;
+                    $.get('@Url.Action("CheckDuplicates", "Personel")', { id: pid, tc: tc, email: email })
+                        .done(function (res) {
                             btnNext1.disabled = false;
-                            if(res.tcExists || res.emailExists) {
-                                let msg = res.tcExists ? "Bu TC Kimlik No kayıtlı. " : "";
-                                msg += res.emailExists ? "Bu E-posta kayıtlı." : "";
+                            let msg = "";
+                            if (res.tcExists) msg = "Bu TC Kimlik No kayıtlı. ";
+                            if (res.emailExists) msg += "Bu E-posta kayıtlı.";
+                            if (msg !== "") {
                                 Swal.fire('Kayıt Mevcut', msg, 'error');
                             } else {
-                                // Success - Move to Auth
-                                wizardState.unlockedTabs.add("tab_auth");
-                                activateTab("tab_auth");
+                                const nextTab = @Html.Raw(User.IsInRole("Admin") ? "\"tab_auth\"" : "\"tab2\"");
+                                wizardState.unlockedTabs.add(nextTab);
+                                activateTab(nextTab);
                             }
-                       })
-                       .fail(function() {
+                        })
+                        .fail(function () {
                             btnNext1.disabled = false;
                             Swal.fire('Hata', 'Sunucu hatası oluştu. Lütfen tekrar deneyin.', 'error');
-                       });
-                 });
-             }
-
-             // --- Next Password ---
-             const btnPass = document.getElementById("next_pass");
-             if(btnPass) {
-                 btnPass.addEventListener("click", () => {
-                      const $inputs = $('#tab_password').find(':input');
-                      // Custom check for Old Password
-                      const oldPass = $('#EskiSifre').val();
-                      const newPass = $('#NewPassword').val();
-                      
-                      if(!newPass) { // No change
-                          wizardState.unlockedTabs.add("tab6");
-                          activateTab("tab6");
-                          return;
-                      }
-                      
-                      if(!oldPass && $('#EskiSifre').length > 0) {
-                           // If hidden validation didn't catch it
-                           if(!$inputs.valid()) return; 
-                      }
-                      
-                      if($('#EskiSifre').length > 0) {
-                          btnPass.disabled = true;
-                          $.get('@Url.Action("CheckPassword", "Personel")', { id: '@Model.PersonelId', password: oldPass })
-                           .done(function(res) {
-                                btnPass.disabled = false;
-                                if(!res.success) {
-                                     Swal.fire('Hata', 'Eski şifre hatalı.', 'error');
-                                } else {
-                                     wizardState.unlockedTabs.add("tab6");
-                                     activateTab("tab6");
-                                }
-                           })
-                           .fail(function() {
-                                btnPass.disabled = false;
-                                Swal.fire('Hata', 'Şifre kontrol hatası.', 'error');
-                           });
-                      } else {
-                          // Admin mode
-                          wizardState.unlockedTabs.add("tab6");
-                          activateTab("tab6");
-                      }
-                 });
-             }
-
-
-             // --- Preloaded Data for Stability (Client-Side Cascading) ---
-             // Move to WINDOW scope so editRole can see them
-             window.allKoords = @Json.Serialize(ViewData["AllKoordinatorlukler"] ?? new List<object>());
-             window.allKomis = @Json.Serialize(ViewData["AllKomisyonlar"] ?? new List<object>()); 
-             
-             console.log("Loaded Hierarchies:", window.allKoords, window.allKomis);
-
-             // --- Cascading Roles Helpers (GLOBAL SCOPE for editRole) ---
-             window.loadKoordinatorlukler = (teskilatId, selectedId = null) => {
-                 return new Promise((resolve, reject) => {
-                     const $koord = $('#newRoleKoord');
-                     const $kom = $('#newRoleKom');
-                     
-                     // Reset structure with placeholder
-                     let html = '<option value="">Koordinatörlük</option>';
-                     
-                     // Reset dependent
-                     $kom.empty().append('<option value="">Komisyon</option>').prop('disabled', true);
-                     
-                     if(!teskilatId) { 
-                         $koord.html(html).prop('disabled', true);
-                         resolve(); return; 
-                     }
-
-                     // Filter
-                     const filtered = window.allKoords.filter(x => String(x.parentId) === String(teskilatId));
-                     
-                     if(filtered.length > 0) {
-                         // Build Options String
-                         filtered.forEach(x => {
-                             const isSelected = selectedId && String(x.id) === String(selectedId);
-                             html += `<option value="${x.id}" ${isSelected ? 'selected' : ''}>${x.ad}</option>`;
-                         });
-                         
-                         $koord.html(html).prop('disabled', false);
-                         
-                         // Trigger Change to update Select2
-                         // Using generic 'change' ensures both Select2 and other listeners fire
-                         $koord.trigger('change');
-                     } else {
-                         $koord.html(html).prop('disabled', true);
-                     }
-                     resolve();
-                 });
-             };
-
-             window.loadKomisyonlar = (koordinatorlukId, selectedId = null) => {
-                 return new Promise((resolve, reject) => {
-                     const $kom = $('#newRoleKom');
-                     
-                     // Reset structure with placeholder
-                     let html = '<option value="">Komisyon</option>';
-                     
-                     if(!koordinatorlukId) { 
-                         $kom.html(html).prop('disabled', true);
-                         resolve(); return; 
-                     }
-
-                     // Filter
-                     const filtered = window.allKomis.filter(x => String(x.parentId) === String(koordinatorlukId));
-
-                     if(filtered.length > 0) {
-                         // Build Options String
-                         filtered.forEach(x => {
-                             const isSelected = selectedId && String(x.id) === String(selectedId);
-                             html += `<option value="${x.id}" ${isSelected ? 'selected' : ''}>${x.ad}</option>`;
-                         });
-                         
-                         $kom.html(html).prop('disabled', false);
-                         $kom.trigger('change');
-                     } else {
-                         $kom.html(html).prop('disabled', true);
-                     }
-                     resolve();
-                 });
-             };
-
-             // --- Cascading Events (Restored) ---
-             // REMOVED .off('change') to avoid killing validation/select2 listeners
-             $('#newRoleTeskilat').on('change', function() {
-                  const id = $(this).val();
-                  if(window.isEditingCascade) return; 
-                  window.loadKoordinatorlukler(id);
-                  window.updateRoleOptions(id); 
-             });
-
-             $('#newRoleKoord').on('change', function() {
-                  const id = $(this).val();
-                  if(window.isEditingCascade) return;
-                  window.loadKomisyonlar(id);
-             });
-
-             // --- Role Filtering Logic (Global) ---
-             // Capture Original Options immediate (assuming populated on server render)
-             window.originalRoleOptions = [];
-             $('#newRoleType option').each(function() {
-                 const val = $(this).val();
-                 const text = $(this).text();
-                 if(val) window.originalRoleOptions.push({ val, text });
-             });
-
-             window.updateRoleOptions = function(teskilatId) {
-                 const $role = $('#newRoleType');
-                 const currentVal = $role.val();
-                 
-                 // Clean Id Comparison
-                 // Merkez ID usually 1 or defined in data.
-                 // Better: Check the text of the selected OPTION in the DOM?
-                 // But we have the ID. Let's find the option by ID to be safe.
-                 const isMerkez = $('#newRoleTeskilat').find(`option[value="${teskilatId}"]`).text().includes('Merkez');
-
-                 // Clear current options (keep placeholder)
-                 $role.empty().append('<option value="">Rol Seçiniz...</option>');
-
-                 // Rebuild Options
-                 window.originalRoleOptions.forEach(opt => {
-                     let allowed = true;
-                     // Rule: "Genel Koordinatör" (ID 4) only for "Merkez"
-                     if (opt.val == '4' && !isMerkez) allowed = false;
-                     // Rule: "Merkez Birim Koordinatörlüğü" (ID 5) only for "Merkez"
-                     if (opt.val == '5' && !isMerkez) allowed = false;
-                     // Rule: "İl Koordinatörü" (ID 3) only for "Taşra"
-                     if (opt.val == '3' && isMerkez) allowed = false;
-
-                     if (allowed) {
-                         const newOpt = new Option(opt.text, opt.val);
-                         if(currentVal == opt.val) newOpt.selected = true;
-                         $role.append(newOpt);
-                     }
-                 });
-                 
-                 // Restore or Clear
-                 if(currentVal && !$role.find(`option[value="${currentVal}"]`).length) {
-                     $role.val(null).trigger('change');
-                 } else {
-                     $role.trigger('change.select2'); 
-                 }
-             };
-
-
-             // F. Restore State Logic (Legacy/Restart) & Modal Open
-             // (Logic simplified: if Edit Mode, we already unlocked everything. 
-             // If Create Mode, check fields to auto-advance?)
-             if (!isEditMode) {
-                  // Auto-advance logic for Create Mode only
-                  if($('#personelAdi').val() && $('#personelTcKimlik').val()) {
-                       // wizardState.unlockedTabs.add("tab_auth"); // Optional: Don't auto-unlock too aggressively
-                  }
-             }
-
-             // Open specific tab if requested by Server
-             const openTab = '@TempData["OpenTab"]';
-             const showModal = '@TempData["ShowUserExistsModal"]' === '1';
-             
-             if(showModal) {
-                 try {
-                     var m = new bootstrap.Modal(document.getElementById('tcDuplicateModal'), {backdrop:'static'});
-                     m.show();
-                     $('#btnFixTc').click(() => { m.hide(); setTimeout(() => activateTab('tab1'), 300); });
-                 } catch(e) { alert("Hata: Kayıt zaten mevcut."); }
-             }
-             else if(openTab) {
-                 activateTab(openTab);
-             }
-
-             // Photo Upload Change
-             $('#personelFoto').change(function(e) {
-                  const file = e.target.files[0];
-                  if(file) {
-                      if(file.size > 2*1024*1024) { alert("Max 2MB"); this.value=""; return; }
-                      const r = new FileReader();
-                      r.onload = function(evt) {
-                           $('#FotografBase64').val(evt.target.result);
-                           const img = document.getElementById("photoPreview");
-                           if(img) {
-                               img.src = evt.target.result;
-                               // Show Logic
-                               img.style.display = 'block';
-                               $(img).siblings('i').hide();
-                               
-                               if($('#tab6').hasClass('active')) updateControlPhoto();
-                           }
-                      };
-                      r.readAsDataURL(file);
-                  }
-             });
-
-             // Final Submit Guard
-             $('form').submit(function(e) {
-                 const groups = [
-                     { name: "SeciliYazilimIdleri", label: "Beceriler" },
-                     { name: "SeciliUzmanlikIdleri", label: "Uzmanlık" },
-                     { name: "SeciliGorevTuruIdleri", label: "Görev Türü" },
-                     { name: "SeciliIsNiteligiIdleri", label: "İş Niteliği" }
-                 ];
-                 let hasError = false;
-                 groups.forEach(g => {
-                     // Check if at least one checkbox is checked for each group
-                     // Note: You might want to skip this check if the tab is skipped or not visible?
-                     // For now, restoring per user request.
-                     if($(`input[name="${g.name}"]:checked`).length === 0) hasError = true;
-                 });
-                 if(hasError) {
-                      e.preventDefault();
-                      Swal.fire({
-                          title: 'Eksik Seçim',
-                          text: "Lütfen Beceriler, Uzmanlık, Görev Türü ve İş Niteliği sekmelerinden en az birer seçim yapınız.",
-                          icon: 'warning',
-                          confirmButtonText: 'Tamam'
-                      });
-                 }
-             });
-
-             // --- Kadro Il/Ilce Cascade ---
-             $('#KadroIlId').on('change', function() {
-                var ilId = $(this).val();
-                var $ilce = $('#KadroIlceId');
-                
-                // Clear and Disable
-                $ilce.empty().append('<option value="">Seçiniz...</option>').prop('disabled', true).trigger('change.select2');
-                
-                if(ilId) {
-                    $.get('@Url.Action("GetIlceler", "Personel")?ilId=' + ilId, function(data) {
-                        $.each(data, function(i, item) {
-                            $ilce.append(new Option(item.ad, item.id));
                         });
-                        $ilce.prop('disabled', false).trigger('change.select2');
+                });
+            }
+
+            // --- Auth Next ---
+            const btnNextAuth = document.getElementById("next_auth");
+            if (btnNextAuth) {
+                btnNextAuth.addEventListener("click", function () {
+                    const isSkipped = $('#IsAuthSkipped').val() === 'true';
+
+                    if (!isSkipped) {
+                        const sysRole = $('#sistemRolSelect').val();
+                        if (!sysRole) {
+                            Swal.fire({ title: 'Eksik Bilgi', text: 'Sistem Rolü seçimi zorunludur.', icon: 'warning' });
+                            return;
+                        }
+                        if (!isEditMode && wizardState.assignedRoles.length === 0) {
+                            Swal.fire({
+                                title: 'Rol Eksik',
+                                text: 'En az bir kurumsal rol ekleyiniz veya "Yetkilendirme İşlemini Atla" butonunu kullanınız.',
+                                icon: 'warning'
+                            });
+                            return;
+                        }
+                    }
+
+                    wizardState.unlockedTabs.add("tab2");
+                    activateTab("tab2");
+                });
+            }
+
+            // Skip Auth
+            $('#btnSkipAuth').click(function () {
+                const $btn = $(this);
+                const $content = $('#authContentArea');
+                const $input = $('#IsAuthSkipped');
+
+                const isCurrentlySkipped = $input.val() === 'true';
+
+                if (!isCurrentlySkipped) {
+                    $input.val('true');
+                    $content.css({ 'opacity': '0.5', 'pointer-events': 'none' });
+                    $btn.removeClass('btn-outline-warning').addClass('btn-warning').html('<i class="fas fa-undo me-2"></i>İşlemi Etkinleştir');
+                } else {
+                    $input.val('false');
+                    $content.css({ 'opacity': '1', 'pointer-events': 'auto' });
+                    $btn.removeClass('btn-warning').addClass('btn-outline-warning').html('<i class="fas fa-fast-forward me-2"></i>Yetkilendirme İşlemini Atla');
+                }
+            });
+
+            // Modal open logic
+            const openTab = '@TempData["OpenTab"]';
+            const showModal = '@TempData["ShowUserExistsModal"]' === '1';
+
+            if (showModal) {
+                try {
+                    var m = new bootstrap.Modal(document.getElementById('tcDuplicateModal'), { backdrop: 'static' });
+                    m.show();
+                    $('#btnFixTc').click(function () { m.hide(); setTimeout(function () { activateTab('tab1'); }, 300); });
+                } catch (e) { alert("Hata: Kayıt zaten mevcut."); }
+            } else if (openTab) {
+                activateTab(openTab);
+            }
+
+            // Final Submit Guard
+            $('form').submit(function (e) {
+                const groups = [
+                    { name: "SeciliYazilimIdleri", label: "Beceriler" },
+                    { name: "SeciliUzmanlikIdleri", label: "Uzmanlık" },
+                    { name: "SeciliGorevTuruIdleri", label: "Görev Türü" },
+                    { name: "SeciliIsNiteligiIdleri", label: "İş Niteliği" }
+                ];
+                let hasError = false;
+                groups.forEach(function (g) {
+                    if ($(`input[name="${g.name}"]:checked`).length === 0) hasError = true;
+                });
+                if (hasError) {
+                    e.preventDefault();
+                    Swal.fire({
+                        title: 'Eksik Seçim',
+                        text: "Lütfen Beceriler, Uzmanlık, Görev Türü ve İş Niteliği sekmelerinden en az birer seçim yapınız.",
+                        icon: 'warning',
+                        confirmButtonText: 'Tamam'
                     });
                 }
-             });
+            });
 
         }); // End Ready
     </script>

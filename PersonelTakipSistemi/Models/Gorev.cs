@@ -41,6 +41,10 @@ namespace PersonelTakipSistemi.Models
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
 
+        public int? CreatedByPersonelId { get; set; }
+        [ForeignKey("CreatedByPersonelId")]
+        public Personel? CreatedByPersonel { get; set; }
+
         // Assignments
         public ICollection<GorevAtamaTeskilat> GorevAtamaTeskilatlar { get; set; } = new List<GorevAtamaTeskilat>();
         public ICollection<GorevAtamaKoordinatorluk> GorevAtamaKoordinatorlukler { get; set; } = new List<GorevAtamaKoordinatorluk>();

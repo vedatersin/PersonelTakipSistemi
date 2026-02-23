@@ -11,33 +11,32 @@
         <h4 class="fw-bold py-3 mb-0">
             <span class="text-muted fw-light">Personel /</span> Detay
         </h4>
-        <div>
-            <a href="@Url.Action("Ekle", new { id = Model.PersonelId })" class="btn btn-primary me-2">Düzenle</a>
+        @{
+            var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(currentUserIdStr, out int currentUserId);
+            var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
             
+            bool isSelf = (Model.PersonelId == currentUserId);
+            bool isAdmin = (currentUserRole == "Admin");
+            bool isManager = (currentUserRole == "Yönetici");
+            
+            bool canEdit = isAdmin || isSelf;
+            bool canDelete = false;
 
-            @{
-                var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                int.TryParse(currentUserIdStr, out int currentUserId);
-                var currentUserRole = User.FindFirstValue(ClaimTypes.Role);
-                
-                bool canDelete = false;
-                
-                if (currentUserRole == "Admin")
+            if (isAdmin)
+            {
+                // Admin: Kendi hariç, Diğer Admin Hariç
+                if (!isSelf && Model.SistemRol != "Admin")
                 {
-                    // Admin: Kendi hariç, Diğer Admin Hariç
-                    if (Model.PersonelId != currentUserId && Model.SistemRol != "Admin")
-                    {
-                        canDelete = true;
-                    }
+                    canDelete = true;
                 }
-                else if (currentUserRole == "Yönetici")
-                {
-                    // Yönetici: Kendi hariç, Admin Hariç
-                    if (Model.PersonelId != currentUserId && Model.SistemRol != "Admin")
-                    {
-                        canDelete = true;
-                    }
-                }
+            }
+            // Yönetici: canDelete stays false for everyone else per requirement (cannot delete personnel).
+        }
+        <div>
+            @if (canEdit)
+            {
+                <a href="@Url.Action("Ekle", new { id = Model.PersonelId })" class="btn btn-primary me-2">Düzenle</a>
             }
 
             @if(canDelete)

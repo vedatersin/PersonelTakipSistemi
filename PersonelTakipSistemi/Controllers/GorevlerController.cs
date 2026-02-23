@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -120,10 +121,18 @@ namespace PersonelTakipSistemi.Controllers
 
             var komisyonList = await komisyonQuery.OrderBy(x => x.Ad).ToListAsync();
 
-            ViewBag.Komisyonlar = komisyonList.Select(k => new SelectListItem {
-                                            Value = k.KomisyonId.ToString(),
-                                            Text = (k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null ? $"{k.Koordinatorluk.Il.Ad} Komisyonu" : k.Ad)
-                                        }).ToList();
+            ViewBag.Komisyonlar = komisyonList.Select(k => {
+                var displayText = k.Ad;
+                if (k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null)
+                {
+                    var birimAd = k.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "");
+                    displayText = $"{k.Koordinatorluk.Il.Ad} {birimAd} {k.Ad}";
+                }
+                return new SelectListItem {
+                    Value = k.KomisyonId.ToString(),
+                    Text = displayText
+                };
+            }).ToList();
             
             // Use SelectListItem to avoid "internal anonymous type" visibility issues in Razor
             var personelQuery = _context.Personeller.AsQueryable();
@@ -182,6 +191,13 @@ namespace PersonelTakipSistemi.Controllers
             {
                 model.CreatedAt = DateTime.Now;
                 model.IsActive = true; 
+                
+                var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (int.TryParse(currentUserIdStr, out int currentUserId))
+                {
+                    model.CreatedByPersonelId = currentUserId;
+                }
+
                 // Default status if 0 (e.g. not selected or new)
                 if(model.GorevDurumId == 0) model.GorevDurumId = 1; // Atanmayı Bekliyor
 
@@ -208,6 +224,20 @@ namespace PersonelTakipSistemi.Controllers
             var task = await _context.Gorevler.FindAsync(id);
             if (task == null) return NotFound();
 
+            // Security Check: Only Admin or Creator can edit
+            if (!User.IsInRole("Admin"))
+            {
+                var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (int.TryParse(currentUserIdStr, out int currentUserId))
+                {
+                    if (task.CreatedByPersonelId != currentUserId)
+                    {
+                        TempData["Error"] = "Sadece kendi oluşturduğunuz görevleri düzenleyebilirsiniz.";
+                        return RedirectToAction("Liste");
+                    }
+                }
+            }
+
             await PopulateDropdowns();
             return View("Yeni", task); // Re-use Yeni view or create specialized output
         }
@@ -224,6 +254,20 @@ namespace PersonelTakipSistemi.Controllers
             {
                 var existing = await _context.Gorevler.FindAsync(model.GorevId);
                 if (existing == null) return NotFound();
+
+                // Security Check: Only Admin or Creator can edit
+                if (!User.IsInRole("Admin"))
+                {
+                    var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (int.TryParse(currentUserIdStr, out int currentUserId))
+                    {
+                        if (existing.CreatedByPersonelId != currentUserId)
+                        {
+                            TempData["Error"] = "Sadece kendi oluşturduğunuz görevleri düzenleyebilirsiniz.";
+                            return RedirectToAction("Liste");
+                        }
+                    }
+                }
 
                 // Update fields
                 existing.Ad = model.Ad;
@@ -249,12 +293,26 @@ namespace PersonelTakipSistemi.Controllers
             await PopulateDropdowns();
             return View("Yeni", model);
         }
+
         [HttpPost]
         [Authorize(Roles = "Admin,Yönetici,Editör")]
         public async Task<IActionResult> Sil(int id)
         {
             var task = await _context.Gorevler.FindAsync(id);
             if (task == null) return NotFound();
+
+            // Security Check: Only Admin or Creator can delete
+            if (!User.IsInRole("Admin"))
+            {
+                var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (int.TryParse(currentUserIdStr, out int currentUserId))
+                {
+                    if (task.CreatedByPersonelId != currentUserId)
+                    {
+                        return Json(new { success = false, message = "Yetki Hatası: Sadece kendi oluşturduğunuz görevleri silebilirsiniz." });
+                    }
+                }
+            }
 
             task.IsActive = false; // Soft Delete
             task.UpdatedAt = DateTime.Now;
@@ -363,7 +421,8 @@ namespace PersonelTakipSistemi.Controllers
                         .Select(x => new IdNamePair { 
                             Id = x.KomisyonId, 
                             Name = x.Komisyon != null ? 
-                                   (x.Komisyon.BagliMerkezKoordinatorlukId != null && x.Komisyon.Koordinatorluk != null && x.Komisyon.Koordinatorluk.Il != null ? $"{x.Komisyon.Koordinatorluk.Il.Ad} Komisyonu" : x.Komisyon.Ad) 
+                                   (x.Komisyon.BagliMerkezKoordinatorlukId != null && x.Komisyon.Koordinatorluk != null && x.Komisyon.Koordinatorluk.Il != null ? 
+                                     $"{x.Komisyon.Koordinatorluk.Il.Ad} {x.Komisyon.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "")} {x.Komisyon.Ad}" : x.Komisyon.Ad) 
                                    : "Silinmiş", 
                             Type = "Komisyon" 
                         })
@@ -513,17 +572,42 @@ namespace PersonelTakipSistemi.Controllers
         {
             if (model == null) return BadRequest();
 
-            var task = await _context.Gorevler.FindAsync(model.GorevId);
+            var task = await _context.Gorevler
+                .Include(x => x.GorevAtamaKomisyonlar)
+                .Include(x => x.GorevAtamaKoordinatorlukler)
+                .FirstOrDefaultAsync(x => x.GorevId == model.GorevId);
+
             if (task == null) return NotFound();
+
+            // Get Current User ID
+            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if(!int.TryParse(userIdStr, out int currentUserId)) return Unauthorized();
+
+            // --- Security Check for Manager (Yönetici) ---
+            if (User.IsInRole("Yönetici"))
+            {
+                // Rule: "Görev durumunu sadece Komisyon Başkanları veya Koordinatörler güncelleyebilir."
+                // Check if the user has a Chairman or Coordinator role for any unit assigned to the task.
+                // Kurumsal Rol IDs: 2 (Komisyon Bşk), 3 (İl Koord), 5 (Merkez Koord)
+                var responsibleRoleIds = new List<int> { 2, 3, 5 };
+                
+                var isResponsible = await _context.PersonelKurumsalRolAtamalari
+                    .AnyAsync(a => a.PersonelId == currentUserId && 
+                                   responsibleRoleIds.Contains(a.KurumsalRolId) &&
+                                   (
+                                       (a.KomisyonId != null && task.GorevAtamaKomisyonlar.Any(tac => tac.KomisyonId == a.KomisyonId)) ||
+                                       (a.KoordinatorlukId != null && task.GorevAtamaKoordinatorlukler.Any(tac => tac.KoordinatorlukId == a.KoordinatorlukId))
+                                   ));
+                
+                if (!isResponsible)
+                {
+                    return Ok(new { success = false, message = "Yetki Hatası: Sadece ilgili birimin Komisyon Başkanı veya Koordinatörü durum güncelleyebilir." });
+                }
+            }
 
             task.GorevDurumId = model.DurumId;
             task.DurumAciklamasi = model.Aciklama;
             task.UpdatedAt = DateTime.Now;
-
-            // Get Current User ID
-            int? userId = null;
-            var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if(int.TryParse(userIdStr, out int uid)) userId = uid;
 
             // Create History Record
             var history = new GorevDurumGecmisi
@@ -532,7 +616,7 @@ namespace PersonelTakipSistemi.Controllers
                 GorevDurumId = model.DurumId,
                 Aciklama = model.Aciklama,
                 Tarih = DateTime.Now,
-                IslemYapanPersonelId = userId
+                IslemYapanPersonelId = currentUserId
             };
             _context.GorevDurumGecmisleri.Add(history);
             
@@ -580,13 +664,17 @@ namespace PersonelTakipSistemi.Controllers
                  var list = await _context.Komisyonlar
                     .Include(x => x.Koordinatorluk).ThenInclude(koord => koord.Il)
                     .Where(x => x.Ad.ToLower().Contains(q) || (x.BagliMerkezKoordinatorlukId != null && x.Koordinatorluk != null && x.Koordinatorluk.Il != null && x.Koordinatorluk.Il.Ad.ToLower().Contains(q)))
-                    .Select(x => new { 
+                    .ToListAsync();
+
+                var result = list.Select(x => new { 
                         id = x.KomisyonId, 
-                        text = (x.BagliMerkezKoordinatorlukId != null && x.Koordinatorluk != null && x.Koordinatorluk.Il != null ? $"{x.Koordinatorluk.Il.Ad} Komisyonu" : x.Ad)
+                        text = (x.BagliMerkezKoordinatorlukId != null && x.Koordinatorluk != null && x.Koordinatorluk.Il != null 
+                                ? $"{x.Koordinatorluk.Il.Ad} {x.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "")} {x.Ad}" 
+                                : x.Ad)
                     })
                     .Take(20)
-                    .ToListAsync();
-                return Json(list);
+                    .ToList();
+                return Json(result);
             }
             else if (type == "Personel")
             {

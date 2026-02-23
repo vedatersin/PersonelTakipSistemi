@@ -9,6 +9,7 @@ namespace PersonelTakipSistemi.Services
     public interface IExcelService
     {
         Task<byte[]> GeneratePersonelTemplateAsync();
-        Task<(List<Personel> personeller, List<string> errors)> ImportPersonelListAsync(IFormFile file);
+        Task<byte[]> GenerateSimplePersonelTemplateAsync();
+        Task<(List<Personel> personeller, List<string> errors)> ImportPersonelListAsync(IFormFile file, bool isSimple = false);
     }
 }

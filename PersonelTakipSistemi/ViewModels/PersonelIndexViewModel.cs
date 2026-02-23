@@ -52,6 +52,7 @@ namespace PersonelTakipSistemi.ViewModels
         public List<string> Uzmanliklar { get; set; } = new List<string>();
         public List<string> GorevTurleri { get; set; } = new List<string>();
         public List<string> IsNitelikleri { get; set; } = new List<string>();
+        public bool AddedViaTemplate { get; set; }
     }
 
     public class PaginationInfoViewModel

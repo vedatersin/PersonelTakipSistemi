@@ -5,7 +5,7 @@ using PersonelTakipSistemi.Services;
 
 namespace PersonelTakipSistemi.Controllers
 {
-    [Authorize(Roles = "Admin,Yönetici")]
+    [Authorize(Roles = "Admin")]
     public class LoglarController : Controller
     {
         private readonly ILogService _logService;

@@ -41,6 +41,7 @@ namespace PersonelTakipSistemi.Models.ViewModels
         public List<string> Uzmanliklar { get; set; } = new List<string>();
         public List<string> GorevTurleri { get; set; } = new List<string>();
         public List<string> IsNitelikleri { get; set; } = new List<string>();
+        public bool AddedViaTemplate { get; set; }
     }
 
     public class PersonelYetkiDetailViewModel
@@ -90,5 +91,6 @@ namespace PersonelTakipSistemi.Models.ViewModels
         public int Id { get; set; }
         public string Ad { get; set; } = null!;
         public int? ParentId { get; set; } // TeskilatId (for Koord) or KoordinatorlukId (for Komisyon)
+        public int? BagliMerkezKoordinatorlukId { get; set; } // For Taşra koms link to Merkez
     }
 }

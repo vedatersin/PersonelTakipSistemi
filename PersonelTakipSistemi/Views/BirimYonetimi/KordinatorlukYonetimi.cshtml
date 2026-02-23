@@ -1,0 +1,291 @@
+@model PersonelTakipSistemi.ViewModels.KordinatorlukYonetimiViewModel
+@{
+    ViewData["Title"] = "Koordinatörlük Yönetimi — " + Model.KoordinatorlukAd;
+}
+
+<style>
+    .yonetim-header {
+        background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
+        border-radius: 0.75rem;
+        padding: 1.5rem 2rem;
+        color: #fff;
+        margin-bottom: 1.5rem;
+    }
+    .yonetim-header h4 { margin: 0; font-weight: 700; color: #fff; }
+    
+    /* Harita Stilleri */
+    .turkey-map-container { position: relative; width: 100%; max-width: 800px; margin: 0 auto; }
+    .svg-turkiye-haritasi svg path { 
+        fill: #bdc3c7; 
+        stroke: #fff; 
+        stroke-width: 0.5; 
+        transition: all 0.3s; 
+        cursor: pointer; 
+    }
+    .map-active { fill: #3498db !important; }
+    .map-selected { fill: #2980b9 !important; stroke: #2c3e50 !important; stroke-width: 2px !important; }
+
+    /* Birim Kartları */
+    .birim-card { 
+        border: none; 
+        border-radius: 12px; 
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05); 
+        transition: all 0.3s; 
+        cursor: pointer; 
+        background: #fff; 
+        border: 1px solid rgba(0,0,0,0.03);
+    }
+    .birim-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); border-color: #3498db; }
+    .birim-ad { font-weight: 700; font-size: 0.95rem; color: #2c3e50; margin-bottom: 0.5rem; }
+    .birim-il { font-size: 0.8rem; color: #7f8c8d; margin-bottom: 0.8rem; }
+    .stats-row { display: flex; gap: 15px; }
+    .stat-item { flex: 1; }
+    .stat-value { font-weight: 700; font-size: 1.1rem; display: block; }
+    .stat-label { font-size: 0.7rem; color: #999; text-transform: uppercase; }
+
+    .highlight-blue { border-left: 5px solid #3498db !important; background-color: #f0f7ff !important; }
+    
+    .section-title {
+        font-weight: 700;
+        color: #2c3e50;
+        border-bottom: 2px solid #3498db;
+        padding-bottom: 8px;
+        margin-bottom: 20px;
+        display: inline-block;
+    }
+</style>
+
+<div class="yonetim-header">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h4><i class="bx bxs-buildings me-2"></i>@Model.KoordinatorlukAd</h4>
+            <div class="mt-2 small opacity-75">
+                <i class="bx bx-info-circle me-1"></i>
+                @if (Model.IsMerkez)
+                {
+                    @:Merkez Birim Koordinatörlüğü Yönetim Paneli
+                }
+                else
+                {
+                    @:@Model.IlAd İl Koordinatörlüğü Yönetim Paneli
+                }
+            </div>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-white text-primary px-3 py-2">@Model.Komisyonlar.Count Komisyon</span>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <!-- HARİTA -->
+    <div class="col-lg-8">
+        <div class="card h-100 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center bg-transparent border-0 pt-4 px-4">
+                <h6 class="mb-0 fw-bold">Komisyon Örgütlenmesi (Harita Seçimi)</h6>
+                <button class="btn btn-sm btn-outline-primary" onclick="resetMap()"><i class="bx bx-refresh"></i> Sıfırla</button>
+            </div>
+            <div class="card-body">
+                <div class="turkey-map-container">
+                    <div id="turkey-map" class="svg-turkiye-haritasi"></div>
+                </div>
+                <p class="text-center text-muted x-small mt-3">Mavi renkli iller komisyonunuzun bulunduğu yerlerdir. Tıklayarak birimleri görebilirsiniz.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ÖZET İSTATİSTİKLER -->
+    <div class="col-lg-4">
+        <div class="row g-3 h-100">
+            <div class="col-12">
+                <div class="card h-100 border-0 shadow-sm bg-primary text-white p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar bg-white bg-opacity-25 rounded p-2 me-3">
+                            <i class="bx bx-group fs-3 text-white"></i>
+                        </div>
+                        <h6 class="mb-0 text-white">Toplam Personel</h6>
+                    </div>
+                    <div class="h2 fw-bold mb-0">@Model.Komisyonlar.Sum(k => k.PersonelSayisi)</div>
+                    <div class="text-white-50 small mt-1">Tüm birimler dahil</div>
+                </div>
+            </div>
+            <div class="col-12">
+                 <div class="card h-100 border-0 shadow-sm bg-warning text-white p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar bg-white bg-opacity-25 rounded p-2 me-3">
+                            <i class="bx bx-task fs-3 text-white"></i>
+                        </div>
+                        <h6 class="mb-0 text-white">Toplam Görev</h6>
+                    </div>
+                    <div class="h2 fw-bold mb-0">@Model.Komisyonlar.Sum(k => k.GorevSayisi)</div>
+                    <div class="text-white-50 small mt-1">Aktif süreçteki görevler</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 1. KOMİSYON KARTLARI -->
+<div id="komisyonBolumu" class="mb-5">
+    <h5 class="section-title"><i class="bx bx-map-alt me-2 text-primary"></i>Komisyon Kartları</h5>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="komisyonContainer">
+        @foreach (var k in Model.Komisyonlar)
+        {
+            <div class="col komisyon-kart-wrapper" data-il-id="@k.IlId">
+                <div class="card birim-card h-100" id="kom-card-@k.Id" onclick="location.href='/Birimler/KomisyonDetay/@k.Id'">
+                    <div class="card-body">
+                        <div class="birim-ad">@k.Ad</div>
+                        <div class="birim-il"><i class="bx bx-map-pin"></i> @k.IlAdi</div>
+                        <div class="stats-row">
+                            <div class="stat-item text-center">
+                                <span class="stat-value text-primary">@k.PersonelSayisi</span>
+                                <span class="stat-label">Personel</span>
+                            </div>
+                            <div class="stat-item text-center">
+                                <span class="stat-value text-warning">@k.GorevSayisi</span>
+                                <span class="stat-label">Görev</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if (Model.IsMerkez)
+{
+    <!-- 2. MERKEZ ÖZEL PERSONELLER -->
+    <div class="mb-5">
+        <h5 class="section-title"><i class="bx bx-user-voice me-2 text-primary"></i>Koordinatörlük Özel Personelleri (Merkez)</h5>
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive text-nowrap">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Personel Ad Soyad</th>
+                            <th>Branşı / Uzmanlık</th>
+                            <th class="text-end">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.MerkezPersonelleri.Any())
+                        {
+                            @foreach (var p in Model.MerkezPersonelleri)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(p.FotografYolu)) { <img src="@p.FotografYolu" class="rounded-circle me-3" width="35" height="35" /> }
+                                            else { <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width:35px; height:35px; font-weight:700;">@p.AdSoyad[0]</div> }
+                                            <span class="fw-bold">@p.AdSoyad</span>
+                                        </div>
+                                    </td>
+                                    <td>@p.Brans</td>
+                                    <td class="text-end">
+                                        <a href="/Personel/Detay/@p.PersonelId" class="btn btn-sm btn-outline-info">Profili Gör</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="3" class="text-center p-4 text-muted">Bu koordinatörlüğe doğrudan bağlı personel bulunamadı.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. MERKEZ ÖZEL GÖREVLER -->
+    <div class="mb-5">
+        <h5 class="section-title"><i class="bx bx-star me-2 text-primary"></i>Koordinatörlük Özel Görevleri</h5>
+        <div class="card shadow-sm border-0">
+            <div class="table-responsive text-nowrap">
+                <table class="table table-hover mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Görev Başlığı</th>
+                            <th>Durum</th>
+                            <th class="text-end">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.MerkezGorevleri.Any())
+                        {
+                            @foreach (var g in Model.MerkezGorevleri)
+                            {
+                                <tr>
+                                    <td class="fw-bold">@g.Baslik</td>
+                                    <td><span class="badge" style="background-color: @g.DurumRenk">@g.Durum</span></td>
+                                    <td class="text-end">
+                                        <a href="/Gorevler/Detay/@g.GorevId" class="btn btn-sm btn-outline-warning text-dark">Detay</a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="3" class="text-center p-4 text-muted">Bu birime atanmış özel görev bulunamadı.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="~/js/turkey-map.js"></script>
+    <script>
+        const iller = @Html.Raw(Json.Serialize(Model.HaritaIlleri));
+        let selectedIlId = null;
+
+        $(document).ready(function() {
+            initTurkeyMap("turkey-map", iller, onIlClick);
+            
+            // Başlangıçta aktif illeri renklendir
+            iller.forEach(il => {
+                if (il.HasOrganization) {
+                    $(`path[data-plaka="${il.IlId}"]`).addClass('map-active');
+                }
+            });
+        });
+
+        function onIlClick(ilData) {
+            const ilId = ilData.plaka;
+            const ilInfo = iller.find(x => x.IlId == ilId);
+            
+            if (!ilInfo || !ilInfo.HasOrganization) return;
+
+            // Görsel seçim
+            $('path').removeClass('map-selected');
+            $(`path[data-plaka="${ilId}"]`).addClass('map-selected');
+
+            // Komisyon kartlarını filtrele ve kaydır
+            filterAndScroll(ilId);
+        }
+
+        function filterAndScroll(ilId) {
+            $('.komisyon-kart-wrapper').each(function() {
+                const cardIlId = $(this).data('il-id');
+                if (cardIlId == ilId) {
+                    $(this).find('.birim-card').addClass('highlight-blue');
+                    $(this).show();
+                } else {
+                    $(this).find('.birim-card').removeClass('highlight-blue');
+                    $(this).hide();
+                }
+            });
+
+            // Smooth scroll to cards title
+            document.getElementById('komisyonBolumu').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function resetMap() {
+            $('path').removeClass('map-selected');
+            $('.komisyon-kart-wrapper').show().find('.birim-card').removeClass('highlight-blue');
+        }
+    </script>
+}

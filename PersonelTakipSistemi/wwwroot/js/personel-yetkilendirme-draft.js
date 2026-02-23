@@ -535,7 +535,7 @@ function renderUnifiedAddForm(state, data) {
 
                     <!-- 4. Rol -->
                     <div class="col-12">
-                        <select class="form-select form-select-sm" id="addRole" ${!addFormSelections.koordinatorlukId ? 'disabled' : ''} onchange="handleAddChange('role', this.value)">
+                        <select class="form-select form-select-sm" id="addRole" ${!addFormSelections.teskilatId ? 'disabled' : ''} onchange="handleAddChange('role', this.value)">
                              <option value="">Rol Seçiniz...</option>
                              ${renderRoleOptions(addFormSelections.roleId)}
                         </select>
@@ -543,8 +543,8 @@ function renderUnifiedAddForm(state, data) {
                 </div>
 
                 <div class="d-grid mt-3 d-flex gap-2">
-                    <button class="btn btn-${isEditing ? 'warning' : 'primary'} btn-sm flex-grow-1" id="btnAddConfirm" ${!addFormSelections.koordinatorlukId ? 'disabled' : ''} onclick="executeAdd()">
-                        <i class="bx ${isEditing ? 'bx-save' : 'bx-check'} me-1"></i>${isEditing ? 'Değişiklikleri Kaydet' : 'Yetkiyi Ekle'}
+                    <button class="btn btn-${isEditing ? 'warning' : 'primary'} btn-sm flex-grow-1" id="btnAddConfirm" ${!addFormSelections.roleId ? 'disabled' : ''} onclick="executeAdd()">
+                        <i class="bx ${isEditing ? 'bx-save' : 'bx-check'} me-1"></i>${isEditing ? 'Yetkiyi Ekle' : 'Yetkiyi Ekle'}
                     </button>
                     ${isEditing ? `
                     <button class="btn btn-secondary btn-sm" onclick="cancelEdit()">
@@ -564,7 +564,8 @@ function renderKoordOptions(data, parentId, selectedId) {
 }
 function renderKomOptions(data, parentId, selectedId) {
     if (!parentId) return '';
-    const koms = data.allKomisyonlar.filter(k => k.parentId == parentId);
+    // Filter by both direct parent and linked Merkez coordinator
+    const koms = data.allKomisyonlar.filter(k => k.parentId == parentId || k.bagliMerkezKoordinatorlukId == parentId);
     return koms.map(k => `<option value="${k.id}" ${k.id == selectedId ? 'selected' : ''}>${k.ad}</option>`).join('');
 }
 function renderRoleOptions(selectedId) {
@@ -579,37 +580,48 @@ function renderRoleOptions(selectedId) {
         }
     }
 
+    const isUnitSelected = !!(addFormSelections.koordinatorlukId);
+
     window.allKurumsalRolOptions.forEach(r => {
         let allowed = true;
         const rid = parseInt(r.value);
 
         // Rule: Personel (ID 1) - always allowed
-        // Rule: Komisyon Başkanı (ID 2) - always allowed (shown in dropdown, komisyon context determines usage)
+        // Rule: Komisyon Başkanı (ID 2) - only for Komisyon context or let user pick (usually handled by renderKomOptions context if we wanted to be strict, but keeping it simple)
+
         // Rule: İl Koordinatörü (ID 3) - only for Taşra
         if (rid === 3 && isMerkezTeskilat) allowed = false;
-        // Rule: Genel Koordinatör (ID 4) - only for Merkez
-        if (rid === 4 && !isMerkezTeskilat) allowed = false;
-        // Rule: Merkez Birim Koordinatörlüğü (ID 5) - only for Merkez
-        if (rid === 5 && !isMerkezTeskilat) allowed = false;
+
+        // Rule: Hierarchy Roles (4, 7, 8, 9, 10) - only for Merkez AND only if NO unit is selected
+        if ([4, 7, 8, 9, 10].includes(rid)) {
+            if (!isMerkezTeskilat) allowed = false;
+            else if (isUnitSelected) allowed = false; // Hide if unit (koord) is picked
+        }
+
+        // Rule: Unit-level Merkez Roles (5, 6) - only for Merkez
+        if ((rid === 5 || rid === 6) && !isMerkezTeskilat) allowed = false;
 
         if (allowed) {
             html += `<option value="${r.value}" ${r.value == selectedId ? 'selected' : ''}>${r.text}</option>`;
         }
     });
+
+    // Auto-update system role logic (Attach to onchange in renderUnifiedAddForm or global)
+    // Actually, we'll wrap the handleAddChange to detect role picks
     return html;
 }
 
-
+// Logic for Add Form Interactivity
 // Logic for Add Form Interactivity
 window.updateSistemRol = function (val) {
     draftState.sistemRol = val;
-    renderDrawer(); // Re-renders and keeps addFormSelections
+    renderDrawer();
 };
 
 window.handleAddChange = function (level, val) {
     const id = parseInt(val) || null;
 
-    // Update State
+    // Update Selections State
     if (level === 'tes') {
         addFormSelections.teskilatId = id;
         addFormSelections.koordinatorlukId = null;
@@ -625,6 +637,21 @@ window.handleAddChange = function (level, val) {
     }
     else if (level === 'role') {
         addFormSelections.roleId = id;
+
+        // Auto-update system role logic for Hierarchy roles
+        const rid = parseInt(val);
+        // User request: Şef(7), Şube Müdürü(8), Daire Bşk(9), Genel Md(10) -> Yönetici (2)
+        // Note: 4 (Genel Koordinatör) can stay Admin or also map to Yönetici. 
+        // User specifically listed "şef, şube müdürü, daire başkanı, genel müdür".
+        if (rid >= 7 && rid <= 10) {
+            if (draftState.sistemRol != 'Yönetici') {
+                draftState.sistemRol = 'Yönetici';
+            }
+        } else if (rid === 4) { // Genel Koordinatör
+            if (draftState.sistemRol != 'Admin') {
+                draftState.sistemRol = 'Admin';
+            }
+        }
     }
 
     // Re-render to update dependent dropdowns and button state
@@ -633,7 +660,13 @@ window.handleAddChange = function (level, val) {
 
 window.executeAdd = function () {
     const s = addFormSelections;
-    if (!s.koordinatorlukId) return;
+    const isHierarchy = [4, 7, 8, 9, 10].includes(parseInt(s.roleId));
+
+    if (!s.roleId) return;
+    if (!isHierarchy && !s.koordinatorlukId) {
+        alert("Lütfen bir Koordinatörlük seçiniz.");
+        return;
+    }
 
     // IF EDITING: Remove old item first
     if (s.editingItem) {

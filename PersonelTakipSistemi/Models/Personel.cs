@@ -42,7 +42,6 @@ namespace PersonelTakipSistemi.Models
         public DateTime? UpdatedAt { get; set; }
 
         // Sistem Rolü (Foreign Key)
-        // Sistem Rolü (Foreign Key)
         public int? SistemRolId { get; set; } // Default: Null as per request
         public SistemRol? SistemRol { get; set; }
 
@@ -57,6 +56,9 @@ namespace PersonelTakipSistemi.Models
         public ICollection<PersonelKoordinatorluk> PersonelKoordinatorlukler { get; set; } = new List<PersonelKoordinatorluk>();
         public ICollection<PersonelKomisyon> PersonelKomisyonlar { get; set; } = new List<PersonelKomisyon>();
         public ICollection<PersonelKurumsalRolAtama> PersonelKurumsalRolAtamalari { get; set; } = new List<PersonelKurumsalRolAtama>();
+        
+        // Template Info
+        public bool AddedViaTemplate { get; set; }
         
         // Bildirimler
         public ICollection<Bildirim> GelenBildirimler { get; set; } = new List<Bildirim>();

@@ -167,12 +167,20 @@
                              </button>
                              <a href="/Gorevler/Liste" class="btn btn-outline-secondary">Temizle</a>
                              <button type="submit" class="btn btn-primary">Filtrele</button>
-                             <a href="/Gorevler/Yeni" class="btn btn-success"><i class="bx bx-plus"></i> Yeni Görev</a>
+                             @if (User.IsInRole("Admin") || User.IsInRole("Editör"))
+                             {
+                                 <a href="/Gorevler/Yeni" class="btn btn-success"><i class="bx bx-plus"></i> Yeni Görev</a>
+                             }
                         </div>
                     </div>
                 </form>
             </div>
         </div>
+
+        @{
+            var currentUserIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            int.TryParse(currentUserIdStr, out int currentUserId);
+        }
 
         <!-- TABLE CARD -->
         <div class="card">
@@ -217,7 +225,15 @@
                                         if (item.GorevAtamaKoordinatorlukler != null) allAssignments.AddRange(item.GorevAtamaKoordinatorlukler.Select(x => $"<i class='bx bxs-business'></i> {x.Koordinatorluk.Ad}"));
                                         
                                          if (item.GorevAtamaKomisyonlar != null) {
-                                            allAssignments.AddRange(item.GorevAtamaKomisyonlar.Select(x => $"<i class='bx bxs-group'></i> {x.Komisyon.Ad}" + (x.Komisyon.Koordinatorluk != null ? $" <small class='text-muted'>({x.Komisyon.Koordinatorluk.Ad})</small>" : "")));
+                                            allAssignments.AddRange(item.GorevAtamaKomisyonlar.Select(x => {
+                                                var displayText = x.Komisyon.Ad;
+                                                if (x.Komisyon.BagliMerkezKoordinatorlukId != null && x.Komisyon.Koordinatorluk != null) {
+                                                    var birimAd = x.Komisyon.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "");
+                                                    var sehirAd = x.Komisyon.Koordinatorluk.Il?.Ad ?? "";
+                                                    displayText = $"{sehirAd} {birimAd} {x.Komisyon.Ad}";
+                                                }
+                                                return $"<i class='bx bxs-group'></i> {displayText}";
+                                            }));
                                          }
 
                                         if (item.GorevAtamaPersoneller != null) allAssignments.AddRange(item.GorevAtamaPersoneller.Select(x => $"<i class='bx bxs-user'></i> {x.Personel.Ad} {x.Personel.Soyad}"));
@@ -284,19 +300,23 @@
                                         </div>
                                     }
                                 </td>
-                                <td class="text-end">
+                                 <td class="text-end">
                                     <button class="btn btn-info btn-action-circle text-white" data-bs-toggle="tooltip" title="Durum Geçmişi & Güncelle" onclick="event.stopPropagation(); openStatusDrawer(@item.GorevId, @item.GorevDurumId)">
                                         <i class="bx bx-flag"></i>
                                     </button>
-                                    <button class="btn btn-warning btn-action-circle text-white" data-bs-toggle="tooltip" title="Yetkilendir" onclick="event.stopPropagation(); openAssignmentDrawer(@item.GorevId, '@item.Ad')">
-                                        <i class="bx bx-user-plus"></i>
-                                    </button>
-                                    <a href="/Gorevler/Duzenle/@item.GorevId" class="btn btn-primary btn-action-circle" data-bs-toggle="tooltip" title="Düzenle" onclick="event.stopPropagation()">
-                                        <i class="bx bx-edit"></i>
-                                    </a>
-                                    <button class="btn btn-danger btn-action-circle" data-bs-toggle="tooltip" title="Sil" onclick="event.stopPropagation(); deleteTask(@item.GorevId)">
-                                        <i class="bx bx-trash"></i>
-                                    </button>
+
+                                    @if(User.IsInRole("Admin") || item.CreatedByPersonelId == currentUserId)
+                                    {
+                                        <button class="btn btn-warning btn-action-circle text-white" data-bs-toggle="tooltip" title="Yetkilendir" onclick="event.stopPropagation(); openAssignmentDrawer(@item.GorevId, '@item.Ad')">
+                                            <i class="bx bx-user-plus"></i>
+                                        </button>
+                                        <a href="/Gorevler/Duzenle/@item.GorevId" class="btn btn-primary btn-action-circle" data-bs-toggle="tooltip" title="Düzenle" onclick="event.stopPropagation()">
+                                            <i class="bx bx-edit"></i>
+                                        </a>
+                                        <button class="btn btn-danger btn-action-circle" data-bs-toggle="tooltip" title="Sil" onclick="event.stopPropagation(); deleteTask(@item.GorevId)">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    }
                                 </td>
                             </tr>
                         }

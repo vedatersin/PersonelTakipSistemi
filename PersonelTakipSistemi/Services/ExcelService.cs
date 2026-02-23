@@ -147,7 +147,62 @@ namespace PersonelTakipSistemi.Services
             }
         }
 
-        public async Task<(List<Personel> personeller, List<string> errors)> ImportPersonelListAsync(IFormFile file)
+        public async Task<byte[]> GenerateSimplePersonelTemplateAsync()
+        {
+            using (var package = new ExcelPackage())
+            {
+                var workSheet = package.Workbook.Worksheets.Add("Personel Şablonu");
+                var hiddenSheet = package.Workbook.Worksheets.Add("ReferenceData");
+                hiddenSheet.Hidden = eWorkSheetHidden.Hidden;
+
+                var iller = await _context.Iller.OrderBy(x => x.Ad).ToListAsync();
+                var branslar = await _context.Branslar.OrderBy(x => x.Ad).ToListAsync();
+
+                for (int i = 0; i < iller.Count; i++) hiddenSheet.Cells[i + 1, 1].Value = iller[i].Ad;
+                for (int i = 0; i < branslar.Count; i++) hiddenSheet.Cells[i + 1, 2].Value = branslar[i].Ad;
+
+                if (iller.Any()) package.Workbook.Names.Add("IllerListSimple", hiddenSheet.Cells[1, 1, iller.Count, 1]);
+                if (branslar.Any()) package.Workbook.Names.Add("BranslarListSimple", hiddenSheet.Cells[1, 2, branslar.Count, 2]);
+
+                string[] headers = {
+                    "Ad *", "Soyad *", "TC Kimlik No *", "E-posta *", "Telefon *",
+                    "Doğum Tarihi (GG.AA.YYYY) *", "Cinsiyet (E/K) *", "Görevli İl *", 
+                    "Kadro İl", "Kadro İlçe", "Branş *", "Kadro Kurum *"
+                };
+
+                for (int i = 0; i < headers.Length; i++)
+                {
+                    workSheet.Cells[1, i + 1].Value = headers[i];
+                    workSheet.Cells[1, i + 1].Style.Font.Bold = true;
+                    workSheet.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
+                    workSheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightSkyBlue);
+                    workSheet.Column(i + 1).Width = 20;
+                }
+
+                int dataRows = 1000;
+                var genderVal = workSheet.DataValidations.AddListValidation(workSheet.Cells[2, 7, dataRows, 7].Address);
+                genderVal.Formula.Values.Add("E");
+                genderVal.Formula.Values.Add("K");
+
+                if (iller.Any())
+                {
+                    var ilVal = workSheet.DataValidations.AddListValidation(workSheet.Cells[2, 8, dataRows, 8].Address);
+                    ilVal.Formula.ExcelFormula = "IllerListSimple";
+                    var kilVal = workSheet.DataValidations.AddListValidation(workSheet.Cells[2, 9, dataRows, 9].Address);
+                    kilVal.Formula.ExcelFormula = "IllerListSimple";
+                }
+
+                if (branslar.Any())
+                {
+                    var brVal = workSheet.DataValidations.AddListValidation(workSheet.Cells[2, 11, dataRows, 11].Address);
+                    brVal.Formula.ExcelFormula = "BranslarListSimple";
+                }
+
+                return await package.GetAsByteArrayAsync();
+            }
+        }
+
+        public async Task<(List<Personel> personeller, List<string> errors)> ImportPersonelListAsync(IFormFile file, bool isSimple = false)
         {
             var errors = new List<string>();
             var personeller = new List<Personel>();
@@ -265,16 +320,19 @@ namespace PersonelTakipSistemi.Services
                                 BransId = brans.BransId,
                                 KadroKurum = kadroKurum ?? "",
                                 AktifMi = true,
-                                CreatedAt = DateTime.Now
+                                CreatedAt = DateTime.Now,
+                                AddedViaTemplate = true
                             };
 
-                            // Default Password logic (TC last 6 digits or default)
-                            var rawPass = tc.Length >= 6 ? tc.Substring(tc.Length - 6) : "123456";
+                            // Default Password logic (TC first 6 digits)
+                            var rawPass = tc.Length >= 6 ? tc.Substring(0, 6) : "123456";
                             CreatePasswordHash(rawPass, out byte[] passwordHash, out byte[] passwordSalt);
                             p.SifreHash = passwordHash;
                             p.SifreSalt = passwordSalt;
 
-                            // Process Many-to-Many Collections (Comma separated)
+                            if (!isSimple)
+                            {
+                                // Process Many-to-Many Collections
                             // Yazilimlar
                             var yazilimStr = workSheet.Cells[row, 13].Text;
                             if (!string.IsNullOrEmpty(yazilimStr))
@@ -330,6 +388,7 @@ namespace PersonelTakipSistemi.Services
                                     }
                                 }
                             }
+                        }
 
                             personeller.Add(p);
                         }

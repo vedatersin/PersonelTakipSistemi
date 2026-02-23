@@ -353,6 +353,9 @@
             // 1. Main Stats
             $.get('@Url.Action("GetStats", "Istatistik")', params, function(data) {
                 updateCharts(data);
+                $('#totalGorevCard').text(data.totalGorev);
+                $('#totalPersonelCard').text(data.totalPersonel);
+                $('#totalKoordinatorlukCard').text(data.totalKoordinatorluk);
                 $('#totalKomisyonCard').text(data.totalKomisyon);
             });
         }

@@ -1,0 +1,344 @@
+@model PersonelTakipSistemi.ViewModels.KomisyonDetayViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = Model.KomisyonAd + " — Komisyon Detayı";
+}
+
+<style>
+    .detail-header {
+        background: linear-gradient(135deg, #696cff 0%, #8b8eff 100%);
+        border-radius: 0.75rem;
+        padding: 1.5rem 2rem;
+        color: #fff;
+        margin-bottom: 1.5rem;
+    }
+    .detail-header h4 { margin: 0; font-weight: 700; }
+    .detail-header .breadcrumb-item a { color: rgba(255,255,255,0.7); }
+    .detail-header .breadcrumb-item.active { color: #fff; }
+    .detail-header .meta-info { font-size: 0.85rem; opacity: 0.85; margin-top: 0.5rem; }
+
+    .stat-summary-card {
+        border: none;
+        border-radius: 0.5rem;
+        text-align: center;
+        padding: 1rem;
+    }
+    .stat-summary-card .stat-number { font-size: 2rem; font-weight: 700; }
+    .stat-summary-card .stat-text { font-size: 0.8rem; color: #888; }
+
+    .gorev-table .badge { font-size: 0.72rem; }
+    .personel-table tr { cursor: pointer; }
+    .personel-table .avatar-xs { width: 32px; height: 32px; }
+    .personel-table .avatar-circle { width: 32px; height: 32px; border-radius: 50%; background: #696cff; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem; }
+    .personel-table img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+    
+    /* Genişletilebilir Badge Stilleri */
+    .extended-container { line-height: 2; margin-top: 5px; }
+    .cursor-pointer { cursor: pointer; }
+    .personel-table .badge { font-size: 0.7rem; padding: 0.4em 0.6em; }
+</style>
+
+<!-- Header + Breadcrumb -->
+<div class="detail-header">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-2">
+            <li class="breadcrumb-item"><a href="/Birimler/BirimListele"><i class="bx bx-arrow-back me-1"></i>Birimleri Listele</a></li>
+            @if (!string.IsNullOrEmpty(Model.TeskilatAd)) { <li class="breadcrumb-item"><span>@Model.TeskilatAd</span></li> }
+            @if (!string.IsNullOrEmpty(Model.KoordinatorlukAd)) { <li class="breadcrumb-item"><span>@Model.KoordinatorlukAd</span></li> }
+            <li class="breadcrumb-item active">@Model.KomisyonAd</li>
+        </ol>
+    </nav>
+    <h4><i class="bx bxs-group me-2"></i>@Model.KomisyonAd</h4>
+    <div class="meta-info">
+        @if (!string.IsNullOrEmpty(Model.IlAd)) { <span><i class="bx bx-map-pin me-1"></i>@Model.IlAd</span> <span class="mx-2">|</span> }
+        <span><i class="bx bx-user me-1"></i>@Model.Personeller.Count Personel</span>
+        <span class="mx-2">|</span>
+        <span><i class="bx bx-briefcase me-1"></i>@Model.Gorevler.Count Görev</span>
+    </div>
+</div>
+
+<!-- Özet Kartları -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-summary-card">
+            <div class="stat-number" style="color:#696cff;">@Model.Personeller.Count</div>
+            <div class="stat-text">Toplam Personel</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-summary-card">
+            <div class="stat-number" style="color:#ff9f43;">@Model.Gorevler.Count</div>
+            <div class="stat-text">Toplam Görev</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-summary-card">
+            <div class="stat-number" style="color:#71dd37;">@Model.KategoriDagilimi.Labels.Count</div>
+            <div class="stat-text">Görev Kategorisi</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-summary-card">
+            <div class="stat-number" style="color:#e74c3c;">@Model.DurumDagilimi.Labels.Count</div>
+            <div class="stat-text">Durum Çeşidi</div>
+        </div>
+    </div>
+</div>
+
+<!-- Personel Listesi -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bx bxs-user-detail me-2" style="color:#696cff;"></i>Personeller</h6>
+        <span class="badge bg-primary">@Model.Personeller.Count kişi</span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Personeller.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover personel-table mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th style="width: 50px;">FOTO</th>
+                            <th>AD SOYAD</th>
+                            <th>KULLANILAN YAZILIMLAR</th>
+                            <th>UZMANLIK</th>
+                            <th>GÖREV TÜRÜ</th>
+                            <th>İŞ NİTELİĞİ</th>
+                            <th>GÖREVLİ İL</th>
+                            <th>KADRO YERİ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Personeller)
+                        {
+                            <tr onclick="window.location.href='/Personel/Detay/@p.PersonelId'">
+                                <td>
+                                    @if (!string.IsNullOrEmpty(p.FotografYolu))
+                                    {
+                                        <img src="@p.FotografYolu" alt="@p.AdSoyad">
+                                    }
+                                    else
+                                    {
+                                        var initials = string.Join("", p.AdSoyad.Split(' ').Take(2).Select(s => s.Length > 0 ? s[0].ToString().ToUpper() : ""));
+                                        <div class="avatar-circle">@initials</div>
+                                    }
+                                </td>
+                                <td><span class="fw-bold">@p.AdSoyad</span></td>
+                                
+                                <!-- Yazılımlar -->
+                                <td>
+                                    @if(p.Yazilimlar.Any()) {
+                                        @foreach(var item in p.Yazilimlar.Take(1)) { <span class="badge bg-label-primary me-1">@item</span> }
+                                        @if(p.Yazilimlar.Count > 1) {
+                                            <span class="badge bg-label-primary cursor-pointer show-more-btn" onclick="toggleContainer(this)">...</span>
+                                            <div class="d-none extended-container">
+                                                @foreach(var item in p.Yazilimlar.Skip(1)) { <span class="badge bg-label-primary me-1">@item</span> }
+                                                <span class="badge bg-secondary cursor-pointer" onclick="toggleContainer(this)">X</span>
+                                            </div>
+                                        }
+                                    } else { <span class="text-muted">-</span> }
+                                </td>
+
+                                <!-- Uzmanlıklar -->
+                                <td>
+                                    @if(p.Uzmanliklar.Any()) {
+                                        @foreach(var item in p.Uzmanliklar.Take(1)) { <span class="badge bg-label-info me-1">@item</span> }
+                                        @if(p.Uzmanliklar.Count > 1) {
+                                            <span class="badge bg-label-info cursor-pointer show-more-btn" onclick="toggleContainer(this)">...</span>
+                                            <div class="d-none extended-container">
+                                                @foreach(var item in p.Uzmanliklar.Skip(1)) { <span class="badge bg-label-info me-1">@item</span> }
+                                                <span class="badge bg-secondary cursor-pointer" onclick="toggleContainer(this)">X</span>
+                                            </div>
+                                        }
+                                    } else { <span class="text-muted">-</span> }
+                                </td>
+
+                                <!-- Görev Türleri -->
+                                <td>
+                                    @if(p.GorevTurleri.Any()) {
+                                        @foreach(var item in p.GorevTurleri.Take(1)) { <span class="badge bg-label-secondary me-1">@item</span> }
+                                        @if(p.GorevTurleri.Count > 1) {
+                                            <span class="badge bg-label-secondary cursor-pointer show-more-btn" onclick="toggleContainer(this)">...</span>
+                                            <div class="d-none extended-container">
+                                                @foreach(var item in p.GorevTurleri.Skip(1)) { <span class="badge bg-label-secondary me-1">@item</span> }
+                                                <span class="badge bg-secondary cursor-pointer" onclick="toggleContainer(this)">X</span>
+                                            </div>
+                                        }
+                                    } else { <span class="text-muted">-</span> }
+                                </td>
+
+                                <!-- İş Niteliği -->
+                                <td>
+                                    @if(p.IsNitelikleri.Any()) {
+                                        @foreach(var item in p.IsNitelikleri.Take(1)) { <span class="badge bg-label-warning me-1">@item</span> }
+                                        @if(p.IsNitelikleri.Count > 1) {
+                                            <span class="badge bg-label-warning cursor-pointer show-more-btn" onclick="toggleContainer(this)">...</span>
+                                            <div class="d-none extended-container">
+                                                @foreach(var item in p.IsNitelikleri.Skip(1)) { <span class="badge bg-label-warning me-1">@item</span> }
+                                                <span class="badge bg-secondary cursor-pointer" onclick="toggleContainer(this)">X</span>
+                                            </div>
+                                        }
+                                    } else { <span class="text-muted">-</span> }
+                                </td>
+
+                                <td>@(p.Il ?? "—")</td>
+                                <td>
+                                    @if(!string.IsNullOrEmpty(p.KadroIl)) {
+                                        <span>@p.KadroIl</span>
+                                        @if(!string.IsNullOrEmpty(p.KadroIlce)) { <small class="text-muted"> / @p.KadroIlce</small> }
+                                    } else { <span class="text-muted">-</span> }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-4"><i class="bx bx-user-x fs-3 d-block mb-2"></i>Bu komisyona henüz personel atanmamış.</div>
+        }
+    </div>
+</div>
+
+<!-- Görev Listesi -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bx bxs-briefcase me-2" style="color:#ff9f43;"></i>Görevler</h6>
+        <span class="badge bg-warning">@Model.Gorevler.Count görev</span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Gorevler.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover gorev-table mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th>Başlık</th>
+                            <th>Kategori</th>
+                            <th>Durum</th>
+                            <th>Başlangıç</th>
+                            <th>Bitiş</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var g in Model.Gorevler)
+                        {
+                            <tr class="cursor-pointer" onclick="window.location.href='/GorevTanimlar/Detay/@g.GorevId'">
+                                <td class="fw-semibold">@g.Baslik</td>
+                                <td><span class="badge bg-label-info">@(g.Kategori ?? "—")</span></td>
+                                <td><span class="badge" style="background-color: @(g.DurumRenk ?? "#6c757d"); color: #fff;">@g.Durum</span></td>
+                                <td>@(g.BaslangicTarihi?.ToString("dd.MM.yyyy") ?? "—")</td>
+                                <td>@(g.BitisTarihi?.ToString("dd.MM.yyyy") ?? "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center text-muted py-3"><i class="bx bx-task fs-3 d-block mb-2"></i>Bu komisyona henüz görev atanmamış.</div>
+        }
+    </div>
+</div>
+
+<!-- İstatistik Grafikleri -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><h6 class="mb-0"><i class="bx bx-pie-chart-alt me-2"></i>Görev Kategori Dağılımı</h6></div>
+            <div class="card-body">
+                @if (Model.KategoriDagilimi.Labels.Any())
+                {
+                    <canvas id="chartKategori" height="260"></canvas>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">Görev verisi yok.</div>
+                }
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header"><h6 class="mb-0"><i class="bx bx-bar-chart me-2"></i>Görev Durum Dağılımı</h6></div>
+            <div class="card-body">
+                @if (Model.DurumDagilimi.Labels.Any())
+                {
+                    <canvas id="chartDurum" height="260"></canvas>
+                }
+                else
+                {
+                    <div class="text-center text-muted py-4">Görev verisi yok.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        function toggleContainer(element) {
+            if (event) event.stopPropagation();
+            
+            if (element.classList.contains('show-more-btn')) {
+                var container = element.nextElementSibling;
+                if(container) {
+                    element.classList.add('d-none');
+                    container.classList.remove('d-none');
+                }
+            } else {
+                var container = element.parentElement;
+                var showBtn = container.previousElementSibling;
+                container.classList.add('d-none');
+                if(showBtn) {
+                    showBtn.classList.remove('d-none');
+                }
+            }
+        }
+
+        @if (Model.KategoriDagilimi.Labels.Any())
+        {
+            <text>
+            new Chart(document.getElementById('chartKategori'), {
+                type: 'doughnut',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(Model.KategoriDagilimi.Labels)),
+                    datasets: [{
+                        data: @Html.Raw(Json.Serialize(Model.KategoriDagilimi.Data)),
+                        backgroundColor: @Html.Raw(Json.Serialize(Model.KategoriDagilimi.Colors.Take(Model.KategoriDagilimi.Labels.Count)))
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+            </text>
+        }
+
+        @if (Model.DurumDagilimi.Labels.Any())
+        {
+            <text>
+            new Chart(document.getElementById('chartDurum'), {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(Json.Serialize(Model.DurumDagilimi.Labels)),
+                    datasets: [{
+                        label: 'Görev Sayısı',
+                        data: @Html.Raw(Json.Serialize(Model.DurumDagilimi.Data)),
+                        backgroundColor: @Html.Raw(Json.Serialize(Model.DurumDagilimi.Colors))
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+            </text>
+        }
+    </script>
+}

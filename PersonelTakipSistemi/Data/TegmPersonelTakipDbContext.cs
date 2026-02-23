@@ -389,11 +389,16 @@ namespace PersonelTakipSistemi.Data
                 entity.ToTable("KurumsalRoller");
                 entity.HasKey(e => e.KurumsalRolId);
                 entity.HasData(
-                    new KurumsalRol { KurumsalRolId = 1, Ad = "Personel" },
-                    new KurumsalRol { KurumsalRolId = 2, Ad = "Komisyon Başkanı" },
-                    new KurumsalRol { KurumsalRolId = 3, Ad = "İl Koordinatörü" },
-                    new KurumsalRol { KurumsalRolId = 4, Ad = "Genel Koordinatör" },
-                    new KurumsalRol { KurumsalRolId = 5, Ad = "Merkez Birim Koordinatörlüğü" }
+                    new KurumsalRol { KurumsalRolId = 1, Ad = "Personel", SadeceMerkezMi = false },
+                    new KurumsalRol { KurumsalRolId = 2, Ad = "Komisyon Başkanı", SadeceMerkezMi = false },
+                    new KurumsalRol { KurumsalRolId = 3, Ad = "İl Koordinatörü", SadeceMerkezMi = false },
+                    new KurumsalRol { KurumsalRolId = 4, Ad = "Genel Koordinatör", SadeceMerkezMi = true },
+                    new KurumsalRol { KurumsalRolId = 5, Ad = "Merkez Birim Koordinatörlüğü", SadeceMerkezMi = true },
+                    new KurumsalRol { KurumsalRolId = 6, Ad = "Uzman", SadeceMerkezMi = true },
+                    new KurumsalRol { KurumsalRolId = 7, Ad = "Şube Müdürü", SadeceMerkezMi = true },
+                    new KurumsalRol { KurumsalRolId = 8, Ad = "Şef", SadeceMerkezMi = true },
+                    new KurumsalRol { KurumsalRolId = 9, Ad = "Daire Başkanı", SadeceMerkezMi = true },
+                    new KurumsalRol { KurumsalRolId = 10, Ad = "Genel Müdür", SadeceMerkezMi = true }
                 );
             });
 
