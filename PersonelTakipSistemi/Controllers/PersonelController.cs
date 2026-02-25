@@ -1598,17 +1598,24 @@ namespace PersonelTakipSistemi.Controllers
                              }
                         }
 
-                        // Hoşgeldin Bildirimi (System Sender)
-                        await _notificationService.CreateAsync(
-                            aliciId: personel.PersonelId,
-                            gonderenId: null, // System
-                            baslik: "Hoşgeldiniz!",
-                            aciklama: "Temel Eğitim Genel Müdürlüğü Personel Takip Sistemine Hoşgeldiniz!",
-                            tip: "Sistem"
-                        );
+                        try
+                        {
+                            // Hoşgeldin Bildirimi (System Sender)
+                            await _notificationService.CreateAsync(
+                                aliciId: personel.PersonelId,
+                                gonderenId: null, // System
+                                baslik: "Hoşgeldiniz!",
+                                aciklama: "Temel Eğitim Genel Müdürlüğü Personel Takip Sistemine Hoşgeldiniz!",
+                                tip: "Sistem"
+                            );
 
-                        // LOG
-                        await _logService.LogAsync("Ekleme", $"Yeni personel eklendi: {personel.Ad} {personel.Soyad} ({personel.TcKimlikNo})", personel.PersonelId, $"Ekleyen: {User.Identity?.Name ?? "Bilinmiyor"}");
+                            // LOG
+                            await _logService.LogAsync("Ekleme", $"Yeni personel eklendi: {personel.Ad} {personel.Soyad} ({personel.TcKimlikNo})", personel.PersonelId, $"Ekleyen: {User.Identity?.Name ?? "Bilinmiyor"}");
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Hata: Bildirim veya log eklenemedi: {ex.Message}");
+                        }
 
                         TempData["Success"] = $"Yeni personel kaydedildi. Başlangıç şifresi: {autoPasword}";
                         return RedirectToAction("Index", new { highlightId = personel.PersonelId });

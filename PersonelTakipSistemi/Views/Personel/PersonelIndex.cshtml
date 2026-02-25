@@ -47,9 +47,6 @@
         <span class="text-muted fw-light">Personel /</span> Personel Listesi
     </h4>
     <div class="d-flex gap-2">
-        <a asp-action="DownloadTemplate" class="btn btn-outline-secondary">
-            <i class="bx bx-download me-1"></i> Detaylı Şablon
-        </a>
         <a asp-action="IndirBasitSablon" class="btn btn-outline-info">
             <i class="bx bx-download me-1"></i> Basit Şablon
         </a>
@@ -231,9 +228,12 @@
                 <div class="col-12 col-lg-auto ms-auto d-flex gap-2">
                     <div>
                         <label class="form-label d-block">&nbsp;</label>
-                        <button type="button" class="btn btn-danger d-none" id="bulkDeleteBtn" onclick="bulkDelete()">
-                            <i class="bx bx-trash"></i> Seçilenleri Sil (<span id="selectedCount">0</span>)
-                        </button>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <button type="button" class="btn btn-danger d-none" id="bulkDeleteBtn" onclick="bulkDelete()">
+                                <i class="bx bx-trash"></i> Seçilenleri Sil (<span id="selectedCount">0</span>)
+                            </button>
+                        }
                     </div>
                 </div>
                 <div class="col-12 col-lg-auto d-flex gap-2">
@@ -255,13 +255,16 @@
 </div>
 
 <div class="card">
-    <div class="table-responsive text-nowrap">
-        <table class="table table-hover">
+    <div class="table-responsive">
+        <table class="table table-hover" style="white-space: normal; background-color: #fff;">
             <thead>
                 <tr>
-                    <th>
-                        <input type="checkbox" class="form-check-input" id="selectAll">
-                    </th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th>
+                            <input type="checkbox" class="form-check-input" id="selectAll">
+                        </th>
+                    }
                     <th>Foto</th>
                     <th>Ad Soyad</th>
                     <th>Kullanılan Yazılımlar</th>
@@ -285,9 +288,12 @@
                     }
 
                     <tr class="@rowClass" onclick="if(!event.target.classList.contains('form-check-input')) window.location.href='/Personel/Detay/@item.PersonelId'">
-                         <td>
-                            <input type="checkbox" class="form-check-input select-item" value="@item.PersonelId" onchange="updateBulkActionState(event)">
-                        </td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <td>
+                                <input type="checkbox" class="form-check-input select-item" value="@item.PersonelId" onchange="updateBulkActionState(event)">
+                            </td>
+                        }
                         <td>
                             @if (!string.IsNullOrEmpty(item.FotografYolu))
                             {
