@@ -16,12 +16,17 @@
           top: 6px;
       }
       
-      @@keyframes highlightFade {
-          0% { background-color: rgba(105, 108, 255, 0.3); } /* Primary tint */
+      @@keyframes highlightBlink {
+          0% { background-color: rgba(3, 195, 236, 0.4); }
+          40% { background-color: transparent; }
+          70% { background-color: rgba(3, 195, 236, 0.4); }
           100% { background-color: transparent; }
       }
-      .highlight-row {
-          animation: highlightFade 3s ease-out forwards;
+      table.table tbody tr.highlight-row > td {
+          animation: highlightBlink 3s ease-out forwards;
+      }
+      table.table tbody tr.highlight-row > td:first-child {
+          border-left: 4px solid #03c3ec;
       }
       .passive-row {
           opacity: 0.5;
@@ -30,10 +35,6 @@
       }
       .passive-row td {
            color: #6c757d;
-      }
-      .template-row {
-          background-color: rgba(3, 195, 236, 0.1) !important; /* Soft Info Blue */
-          border-left: 4px solid #03c3ec;
       }
       
       tr { cursor: pointer; }
@@ -50,7 +51,7 @@
         <a asp-action="IndirBasitSablon" class="btn btn-outline-info">
             <i class="bx bx-download me-1"></i> Basit Şablon
         </a>
-        @if (User.IsInRole("Admin"))
+        @if (User.IsInRole("Admin") && ViewBag.IsHighLevelReadOnly != true)
         {
             <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#importModal">
                 <i class="bx bx-upload me-1"></i> Excel Yükle
@@ -228,7 +229,7 @@
                 <div class="col-12 col-lg-auto ms-auto d-flex gap-2">
                     <div>
                         <label class="form-label d-block">&nbsp;</label>
-                        @if (User.IsInRole("Admin"))
+                        @if (User.IsInRole("Admin") && ViewBag.IsHighLevelReadOnly != true)
                         {
                             <button type="button" class="btn btn-danger d-none" id="bulkDeleteBtn" onclick="bulkDelete()">
                                 <i class="bx bx-trash"></i> Seçilenleri Sil (<span id="selectedCount">0</span>)
@@ -259,7 +260,7 @@
         <table class="table table-hover" style="white-space: normal; background-color: #fff;">
             <thead>
                 <tr>
-                    @if (User.IsInRole("Admin"))
+                    @if (User.IsInRole("Admin") && ViewBag.IsHighLevelReadOnly != true)
                     {
                         <th>
                             <input type="checkbox" class="form-check-input" id="selectAll">
@@ -281,14 +282,13 @@
                 {
                     var rowClass = "";
                     if (!item.AktifMi) { rowClass += " passive-row"; }
-                    if (item.AddedViaTemplate) { rowClass += " template-row"; }
                     if (ViewBag.HighlightId != null && (int)ViewBag.HighlightId == item.PersonelId)
                     {
                         rowClass += " highlight-row";
                     }
 
-                    <tr class="@rowClass" onclick="if(!event.target.classList.contains('form-check-input')) window.location.href='/Personel/Detay/@item.PersonelId'">
-                        @if (User.IsInRole("Admin"))
+                    <tr class="@rowClass" data-id="@item.PersonelId" onclick="if(!event.target.classList.contains('form-check-input')) window.location.href='/Personel/Detay/@item.PersonelId'">
+                        @if (User.IsInRole("Admin") && ViewBag.IsHighLevelReadOnly != true)
                         {
                             <td>
                                 <input type="checkbox" class="form-check-input select-item" value="@item.PersonelId" onchange="updateBulkActionState(event)">
@@ -574,12 +574,7 @@
                     <label for="excelFile" class="form-label">Excel Dosyası Seçin</label>
                     <input class="form-control" type="file" id="excelFile" accept=".xlsx, .csv">
                 </div>
-                <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="isSimpleCheck">
-                    <label class="form-check-label" for="isSimpleCheck">
-                        Basit Yükleme (Sadece temel bilgiler)
-                    </label>
-                </div>
+                <!-- Removed simple load mode -->
                 <div id="importResult" class="d-none"></div>
             </div>
             <div class="modal-footer">
@@ -600,7 +595,6 @@
 
         var formData = new FormData();
         formData.append('file', input.files[0]);
-        formData.append('isSimple', document.getElementById('isSimpleCheck').checked);
 
         Swal.fire({
             title: 'Yükleniyor...',
@@ -616,30 +610,45 @@
             processData: false,
             contentType: false,
             success: function(response) {
-                if (response.success) {
+                if (response.importedIds && response.importedIds.length > 0) {
+                    sessionStorage.setItem('importedIds', JSON.stringify(response.importedIds));
+                }
+
+                if (response.success && !response.errors) {
                     Swal.fire({
                         title: 'Başarılı!',
                         text: response.message,
                         icon: 'success'
                     }).then(() => {
-                        location.reload();
+                        window.location.href = '/Personel/Index';
                     });
-                } else {
-                    var errorHtml = '<ul class="text-start">';
-                    if(response.errors && response.errors.length > 0) {
-                        response.errors.forEach(function(err) {
-                            errorHtml += '<li>' + err + '</li>';
-                        });
-                    } else {
-                         errorHtml += '<li>' + response.message + '</li>';
+                } else if (response.errors && response.errors.length > 0) {
+                    // Partial success or Total failure
+                    var isPartial = response.partial === true;
+                    
+                    var errorHtml = '<div style="max-height: 250px; overflow-y: auto; text-align: left; background: #f8f9fa; padding: 10px; border-radius: 5px; font-size: 0.9em; border: 1px solid #ddd;"><ul>';
+                    response.errors.forEach(function(err) {
+                        errorHtml += '<li style="margin-bottom: 5px; color: #dc3545;">' + err + '</li>';
+                    });
+                    errorHtml += '</ul></div>';
+                    
+                    if (isPartial) {
+                        errorHtml = '<div style="margin-bottom:15px; font-weight: bold; color: #28a745;">' + response.message + '</div>' + errorHtml;
                     }
-                    errorHtml += '</ul>';
 
                     Swal.fire({
-                        title: 'Hata',
+                        title: isPartial ? 'Kısmi Aktarım' : 'Hata',
                         html: errorHtml,
-                        icon: 'error'
+                        icon: isPartial ? 'warning' : 'error',
+                        width: '600px',
+                        confirmButtonText: isPartial ? 'Kapat ve Sayfayı Yenile' : 'Kapat'
+                    }).then(() => {
+                        if (isPartial) {
+                            window.location.href = '/Personel/Index'; // Reload to show the ones that DID succeed
+                        }
                     });
+                } else {
+                    Swal.fire('Hata', response.message || 'Bilinmeyen bir hata oluştu.', 'error');
                 }
             },
             error: function() {
@@ -773,10 +782,34 @@
 
     <script>
       $(document).ready(function() {
+          var importedStr = sessionStorage.getItem('importedIds');
+          if (importedStr) {
+              var importedIds = JSON.parse(importedStr);
+              if (importedIds && importedIds.length > 0) {
+                  importedIds.forEach(function(id) {
+                      $('tr[data-id="' + id + '"]').addClass('highlight-row');
+                  });
+              }
+              sessionStorage.removeItem('importedIds');
+          }
+
           // Remove highlight class after animation to ensure passive style takes over if needed
           setTimeout(function() {
               $('.highlight-row').removeClass('highlight-row');
           }, 3000);
+
+          // Clean up the URL so refresh doesn't trigger the highlight again
+          if (window.history.replaceState) {
+              const url = new URL(window.location.href);
+              let changed = false;
+              if (url.searchParams.has('highlightId')) {
+                  url.searchParams.delete('highlightId');
+                  changed = true;
+              }
+              if (changed) {
+                  window.history.replaceState({ path: url.href }, '', url.href);
+              }
+          }
 
           $('.select2').select2({
               width: '100%',

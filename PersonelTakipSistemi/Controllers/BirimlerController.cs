@@ -5,10 +5,12 @@ using PersonelTakipSistemi.Data;
 using PersonelTakipSistemi.Models;
 using PersonelTakipSistemi.ViewModels;
 using PersonelTakipSistemi.Services;
+using PersonelTakipSistemi.Filters;
 
 namespace PersonelTakipSistemi.Controllers
 {
     [Authorize(Roles = "Admin,Yönetici")]
+    [ReadOnlyForHighLevelRoles]
     public class BirimlerController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;
@@ -27,6 +29,7 @@ namespace PersonelTakipSistemi.Controllers
         // BİRİM AYARLARI
         // ==============================================================
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Ayarlar()
         {
             var model = new BirimAyarlariViewModel
@@ -665,6 +668,7 @@ namespace PersonelTakipSistemi.Controllers
         // TOPLU ATAMA
         // ==============================================================
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> TopluAtama()
         {
             var model = new TopluAtamaViewModel
@@ -827,6 +831,7 @@ namespace PersonelTakipSistemi.Controllers
         // BİRİMLERİ LİSTELE
         // ==============================================================
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> BirimListele()
         {
             // Varsayılan ID'ler: Programlar Daire (9), Merkez Teşkilat (1), Fen Birimi (4)
@@ -1005,18 +1010,36 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetIllerDurumu(int teskilatId, int? koordinatorlukId)
         {
-            List<int> ilIds;
+            List<int> ilIds = new List<int>();
             
             if (koordinatorlukId.HasValue)
             {
-                // Merkez Birimi seçiliyse: Bu birime bağlı komisyonların bulunduğu illeri getir
-                ilIds = await _context.Komisyonlar
-                    .Where(k => k.IsActive && k.BagliMerkezKoordinatorlukId == koordinatorlukId)
-                    .Select(k => k.Koordinatorluk.IlId)
-                    .Where(id => id != null)
-                    .Select(id => id!.Value)
-                    .Distinct()
-                    .ToListAsync();
+                var koord = await _context.Koordinatorlukler
+                    .Include(k => k.Teskilat)
+                    .FirstOrDefaultAsync(k => k.KoordinatorlukId == koordinatorlukId);
+
+                if (koord != null)
+                {
+                    string tur = (koord.Teskilat?.BagliMerkezTeskilatId != null) ? "Taşra" : (koord.Teskilat?.Tur ?? "Merkez");
+
+                    if (tur == "Merkez")
+                    {
+                        // Merkez Birimi seçiliyse: Bu birime bağlı komisyonların bulunduğu illeri getir
+                        ilIds = await _context.Komisyonlar
+                            .Where(k => k.IsActive && k.BagliMerkezKoordinatorlukId == koordinatorlukId)
+                            .Select(k => k.Koordinatorluk.IlId)
+                            .Where(id => id != null)
+                            .Select(id => id!.Value)
+                            .Distinct()
+                            .ToListAsync();
+                    }
+                    else
+                    {
+                        // Taşra (İl Koordinatörlüğü) seçiliyse sadece o ili getir.
+                        if (koord.IlId.HasValue)
+                            ilIds.Add(koord.IlId.Value);
+                    }
+                }
             }
             else
             {

@@ -13,9 +13,12 @@
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
                     <h5 class="mb-0 text-white"><i class="bx bx-category me-2"></i>Görev Kategorileri</h5>
-                    <button class="btn btn-light text-secondary fw-bold" onclick="openAddModal('kategori')">
-                        <i class="bx bx-plus me-1"></i>Ekle
-                    </button>
+                    @if (ViewBag.IsHighLevelReadOnly != true)
+                    {
+                        <button class="btn btn-light text-secondary fw-bold" onclick="openAddModal('kategori')">
+                            <i class="bx bx-plus me-1"></i>Ekle
+                        </button>
+                    }
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush" id="listKategori">
@@ -41,14 +44,17 @@
                                     <input type="text" class="form-control edit-desc" value="@item.Aciklama" placeholder="Açıklama (Opsiyonel)">
                                 </div>
 
-                                <div class="btn-group view-actions">
-                                    <button class="btn btn-icon bg-transparent border-0 text-primary fw-bold" onclick="editItem(this)">
-                                        <i class="bx bx-edit-alt fs-4"></i>
-                                    </button>
-                                    <button class="btn btn-icon bg-transparent border-0 text-danger fw-bold" onclick="deleteItem('kategori', @item.GorevKategoriId)">
-                                        <i class="bx bx-trash fs-4"></i>
-                                    </button>
-                                </div>
+                                @if (ViewBag.IsHighLevelReadOnly != true)
+                                {
+                                    <div class="btn-group view-actions">
+                                        <button class="btn btn-icon bg-transparent border-0 text-primary fw-bold" onclick="editItem(this)">
+                                            <i class="bx bx-edit-alt fs-4"></i>
+                                        </button>
+                                        <button class="btn btn-icon bg-transparent border-0 text-danger fw-bold" onclick="deleteItem('kategori', @item.GorevKategoriId)">
+                                            <i class="bx bx-trash fs-4"></i>
+                                        </button>
+                                    </div>
+                                }
 
                                 <div class="btn-group edit-actions" style="display:none;">
                                     <button class="btn btn-icon bg-transparent border-0 text-success fw-bold" onclick="saveEdit('kategori', @item.GorevKategoriId, this)">
@@ -74,9 +80,12 @@
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center bg-warning text-white">
                     <h5 class="mb-0 text-white"><i class="bx bx-info-circle me-2"></i>Görev Durumları</h5>
-                    <button class="btn btn-light text-secondary fw-bold" onclick="openAddModal('durum')">
-                        <i class="bx bx-plus me-1"></i>Ekle
-                    </button>
+                    @if (ViewBag.IsHighLevelReadOnly != true)
+                    {
+                        <button class="btn btn-light text-secondary fw-bold" onclick="openAddModal('durum')">
+                            <i class="bx bx-plus me-1"></i>Ekle
+                        </button>
+                    }
                 </div>
                 <div class="card-body p-0">
                     <ul class="list-group list-group-flush" id="listDurum">
@@ -97,14 +106,17 @@
                                     <input type="text" class="form-control edit-name" value="@item.Ad" placeholder="Durum Adı">
                                 </div>
 
-                                <div class="btn-group view-actions">
-                                    <button class="btn btn-icon bg-transparent border-0 text-primary fw-bold" onclick="editItem(this)">
-                                        <i class="bx bx-edit-alt fs-4"></i>
-                                    </button>
-                                    <button class="btn btn-icon bg-transparent border-0 text-danger fw-bold" onclick="deleteItem('durum', @item.GorevDurumId)">
-                                        <i class="bx bx-trash fs-4"></i>
-                                    </button>
-                                </div>
+                                @if (ViewBag.IsHighLevelReadOnly != true)
+                                {
+                                    <div class="btn-group view-actions">
+                                        <button class="btn btn-icon bg-transparent border-0 text-primary fw-bold" onclick="editItem(this)">
+                                            <i class="bx bx-edit-alt fs-4"></i>
+                                        </button>
+                                        <button class="btn btn-icon bg-transparent border-0 text-danger fw-bold" onclick="deleteItem('durum', @item.GorevDurumId)">
+                                            <i class="bx bx-trash fs-4"></i>
+                                        </button>
+                                    </div>
+                                }
 
                                 <div class="btn-group edit-actions" style="display:none;">
                                     <button class="btn btn-icon bg-transparent border-0 text-success fw-bold" onclick="saveEdit('durum', @item.GorevDurumId, this)">

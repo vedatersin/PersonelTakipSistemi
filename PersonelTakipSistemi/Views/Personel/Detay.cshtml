@@ -32,6 +32,12 @@
                 }
             }
             // Yönetici: canDelete stays false for everyone else per requirement (cannot delete personnel).
+
+            if (ViewBag.IsHighLevelReadOnly == true)
+            {
+                canEdit = false;
+                canDelete = false;
+            }
         }
         <div>
             @if (canEdit)

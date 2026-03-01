@@ -10,6 +10,6 @@ namespace PersonelTakipSistemi.Services
     {
         Task<byte[]> GeneratePersonelTemplateAsync();
         Task<byte[]> GenerateSimplePersonelTemplateAsync();
-        Task<(List<Personel> personeller, List<string> errors)> ImportPersonelListAsync(IFormFile file, bool isSimple = false);
+        Task<(List<Personel> personeller, List<string> errors)> ImportPersonelListAsync(IFormFile file);
     }
 }

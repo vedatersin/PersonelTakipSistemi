@@ -69,7 +69,7 @@
         string openClass = isProfileActive ? "open" : ""; 
     }
 
-    @if (userRole == "Admin" || userRole == "Yönetici" || userRole == "Editör")
+    @if (userRole == "Admin")
     {
         <!-- Personel Modülü (Admin, Yönetici, Editör) -->
         <li class="menu-item @(isPersonelModuleOpen ? "active open" : "")">
@@ -198,8 +198,8 @@
 
 
 
-    <!-- Birimler Modülü (Admin, Yönetici) -->
-    @if (userRole == "Admin" || userRole == "Yönetici")
+    <!-- Birimler Modülü (Admin Only) -->
+    @if (userRole == "Admin")
     {
          var isBirimlerController = string.Equals(currentController, "Birimler", StringComparison.OrdinalIgnoreCase);
          var isBirimAyarlar = isBirimlerController && string.Equals(currentAction, "Ayarlar", StringComparison.OrdinalIgnoreCase);
@@ -240,7 +240,7 @@
         bool isGorevListe = isGorevlerController && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase);
         // bool isGorevModuleOpen = isGorevlerController; // This variable is no longer used directly for the parent li's active state
     }
-    @if (userRole == "Admin" || userRole == "Yönetici")
+    @if (userRole == "Admin")
     {
         <!-- Görevler Modülü -->
         <li class="menu-item @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Gorevler" && !string.Equals(currentAction, "Gorevlerim", StringComparison.OrdinalIgnoreCase) && !string.Equals(currentAction, "Detay", StringComparison.OrdinalIgnoreCase) ? "active open" : "")">

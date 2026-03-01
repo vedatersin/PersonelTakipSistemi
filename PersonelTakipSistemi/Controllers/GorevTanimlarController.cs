@@ -4,10 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using PersonelTakipSistemi.Data;
 using PersonelTakipSistemi.Models;
 using PersonelTakipSistemi.ViewModels;
+using PersonelTakipSistemi.Filters;
 
 namespace PersonelTakipSistemi.Controllers
 {
     [Authorize(Roles = "Admin,Yönetici")]
+    [ReadOnlyForHighLevelRoles]
     public class GorevTanimlarController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;

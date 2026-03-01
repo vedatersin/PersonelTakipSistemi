@@ -413,7 +413,7 @@
                                                                 <option value="">Seçiniz...</option>
                                                                 @foreach (var item in Model.Teskilatlar)
                                                                 {
-                                                                    <option value="@item.Id">@item.Ad</option>
+                                                                    <option value="@item.Id" data-tur="@item.Tur">@item.Ad</option>
                                                                 }
                                                             </select>
                                                             
@@ -1014,6 +1014,7 @@
                 console.error("Edit cascade failed", e);
             } finally {
                 window.isEditingCascade = false;
+                applyRoleRestrictions();
                 console.groupEnd();
             }
 
@@ -1081,6 +1082,35 @@
                 komisyonId: komSelect.value ? komSelect.value : null,
                 komisyonAd: komSelect.selectedIndex > 0 ? komSelect.options[komSelect.selectedIndex].text : null
             };
+
+            const exclusiveRoles = [6, 7, 8, 9, 10];
+            const isRequestingExclusive = exclusiveRoles.includes(rid);
+
+            if (isRequestingExclusive) {
+                let existingExclusive = false;
+                wizardState.assignedRoles.forEach((r, index) => {
+                    if (editingRoleIndex !== index && exclusiveRoles.includes(parseInt(r.rolId))) {
+                        existingExclusive = true;
+                    }
+                });
+                if (existingExclusive) {
+                     Swal.fire('Hata', 'Aynı anda iki kurumsal yönetici yetkisi olamaz.', 'error');
+                     return;
+                }
+                
+                // Auto-assign Yönetici system role
+                const $sistemRol = $('#sistemRolSelect');
+                const yoneticiOption = $sistemRol.find('option').filter(function() { return $(this).text().trim() === 'Yönetici'; });
+                if (yoneticiOption.length > 0 && $sistemRol.val() !== yoneticiOption.val()) {
+                    $sistemRol.val(yoneticiOption.val()).trigger('change.select2');
+                    Swal.fire({
+                        title: 'Bilgi', 
+                        text: 'Bu kurumsal yöneticilik rolü eklendiği için personelin Sistem Rolü otomatik olarak "Yönetici" olarak oluşturuldu/güncellendi.', 
+                        icon: 'info',
+                        timer: 4000
+                    });
+                }
+            }
 
             if (editingRoleIndex !== null) {
                 wizardState.assignedRoles[editingRoleIndex] = data;
@@ -1418,6 +1448,170 @@
             } else if (openTab) {
                 activateTab(openTab);
             }
+
+            // --- Kurumsal Roller Cascade Logic ---
+            window.loadKoordinatorlukler = function (teskilatId, selectedKoordId = null) {
+                return new Promise((resolve, reject) => {
+                    const $koord = $('#newRoleKoord');
+                    const $kom = $('#newRoleKom');
+
+                    $koord.empty().append('<option value="">İşyükleniyor...</option>').prop('disabled', true);
+                    $kom.empty().append('<option value="">Komisyon</option>').prop('disabled', true);
+
+                    if (!teskilatId) {
+                        $koord.empty().append('<option value="">Koordinatörlük</option>').prop('disabled', true);
+                        resolve();
+                        return;
+                    }
+
+                    $.ajax({
+                        url: '@Url.Action("GetKoordinatorluklerByTeskilat", "Personel")',
+                        type: 'GET',
+                        data: { teskilatId: teskilatId },
+                        success: function (data) {
+                            $koord.empty().append('<option value="">Seçiniz...</option>');
+                            if (data && data.length > 0) {
+                                data.forEach(item => {
+                                    $koord.append(new Option(item.text, item.id));
+                                });
+                                $koord.prop('disabled', false);
+                                if (selectedKoordId) {
+                                    $koord.val(selectedKoordId).trigger('change.select2');
+                                }
+                            } else {
+                                $koord.empty().append('<option value="">Bulunamadı</option>');
+                            }
+                            resolve();
+                        },
+                        error: function () {
+                            $koord.empty().append('<option value="">Hata!</option>');
+                            reject();
+                        }
+                    });
+                });
+            };
+
+            window.loadKomisyonlar = function (koordinatorlukId, selectedKomisyonId = null) {
+                return new Promise((resolve, reject) => {
+                    const $kom = $('#newRoleKom');
+                    $kom.empty().append('<option value="">İşyükleniyor...</option>').prop('disabled', true);
+
+                    if (!koordinatorlukId) {
+                        $kom.empty().append('<option value="">Komisyon</option>').prop('disabled', true);
+                        resolve();
+                        return;
+                    }
+
+                    $.ajax({
+                        url: '@Url.Action("GetKomisyonlarByKoordinatorluk", "Personel")',
+                        type: 'GET',
+                        data: { koordinatorlukId: koordinatorlukId },
+                        success: function (data) {
+                            $kom.empty().append('<option value="">Seçiniz...</option>');
+                            if (data && data.length > 0) {
+                                data.forEach(item => {
+                                    $kom.append(new Option(item.text, item.id));
+                                });
+                                $kom.prop('disabled', false);
+                                if (selectedKomisyonId) {
+                                    $kom.val(selectedKomisyonId).trigger('change.select2');
+                                }
+                            } else {
+                                $kom.empty().append('<option value="">Bulunamadı</option>');
+                            }
+                            resolve();
+                        },
+                        error: function () {
+                            $kom.empty().append('<option value="">Hata!</option>');
+                            reject();
+                        }
+                    });
+                });
+            };
+
+            // Store original role options once
+            if (!window.originalRoleOptions) {
+                window.originalRoleOptions = [];
+                $('#newRoleType option').each(function() {
+                    const v = $(this).val();
+                    if (v) {
+                        window.originalRoleOptions.push({ val: v, text: $(this).text() });
+                    }
+                });
+            }
+
+            function applyRoleRestrictions() {
+                const $teskilat = $('#newRoleTeskilat');
+                const $koord = $('#newRoleKoord');
+                const $roleType = $('#newRoleType');
+                
+                const tesTur = $teskilat.find('option:selected').data('tur') || "";
+                const isMerkezTeskilat = tesTur === "Merkez";
+                const isTasraTeskilat = tesTur === "Taşra";
+                
+                const koordText = $koord.find('option:selected').text() || "";
+                const isMerkezBirimKoordinatorlugu = koordText.indexOf('Merkez Birim') > -1;
+                
+                const prevVal = $roleType.val();
+                
+                const tasraRoles = ['3']; // İl Koordinatörü
+                const merkezRoles = ['5', '4', '10', '9', '8', '7', '6']; // Merkez Birim Koord, Genel Koord, Genel Md, Daire Bşk, Şef, Şube Md, Uzman
+                
+                $roleType.empty().append('<option value="">Rol Seçiniz...</option>');
+                
+                window.originalRoleOptions.forEach(function (opt) {
+                    const rolVal = opt.val;
+                    let allowed = true;
+                    
+                    if (isTasraTeskilat && merkezRoles.includes(rolVal)) allowed = false;
+                    if (isMerkezTeskilat && tasraRoles.includes(rolVal)) allowed = false;
+                    
+                    if (isMerkezBirimKoordinatorlugu && ['4', '7', '8', '9', '10'].includes(rolVal)) {
+                        allowed = false;
+                    }
+                    
+                    if (allowed) {
+                        $roleType.append(new Option(opt.text, opt.val));
+                    }
+                });
+                
+                if ($roleType.find(`option[value="${prevVal}"]`).length > 0) {
+                    $roleType.val(prevVal);
+                } else {
+                    $roleType.val('');
+                }
+                
+                $roleType.select2("destroy").select2({ width: '100%', placeholder: 'Rol Seçiniz...' });
+            }
+
+            $('#newRoleTeskilat').on('change', function () {
+                if (window.isEditingCascade) return; // Prevent loop during edit load
+                const tesId = $(this).val();
+                
+                // Clear and disable downstream
+                $('#newRoleKoord').empty().append('<option value="">Koordinatörlük</option>').prop('disabled', true).trigger('change.select2');
+                $('#newRoleKom').empty().append('<option value="">Komisyon</option>').prop('disabled', true).trigger('change.select2');
+
+                applyRoleRestrictions();
+
+                if (tesId) {
+                    window.loadKoordinatorlukler(tesId);
+                }
+            });
+
+            $('#newRoleKoord').on('change', function () {
+                if (window.isEditingCascade) return;
+                const korId = $(this).val();
+                
+                // Clear and disable downstream
+                $('#newRoleKom').empty().append('<option value="">Komisyon</option>').prop('disabled', true).trigger('change.select2');
+                
+                applyRoleRestrictions();
+
+                if (korId) {
+                    window.loadKomisyonlar(korId);
+                }
+            });
 
             // Final Submit Guard
             $('form').submit(function (e) {

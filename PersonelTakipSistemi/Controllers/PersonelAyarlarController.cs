@@ -9,6 +9,7 @@ using PersonelTakipSistemi.Services;
 namespace PersonelTakipSistemi.Controllers
 {
     [Authorize(Roles = "Admin,Yönetici")]
+    [Filters.ReadOnlyForHighLevelRoles]
     public class PersonelAyarlarController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;

@@ -582,32 +582,59 @@ function renderRoleOptions(selectedId) {
 
     const isUnitSelected = !!(addFormSelections.koordinatorlukId);
 
+    const tasraRoles = [3]; // İl Koordinatörü
+    const merkezRoles = [5, 4, 10, 9, 8, 7, 6]; // Merkez Birim Koord, Genel Koord, Genel Md, Daire Bşk, Şef, Şube Md, Uzman
+    const ortakRoles = [2, 1]; // Komisyon Bşk, Personel
+    const exclusiveRoles = [6, 7, 8, 9, 10]; // Mutually exclusive roles
+
+    // Get existing roles excluding the one currently being edited
+    let activeRoles = draftState.gorevler;
+    if (addFormSelections.editingItem && addFormSelections.editingItem.type === 'gorev') {
+        activeRoles = activeRoles.filter((_, idx) => idx !== addFormSelections.editingItem.gIndex);
+    }
+    const existingRoleIds = activeRoles.map(g => parseInt(g.kurumsalRolId));
+
+    const hasExclusiveRole = existingRoleIds.some(r => exclusiveRoles.includes(r));
+    const hasStandardRole = existingRoleIds.some(r => !exclusiveRoles.includes(r));
+
+    let isMerkezBirimKoordinatorluguSelected = false;
+    if (isUnitSelected && data.allKoordinatorlukler) {
+        const selectedKoord = data.allKoordinatorlukler.find(k => k.id == addFormSelections.koordinatorlukId);
+        if (selectedKoord && selectedKoord.ad.indexOf('Merkez Birim') > -1) {
+            isMerkezBirimKoordinatorluguSelected = true;
+        }
+    }
+
     window.allKurumsalRolOptions.forEach(r => {
         let allowed = true;
         const rid = parseInt(r.value);
 
-        // Rule: Personel (ID 1) - always allowed
-        // Rule: Komisyon Başkanı (ID 2) - only for Komisyon context or let user pick (usually handled by renderKomOptions context if we wanted to be strict, but keeping it simple)
-
-        // Rule: İl Koordinatörü (ID 3) - only for Taşra
-        if (rid === 3 && isMerkezTeskilat) allowed = false;
-
-        // Rule: Hierarchy Roles (4, 7, 8, 9, 10) - only for Merkez AND only if NO unit is selected
-        if ([4, 7, 8, 9, 10].includes(rid)) {
-            if (!isMerkezTeskilat) allowed = false;
-            else if (isUnitSelected) allowed = false; // Hide if unit (koord) is picked
+        if (exclusiveRoles.includes(rid)) {
+            // Cannot be added if any other role exists
+            if (hasStandardRole || hasExclusiveRole) allowed = false;
+            // Must be Merkez without sub-units
+            if (!isMerkezTeskilat || isUnitSelected) allowed = false;
+        } else {
+            // Cannot be added if an exclusive role exists
+            if (hasExclusiveRole) allowed = false;
         }
 
-        // Rule: Unit-level Merkez Roles (5, 6) - only for Merkez
-        if ((rid === 5 || rid === 6) && !isMerkezTeskilat) allowed = false;
+        // --- NEW STRICT RULES ---
+        if (tasraRoles.includes(rid) && isMerkezTeskilat) allowed = false;
+        if (merkezRoles.includes(rid) && !isMerkezTeskilat) allowed = false;
+
+        // Rule: If a Merkez Birim Koordinatörlüğü is selected, hide specific roles
+        // Hide: Genel Koordinatör (4), Şef (8), Şube Müdürü (7), Daire Başkanı (9), Genel Müdür (10)
+        if (isMerkezBirimKoordinatorluguSelected && [4, 7, 8, 9, 10].includes(rid)) {
+            allowed = false;
+        }
+
 
         if (allowed) {
             html += `<option value="${r.value}" ${r.value == selectedId ? 'selected' : ''}>${r.text}</option>`;
         }
     });
 
-    // Auto-update system role logic (Attach to onchange in renderUnifiedAddForm or global)
-    // Actually, we'll wrap the handleAddChange to detect role picks
     return html;
 }
 
@@ -666,6 +693,27 @@ window.executeAdd = function () {
     if (!isHierarchy && !s.koordinatorlukId) {
         alert("Lütfen bir Koordinatörlük seçiniz.");
         return;
+    }
+
+    const exclusiveRoles = [6, 7, 8, 9, 10];
+    const isRequestingExclusive = exclusiveRoles.includes(parseInt(s.roleId));
+
+    if (isRequestingExclusive) {
+        let existingExclusive = false;
+        draftState.gorevler.forEach((g, idx) => {
+            if (s.editingItem && s.editingItem.gIndex === idx) return;
+            if (exclusiveRoles.includes(parseInt(g.kurumsalRolId))) existingExclusive = true;
+        });
+
+        if (existingExclusive) {
+            alert('Aynı anda iki kurumsal yönetici yetkisi olamaz.');
+            return;
+        }
+
+        if (draftState.sistemRol != 'Yönetici') {
+            draftState.sistemRol = 'Yönetici';
+            alert('Bu kurumsal yöneticilik rolü seçildiği için personelin Sistem Rolü otomatik olarak "Yönetici" yapıldı.');
+        }
     }
 
     // IF EDITING: Remove old item first

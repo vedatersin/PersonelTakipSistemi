@@ -40,6 +40,7 @@
       </li>
 
 @using PersonelTakipSistemi.Data
+@using Microsoft.EntityFrameworkCore
 @inject TegmPersonelTakipDbContext _context
       <!-- User -->
       @if (User.Identity!.IsAuthenticated)
@@ -50,10 +51,18 @@
           var role = "Personel";
 
           if(int.TryParse(userIdClaim, out int pid)) {
-              var p = _context.Personeller.Find(pid);
+              var p = _context.Personeller
+                        .Include(x => x.SistemRol)
+                        .Include(x => x.PersonelKurumsalRolAtamalari)
+                            .ThenInclude(kr => kr.KurumsalRol)
+                        .FirstOrDefault(x => x.PersonelId == pid);
               if(p != null) {
                  photoUrl = p.FotografYolu;
                  displayName = p.Ad + " " + p.Soyad; 
+                 
+                 if (p.SistemRol != null) {
+                     role = p.SistemRol.Ad;
+                 }
               }
           }
 

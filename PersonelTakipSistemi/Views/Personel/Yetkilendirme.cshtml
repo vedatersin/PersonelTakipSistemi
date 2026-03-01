@@ -42,10 +42,6 @@
             animation: newRowGlow 5s ease-out;
             border-left: 4px solid #696cff;
         }
-        .template-row {
-            background-color: rgba(3, 195, 236, 0.1) !important;
-            border-left: 4px solid #03c3ec;
-        }
     </style>
 
 <div class="row h-100">
@@ -172,7 +168,7 @@
                             var gorevStr = string.Join(",", p.GorevTurleri);
                             var isStr = string.Join(",", p.IsNitelikleri);
                             
-                            <tr class="cursor-pointer @(p.AddedViaTemplate ? "template-row" : "")" onclick="openDrawer(@p.PersonelId)"
+                            <tr class="cursor-pointer" onclick="openDrawer(@p.PersonelId)"
                                 data-personel-id="@p.PersonelId"
                                 data-search="@p.AdSoyad.ToLower()"
                                 data-teskilat="@teskilatStr"
@@ -587,6 +583,20 @@
 
             // Sayfanın en üstüne scroll yap
             window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            // Remove highlight class after 3 seconds so it disappears
+            setTimeout(function() {
+                $('.highlight-new-row').removeClass('highlight-new-row');
+            }, 3000);
+
+            // Clean up the URL so refresh doesn't trigger the highlight again
+            if (window.history.replaceState) {
+                const url = new URL(window.location.href);
+                if (url.searchParams.has('highlight')) {
+                    url.searchParams.delete('highlight');
+                    window.history.replaceState({ path: url.href }, '', url.href);
+                }
+            }
         }
 
         // Sayfa yüklendiğinde highlight kontrolü yap

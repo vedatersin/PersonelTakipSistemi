@@ -15,11 +15,12 @@ using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
 
 using PersonelTakipSistemi.Services;
+using PersonelTakipSistemi.Filters;
 
 namespace PersonelTakipSistemi.Controllers
 {
     [Microsoft.AspNetCore.Authorization.Authorize]
-
+    [ReadOnlyForHighLevelRoles]
     public class PersonelController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;
@@ -526,9 +527,85 @@ namespace PersonelTakipSistemi.Controllers
             var rol = await _context.KurumsalRoller.FindAsync(kurumsalRolId);
             if (rol == null) return BadRequest("Rol bulunamadı.");
 
+            // Strict Role Arrays
+            var tasraRoles = new[] { 3 }; // İl Koordinatörü
+            var merkezRoles = new[] { 5, 4, 10, 9, 8, 7, 6 }; // Merkez Birim Koord, Genel Koord, vb.
+            var exclusiveRoles = new[] { 6, 7, 8, 9, 10 }; 
+            
+            bool isRequestingExclusive = exclusiveRoles.Contains(kurumsalRolId);
+            
+            // Check implicit/explicit context types
+            bool isTasra = false;
+            bool isMerkez = false;
+            bool isMerkezBirimKoordinatorlugu = false;
+            bool isUnitSelected = koordinatorlukId.HasValue || komisyonId.HasValue;
+
+            if (koordinatorlukId.HasValue)
+            {
+                var koord = await _context.Koordinatorlukler.Include(k => k.Teskilat).FirstOrDefaultAsync(k => k.KoordinatorlukId == koordinatorlukId.Value);
+                if (koord != null && koord.Teskilat != null)
+                {
+                    isTasra = koord.Teskilat.Tur == "Taşra";
+                    isMerkez = koord.Teskilat.Tur == "Merkez";
+                    isMerkezBirimKoordinatorlugu = koord.Ad.Contains("Merkez Birim");
+                }
+            }
+            else if (komisyonId.HasValue)
+            {
+                var kom = await _context.Komisyonlar.Include(k => k.Koordinatorluk).ThenInclude(koord => koord.Teskilat).FirstOrDefaultAsync(k => k.KomisyonId == komisyonId.Value);
+                if (kom != null && kom.Koordinatorluk != null && kom.Koordinatorluk.Teskilat != null)
+                {
+                    isTasra = kom.Koordinatorluk.Teskilat.Tur == "Taşra";
+                    isMerkez = kom.Koordinatorluk.Teskilat.Tur == "Merkez";
+                    isMerkezBirimKoordinatorlugu = kom.Koordinatorluk.Ad.Contains("Merkez Birim");
+                }
+            }
+
+            // Existing roles check
+            var existingRoles = await _context.PersonelKurumsalRolAtamalari
+                .Where(x => x.PersonelId == personelId)
+                .Select(x => x.KurumsalRolId)
+                .ToListAsync();
+
+            bool hasExistingExclusive = existingRoles.Any(r => exclusiveRoles.Contains(r));
+            bool hasExistingStandard = existingRoles.Any(r => !exclusiveRoles.Contains(r));
+
+            // EXCLUSIVE LOGIC
+            if (isRequestingExclusive)
+            {
+                if (hasExistingExclusive || hasExistingStandard)
+                {
+                    return BadRequest("Uzman, Şef, Şube Müdürü, Daire Başkanı veya Genel Müdür rolleri atanırken personelin başka hiçbir rolü olmamalıdır.");
+                }
+                if (isUnitSelected)
+                {
+                    return BadRequest("Bu roller alt birimlere (Koordinatörlük/Komisyon) atanamaz, sadece Merkez teşkilatına doğrudan atanabilir.");
+                }
+            }
+            else
+            {
+                if (hasExistingExclusive)
+                {
+                    return BadRequest("Personelin mevcut 'Uzman, Şef, Şube Müdürü, vb.' rolü varken başka bir rol/görev atanamaz.");
+                }
+            }
+
+            // --- STRICT GEOGRAPHICAL RULES ---
+            if (isUnitSelected)
+            {
+                if (isMerkez && tasraRoles.Contains(kurumsalRolId)) return BadRequest("Bu rol sadece Taşra teşkilatına atanabilir.");
+                if (isTasra && merkezRoles.Contains(kurumsalRolId)) return BadRequest("Bu rol sadece Merkez teşkilatına atanabilir.");
+                
+                // Merkez Birim Koordinatorlugu cannot contain certain roles
+                if (isMerkezBirimKoordinatorlugu && new[] { 4, 7, 8, 9, 10 }.Contains(kurumsalRolId))
+                {
+                    return BadRequest("Bu rol Merkez Birim Koordinatörlüğüne atanamaz.");
+                }
+            }
+
             // Context Validation
             if (rol.Ad == "Komisyon Başkanı" && komisyonId == null) return BadRequest("Komisyon seçilmedi.");
-            if ((rol.Ad == "İl Koordinatörü" || rol.Ad == "Genel Koordinatör") && koordinatorlukId == null) return BadRequest("Koordinatörlük seçilmedi.");
+            if ((rol.Ad == "İl Koordinatörü" || rol.Ad == "Genel Koordinatör" || rol.Ad == "Merkez Birim Koordinatörü") && koordinatorlukId == null) return BadRequest("Koordinatörlük seçilmedi.");
 
             // President Logic
             if (rol.Ad == "Komisyon Başkanı" && komisyonId.HasValue)
@@ -712,22 +789,38 @@ namespace PersonelTakipSistemi.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin,Yönetici")]
-        public async Task<IActionResult> ImportExcel(IFormFile file, bool isSimple = false)
+        public async Task<IActionResult> ImportExcel(IFormFile file)
         {
-            if (file == null) return BadRequest("Dosya seçilmedi.");
+            if (file == null) return Json(new { success = false, message = "Dosya seçilmedi." });
 
             var validation = _fileValidationService.ValidateExcel(file);
-            if (!validation.isValid) return BadRequest(validation.message);
+            if (!validation.isValid) return Json(new { success = false, message = validation.message });
 
-            var (personeller, errors) = await _excelService.ImportPersonelListAsync(file, isSimple);
+            var (personeller, errors) = await _excelService.ImportPersonelListAsync(file);
+
+            if (personeller.Count > 0)
+            {
+                await _logService.LogAsync("Veri Aktarımı", $"Excel ile {personeller.Count} personel eklendi.", null, null);
+            }
 
             if (errors.Any())
             {
-                return BadRequest(string.Join("\n", errors));
+                // Partial success or total failure
+                return Json(new 
+                { 
+                    success = personeller.Count > 0, // True if some succeeded, false if all failed
+                    partial = personeller.Count > 0,
+                    message = personeller.Count > 0 ? $"{personeller.Count} personel eklendi. Ancak bazı satırlarda hatalar mevcut:" : "Hiçbir personel eklenemedi. Lütfen hataları kontrol edin:",
+                    errors = errors,
+                    importedIds = personeller.Select(p => p.PersonelId).ToList()
+                });
             }
 
-            await _logService.LogAsync("Veri Aktarımı", $"Excel ile {personeller.Count} personel eklendi. (Basit mod: {isSimple})", null, null);
-            return Ok(new { count = personeller.Count });
+            return Json(new { 
+                success = true, 
+                message = $"{personeller.Count} personel başarıyla eklendi.",
+                importedIds = personeller.Select(p => p.PersonelId).ToList()
+            });
         }
 
         [HttpGet]
@@ -2248,7 +2341,7 @@ namespace PersonelTakipSistemi.Controllers
                 // Auth Lookups
                 model.SistemRolleri = await _context.SistemRoller.AsNoTracking().Select(x => new LookupItemVm { Id = x.SistemRolId, Ad = x.Ad }).ToListAsync();
                 model.KurumsalRoller = await _context.KurumsalRoller.AsNoTracking().Select(x => new LookupItemVm { Id = x.KurumsalRolId, Ad = x.Ad }).ToListAsync();
-                model.Teskilatlar = await _context.Teskilatlar.AsNoTracking().Select(x => new LookupItemVm { Id = x.TeskilatId, Ad = x.Ad }).ToListAsync();
+                model.Teskilatlar = await _context.Teskilatlar.AsNoTracking().Select(x => new LookupItemVm { Id = x.TeskilatId, Ad = x.Ad, Tur = x.Tur }).ToListAsync();
 
                 // Preload Hierarchy for Client-Side Cascading (Refined)
                 try {
@@ -2386,7 +2479,7 @@ namespace PersonelTakipSistemi.Controllers
                 var all = await _context.Komisyonlar
                     .Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
                     .Select(k => k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk != null && k.Koordinatorluk.Il != null
-                        ? $"{k.Koordinatorluk.Il.Ad} {k.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "")} {k.Ad}"
+                        ? $"{k.Koordinatorluk.Il.Ad} Komisyonu"
                         : k.Ad)
                     .Distinct()
                     .ToListAsync();
@@ -2404,7 +2497,7 @@ namespace PersonelTakipSistemi.Controllers
 
             var result = list.Select(k => 
                 k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null
-                    ? $"{k.Koordinatorluk.Il.Ad} {k.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "")} {k.Ad}"
+                    ? $"{k.Koordinatorluk.Il.Ad} Komisyonu"
                     : k.Ad)
                 .Distinct()
                 .OrderBy(x => x)
@@ -2447,7 +2540,7 @@ namespace PersonelTakipSistemi.Controllers
              var result = list.Select(k => new { 
                      id = k.KomisyonId, 
                      text = k.BagliMerkezKoordinatorlukId == koordinatorlukId && k.Koordinatorluk?.Il != null
-                            ? $"{k.Koordinatorluk.Il.Ad} {k.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "")} {k.Ad}"
+                            ? $"{k.Koordinatorluk.Il.Ad} Komisyonu"
                             : k.Ad 
                  })
                  .OrderBy(k => k.text)

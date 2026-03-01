@@ -84,9 +84,12 @@
         <div class="card h-100 shadow-sm border-0">
             <div class="card-header bg-daire d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-white"><i class="bx bxs-institution me-2"></i>Daire Başkanlıkları</h5>
-                <button class="btn btn-sm btn-light text-secondary fw-bold" onclick="addDaireModal()">
-                    <i class="bx bx-plus"></i> Ekle
-                </button>
+                @if (ViewBag.IsHighLevelReadOnly != true)
+                {
+                    <button class="btn btn-sm btn-light text-secondary fw-bold" onclick="addDaireModal()">
+                        <i class="bx bx-plus"></i> Ekle
+                    </button>
+                }
             </div>
             <div class="card-body p-0 scrollable-list">
             <div class="card-body p-0 scrollable-list">
@@ -123,10 +126,13 @@
                               <!-- Display Mode -->
                               <div class="view-mode w-100 d-flex justify-content-between align-items-center">
                                   <span class="fw-bold text-wrap item-name">@d.Ad</span>
-                                  <div style="min-width: 80px; text-align: right;">
-                                      <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('daire', @d.Id)"><i class="bx bx-edit"></i></button>
-                                      <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('daire', @d.Id)"><i class="bx bx-trash"></i></button>
-                                  </div>
+                                  @if (ViewBag.IsHighLevelReadOnly != true)
+                                  {
+                                      <div style="min-width: 80px; text-align: right;">
+                                          <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('daire', @d.Id)"><i class="bx bx-edit"></i></button>
+                                          <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('daire', @d.Id)"><i class="bx bx-trash"></i></button>
+                                      </div>
+                                  }
                               </div>
 
                               <!-- Edit Mode (Hidden) -->
@@ -150,9 +156,12 @@
         <div class="card h-100 shadow-sm border-0">
             <div class="card-header bg-teskilat text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-white"><i class="bx bxs-building me-2"></i>Teşkilatlar</h5>
-                <button class="btn btn-sm btn-light text-secondary fw-bold" style="color: #6c757d !important;" data-bs-toggle="modal" data-bs-target="#modalTeskilat">
-                    <i class="bx bx-plus"></i> Ekle
-                </button>
+                @if (ViewBag.IsHighLevelReadOnly != true)
+                {
+                    <button class="btn btn-sm btn-light text-secondary fw-bold" style="color: #6c757d !important;" data-bs-toggle="modal" data-bs-target="#modalTeskilat">
+                        <i class="bx bx-plus"></i> Ekle
+                    </button>
+                }
             </div>
             <div class="card-body p-0 scrollable-list">
                  <ul class="list-group list-group-flush" id="listTeskilat">
@@ -209,9 +218,12 @@
         <div class="card h-100 shadow-sm border-0">
             <div class="card-header bg-koordinatorluk text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-white"><i class="bx bxs-business me-2"></i>Koordinatörlükler</h5>
-                <button class="btn btn-sm btn-light text-secondary fw-bold" data-bs-toggle="modal" data-bs-target="#modalKoordinatorluk">
-                    <i class="bx bx-plus"></i> Ekle
-                </button>
+                @if (ViewBag.IsHighLevelReadOnly != true)
+                {
+                    <button class="btn btn-sm btn-light text-secondary fw-bold" data-bs-toggle="modal" data-bs-target="#modalKoordinatorluk">
+                        <i class="bx bx-plus"></i> Ekle
+                    </button>
+                }
             </div>
             <div class="card-body p-0 scrollable-list">
                  <ul class="list-group list-group-flush" id="listKoordinatorluk">
@@ -233,11 +245,14 @@
                                      <span class="fw-bold item-name">@k.Ad</span>
                                      <br/><small class="text-muted">@k.Aciklama</small>
                                  </div>
-                                 <div style="min-width: 110px; text-align: right;">
-                                      <button class="btn btn-sm btn-icon text-success me-1" title="Toplu Personel Ekle" onclick="event.stopPropagation(); goToTopluAtama('koord', @k.KoordinatorlukId)"><i class="bx bx-user-plus"></i></button>
-                                      <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('koord', @k.KoordinatorlukId)"><i class="bx bx-edit"></i></button>
-                                     <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('koord', @k.KoordinatorlukId)"><i class="bx bx-trash"></i></button>
-                                 </div>
+                                 @if (ViewBag.IsHighLevelReadOnly != true)
+                                 {
+                                     <div style="min-width: 110px; text-align: right;">
+                                          <button class="btn btn-sm btn-icon text-success me-1" title="Toplu Personel Ekle" onclick="event.stopPropagation(); goToTopluAtama('koord', @k.KoordinatorlukId)"><i class="bx bx-user-plus"></i></button>
+                                          <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('koord', @k.KoordinatorlukId)"><i class="bx bx-edit"></i></button>
+                                         <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('koord', @k.KoordinatorlukId)"><i class="bx bx-trash"></i></button>
+                                     </div>
+                                 }
                              </div>
                              
                              <div class="edit-mode w-100 d-none justify-content-between align-items-center">
@@ -262,9 +277,12 @@
         <div class="card h-100 shadow-sm border-0">
             <div class="card-header bg-komisyon text-white d-flex justify-content-between align-items-center">
                 <h5 class="mb-0 text-white"><i class="bx bxs-group me-2"></i>Komisyonlar</h5>
-                <button class="btn btn-sm btn-light text-secondary fw-bold" data-bs-toggle="modal" data-bs-target="#modalKomisyon">
-                    <i class="bx bx-plus"></i> Ekle
-                </button>
+                @if (ViewBag.IsHighLevelReadOnly != true)
+                {
+                    <button class="btn btn-sm btn-light text-secondary fw-bold" data-bs-toggle="modal" data-bs-target="#modalKomisyon">
+                        <i class="bx bx-plus"></i> Ekle
+                    </button>
+                }
             </div>
             <div class="card-body p-0 scrollable-list">
                  <ul class="list-group list-group-flush" id="listKomisyon">
@@ -283,11 +301,14 @@
                                      <span class="fw-bold item-name">@k.Ad</span>
                                      <br/><small class="text-muted">@k.Koordinatorluk?.Ad</small>
                                  </div>
-                                 <div style="min-width: 110px; text-align: right;">
-                                     <button class="btn btn-sm btn-icon text-success me-1" title="Toplu Personel Ekle" onclick="event.stopPropagation(); goToTopluAtama('kom', @k.KomisyonId)"><i class="bx bx-user-plus"></i></button>
-                                     <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('kom', @k.KomisyonId)"><i class="bx bx-edit"></i></button>
-                                     <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('kom', @k.KomisyonId)"><i class="bx bx-trash"></i></button>
-                                 </div>
+                                 @if (ViewBag.IsHighLevelReadOnly != true)
+                                 {
+                                     <div style="min-width: 110px; text-align: right;">
+                                         <button class="btn btn-sm btn-icon text-success me-1" title="Toplu Personel Ekle" onclick="event.stopPropagation(); goToTopluAtama('kom', @k.KomisyonId)"><i class="bx bx-user-plus"></i></button>
+                                         <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('kom', @k.KomisyonId)"><i class="bx bx-edit"></i></button>
+                                         <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('kom', @k.KomisyonId)"><i class="bx bx-trash"></i></button>
+                                     </div>
+                                 }
                              </div>
 
                              <div class="edit-mode w-100 d-none justify-content-between align-items-center">

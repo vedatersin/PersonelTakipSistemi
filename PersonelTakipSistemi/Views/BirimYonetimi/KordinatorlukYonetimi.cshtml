@@ -15,15 +15,39 @@
     
     /* Harita Stilleri */
     .turkey-map-container { position: relative; width: 100%; max-width: 800px; margin: 0 auto; }
-    .svg-turkiye-haritasi svg path { 
+    #svg-turkiye-haritasi {
+        width: 100%;
+        height: auto;
+    }
+    #svg-turkiye-haritasi path { 
         fill: #bdc3c7; 
         stroke: #fff; 
         stroke-width: 0.5; 
         transition: all 0.3s; 
         cursor: pointer; 
     }
-    .map-active { fill: #3498db !important; }
-    .map-selected { fill: #2980b9 !important; stroke: #2c3e50 !important; stroke-width: 2px !important; }
+    #svg-turkiye-haritasi path:hover {
+        opacity: 0.8;
+        transform: scale(1.01);
+        transform-origin: center;
+    }
+    .map-active { fill: #e74c3c !important; }
+    .map-selected { fill: #3498db !important; stroke: #2c3e50 !important; stroke-width: 2px !important; }
+
+    /* Tooltip */
+    .map-tooltip {
+        position: fixed;
+        background: rgba(0, 0, 0, 0.8);
+        color: white;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+        z-index: 1000;
+        white-space: nowrap;
+    }
 
     /* Birim Kartları */
     .birim-card { 
@@ -44,6 +68,7 @@
     .stat-label { font-size: 0.7rem; color: #999; text-transform: uppercase; }
 
     .highlight-blue { border-left: 5px solid #3498db !important; background-color: #f0f7ff !important; }
+    .highlight-red { border-left: 5px solid #e74c3c !important; background-color: #fdf0ef !important; transition: all 0.3s ease; }
     
     .section-title {
         font-weight: 700;
@@ -87,9 +112,10 @@
             </div>
             <div class="card-body">
                 <div class="turkey-map-container">
-                    <div id="turkey-map" class="svg-turkiye-haritasi"></div>
+                    <partial name="_TurkeyMap" />
+                    <div id="map-tooltip" class="map-tooltip"></div>
                 </div>
-                <p class="text-center text-muted x-small mt-3">Mavi renkli iller komisyonunuzun bulunduğu yerlerdir. Tıklayarak birimleri görebilirsiniz.</p>
+                <p class="text-center text-muted x-small mt-3">Kırmızı renkli iller komisyonunuzun bulunduğu yerlerdir. Tıklayarak birimleri görebilirsiniz.</p>
             </div>
         </div>
     </div>
@@ -132,7 +158,7 @@
         @foreach (var k in Model.Komisyonlar)
         {
             <div class="col komisyon-kart-wrapper" data-il-id="@k.IlId">
-                <div class="card birim-card h-100" id="kom-card-@k.Id" onclick="location.href='/Birimler/KomisyonDetay/@k.Id'">
+                <div class="card birim-card h-100" id="kom-card-@k.Id" onclick="window.location.href='/Birimler/KomisyonDetay/@k.Id'">
                     <div class="card-body">
                         <div class="birim-ad">@k.Ad</div>
                         <div class="birim-il"><i class="bx bx-map-pin"></i> @k.IlAdi</div>
@@ -237,55 +263,117 @@
 }
 
 @section Scripts {
-    <script src="~/js/turkey-map.js"></script>
     <script>
         const iller = @Html.Raw(Json.Serialize(Model.HaritaIlleri));
         let selectedIlId = null;
 
         $(document).ready(function() {
-            initTurkeyMap("turkey-map", iller, onIlClick);
+            initMapInteractions();
             
+            const isMerkez = @Model.IsMerkez.ToString().ToLower();
+
             // Başlangıçta aktif illeri renklendir
             iller.forEach(il => {
-                if (il.HasOrganization) {
-                    $(`path[data-plaka="${il.IlId}"]`).addClass('map-active');
+                const hasOrg = il.hasOrganization !== undefined ? il.hasOrganization : il.HasOrganization;
+                const ilId = il.ilId !== undefined ? il.ilId : il.IlId;
+                
+                if (hasOrg) {
+                    let plaka = ilId.toString().padStart(2, '0');
+                    if (isMerkez) {
+                        $(`g[data-plakakodu="${plaka}"] path`).addClass('map-active'); // Merkezde varsa iller kırmızı
+                    } else {
+                        // Merkez değilse taşradır, doğrudan mavi (seçili il) gösterilsin.
+                        // Komisyon kartının rengiyle uyumlu olsun.
+                        $('#svg-turkiye-haritasi path').removeClass('map-selected');
+                        $(`g[data-plakakodu="${plaka}"] path`).addClass('map-selected');
+                    }
                 }
             });
         });
 
+        function initMapInteractions() {
+            const paths = document.querySelectorAll('#svg-turkiye-haritasi path, #svg-turkiye-haritasi g');
+            const tooltip = document.getElementById('map-tooltip');
+
+            paths.forEach(path => {
+                path.addEventListener('mouseenter', function (e) {
+                    const ilAd = this.getAttribute('data-iladi') || this.parentNode.getAttribute('data-iladi');
+                    if (ilAd) {
+                        tooltip.textContent = ilAd;
+                        tooltip.style.opacity = 1;
+                    }
+                });
+
+                path.addEventListener('mousemove', function (e) {
+                    tooltip.style.left = (e.clientX + 15) + 'px';
+                    tooltip.style.top = (e.clientY + 15) + 'px';
+                });
+
+                path.addEventListener('mouseleave', function () {
+                    tooltip.style.opacity = 0;
+                });
+
+                path.addEventListener('click', function () {
+                    const ilIdAttr = this.getAttribute('data-plakakodu') || this.parentNode.getAttribute('data-plakakodu');
+                    const ilAd = this.getAttribute('data-iladi') || this.parentNode.getAttribute('data-iladi');
+                    if (ilIdAttr) {
+                        const numericIlId = parseInt(ilIdAttr, 10);
+                        onIlClick({ plaka: numericIlId, ad: ilAd });
+                    }
+                });
+            });
+        }
+
         function onIlClick(ilData) {
-            const ilId = ilData.plaka;
-            const ilInfo = iller.find(x => x.IlId == ilId);
+            const clickedIlId = ilData.plaka;
+            const ilInfo = iller.find(x => (x.ilId !== undefined ? x.ilId : x.IlId) == clickedIlId);
             
-            if (!ilInfo || !ilInfo.HasOrganization) return;
+            if (!ilInfo) return;
+            const hasOrg = ilInfo.hasOrganization !== undefined ? ilInfo.hasOrganization : ilInfo.HasOrganization;
+            
+            if (!hasOrg) return;
 
             // Görsel seçim
-            $('path').removeClass('map-selected');
-            $(`path[data-plaka="${ilId}"]`).addClass('map-selected');
+            $('#svg-turkiye-haritasi path').removeClass('map-selected');
+            let plakaStr = clickedIlId.toString().padStart(2, '0');
+            $(`g[data-plakakodu="${plakaStr}"] path`).addClass('map-selected');
 
             // Komisyon kartlarını filtrele ve kaydır
-            filterAndScroll(ilId);
+            filterAndScroll(clickedIlId);
         }
 
         function filterAndScroll(ilId) {
+            let foundCard = false;
+            let targetCard = null;
+
             $('.komisyon-kart-wrapper').each(function() {
                 const cardIlId = $(this).data('il-id');
                 if (cardIlId == ilId) {
-                    $(this).find('.birim-card').addClass('highlight-blue');
-                    $(this).show();
+                    const $card = $(this).find('.birim-card');
+                    $card.addClass('highlight-blue');
+                    setTimeout(() => {
+                        $card.removeClass('highlight-blue');
+                    }, 3000);
+                    
+                    if (!foundCard) {
+                        targetCard = this;
+                        foundCard = true;
+                    }
                 } else {
                     $(this).find('.birim-card').removeClass('highlight-blue');
-                    $(this).hide();
                 }
             });
 
-            // Smooth scroll to cards title
-            document.getElementById('komisyonBolumu').scrollIntoView({ behavior: 'smooth' });
+            if (targetCard) {
+                targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                document.getElementById('komisyonBolumu').scrollIntoView({ behavior: 'smooth' });
+            }
         }
 
         function resetMap() {
-            $('path').removeClass('map-selected');
-            $('.komisyon-kart-wrapper').show().find('.birim-card').removeClass('highlight-blue');
+            $('#svg-turkiye-haritasi path').removeClass('map-selected');
+            $('.komisyon-kart-wrapper').find('.birim-card').removeClass('highlight-blue');
         }
     </script>
 }

@@ -143,6 +143,35 @@ namespace PersonelTakipSistemi.Services
                 var comment = workSheet.Cells[1, 1].AddComment("Zorunlu alanlar (*) ile işaretlenmiştir. Tarihleri GG.AA.YYYY formatında giriniz.\n\nÇoklu seçim alanlarında (Yazılım, Uzmanlık vb.) listeden bir değer seçebilir veya birden fazla değeri virgül ile ayırarak elle yazabilirsiniz.", "Sistem");
                 comment.AutoFit = true;
 
+                // 5. Column Formatting
+                // Telefon (Col 5) - Text Format to prevent "5.07E+09"
+                workSheet.Column(5).Style.Numberformat.Format = "@";
+                
+                // Dogum Tarihi (Col 6) - Date Format
+                workSheet.Column(6).Style.Numberformat.Format = "dd.MM.yyyy";
+
+                // 6. Sample Data Generation
+                // Row 2 is typically the example row. Let's provide a dummy row to guide the user:
+                workSheet.Cells[2, 1].Value = "Örnek Ad";
+                workSheet.Cells[2, 2].Value = "Soyad";
+                workSheet.Cells[2, 3].Value = "12345678901";
+                workSheet.Cells[2, 4].Value = "ornek@mail.com";
+                workSheet.Cells[2, 5].Value = "5071234567"; // No leading 0 if 10 digits as user said, or they can type it. Text format prevents dropping leading zero anyway.
+                workSheet.Cells[2, 6].Value = new DateTime(1992, 8, 23); // Enforces Date Value directly
+                workSheet.Cells[2, 7].Value = "E";
+                if (iller.Any()) workSheet.Cells[2, 8].Value = iller.First().Ad;
+                if (branslar.Any()) workSheet.Cells[2, 11].Value = branslar.First().Ad;
+                workSheet.Cells[2, 12].Value = "Örnek Kadro Kurumu";
+
+                // Optional: Make example row italic to stand out
+                for (int i = 1; i <= headers.Length; i++) {
+                     workSheet.Cells[2, i].Style.Font.Italic = true;
+                     workSheet.Cells[2, i].Style.Font.Color.SetColor(System.Drawing.Color.DimGray);
+                }
+
+                // Protect Reference Sheet
+                hiddenSheet.Protection.IsProtected = true;
+
                 return await package.GetAsByteArrayAsync();
             }
         }
@@ -198,11 +227,34 @@ namespace PersonelTakipSistemi.Services
                     brVal.Formula.ExcelFormula = "BranslarListSimple";
                 }
 
+                // Column Formatting
+                workSheet.Column(5).Style.Numberformat.Format = "@"; // Telefon
+                workSheet.Column(6).Style.Numberformat.Format = "dd.MM.yyyy"; // Dogum Tarihi
+
+                // Sample Data Generation
+                workSheet.Cells[2, 1].Value = "Örnek Ad";
+                workSheet.Cells[2, 2].Value = "Soyad";
+                workSheet.Cells[2, 3].Value = "12345678901";
+                workSheet.Cells[2, 4].Value = "ornek@mail.com";
+                workSheet.Cells[2, 5].Value = "5071234567";
+                workSheet.Cells[2, 6].Value = new DateTime(1992, 8, 23);
+                workSheet.Cells[2, 7].Value = "E";
+                if (iller.Any()) workSheet.Cells[2, 8].Value = iller.First().Ad;
+                if (branslar.Any()) workSheet.Cells[2, 11].Value = branslar.First().Ad;
+                workSheet.Cells[2, 12].Value = "Örnek Kadro Kurumu";
+
+                for (int i = 1; i <= headers.Length; i++) {
+                     workSheet.Cells[2, i].Style.Font.Italic = true;
+                     workSheet.Cells[2, i].Style.Font.Color.SetColor(System.Drawing.Color.DimGray);
+                }
+
+                hiddenSheet.Protection.IsProtected = true;
+
                 return await package.GetAsByteArrayAsync();
             }
         }
 
-        public async Task<(List<Personel> personeller, List<string> errors)> ImportPersonelListAsync(IFormFile file, bool isSimple = false)
+        public async Task<(List<Personel> personeller, List<string> errors)> ImportPersonelListAsync(IFormFile file)
         {
             var errors = new List<string>();
             var personeller = new List<Personel>();
@@ -253,22 +305,35 @@ namespace PersonelTakipSistemi.Services
                             // Skip empty rows
                             if (string.IsNullOrEmpty(tc) && string.IsNullOrEmpty(ad)) continue;
 
+                            // Skip the example row if the user accidentally left it in
+                            if (ad == "Örnek Ad" && soyad == "Soyad" && tc == "12345678901") continue;
+
+                            string rowIdent = $"{ad} {soyad}".Trim();
+                            if (string.IsNullOrEmpty(rowIdent)) rowIdent = $"Satır {row}";
+
                             // Validation
                             if (string.IsNullOrEmpty(ad) || string.IsNullOrEmpty(soyad) || string.IsNullOrEmpty(tc))
                             {
-                                errors.Add($"Satır {row}: Ad, Soyad ve TC zorunludur.");
+                                errors.Add($"{rowIdent}: Ad, Soyad ve TC zorunludur.");
                                 continue;
                             }
 
                             if (existingTcs.Contains(tc))
                             {
-                                errors.Add($"Satır {row}: TC Kimlik No ({tc}) zaten kayıtlı.");
+                                errors.Add($"{rowIdent}: TC Kimlik No ({tc}) zaten kayıtlı.");
                                 continue;
                             }
 
                             if (!string.IsNullOrEmpty(email) && existingEmails.Contains(email))
                             {
-                                errors.Add($"Satır {row}: E-posta ({email}) zaten kayıtlı.");
+                                errors.Add($"{rowIdent}: E-posta ({email}) zaten kayıtlı.");
+                                continue;
+                            }
+                            
+                            // Phone validation (10 digits)
+                            if (string.IsNullOrEmpty(phone) || phone.Length != 10 || !long.TryParse(phone, out _))
+                            {
+                                errors.Add($"{rowIdent}: Telefon numarası başında sıfır olmadan 10 hane olmalıdır (Örn: 5071234567).");
                                 continue;
                             }
 
@@ -276,19 +341,48 @@ namespace PersonelTakipSistemi.Services
                             var il = ilList.FirstOrDefault(x => x.Ad.Equals(ilName, StringComparison.OrdinalIgnoreCase));
                             if (il == null)
                             {
-                                errors.Add($"Satır {row}: '{ilName}' şehri sistemde bulunamadı.");
+                                errors.Add($"{rowIdent}: '{ilName}' şehri sistemde bulunamadı.");
                                 continue;
                             }
 
                             var brans = bransList.FirstOrDefault(x => x.Ad.Equals(bransName, StringComparison.OrdinalIgnoreCase));
                             if (brans == null)
                             {
-                                errors.Add($"Satır {row}: '{bransName}' branşı sistemde bulunamadı.");
+                                errors.Add($"{rowIdent}: '{bransName}' branşı sistemde bulunamadı.");
+                                continue;
+                            }
+
+                            // Gender Validation
+                            if (genderStr != "E" && genderStr != "K")
+                            {
+                                errors.Add($"{rowIdent}: Cinsiyet sadece 'E' veya 'K' olmalıdır.");
                                 continue;
                             }
 
                             DateTime birthDate;
-                            if (!DateTime.TryParse(birthDateStr, out birthDate)) birthDate = new DateTime(1990, 1, 1);
+                            var rawDateValue = workSheet.Cells[row, 6].Value;
+
+                            if (rawDateValue is DateTime dtVal)
+                            {
+                                birthDate = dtVal;
+                            }
+                            else if (rawDateValue is double OADate)
+                            {
+                                // Excel Date Format (Float/Double)
+                                birthDate = DateTime.FromOADate(OADate);
+                            }
+                            else
+                            {
+                                string[] formats = { "dd.MM.yyyy", "d.M.yyyy", "dd/MM/yyyy", "d/M/yyyy", "yyyy-MM-dd", "dd.MM.yy" };
+                                if (!DateTime.TryParseExact(birthDateStr, formats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out birthDate))
+                                {
+                                    if (!DateTime.TryParse(birthDateStr, out birthDate))
+                                    {
+                                         errors.Add($"{rowIdent}: Doğum tarihi okunamadı, (GG.AA.YYYY) formatında olmalıdır. Algılanan: {birthDateStr}");
+                                         continue;
+                                    }
+                                }
+                            }
 
                             int? kadroIlId = null;
                             if (!string.IsNullOrEmpty(kadroIlName))
@@ -300,7 +394,33 @@ namespace PersonelTakipSistemi.Services
                             int? kadroIlceId = null;
                             if (kadroIlId.HasValue && !string.IsNullOrEmpty(kadroIlceName))
                             {
-                                var kilce = ilceList.FirstOrDefault(x => x.IlId == kadroIlId.Value && x.Ad.Equals(kadroIlceName, StringComparison.OrdinalIgnoreCase));
+                                var ilceninBagliOlduguIller = ilceList.Where(x => x.IlId == kadroIlId.Value).ToList();
+                                // 1. Try exact match first
+                                var kilce = ilceninBagliOlduguIller.FirstOrDefault(x => x.Ad.Equals(kadroIlceName, StringComparison.OrdinalIgnoreCase));
+                                
+                                if (kilce == null)
+                                {
+                                    var normalizedInput = NormalizeForFuzzyMatch(kadroIlceName);
+                                    
+                                    // 2. Direct normalized match (ignores case, spaces, and turkish chars)
+                                    kilce = ilceninBagliOlduguIller.FirstOrDefault(x => NormalizeForFuzzyMatch(x.Ad) == normalizedInput);
+
+                                    // 3. If still null, try Levenshtein distance (allow up to 3 typos)
+                                    if (kilce == null)
+                                    {
+                                        int bestDistance = int.MaxValue;
+                                        foreach(var item in ilceninBagliOlduguIller)
+                                        {
+                                            int dist = CalculateLevenshteinDistance(normalizedInput, NormalizeForFuzzyMatch(item.Ad));
+                                            if (dist < bestDistance && dist <= 3) 
+                                            {
+                                                bestDistance = dist;
+                                                kilce = item;
+                                            }
+                                        }
+                                    }
+                                }
+                                
                                 if (kilce != null) kadroIlceId = kilce.IlceId;
                             }
 
@@ -330,9 +450,7 @@ namespace PersonelTakipSistemi.Services
                             p.SifreHash = passwordHash;
                             p.SifreSalt = passwordSalt;
 
-                            if (!isSimple)
-                            {
-                                // Process Many-to-Many Collections
+                            // Process Many-to-Many Collections
                             // Yazilimlar
                             var yazilimStr = workSheet.Cells[row, 13].Text;
                             if (!string.IsNullOrEmpty(yazilimStr))
@@ -388,7 +506,6 @@ namespace PersonelTakipSistemi.Services
                                     }
                                 }
                             }
-                        }
 
                             personeller.Add(p);
                         }
@@ -398,7 +515,8 @@ namespace PersonelTakipSistemi.Services
                         }
                     }
 
-                    if (errors.Count == 0 && personeller.Count > 0)
+                    // Save the successfully parsed personnel regardless of errors in other rows
+                    if (personeller.Count > 0)
                     {
                         await _context.Personeller.AddRangeAsync(personeller);
                         await _context.SaveChangesAsync();
@@ -416,6 +534,60 @@ namespace PersonelTakipSistemi.Services
                 passwordSalt = hmac.Key;
                 passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
             }
+        }
+        
+        private string NormalizeForFuzzyMatch(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return string.Empty;
+            
+            input = input.ToLowerInvariant();
+            
+            // Normalize Turkish characters
+            input = input.Replace("ç", "c").Replace("ğ", "g").Replace("ı", "i")
+                         .Replace("i", "i").Replace("ö", "o").Replace("ş", "s").Replace("ü", "u");
+
+            // Remove all spaces and punctuation
+            var sb = new System.Text.StringBuilder();
+            foreach (char c in input)
+            {
+                if (!char.IsPunctuation(c) && !char.IsWhiteSpace(c))
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString();
+        }
+
+        private int CalculateLevenshteinDistance(string source, string target)
+        {
+            if (string.IsNullOrEmpty(source))
+            {
+                if (string.IsNullOrEmpty(target)) return 0;
+                return target.Length;
+            }
+
+            if (string.IsNullOrEmpty(target)) return source.Length;
+
+            int n = source.Length;
+            int m = target.Length;
+            int[,] d = new int[n + 1, m + 1];
+
+            // Initialize the first row and column
+            for (int i = 0; i <= n; d[i, 0] = i++) { }
+            for (int j = 1; j <= m; d[0, j] = j++) { }
+
+            for (int i = 1; i <= n; i++)
+            {
+                for (int j = 1; j <= m; j++)
+                {
+                    int cost = (target[j - 1] == source[i - 1]) ? 0 : 1;
+                    int min1 = d[i - 1, j] + 1;
+                    int min2 = d[i, j - 1] + 1;
+                    int min3 = d[i - 1, j - 1] + cost;
+                    d[i, j] = Math.Min(Math.Min(min1, min2), min3);
+                }
+            }
+            return d[n, m];
         }
     }
 }

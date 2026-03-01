@@ -85,6 +85,14 @@ namespace PersonelTakipSistemi.Data
             modelBuilder.Entity<BildirimGonderen>(entity => {
                 entity.ToTable("BildirimGonderenler");
                 entity.HasOne(e => e.Personel).WithMany().HasForeignKey(e => e.PersonelId).OnDelete(DeleteBehavior.Cascade);
+                
+                // Seed "Sistem" Sender with ID 1 so NotificationService.CreateAsync works
+                entity.HasData(new BildirimGonderen { 
+                    Id = 1,
+                    Tip = GonderenTip.Sistem,
+                    GorunenAd = "Sistem",
+                    PersonelId = null
+                });
             });
 
             modelBuilder.Entity<TopluBildirim>(entity => {

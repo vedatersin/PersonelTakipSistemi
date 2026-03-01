@@ -11,18 +11,18 @@
         max-width: 900px;
         margin: 0 auto;
     }
-    .svg-turkiye-haritasi {
+    #svg-turkiye-haritasi {
         width: 100%;
         height: auto;
     }
-    .svg-turkiye-haritasi svg path {
+    #svg-turkiye-haritasi path {
         fill: #bdc3c7; /* Varsayılan Gri */
         stroke: #fff;
         stroke-width: 0.5;
         transition: fill 0.3s ease, transform 0.2s ease;
         cursor: pointer;
     }
-    .svg-turkiye-haritasi svg path:hover {
+    #svg-turkiye-haritasi path:hover {
         opacity: 0.8;
         transform: scale(1.01);
         transform-origin: center;
@@ -476,10 +476,8 @@
                 selectedIlId = null;
             }
 
-            // Harita renklerini bu koordinatörlüğe (Merkez birimine) göre güncelle
-            if (currentTeskilatId == 1) { // Merkez
-                updateMapStatus(currentTeskilatId, koordId);
-            }
+            // Harita renklerini bu koordinatörlüğe göre güncelle
+            updateMapStatus(currentTeskilatId, koordId);
 
             if (koordId) {
                 $.get('/Birimler/GetKomisyonlar?koordinatorlukId=' + koordId, function(data) {

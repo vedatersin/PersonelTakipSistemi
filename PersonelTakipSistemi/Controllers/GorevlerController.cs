@@ -9,10 +9,12 @@ using PersonelTakipSistemi.Models.ViewModels;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using PersonelTakipSistemi.Filters;
 
 namespace PersonelTakipSistemi.Controllers
 {
     [Authorize]
+    [ReadOnlyForHighLevelRoles]
     public class GorevlerController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;
@@ -125,8 +127,7 @@ namespace PersonelTakipSistemi.Controllers
                 var displayText = k.Ad;
                 if (k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null)
                 {
-                    var birimAd = k.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "");
-                    displayText = $"{k.Koordinatorluk.Il.Ad} {birimAd} {k.Ad}";
+                    displayText = $"{k.Koordinatorluk.Il.Ad} Komisyonu";
                 }
                 return new SelectListItem {
                     Value = k.KomisyonId.ToString(),
@@ -140,6 +141,9 @@ namespace PersonelTakipSistemi.Controllers
             {
                 personelQuery = personelQuery.Where(p => p.PersonelKomisyonlar.Any(pk => pk.KomisyonId == assignedKomisyonId.Value));
             }
+            
+            // Exclude highest level roles from being assigned to any duties
+            personelQuery = personelQuery.Where(p => !p.PersonelKurumsalRolAtamalari.Any(r => new[] { 7, 8, 9, 10 }.Contains(r.KurumsalRolId)));
 
             ViewBag.Personeller = await personelQuery//.Where(x => x.AktifMi) -- Allow passive
                                           .OrderBy(x => x.Ad).ThenBy(x => x.Soyad)
@@ -422,7 +426,7 @@ namespace PersonelTakipSistemi.Controllers
                             Id = x.KomisyonId, 
                             Name = x.Komisyon != null ? 
                                    (x.Komisyon.BagliMerkezKoordinatorlukId != null && x.Komisyon.Koordinatorluk != null && x.Komisyon.Koordinatorluk.Il != null ? 
-                                     $"{x.Komisyon.Koordinatorluk.Il.Ad} {x.Komisyon.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "")} {x.Komisyon.Ad}" : x.Komisyon.Ad) 
+                                     $"{x.Komisyon.Koordinatorluk.Il.Ad} Komisyonu" : x.Komisyon.Ad) 
                                    : "Silinmiş", 
                             Type = "Komisyon" 
                         })
@@ -488,6 +492,18 @@ namespace PersonelTakipSistemi.Controllers
                 if (passivePersonels.Any())
                 {
                     return BadRequest(new { success = false, message = $"Pasif personel atanamaz: {string.Join(", ", passivePersonels)}" });
+                }
+
+                // VALIDATION: Check for High Level Roles (Genel Müdür vb.)
+                var highLevelRoles = new[] { 7, 8, 9, 10 };
+                var unauthorizedPersonels = await _context.Personeller
+                    .Where(p => model.PersonelIds.Contains(p.PersonelId) && p.PersonelKurumsalRolAtamalari.Any(r => highLevelRoles.Contains(r.KurumsalRolId)))
+                    .Select(p => p.Ad + " " + p.Soyad)
+                    .ToListAsync();
+
+                if (unauthorizedPersonels.Any())
+                {
+                    return BadRequest(new { success = false, message = $"Genel Müdür, Daire Başkanı, Şube Müdürü ve Şef rollerindeki personeller görevlere atanamaz: {string.Join(", ", unauthorizedPersonels)}" });
                 }
             }
 
@@ -669,7 +685,7 @@ namespace PersonelTakipSistemi.Controllers
                 var result = list.Select(x => new { 
                         id = x.KomisyonId, 
                         text = (x.BagliMerkezKoordinatorlukId != null && x.Koordinatorluk != null && x.Koordinatorluk.Il != null 
-                                ? $"{x.Koordinatorluk.Il.Ad} {x.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "")} {x.Ad}" 
+                                ? $"{x.Koordinatorluk.Il.Ad} Komisyonu" 
                                 : x.Ad)
                     })
                     .Take(20)
@@ -680,6 +696,7 @@ namespace PersonelTakipSistemi.Controllers
             {
                  var list = await _context.Personeller
                     .Where(x => (x.Ad.ToLower().Contains(q) || x.Soyad.ToLower().Contains(q))) // Removed AktifMi check
+                    .Where(x => !x.PersonelKurumsalRolAtamalari.Any(r => new[] { 7, 8, 9, 10 }.Contains(r.KurumsalRolId))) // Exclude highest level roles
                     .Select(x => new { id = x.PersonelId, text = x.Ad + " " + x.Soyad + (!x.AktifMi ? " (Pasif)" : ""), disabled = !x.AktifMi })
                     .Take(20)
                     .ToListAsync();

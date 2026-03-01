@@ -5,10 +5,12 @@ using PersonelTakipSistemi.Models;
 using PersonelTakipSistemi.ViewModels;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using PersonelTakipSistemi.Filters;
 
 namespace PersonelTakipSistemi.Controllers
 {
     [Authorize]
+    [ReadOnlyForHighLevelRoles]
     public class BirimYonetimiController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;
@@ -67,7 +69,7 @@ namespace PersonelTakipSistemi.Controllers
             {
                 Id = k.KomisyonId,
                 Ad = k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null 
-                    ? $"{k.Koordinatorluk.Il.Ad} Komisyonu" 
+                    ? $"{k.Koordinatorluk.Il.Ad} {k.Ad}" 
                     : k.Ad,
                 Tur = "Komisyon",
                 IlId = k.Koordinatorluk?.IlId,
@@ -77,9 +79,25 @@ namespace PersonelTakipSistemi.Controllers
             }).ToList();
 
             // 2. Harita Verisi
-            var highlightIlIds = model.IsMerkez 
-                ? komisyonlar.Where(k => k.Koordinatorluk?.IlId != null).Select(k => k.Koordinatorluk!.IlId!.Value).ToList()
-                : (model.IlId.HasValue ? new List<int> { model.IlId.Value } : new List<int>());
+            List<int> highlightIlIds = new List<int>();
+
+            if (model.IsMerkez)
+            {
+                // Merkez koordinatörlüğüne bağlı taşra komisyonlarının illeri
+                highlightIlIds = komisyonlar
+                    .Where(k => k.Koordinatorluk != null && k.Koordinatorluk.IlId.HasValue)
+                    .Select(k => k.Koordinatorluk!.IlId!.Value)
+                    .Distinct()
+                    .ToList();
+            }
+            else
+            {
+                // Taşra koordinatörlüğü ise sadece kendi bulunduğu il
+                if (model.IlId.HasValue)
+                {
+                    highlightIlIds.Add(model.IlId.Value);
+                }
+            }
 
             model.HaritaIlleri = await _context.Iller
                 .Select(il => new HaritaIlItem

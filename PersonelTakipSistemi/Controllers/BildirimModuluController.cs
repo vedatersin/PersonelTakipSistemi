@@ -5,10 +5,12 @@ using PersonelTakipSistemi.Data;
 using PersonelTakipSistemi.Dtos;
 using PersonelTakipSistemi.Services;
 using System.Security.Claims;
+using PersonelTakipSistemi.Filters;
 
 namespace PersonelTakipSistemi.Controllers
 {
     [Authorize(Roles = "Admin,Yönetici")]
+    [ReadOnlyForHighLevelRoles]
     public class BildirimModuluController : Controller
     {
         private readonly INotificationService _notificationService;

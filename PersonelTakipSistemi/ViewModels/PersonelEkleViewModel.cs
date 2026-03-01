@@ -128,5 +128,6 @@ namespace PersonelTakipSistemi.ViewModels
     {
         public int Id { get; set; }
         public string Ad { get; set; } = null!;
+        public string? Tur { get; set; }
     }
 }
