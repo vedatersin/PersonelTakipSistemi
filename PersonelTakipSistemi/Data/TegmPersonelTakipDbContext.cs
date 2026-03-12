@@ -566,6 +566,11 @@ namespace PersonelTakipSistemi.Data
                     .HasForeignKey(e => e.PersonelId)
                     .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(e => e.CreatedByPersonel)
+                    .WithMany()
+                    .HasForeignKey(e => e.CreatedByPersonelId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
                 entity.HasOne(e => e.Birim)
                     .WithMany(b => b.Gorevler)
                     .HasForeignKey(e => e.BirimId)
