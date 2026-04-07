@@ -156,12 +156,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BirimId = 1,
-                            Ad = "Yazılım Birimi"
+                            Ad = "YazÄ±lÄ±m Birimi"
                         },
                         new
                         {
                             BirimId = 2,
-                            Ad = "İçerik Birimi"
+                            Ad = "Ä°Ã§erik Birimi"
                         },
                         new
                         {
@@ -199,7 +199,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 2,
-                            Ad = "Aile ve Tüketici Hizmetleri"
+                            Ad = "Aile ve TÃ¼ketici Hizmetleri"
                         },
                         new
                         {
@@ -209,27 +209,27 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 4,
-                            Ad = "Arapça"
+                            Ad = "ArapÃ§a"
                         },
                         new
                         {
                             BransId = 5,
-                            Ad = "Ayakkabı ve Saraciye Teknolojisi"
+                            Ad = "AyakkabÄ± ve Saraciye Teknolojisi"
                         },
                         new
                         {
                             BransId = 6,
-                            Ad = "Beden Eğitimi"
+                            Ad = "Beden EÄŸitimi"
                         },
                         new
                         {
                             BransId = 7,
-                            Ad = "Bilgisayar ve Öğretim Teknolojileri"
+                            Ad = "Bilgisayar ve Ã–ÄŸretim Teknolojileri"
                         },
                         new
                         {
                             BransId = 8,
-                            Ad = "Bilişim Teknolojileri"
+                            Ad = "BiliÅŸim Teknolojileri"
                         },
                         new
                         {
@@ -239,17 +239,17 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 10,
-                            Ad = "Büro Yönetimi / Büro Yönetimi ve Yönetici Asistanlığı"
+                            Ad = "BÃ¼ro YÃ¶netimi / BÃ¼ro YÃ¶netimi ve YÃ¶netici AsistanlÄ±ÄŸÄ±"
                         },
                         new
                         {
                             BransId = 11,
-                            Ad = "Coğrafya"
+                            Ad = "CoÄŸrafya"
                         },
                         new
                         {
                             BransId = 12,
-                            Ad = "Çocuk Gelişimi ve Eğitimi"
+                            Ad = "Ã‡ocuk GeliÅŸimi ve EÄŸitimi"
                         },
                         new
                         {
@@ -259,22 +259,22 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 14,
-                            Ad = "Denizcilik / Gemi Yönetimi"
+                            Ad = "Denizcilik / Gemi YÃ¶netimi"
                         },
                         new
                         {
                             BransId = 15,
-                            Ad = "Din Kültürü ve Ahlâk Bilgisi"
+                            Ad = "Din KÃ¼ltÃ¼rÃ¼ ve AhlÃ¢k Bilgisi"
                         },
                         new
                         {
                             BransId = 16,
-                            Ad = "El Sanatları Teknolojisi / El Sanatları"
+                            Ad = "El SanatlarÄ± Teknolojisi / El SanatlarÄ±"
                         },
                         new
                         {
                             BransId = 17,
-                            Ad = "El Sanatları Teknolojisi / Nakış"
+                            Ad = "El SanatlarÄ± Teknolojisi / NakÄ±ÅŸ"
                         },
                         new
                         {
@@ -289,12 +289,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 20,
-                            Ad = "Endüstriyel Otomasyon Teknolojileri"
+                            Ad = "EndÃ¼striyel Otomasyon Teknolojileri"
                         },
                         new
                         {
                             BransId = 21,
-                            Ad = "Farsça"
+                            Ad = "FarsÃ§a"
                         },
                         new
                         {
@@ -314,27 +314,27 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 25,
-                            Ad = "Gemi Yapımı / Yat İnşa"
+                            Ad = "Gemi YapÄ±mÄ± / Yat Ä°nÅŸa"
                         },
                         new
                         {
                             BransId = 26,
-                            Ad = "Gıda Teknolojisi"
+                            Ad = "GÄ±da Teknolojisi"
                         },
                         new
                         {
                             BransId = 27,
-                            Ad = "Giyim Üretim Teknolojisi / Moda Tasarım Teknolojileri"
+                            Ad = "Giyim Ãœretim Teknolojisi / Moda TasarÄ±m Teknolojileri"
                         },
                         new
                         {
                             BransId = 28,
-                            Ad = "Görsel Sanatlar"
+                            Ad = "GÃ¶rsel Sanatlar"
                         },
                         new
                         {
                             BransId = 29,
-                            Ad = "Grafik ve Fotoğraf / Grafik"
+                            Ad = "Grafik ve FotoÄŸraf / Grafik"
                         },
                         new
                         {
@@ -344,47 +344,47 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 31,
-                            Ad = "Hasta ve Yaşlı Hizmetleri"
+                            Ad = "Hasta ve YaÅŸlÄ± Hizmetleri"
                         },
                         new
                         {
                             BransId = 32,
-                            Ad = "Hayvan Sağlığı / Hayvan Yetiştiriciliği ve Sağlığı / Hayvan Sağlığı"
+                            Ad = "Hayvan SaÄŸlÄ±ÄŸÄ± / Hayvan YetiÅŸtiriciliÄŸi ve SaÄŸlÄ±ÄŸÄ± / Hayvan SaÄŸlÄ±ÄŸÄ±"
                         },
                         new
                         {
                             BransId = 33,
-                            Ad = "Hayvan Sağlığı / Hayvan Yetiştiriciliği ve Sağlığı / Hayvan Yetiştiriciliği"
+                            Ad = "Hayvan SaÄŸlÄ±ÄŸÄ± / Hayvan YetiÅŸtiriciliÄŸi ve SaÄŸlÄ±ÄŸÄ± / Hayvan YetiÅŸtiriciliÄŸi"
                         },
                         new
                         {
                             BransId = 34,
-                            Ad = "İlköğretim Matematik"
+                            Ad = "Ä°lkÃ¶ÄŸretim Matematik"
                         },
                         new
                         {
                             BransId = 35,
-                            Ad = "İmam-Hatip Lisesi Meslek Dersleri"
+                            Ad = "Ä°mam-Hatip Lisesi Meslek Dersleri"
                         },
                         new
                         {
                             BransId = 36,
-                            Ad = "İngilizce"
+                            Ad = "Ä°ngilizce"
                         },
                         new
                         {
                             BransId = 37,
-                            Ad = "İnşaat Teknolojisi / Yapı Dekorasyon"
+                            Ad = "Ä°nÅŸaat Teknolojisi / YapÄ± Dekorasyon"
                         },
                         new
                         {
                             BransId = 38,
-                            Ad = "İnşaat Teknolojisi / Yapı Tasarım"
+                            Ad = "Ä°nÅŸaat Teknolojisi / YapÄ± TasarÄ±m"
                         },
                         new
                         {
                             BransId = 39,
-                            Ad = "İtfaiyecilik ve Yangın Güvenliği"
+                            Ad = "Ä°tfaiyecilik ve YangÄ±n GÃ¼venliÄŸi"
                         },
                         new
                         {
@@ -404,17 +404,17 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 43,
-                            Ad = "Makine Teknolojisi / Makine ve Tasarım Teknolojisi / Makine Model"
+                            Ad = "Makine Teknolojisi / Makine ve TasarÄ±m Teknolojisi / Makine Model"
                         },
                         new
                         {
                             BransId = 44,
-                            Ad = "Makine Teknolojisi / Makine ve Tasarım Teknolojisi / Makine Ressamlığı"
+                            Ad = "Makine Teknolojisi / Makine ve TasarÄ±m Teknolojisi / Makine RessamlÄ±ÄŸÄ±"
                         },
                         new
                         {
                             BransId = 45,
-                            Ad = "Makine Teknolojisi / Makine ve Tasarım Teknolojisi / Makine ve Kalıp"
+                            Ad = "Makine Teknolojisi / Makine ve TasarÄ±m Teknolojisi / Makine ve KalÄ±p"
                         },
                         new
                         {
@@ -434,12 +434,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 49,
-                            Ad = "Mobilya ve İç Mekan Tasarımı"
+                            Ad = "Mobilya ve Ä°Ã§ Mekan TasarÄ±mÄ±"
                         },
                         new
                         {
                             BransId = 50,
-                            Ad = "Motorlu Araçlar Teknolojisi"
+                            Ad = "Motorlu AraÃ§lar Teknolojisi"
                         },
                         new
                         {
@@ -449,17 +449,17 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 52,
-                            Ad = "Müzik"
+                            Ad = "MÃ¼zik"
                         },
                         new
                         {
                             BransId = 53,
-                            Ad = "Okul Öncesi"
+                            Ad = "Okul Ã–ncesi"
                         },
                         new
                         {
                             BransId = 54,
-                            Ad = "Özel Eğitim"
+                            Ad = "Ã–zel EÄŸitim"
                         },
                         new
                         {
@@ -474,7 +474,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 57,
-                            Ad = "Raylı Sistemler Teknolojisi / Raylı Sistemler Elektrik-Elektronik"
+                            Ad = "RaylÄ± Sistemler Teknolojisi / RaylÄ± Sistemler Elektrik-Elektronik"
                         },
                         new
                         {
@@ -484,17 +484,17 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 59,
-                            Ad = "Rusça"
+                            Ad = "RusÃ§a"
                         },
                         new
                         {
                             BransId = 60,
-                            Ad = "Sağlık / Sağlık Hizmetleri"
+                            Ad = "SaÄŸlÄ±k / SaÄŸlÄ±k Hizmetleri"
                         },
                         new
                         {
                             BransId = 61,
-                            Ad = "Sağlık Bilgisi"
+                            Ad = "SaÄŸlÄ±k Bilgisi"
                         },
                         new
                         {
@@ -504,7 +504,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 63,
-                            Ad = "Sınıf Öğretmenliği"
+                            Ad = "SÄ±nÄ±f Ã–ÄŸretmenliÄŸi"
                         },
                         new
                         {
@@ -514,7 +514,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 65,
-                            Ad = "Tarım Teknolojileri/Tarım"
+                            Ad = "TarÄ±m Teknolojileri/TarÄ±m"
                         },
                         new
                         {
@@ -524,12 +524,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 67,
-                            Ad = "Teknoloji ve Tasarım"
+                            Ad = "Teknoloji ve TasarÄ±m"
                         },
                         new
                         {
                             BransId = 68,
-                            Ad = "Tesisat Teknolojisi ve İklimlendirme"
+                            Ad = "Tesisat Teknolojisi ve Ä°klimlendirme"
                         },
                         new
                         {
@@ -539,27 +539,27 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 70,
-                            Ad = "Türk Dili ve Edebiyatı"
+                            Ad = "TÃ¼rk Dili ve EdebiyatÄ±"
                         },
                         new
                         {
                             BransId = 71,
-                            Ad = "Türkçe"
+                            Ad = "TÃ¼rkÃ§e"
                         },
                         new
                         {
                             BransId = 72,
-                            Ad = "Ulaştırma Hizmetleri / Lojistik"
+                            Ad = "UlaÅŸtÄ±rma Hizmetleri / Lojistik"
                         },
                         new
                         {
                             BransId = 73,
-                            Ad = "Yaşayan Diller ve Lehçeler (Kürtçe / Kurmançi)"
+                            Ad = "YaÅŸayan Diller ve LehÃ§eler (KÃ¼rtÃ§e / KurmanÃ§i)"
                         },
                         new
                         {
                             BransId = 74,
-                            Ad = "Yaşayan Diller ve Lehçeler (Kürtçe / Zazaki)"
+                            Ad = "YaÅŸayan Diller ve LehÃ§eler (KÃ¼rtÃ§e / Zazaki)"
                         },
                         new
                         {
@@ -569,7 +569,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 76,
-                            Ad = "Yiyecek İçecek Hizmetleri"
+                            Ad = "Yiyecek Ä°Ã§ecek Hizmetleri"
                         });
                 });
 
@@ -597,55 +597,55 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             Id = 1,
-                            Ad = "Araştırma Geliştirme ve Projeler Daire Başkanlığı",
+                            Ad = "AraÅŸtÄ±rma GeliÅŸtirme ve Projeler Daire BaÅŸkanlÄ±ÄŸÄ±",
                             IsActive = false
                         },
                         new
                         {
                             Id = 2,
-                            Ad = "Eğitim Ortamlarının ve Öğrenme Süreçlerinin Geliştirilmesi Daire Başkanlığı",
+                            Ad = "EÄŸitim OrtamlarÄ±nÄ±n ve Ã–ÄŸrenme SÃ¼reÃ§lerinin GeliÅŸtirilmesi Daire BaÅŸkanlÄ±ÄŸÄ±",
                             IsActive = false
                         },
                         new
                         {
                             Id = 3,
-                            Ad = "Eğitim Politikaları Daire Başkanlığı",
+                            Ad = "EÄŸitim PolitikalarÄ± Daire BaÅŸkanlÄ±ÄŸÄ±",
                             IsActive = false
                         },
                         new
                         {
                             Id = 4,
-                            Ad = "Erken Çocukluk Eğitimi Daire Başkanlığı",
+                            Ad = "Erken Ã‡ocukluk EÄŸitimi Daire BaÅŸkanlÄ±ÄŸÄ±",
                             IsActive = false
                         },
                         new
                         {
                             Id = 5,
-                            Ad = "İdari ve Mali İşler Daire Başkanlığı",
+                            Ad = "Ä°dari ve Mali Ä°ÅŸler Daire BaÅŸkanlÄ±ÄŸÄ±",
                             IsActive = false
                         },
                         new
                         {
                             Id = 6,
-                            Ad = "İzleme ve Değerlendirme Daire Başkanlığı",
+                            Ad = "Ä°zleme ve DeÄŸerlendirme Daire BaÅŸkanlÄ±ÄŸÄ±",
                             IsActive = false
                         },
                         new
                         {
                             Id = 7,
-                            Ad = "Kültür, Sanat ve Spor Etkinlikleri Daire Başkanlığı",
+                            Ad = "KÃ¼ltÃ¼r, Sanat ve Spor Etkinlikleri Daire BaÅŸkanlÄ±ÄŸÄ±",
                             IsActive = false
                         },
                         new
                         {
                             Id = 8,
-                            Ad = "Öğrenci İşleri Daire Başkanlığı",
+                            Ad = "Ã–ÄŸrenci Ä°ÅŸleri Daire BaÅŸkanlÄ±ÄŸÄ±",
                             IsActive = false
                         },
                         new
                         {
                             Id = 9,
-                            Ad = "Programlar ve Öğretim Materyalleri Daire Başkanlığı",
+                            Ad = "Programlar ve Ã–ÄŸretim Materyalleri Daire BaÅŸkanlÄ±ÄŸÄ±",
                             IsActive = true
                         });
                 });
@@ -720,12 +720,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 1,
-                            Aciklama = "Dizgi taslağını hazırla",
+                            Aciklama = "Dizgi taslaÄŸÄ±nÄ± hazÄ±rla",
                             Ad = "Matematik 9 Kitap Dizgisi",
                             BaslangicTarihi = new DateTime(2025, 11, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 11, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4707),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6081),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 1,
@@ -734,12 +734,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 2,
-                            Aciklama = "Kapak görseli revizesi",
-                            Ad = "Fizik 10 Kapak Tasarımı",
+                            Aciklama = "Kapak gÃ¶rseli revizesi",
+                            Ad = "Fizik 10 Kapak TasarÄ±mÄ±",
                             BaslangicTarihi = new DateTime(2025, 11, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 11, 8, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4722),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6094),
                             GorevDurumId = 3,
                             IsActive = true,
                             KategoriId = 1,
@@ -748,11 +748,11 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 3,
-                            Aciklama = "Yazım hatalarının kontrolü",
-                            Ad = "Kimya 11 Yazım Denetimi",
+                            Aciklama = "YazÄ±m hatalarÄ±nÄ±n kontrolÃ¼",
+                            Ad = "Kimya 11 YazÄ±m Denetimi",
                             BaslangicTarihi = new DateTime(2025, 12, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4724),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6097),
                             GorevDurumId = 1,
                             IsActive = true,
                             KategoriId = 1,
@@ -761,12 +761,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 4,
-                            Aciklama = "Soru girişleri",
-                            Ad = "LGS Soru Bankası",
+                            Aciklama = "Soru giriÅŸleri",
+                            Ad = "LGS Soru BankasÄ±",
                             BaslangicTarihi = new DateTime(2025, 11, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
                             BitisTarihi = new DateTime(2025, 12, 15, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4727),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6099),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 2,
@@ -775,11 +775,11 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 5,
-                            Aciklama = "Baskı öncesi kontrol",
+                            Aciklama = "BaskÄ± Ã¶ncesi kontrol",
                             Ad = "YKS Deneme Seti",
                             BaslangicTarihi = new DateTime(2025, 11, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4729),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6101),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 2,
@@ -788,12 +788,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 6,
-                            Aciklama = "İlkokul seviyesi görselleştirme",
-                            Ad = "Etkinlik Yaprakları",
+                            Aciklama = "Ä°lkokul seviyesi gÃ¶rselleÅŸtirme",
+                            Ad = "Etkinlik YapraklarÄ±",
                             BaslangicTarihi = new DateTime(2025, 10, 20, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 10, 25, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4765),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6104),
                             GorevDurumId = 4,
                             IsActive = true,
                             KategoriId = 2,
@@ -802,11 +802,11 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 7,
-                            Aciklama = "Ders videoları kurgusu",
+                            Aciklama = "Ders videolarÄ± kurgusu",
                             Ad = "EBA Video Montaj",
                             BaslangicTarihi = new DateTime(2025, 12, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 1,
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4769),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6106),
                             GorevDurumId = 1,
                             IsActive = true,
                             KategoriId = 3,
@@ -815,12 +815,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 8,
-                            Aciklama = "Karakter çizimleri",
+                            Aciklama = "Karakter Ã§izimleri",
                             Ad = "Animasyon Karakterleri",
                             BaslangicTarihi = new DateTime(2025, 11, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 3,
                             BitisTarihi = new DateTime(2025, 12, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4771),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6107),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 3,
@@ -829,12 +829,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 9,
-                            Aciklama = "Stüdyo planlaması",
-                            Ad = "Seslendirme Kayıtları",
+                            Aciklama = "StÃ¼dyo planlamasÄ±",
+                            Ad = "Seslendirme KayÄ±tlarÄ±",
                             BaslangicTarihi = new DateTime(2025, 11, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
                             BitisTarihi = new DateTime(2025, 11, 2, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4773),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6141),
                             GorevDurumId = 4,
                             IsActive = true,
                             KategoriId = 3,
@@ -843,11 +843,11 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 10,
-                            Aciklama = "Talim Terbiye notları",
-                            Ad = "Müfredat İncelemesi",
+                            Aciklama = "Talim Terbiye notlarÄ±",
+                            Ad = "MÃ¼fredat Ä°ncelemesi",
                             BaslangicTarihi = new DateTime(2025, 12, 10, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4776),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6144),
                             GorevDurumId = 2,
                             IsActive = true,
                             KategoriId = 4,
@@ -856,11 +856,11 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 11,
-                            Aciklama = "Excel tablosu hazırlığı",
-                            Ad = "Kazanım Eşleştirme",
+                            Aciklama = "Excel tablosu hazÄ±rlÄ±ÄŸÄ±",
+                            Ad = "KazanÄ±m EÅŸleÅŸtirme",
                             BaslangicTarihi = new DateTime(2025, 12, 12, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 2,
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4778),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6146),
                             GorevDurumId = 1,
                             IsActive = true,
                             KategoriId = 4,
@@ -869,12 +869,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevId = 12,
-                            Aciklama = "2. Dönem planlaması",
-                            Ad = "Haftalık Plan",
+                            Aciklama = "2. DÃ¶nem planlamasÄ±",
+                            Ad = "HaftalÄ±k Plan",
                             BaslangicTarihi = new DateTime(2025, 11, 28, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             BirimId = 1,
                             BitisTarihi = new DateTime(2025, 11, 30, 0, 0, 0, 0, DateTimeKind.Unspecified),
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(4779),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(6147),
                             GorevDurumId = 4,
                             IsActive = true,
                             KategoriId = 4,
@@ -974,7 +974,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevDurumId = 1,
-                            Ad = "Atanmayı Bekliyor",
+                            Ad = "AtanmayÄ± Bekliyor",
                             Renk = "#F59E0B",
                             RenkSinifi = "bg-warning",
                             Sira = 1
@@ -998,7 +998,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevDurumId = 4,
-                            Ad = "Tamamlandı",
+                            Ad = "TamamlandÄ±",
                             Renk = "#10B981",
                             RenkSinifi = "bg-success",
                             Sira = 4
@@ -1006,7 +1006,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevDurumId = 5,
-                            Ad = "İptal",
+                            Ad = "Ä°ptal",
                             Renk = "#6B7280",
                             RenkSinifi = "bg-secondary",
                             Sira = 5
@@ -1088,36 +1088,36 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevKategoriId = 1,
-                            Aciklama = "Ders kitabı hazırlık işleri",
-                            Ad = "Ders Kitapları",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(464),
+                            Aciklama = "Ders kitabÄ± hazÄ±rlÄ±k iÅŸleri",
+                            Ad = "Ders KitaplarÄ±",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(2203),
                             IsActive = true,
                             Renk = "#3B82F6"
                         },
                         new
                         {
                             GorevKategoriId = 2,
-                            Aciklama = "Soru bankası ve etkinlikler",
-                            Ad = "Yardımcı Kaynaklar",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(471),
+                            Aciklama = "Soru bankasÄ± ve etkinlikler",
+                            Ad = "YardÄ±mcÄ± Kaynaklar",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(2215),
                             IsActive = true,
                             Renk = "#10B981"
                         },
                         new
                         {
                             GorevKategoriId = 3,
-                            Aciklama = "Video ve animasyon işleri",
-                            Ad = "Dijital İçerik",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(472),
+                            Aciklama = "Video ve animasyon iÅŸleri",
+                            Ad = "Dijital Ä°Ã§erik",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(2217),
                             IsActive = true,
                             Renk = "#F59E0B"
                         },
                         new
                         {
                             GorevKategoriId = 4,
-                            Aciklama = "Müfredat çalışmaları",
+                            Aciklama = "MÃ¼fredat Ã§alÄ±ÅŸmalarÄ±",
                             Ad = "Programlar",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 29, DateTimeKind.Local).AddTicks(473),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 42, DateTimeKind.Local).AddTicks(2218),
                             IsActive = true,
                             Renk = "#8B5CF6"
                         });
@@ -1151,27 +1151,27 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevTuruId = 2,
-                            Ad = "Görsel Üretim"
+                            Ad = "GÃ¶rsel Ãœretim"
                         },
                         new
                         {
                             GorevTuruId = 3,
-                            Ad = "Çizer"
+                            Ad = "Ã‡izer"
                         },
                         new
                         {
                             GorevTuruId = 4,
-                            Ad = "Çizgi Roman Renklendirme"
+                            Ad = "Ã‡izgi Roman Renklendirme"
                         },
                         new
                         {
                             GorevTuruId = 5,
-                            Ad = "Görsel Kontrolü"
+                            Ad = "GÃ¶rsel KontrolÃ¼"
                         },
                         new
                         {
                             GorevTuruId = 6,
-                            Ad = "Çoklu Ortam Tasarımı"
+                            Ad = "Ã‡oklu Ortam TasarÄ±mÄ±"
                         },
                         new
                         {
@@ -1181,12 +1181,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             GorevTuruId = 8,
-                            Ad = "Fotoğraf Çekimi"
+                            Ad = "FotoÄŸraf Ã‡ekimi"
                         },
                         new
                         {
                             GorevTuruId = 9,
-                            Ad = "Açıklama"
+                            Ad = "AÃ§Ä±klama"
                         });
                 });
 
@@ -1219,7 +1219,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 2,
-                            Ad = "Adıyaman"
+                            Ad = "AdÄ±yaman"
                         },
                         new
                         {
@@ -1229,7 +1229,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 4,
-                            Ad = "Ağrı"
+                            Ad = "AÄŸrÄ±"
                         },
                         new
                         {
@@ -1254,12 +1254,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 9,
-                            Ad = "Aydın"
+                            Ad = "AydÄ±n"
                         },
                         new
                         {
                             IlId = 10,
-                            Ad = "Balıkesir"
+                            Ad = "BalÄ±kesir"
                         },
                         new
                         {
@@ -1269,7 +1269,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 12,
-                            Ad = "Bingöl"
+                            Ad = "BingÃ¶l"
                         },
                         new
                         {
@@ -1294,17 +1294,17 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 17,
-                            Ad = "Çanakkale"
+                            Ad = "Ã‡anakkale"
                         },
                         new
                         {
                             IlId = 18,
-                            Ad = "Çankırı"
+                            Ad = "Ã‡ankÄ±rÄ±"
                         },
                         new
                         {
                             IlId = 19,
-                            Ad = "Çorum"
+                            Ad = "Ã‡orum"
                         },
                         new
                         {
@@ -1314,7 +1314,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 21,
-                            Ad = "Diyarbakır"
+                            Ad = "DiyarbakÄ±r"
                         },
                         new
                         {
@@ -1324,7 +1324,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 23,
-                            Ad = "Elazığ"
+                            Ad = "ElazÄ±ÄŸ"
                         },
                         new
                         {
@@ -1339,7 +1339,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 26,
-                            Ad = "Eskişehir"
+                            Ad = "EskiÅŸehir"
                         },
                         new
                         {
@@ -1354,7 +1354,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 29,
-                            Ad = "Gümüşhane"
+                            Ad = "GÃ¼mÃ¼ÅŸhane"
                         },
                         new
                         {
@@ -1379,12 +1379,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 34,
-                            Ad = "İstanbul"
+                            Ad = "Ä°stanbul"
                         },
                         new
                         {
                             IlId = 35,
-                            Ad = "İzmir"
+                            Ad = "Ä°zmir"
                         },
                         new
                         {
@@ -1404,12 +1404,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 39,
-                            Ad = "Kırklareli"
+                            Ad = "KÄ±rklareli"
                         },
                         new
                         {
                             IlId = 40,
-                            Ad = "Kırşehir"
+                            Ad = "KÄ±rÅŸehir"
                         },
                         new
                         {
@@ -1424,7 +1424,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 43,
-                            Ad = "Kütahya"
+                            Ad = "KÃ¼tahya"
                         },
                         new
                         {
@@ -1439,7 +1439,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 46,
-                            Ad = "Kahramanmaraş"
+                            Ad = "KahramanmaraÅŸ"
                         },
                         new
                         {
@@ -1449,22 +1449,22 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 48,
-                            Ad = "Muğla"
+                            Ad = "MuÄŸla"
                         },
                         new
                         {
                             IlId = 49,
-                            Ad = "Muş"
+                            Ad = "MuÅŸ"
                         },
                         new
                         {
                             IlId = 50,
-                            Ad = "Nevşehir"
+                            Ad = "NevÅŸehir"
                         },
                         new
                         {
                             IlId = 51,
-                            Ad = "Niğde"
+                            Ad = "NiÄŸde"
                         },
                         new
                         {
@@ -1504,7 +1504,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 59,
-                            Ad = "Tekirdağ"
+                            Ad = "TekirdaÄŸ"
                         },
                         new
                         {
@@ -1524,12 +1524,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 63,
-                            Ad = "Şanlıurfa"
+                            Ad = "ÅžanlÄ±urfa"
                         },
                         new
                         {
                             IlId = 64,
-                            Ad = "Uşak"
+                            Ad = "UÅŸak"
                         },
                         new
                         {
@@ -1564,7 +1564,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 71,
-                            Ad = "Kırıkkale"
+                            Ad = "KÄ±rÄ±kkale"
                         },
                         new
                         {
@@ -1574,12 +1574,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 73,
-                            Ad = "Şırnak"
+                            Ad = "ÅžÄ±rnak"
                         },
                         new
                         {
                             IlId = 74,
-                            Ad = "Bartın"
+                            Ad = "BartÄ±n"
                         },
                         new
                         {
@@ -1589,7 +1589,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 76,
-                            Ad = "Iğdır"
+                            Ad = "IÄŸdÄ±r"
                         },
                         new
                         {
@@ -1599,7 +1599,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 78,
-                            Ad = "Karabük"
+                            Ad = "KarabÃ¼k"
                         },
                         new
                         {
@@ -1614,7 +1614,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IlId = 81,
-                            Ad = "Düzce"
+                            Ad = "DÃ¼zce"
                         });
                 });
 
@@ -7498,32 +7498,32 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IsNiteligiId = 1,
-                            Ad = "Ders Kitabı"
+                            Ad = "Ders KitabÄ±"
                         },
                         new
                         {
                             IsNiteligiId = 2,
-                            Ad = "Çalışma Kitabı"
+                            Ad = "Ã‡alÄ±ÅŸma KitabÄ±"
                         },
                         new
                         {
                             IsNiteligiId = 3,
-                            Ad = "Hikâye Kitabı"
+                            Ad = "HikÃ¢ye KitabÄ±"
                         },
                         new
                         {
                             IsNiteligiId = 4,
-                            Ad = "Çizgi Roman"
+                            Ad = "Ã‡izgi Roman"
                         },
                         new
                         {
                             IsNiteligiId = 5,
-                            Ad = "Çoklu Ortam"
+                            Ad = "Ã‡oklu Ortam"
                         },
                         new
                         {
                             IsNiteligiId = 6,
-                            Ad = "MEBİ Mümtaz Şahsiyetler"
+                            Ad = "MEBÄ° MÃ¼mtaz Åžahsiyetler"
                         },
                         new
                         {
@@ -7533,7 +7533,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IsNiteligiId = 8,
-                            Ad = "E Bülten"
+                            Ad = "E BÃ¼lten"
                         },
                         new
                         {
@@ -7543,12 +7543,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             IsNiteligiId = 10,
-                            Ad = "Öğretim Programı"
+                            Ad = "Ã–ÄŸretim ProgramÄ±"
                         },
                         new
                         {
                             IsNiteligiId = 11,
-                            Ad = "Açıklama"
+                            Ad = "AÃ§Ä±klama"
                         });
                 });
 
@@ -7642,8 +7642,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 4,
-                            Ad = "Fen Bilimleri Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3347),
+                            Ad = "Fen Bilimleri Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4003),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7651,8 +7651,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 5,
-                            Ad = "İngilizce Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3352),
+                            Ad = "Ä°ngilizce Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4008),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7660,8 +7660,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 6,
-                            Ad = "İlkokul Türkçe Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3353),
+                            Ad = "Ä°lkokul TÃ¼rkÃ§e Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4009),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7669,8 +7669,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 7,
-                            Ad = "İlkokul Hayat Bilgisi Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3354),
+                            Ad = "Ä°lkokul Hayat Bilgisi Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4010),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7678,8 +7678,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 8,
-                            Ad = "Ortaokul Matematik Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3355),
+                            Ad = "Ortaokul Matematik Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4011),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7687,8 +7687,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 9,
-                            Ad = "İlkokul Matematik Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3404),
+                            Ad = "Ä°lkokul Matematik Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4012),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7696,8 +7696,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 10,
-                            Ad = "Ortaokul Türkçe Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3405),
+                            Ad = "Ortaokul TÃ¼rkÃ§e Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4013),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7705,8 +7705,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 11,
-                            Ad = "Sosyal Bilgiler Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3406),
+                            Ad = "Sosyal Bilgiler Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4014),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7714,8 +7714,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 12,
-                            Ad = "T.C. İnkılap Tarihi ve Atatürkçülük Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3407),
+                            Ad = "T.C. Ä°nkÄ±lap Tarihi ve AtatÃ¼rkÃ§Ã¼lÃ¼k Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4039),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7723,8 +7723,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 13,
-                            Ad = "Almanca Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3408),
+                            Ad = "Almanca Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4040),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7732,8 +7732,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 14,
-                            Ad = "Görsel Tasarım Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3408),
+                            Ad = "GÃ¶rsel TasarÄ±m Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4041),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7741,8 +7741,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 15,
-                            Ad = "Mebi Dijital Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3409),
+                            Ad = "Mebi Dijital Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4042),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7750,8 +7750,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 16,
-                            Ad = "Müzik Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3410),
+                            Ad = "MÃ¼zik Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4042),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7759,8 +7759,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 17,
-                            Ad = "Uzmanlar Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3411),
+                            Ad = "Uzmanlar Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4043),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7768,8 +7768,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 18,
-                            Ad = "BÖTE Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3411),
+                            Ad = "BÃ–TE Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4044),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7777,8 +7777,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 19,
-                            Ad = "Dil İnceleme Birim Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3412),
+                            Ad = "Dil Ä°nceleme Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4045),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 1
@@ -7786,8 +7786,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 2,
-                            Ad = "Mardin İl Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3413),
+                            Ad = "Mardin Ä°l KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4045),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 2
@@ -7795,8 +7795,8 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KoordinatorlukId = 3,
-                            Ad = "İzmir İl Koordinatörlüğü",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(3414),
+                            Ad = "Ä°zmir Ä°l KoordinatÃ¶rlÃ¼ÄŸÃ¼",
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(4046),
                             IsActive = true,
                             TasraTeskilatiVarMi = true,
                             TeskilatId = 2
@@ -7833,25 +7833,25 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KurumsalRolId = 2,
-                            Ad = "Komisyon Başkanı",
+                            Ad = "Komisyon BaÅŸkanÄ±",
                             SadeceMerkezMi = false
                         },
                         new
                         {
                             KurumsalRolId = 3,
-                            Ad = "İl Koordinatörü",
+                            Ad = "Ä°l KoordinatÃ¶rÃ¼",
                             SadeceMerkezMi = false
                         },
                         new
                         {
                             KurumsalRolId = 4,
-                            Ad = "Genel Koordinatör",
+                            Ad = "Genel KoordinatÃ¶r",
                             SadeceMerkezMi = true
                         },
                         new
                         {
                             KurumsalRolId = 5,
-                            Ad = "Merkez Birim Koordinatörlüğü",
+                            Ad = "Merkez Birim KoordinatÃ¶rlÃ¼ÄŸÃ¼",
                             SadeceMerkezMi = true
                         },
                         new
@@ -7863,25 +7863,25 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             KurumsalRolId = 7,
-                            Ad = "Şube Müdürü",
+                            Ad = "Åžube MÃ¼dÃ¼rÃ¼",
                             SadeceMerkezMi = true
                         },
                         new
                         {
                             KurumsalRolId = 8,
-                            Ad = "Şef",
+                            Ad = "Åžef",
                             SadeceMerkezMi = true
                         },
                         new
                         {
                             KurumsalRolId = 9,
-                            Ad = "Daire Başkanı",
+                            Ad = "Daire BaÅŸkanÄ±",
                             SadeceMerkezMi = true
                         },
                         new
                         {
                             KurumsalRolId = 10,
-                            Ad = "Genel Müdür",
+                            Ad = "Genel MÃ¼dÃ¼r",
                             SadeceMerkezMi = true
                         });
                 });
@@ -7937,9 +7937,6 @@ namespace PersonelTakipSistemi.Migrations
 
                     b.Property<bool>("PersonelCinsiyet")
                         .HasColumnType("bit");
-
-                    b.Property<string>("Sifre")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<byte[]>("SifreHash")
                         .IsRequired()
@@ -8206,17 +8203,17 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             SistemRolId = 2,
-                            Ad = "Yönetici"
+                            Ad = "YÃ¶netici"
                         },
                         new
                         {
                             SistemRolId = 3,
-                            Ad = "Editör"
+                            Ad = "EditÃ¶r"
                         },
                         new
                         {
                             SistemRolId = 4,
-                            Ad = "Kullanıcı"
+                            Ad = "KullanÄ±cÄ±"
                         });
                 });
 
@@ -8269,7 +8266,7 @@ namespace PersonelTakipSistemi.Migrations
                         {
                             TeskilatId = 1,
                             Ad = "Merkez",
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(2034),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(2769),
                             DaireBaskanligiId = 9,
                             IsActive = true,
                             TasraOrgutlenmesiVarMi = true,
@@ -8278,13 +8275,13 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             TeskilatId = 2,
-                            Ad = "Taşra",
+                            Ad = "TaÅŸra",
                             BagliMerkezTeskilatId = 1,
-                            CreatedAt = new DateTime(2026, 3, 13, 1, 42, 16, 24, DateTimeKind.Local).AddTicks(2049),
+                            CreatedAt = new DateTime(2026, 4, 8, 2, 24, 18, 33, DateTimeKind.Local).AddTicks(2784),
                             DaireBaskanligiId = 9,
                             IsActive = true,
                             TasraOrgutlenmesiVarMi = false,
-                            Tur = "Taşra"
+                            Tur = "TaÅŸra"
                         });
                 });
 
@@ -8356,12 +8353,12 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             UzmanlikId = 1,
-                            Ad = "Bilişim Uzmanı"
+                            Ad = "BiliÅŸim UzmanÄ±"
                         },
                         new
                         {
                             UzmanlikId = 2,
-                            Ad = "Görsel Tasarım Uzmanı"
+                            Ad = "GÃ¶rsel TasarÄ±m UzmanÄ±"
                         },
                         new
                         {
@@ -8371,7 +8368,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             UzmanlikId = 4,
-                            Ad = "Dil Uzmanı"
+                            Ad = "Dil UzmanÄ±"
                         },
                         new
                         {
@@ -8408,7 +8405,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             YazilimId = 2,
-                            Ad = "İllüstrator"
+                            Ad = "Ä°llÃ¼strator"
                         },
                         new
                         {
@@ -8488,7 +8485,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             YazilimId = 18,
-                            Ad = "Diğer"
+                            Ad = "DiÄŸer"
                         });
                 });
 

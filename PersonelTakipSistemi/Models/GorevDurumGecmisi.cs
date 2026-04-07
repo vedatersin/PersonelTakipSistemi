@@ -11,11 +11,11 @@ namespace PersonelTakipSistemi.Models
 
         public int GorevId { get; set; }
         [ForeignKey("GorevId")]
-        public virtual Gorev Gorev { get; set; }
+        public virtual Gorev Gorev { get; set; } = null!;
 
         public int GorevDurumId { get; set; }
         [ForeignKey("GorevDurumId")]
-        public virtual GorevDurum GorevDurum { get; set; }
+        public virtual GorevDurum GorevDurum { get; set; } = null!;
 
         public string? Aciklama { get; set; }
 

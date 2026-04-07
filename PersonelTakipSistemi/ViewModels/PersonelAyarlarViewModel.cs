@@ -15,14 +15,14 @@ namespace PersonelTakipSistemi.ViewModels
 
     public class PersonelAyarEkleModel
     {
-        public string Type { get; set; } // "brans", "yazilim", "uzmanlik", "gorevturu", "isniteligi", "kurumsalrol"
-        public string Ad { get; set; }
+        public string Type { get; set; } = string.Empty; // "brans", "yazilim", "uzmanlik", "gorevturu", "isniteligi", "kurumsalrol"
+        public string Ad { get; set; } = string.Empty;
     }
 
     public class PersonelAyarGuncelleModel
     {
-        public string Type { get; set; }
+        public string Type { get; set; } = string.Empty;
         public int Id { get; set; }
-        public string Ad { get; set; }
+        public string Ad { get; set; } = string.Empty;
     }
 }

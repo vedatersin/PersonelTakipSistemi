@@ -449,7 +449,6 @@ namespace PersonelTakipSistemi.Services
                             // Default Password logic (TC first 6 digits)
                             var rawPass = tc.Length >= 6 ? tc.Substring(0, 6) : "123456";
                             var passwordResult = _passwordService.HashPassword(rawPass);
-                            p.Sifre = null;
                             p.SifreHash = passwordResult.Hash;
                             p.SifreSalt = passwordResult.Salt;
 

@@ -20,27 +20,8 @@ public class PasswordServiceTests
 
         Assert.True(result.Succeeded);
         Assert.False(result.RequiresUpgrade);
-        Assert.Null(personel.Sifre);
         Assert.Equal(32, personel.SifreHash.Length);
         Assert.Equal(16, personel.SifreSalt.Length);
-    }
-
-    [Fact]
-    public void VerifyPassword_RequestsUpgrade_WhenPlainTextResidualExists()
-    {
-        var hashResult = _service.HashPassword("Secret123!");
-        var personel = new Personel
-        {
-            Sifre = "Secret123!",
-            SifreHash = hashResult.Hash,
-            SifreSalt = hashResult.Salt
-        };
-
-        var result = _service.VerifyPassword("Secret123!", personel);
-
-        Assert.True(result.Succeeded);
-        Assert.True(result.RequiresUpgrade);
-        Assert.Equal("PlainTextResidual", result.Reason);
     }
 
     [Fact]
@@ -62,19 +43,19 @@ public class PasswordServiceTests
     }
 
     [Fact]
-    public void VerifyPassword_AcceptsPlainTextFallback_AndRequestsUpgrade()
+    public void VerifyPassword_RejectsInvalidPassword()
     {
+        var hashResult = _service.HashPassword("Secret123!");
         var personel = new Personel
         {
-            Sifre = "Secret123!",
-            SifreHash = Array.Empty<byte>(),
-            SifreSalt = Array.Empty<byte>()
+            SifreHash = hashResult.Hash,
+            SifreSalt = hashResult.Salt
         };
 
-        var result = _service.VerifyPassword("Secret123!", personel);
+        var result = _service.VerifyPassword("WrongPassword", personel);
 
-        Assert.True(result.Succeeded);
-        Assert.True(result.RequiresUpgrade);
-        Assert.Equal("PlainTextFallback", result.Reason);
+        Assert.False(result.Succeeded);
+        Assert.False(result.RequiresUpgrade);
+        Assert.Equal("InvalidPassword", result.Reason);
     }
 }

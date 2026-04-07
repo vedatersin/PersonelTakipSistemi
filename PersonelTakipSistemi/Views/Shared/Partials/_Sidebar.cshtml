@@ -33,7 +33,7 @@
         var userCorporateRoles = currentUserIdStr != null 
             ? _sidebarContext.PersonelKurumsalRolAtamalari
                 .Where(a => a.PersonelId == currentUserIdInt)
-                .Select(a => new { a.KurumsalRolId, a.KoordinatorlukId, a.KomisyonId, KomisyonAd = a.Komisyon.Ad })
+                .Select(a => new { a.KurumsalRolId, a.KoordinatorlukId, a.KomisyonId, KomisyonAd = a.Komisyon != null ? a.Komisyon.Ad : null })
                 .ToList()
                 .Select(x => (dynamic)x)
                 .ToList()
@@ -43,8 +43,8 @@
         var chairedCommissions = userCorporateRoles.Where(r => (int)r.KurumsalRolId == 2).ToList();
         bool isCommissionChair = chairedCommissions.Any();
 
-        string currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
-        string currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+        string? currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
+        string? currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
         bool isIdPresent = ViewContext.RouteData.Values.ContainsKey("id") || Context.Request.Query.ContainsKey("id");
 
          // Personel Modülü Logic (Controller Check Added)

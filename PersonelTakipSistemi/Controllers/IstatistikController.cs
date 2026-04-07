@@ -44,7 +44,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [Authorize]
-        public async Task<IActionResult> Kisisel()
+        public IActionResult Kisisel()
         {
             // Get Current User ID
             var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;

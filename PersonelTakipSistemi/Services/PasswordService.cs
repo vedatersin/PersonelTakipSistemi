@@ -34,18 +34,12 @@ namespace PersonelTakipSistemi.Services
 
             if (VerifyCurrentHash(password, personel.SifreHash, personel.SifreSalt))
             {
-                var hasPlainTextResidual = !string.IsNullOrEmpty(personel.Sifre);
-                return new PasswordVerificationResult(true, hasPlainTextResidual, hasPlainTextResidual ? "PlainTextResidual" : "CurrentHash");
+                return new PasswordVerificationResult(true, false, "CurrentHash");
             }
 
             if (VerifyLegacyHash(password, personel.SifreHash, personel.SifreSalt))
             {
                 return new PasswordVerificationResult(true, true, "LegacyHash");
-            }
-
-            if (!string.IsNullOrEmpty(personel.Sifre) && string.Equals(personel.Sifre, password, StringComparison.Ordinal))
-            {
-                return new PasswordVerificationResult(true, true, "PlainTextFallback");
             }
 
             return new PasswordVerificationResult(false, false, "InvalidPassword");
@@ -61,7 +55,6 @@ namespace PersonelTakipSistemi.Services
             ArgumentNullException.ThrowIfNull(personel);
 
             var result = HashPassword(password);
-            personel.Sifre = null;
             personel.SifreHash = result.Hash;
             personel.SifreSalt = result.Salt;
         }

@@ -9,8 +9,6 @@ using PersonelTakipSistemi.Data;
 using PersonelTakipSistemi.Models;
 
 using PersonelTakipSistemi.Models.ViewModels;
-using System.Security.Cryptography;
-using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
 
@@ -1634,7 +1632,6 @@ namespace PersonelTakipSistemi.Controllers
                             KadroKurum = model.KadroKurum ?? "",
                             AktifMi = model.AktifMi,
                             FotografYolu = yeniFotoYolu,
-                            Sifre = null,
                             SifreHash = passwordResult.Hash,
                             SifreSalt = passwordResult.Salt,
                             CreatedAt = DateTime.Now,
@@ -2378,37 +2375,6 @@ namespace PersonelTakipSistemi.Controllers
             {
                 Debug.WriteLine("Error fetching lookup data: " + ex.Message);
             }
-        }
-
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            // Salt üretimi
-            passwordSalt = new byte[128 / 8];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(passwordSalt);
-            }
-
-            // Hash üretimi (PBKDF2)
-            passwordHash = KeyDerivation.Pbkdf2(
-                password: password,
-                salt: passwordSalt,
-                prf: KeyDerivationPrf.HMACSHA512,
-                iterationCount: 10000,
-                numBytesRequested: 256 / 8);
-        }
-
-        private bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
-        {
-            // Fix: Must use PBKDF2 to match CreatePasswordHash
-            var computedHash = KeyDerivation.Pbkdf2(
-                password: password,
-                salt: storedSalt,
-                prf: KeyDerivationPrf.HMACSHA512,
-                iterationCount: 10000,
-                numBytesRequested: 256 / 8);
-
-            return computedHash.SequenceEqual(storedHash);
         }
 
         [HttpGet]

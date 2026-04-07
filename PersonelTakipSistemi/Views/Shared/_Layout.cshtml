@@ -116,7 +116,7 @@
   <script src="~/js/bildirimler.js" asp-append-version="true"></script>
 
   <!-- Vendors JS -->
-  @if (ViewData["Title"] != null && ViewData["Title"].ToString() == "Dashboard")
+  @if (ViewData["Title"]?.ToString() == "Dashboard")
   {
       <script src="~/sevilay-tema/assets/vendor/libs/apex-charts/apexcharts.js"></script>
       <!-- Main JS -->

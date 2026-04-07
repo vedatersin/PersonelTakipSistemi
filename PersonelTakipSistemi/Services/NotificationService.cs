@@ -168,7 +168,7 @@ namespace PersonelTakipSistemi.Services
             var bildirimler = await _context.Bildirimler
                 .Include(b => b.BildirimGonderen) // Use new FK
                 .Include(b => b.GonderenPersonel) // Include legacy for role fallback
-                .ThenInclude(p => p.PersonelKurumsalRolAtamalari)
+                .ThenInclude(p => p!.PersonelKurumsalRolAtamalari)
                 .ThenInclude(pkr => pkr.KurumsalRol)
                 .Where(b => b.AliciPersonelId == aliciId && !b.SilindiMi) // Filter Deleted
                 .OrderByDescending(b => b.OlusturmaTarihi)

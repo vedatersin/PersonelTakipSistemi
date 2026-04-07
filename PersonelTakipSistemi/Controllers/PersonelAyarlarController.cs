@@ -130,7 +130,7 @@ namespace PersonelTakipSistemi.Controllers
                 await _logService.LogAsync("Tanım Silme", $"Tanım silindi: {deletedName}", null, $"Tür: {type}");
                 return Ok(new { success = true });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return StatusCode(500, "Silinemedi. Bu kayıt kullanımda olabilir.");
             }

@@ -9,7 +9,7 @@ namespace PersonelTakipSistemi.Models
 
         [Required]
         [StringLength(200)]
-        public string Ad { get; set; }
+        public string Ad { get; set; } = null!;
 
         public bool IsActive { get; set; } = true;
         

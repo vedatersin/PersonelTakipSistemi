@@ -35,7 +35,6 @@ namespace PersonelTakipSistemi.Models
         // New Field
         public DateTime DogumTarihi { get; set; }
 
-        public string? Sifre { get; set; } // Plain text password for now
         public byte[] SifreHash { get; set; } = null!;
         public byte[] SifreSalt { get; set; } = null!;
         public DateTime CreatedAt { get; set; } = DateTime.Now;
