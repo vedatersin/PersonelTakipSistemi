@@ -1,1 +1,0 @@
-                 const isMerkez = $tesOption.length > 0 ? $tesOption.text().includes('Merkez') : false;

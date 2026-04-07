@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PersonelTakipSistemi.Data.SeedData;
 using PersonelTakipSistemi.Models;
 
 namespace PersonelTakipSistemi.Data
@@ -113,7 +114,7 @@ namespace PersonelTakipSistemi.Data
                 entity.HasIndex(e => e.Ad).IsUnique();
 
                 // Seed Data
-                entity.HasData(GetBransSeed());
+                entity.HasData(CatalogSeedData.GetBransSeed());
             });
             
              // Il Constraints & Seed
@@ -218,28 +219,28 @@ namespace PersonelTakipSistemi.Data
                 entity.HasKey(e => e.YazilimId);
                 entity.Property(e => e.Ad).IsRequired();
                 entity.HasIndex(e => e.Ad).IsUnique();
-                entity.HasData(GetYazilimSeed());
+                entity.HasData(CatalogSeedData.GetYazilimSeed());
             });
 
             modelBuilder.Entity<Uzmanlik>(entity => {
                 entity.HasKey(e => e.UzmanlikId);
                 entity.Property(e => e.Ad).IsRequired();
                 entity.HasIndex(e => e.Ad).IsUnique();
-                entity.HasData(GetUzmanlikSeed());
+                entity.HasData(CatalogSeedData.GetUzmanlikSeed());
             });
 
             modelBuilder.Entity<GorevTuru>(entity => {
                 entity.HasKey(e => e.GorevTuruId);
                 entity.Property(e => e.Ad).IsRequired();
                 entity.HasIndex(e => e.Ad).IsUnique();
-                entity.HasData(GetGorevTuruSeed());
+                entity.HasData(CatalogSeedData.GetGorevTuruSeed());
             });
 
             modelBuilder.Entity<IsNiteligi>(entity => {
                 entity.HasKey(e => e.IsNiteligiId);
                 entity.Property(e => e.Ad).IsRequired();
                 entity.HasIndex(e => e.Ad).IsUnique();
-                entity.HasData(GetIsNiteligiSeed());
+                entity.HasData(CatalogSeedData.GetIsNiteligiSeed());
             });
 
             // Join Tables Configuration

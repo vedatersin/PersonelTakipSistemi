@@ -1,2 +1,12 @@
 # Force include the theme folder to prevent missing asset errors
 !wwwroot/sevilay-tema/
+build*.log
+build*.txt
+msbuild*.log
+error*.log
+error*.txt
+errors.txt
+tail.log
+verification_output.txt
+*.bak
+*.test

@@ -90,3 +90,13 @@ docker-compose.override.yml
 *.swp
 *.bak
 .vs/
+build*.log
+build*.txt
+msbuild*.log
+error*.log
+error*.txt
+errors.txt
+tail.log
+verification_output.txt
+scan_results.txt
+line1707.txt
