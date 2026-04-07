@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PersonelTakipSistemi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2f4a8720fdf8238c9f267223acc454f54c4685a5")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2003794da35b29dd37e02d87cb38579c06872e6d")]
 [assembly: System.Reflection.AssemblyProductAttribute("PersonelTakipSistemi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PersonelTakipSistemi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

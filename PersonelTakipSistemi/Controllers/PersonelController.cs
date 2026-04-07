@@ -30,8 +30,9 @@ namespace PersonelTakipSistemi.Controllers
         private readonly ILogService _logService;
         private readonly IExcelService _excelService;
         private readonly IFileValidationService _fileValidationService;
+        private readonly IPasswordService _passwordService;
 
-        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, IMemoryCache memoryCache, INotificationService notificationService, ILogService logService, IExcelService excelService, IFileValidationService fileValidationService)
+        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, IMemoryCache memoryCache, INotificationService notificationService, ILogService logService, IExcelService excelService, IFileValidationService fileValidationService, IPasswordService passwordService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
@@ -40,6 +41,7 @@ namespace PersonelTakipSistemi.Controllers
             _logService = logService;
             _excelService = excelService;
             _fileValidationService = fileValidationService;
+            _passwordService = passwordService;
         }
 
         private int CurrentUserId => int.Parse(User.FindFirst("PersonelId")?.Value ?? "0");
@@ -1508,7 +1510,7 @@ namespace PersonelTakipSistemi.Controllers
                             {
                                 // Varsayılan şifre kontrolü (TC ilk 6 hane)
                                 string defaultPass = personel.TcKimlikNo.Length >= 6 ? personel.TcKimlikNo.Substring(0, 6) : "123456";
-                                bool isDefaultPassword = VerifyPasswordHash(defaultPass, personel.SifreHash, personel.SifreSalt);
+                                bool isDefaultPassword = _passwordService.VerifyPassword(defaultPass, personel.SifreHash, personel.SifreSalt);
 
                                 if (!isDefaultPassword)
                                 {
@@ -1521,7 +1523,7 @@ namespace PersonelTakipSistemi.Controllers
                                         return View(model);
                                     }
 
-                                    if (!VerifyPasswordHash(model.EskiSifre, personel.SifreHash, personel.SifreSalt))
+                                    if (!_passwordService.VerifyPassword(model.EskiSifre, personel.SifreHash, personel.SifreSalt))
                                     {
                                         ModelState.AddModelError("EskiSifre", "Mevcut şifreniz hatalı.");
                                         TempData["Error"] = "Şifre değiştirme hatası: Mevcut şifreniz hatalı.";
@@ -1532,10 +1534,7 @@ namespace PersonelTakipSistemi.Controllers
                                 }
                             }
 
-                             CreatePasswordHash(model.NewPassword, out byte[] passwordHash, out byte[] passwordSalt);
-                             personel.Sifre = model.NewPassword; 
-                             personel.SifreHash = passwordHash;
-                             personel.SifreSalt = passwordSalt;
+                             _passwordService.SetPassword(personel, model.NewPassword);
                              changes.Add("Şifre değişti");
                         }
 
@@ -1617,7 +1616,7 @@ namespace PersonelTakipSistemi.Controllers
                     {
                         // --- INSERT EXECUTION ---
                         string autoPasword = model.TcKimlikNo.Length >= 6 ? model.TcKimlikNo.Substring(0, 6) : "123456";
-                        CreatePasswordHash(autoPasword, out byte[] passwordHash, out byte[] passwordSalt);
+                        var passwordResult = _passwordService.HashPassword(autoPasword);
 
                         var personel = new Personel
                         {
@@ -1635,9 +1634,9 @@ namespace PersonelTakipSistemi.Controllers
                             KadroKurum = model.KadroKurum ?? "",
                             AktifMi = model.AktifMi,
                             FotografYolu = yeniFotoYolu,
-                            Sifre = autoPasword, // Plain text sync
-                            SifreHash = passwordHash,
-                            SifreSalt = passwordSalt,
+                            Sifre = null,
+                            SifreHash = passwordResult.Hash,
+                            SifreSalt = passwordResult.Salt,
                             CreatedAt = DateTime.Now,
                             UpdatedAt = null,
 
@@ -2419,7 +2418,7 @@ namespace PersonelTakipSistemi.Controllers
             if(personel == null) return Json(new { success = false, message = "Personel bulunamadı." });
 
             // Check correctness
-            bool isValid = VerifyPasswordHash(password, personel.SifreHash, personel.SifreSalt);
+            bool isValid = _passwordService.VerifyPassword(password, personel.SifreHash, personel.SifreSalt);
             return Json(new { success = isValid });
         }
 

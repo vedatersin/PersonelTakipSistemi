@@ -16,10 +16,12 @@ namespace PersonelTakipSistemi.Services
     public class ExcelService : IExcelService
     {
         private readonly TegmPersonelTakipDbContext _context;
+        private readonly IPasswordService _passwordService;
 
-        public ExcelService(TegmPersonelTakipDbContext context)
+        public ExcelService(TegmPersonelTakipDbContext context, IPasswordService passwordService)
         {
             _context = context;
+            _passwordService = passwordService;
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         }
 
@@ -446,10 +448,10 @@ namespace PersonelTakipSistemi.Services
 
                             // Default Password logic (TC first 6 digits)
                             var rawPass = tc.Length >= 6 ? tc.Substring(0, 6) : "123456";
-                            CreatePasswordHash(rawPass, out byte[] passwordHash, out byte[] passwordSalt);
-                            p.Sifre = rawPass;
-                            p.SifreHash = passwordHash;
-                            p.SifreSalt = passwordSalt;
+                            var passwordResult = _passwordService.HashPassword(rawPass);
+                            p.Sifre = null;
+                            p.SifreHash = passwordResult.Hash;
+                            p.SifreSalt = passwordResult.Salt;
 
                             // Process Many-to-Many Collections
                             // Yazilimlar
@@ -526,15 +528,6 @@ namespace PersonelTakipSistemi.Services
             }
 
             return (personeller, errors);
-        }
-        
-        private void CreatePasswordHash(string password, out byte[] passwordHash, out byte[] passwordSalt)
-        {
-            using (var hmac = new System.Security.Cryptography.HMACSHA512())
-            {
-                passwordSalt = hmac.Key;
-                passwordHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
-            }
         }
         
         private string NormalizeForFuzzyMatch(string input)
