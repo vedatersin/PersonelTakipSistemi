@@ -242,7 +242,7 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             BransId = 10,
-                            Ad = "BÃ¼ro YÃ¶netimi / BÃ¼ro YÃ¶netimi ve YÃ¶netici AsistanlÄ±ÄŸÄ±"
+                            Ad = "BÃ¼ro YÃ¶netimi / BÃ¼ro YÃ¶netimi ve Yönetici AsistanlÄ±ÄŸÄ±"
                         },
                         new
                         {
@@ -8206,17 +8206,17 @@ namespace PersonelTakipSistemi.Migrations
                         new
                         {
                             SistemRolId = 2,
-                            Ad = "YÃ¶netici"
+                            Ad = "Yönetici"
                         },
                         new
                         {
                             SistemRolId = 3,
-                            Ad = "EditÃ¶r"
+                            Ad = "Editör"
                         },
                         new
                         {
                             SistemRolId = 4,
-                            Ad = "KullanÄ±cÄ±"
+                            Ad = "Kullanıcı"
                         });
                 });
 
@@ -9089,3 +9089,4 @@ namespace PersonelTakipSistemi.Migrations
         }
     }
 }
+

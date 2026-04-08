@@ -455,8 +455,6 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
-        [HttpPost]
-        [HttpPost]
         public async Task<IActionResult> SilBirim(string type, int id)
         {
             var strategy = _context.Database.CreateExecutionStrategy();

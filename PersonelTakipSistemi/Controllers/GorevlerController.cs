@@ -406,8 +406,9 @@ namespace PersonelTakipSistemi.Controllers
             }
             catch (Exception ex)
             {
-                // Return json with 500 status code but payload with error
-                return StatusCode(500, new { error = ex.Message, stack = ex.StackTrace });
+                // Log error server-side, return generic message to client
+                System.Diagnostics.Debug.WriteLine($"GetAssignmentData error: {ex.Message}");
+                return StatusCode(500, new { error = "Bir hata oluştu. Lütfen tekrar deneyin." });
             }
         }
 

@@ -63,7 +63,7 @@ namespace PersonelTakipSistemi.Controllers
             if (HttpContext != null)
             {
                 int serviceCurrentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
-                var serviceModel = await _personelAuthorizationService.BuildAuthorizationIndexAsync(serviceCurrentUserId, User.IsInRole("Admin"), User.IsInRole("EditÃ¶r"));
+                var serviceModel = await _personelAuthorizationService.BuildAuthorizationIndexAsync(serviceCurrentUserId, User.IsInRole("Admin"), User.IsInRole("Editör"));
                 return View(serviceModel);
             }
 
@@ -303,7 +303,7 @@ namespace PersonelTakipSistemi.Controllers
                     await _logService.LogAsync("Yetkilendirme", $"Sistem rolü güncellendi: {targetP.Ad} {targetP.Soyad}", targetP.PersonelId, $"Yeni Rol: {rol}");
                 }
             }
-            catch(Exception) { }
+            catch(Exception ex) { System.Diagnostics.Debug.WriteLine($"SetSistemRol bildirim hatası: {ex.Message}"); }
 
             return Ok(); // Original method returned Ok()
         }
@@ -501,7 +501,6 @@ namespace PersonelTakipSistemi.Controllers
         [HttpPost]
         public async Task<IActionResult> RemoveKomisyon(int personelId, int komisyonId)
         {
-            await RemoveKomisyonLogic(personelId, komisyonId);
             await RemoveKomisyonLogic(personelId, komisyonId);
             await _context.SaveChangesAsync();
 
@@ -907,10 +906,6 @@ namespace PersonelTakipSistemi.Controllers
                 query = query.Where(p => p.PersonelYazilimlar.Any(py => filter.SeciliYazilimIdleri.Contains(py.YazilimId)));
             }
 
-            if (filter.SeciliYazilimIdleri != null && filter.SeciliYazilimIdleri.Any())
-            {
-                query = query.Where(p => p.PersonelYazilimlar.Any(py => filter.SeciliYazilimIdleri.Contains(py.YazilimId)));
-            }
 
             if (filter.TeskilatId.HasValue)
             {
@@ -1376,7 +1371,6 @@ namespace PersonelTakipSistemi.Controllers
                             .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
                             .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
                             .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
-                            .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
                             .Include(p => p.PersonelKurumsalRolAtamalari) // Fix: Include for deletion logic
                             .Include(p => p.PersonelKomisyonlar)
                             .Include(p => p.PersonelKoordinatorlukler)
@@ -1618,7 +1612,7 @@ namespace PersonelTakipSistemi.Controllers
 
                             await _logService.LogAsync("Guncelleme", $"Personel güncellendi: {personel.Ad} {personel.Soyad}", personel.PersonelId, logDetail);
                         }
-                        catch (Exception) { }
+                        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Profil güncelleme bildirim hatası: {ex.Message}"); }
 
                         TempData["Success"] = "Personel bilgileri güncellendi.";
                         return RedirectToAction("Index", new { highlightId = personel.PersonelId });

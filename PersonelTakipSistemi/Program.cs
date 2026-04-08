@@ -23,7 +23,6 @@ builder.Services.AddScoped<PersonelTakipSistemi.Services.IFileValidationService,
 
 // Connection String
 string connectionString = builder.Configuration.GetConnectionString("TegmPersonelTakipDB") ?? "";
-Console.WriteLine($"[DB INIT] Using Connection String: {connectionString}");
 
 builder.Services.AddDbContext<PersonelTakipSistemi.Data.TegmPersonelTakipDbContext>(options => 
     options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure(3)));
@@ -74,15 +73,6 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
-
-
-
-
-
-
-
-
 
 
 app.UseHttpsRedirection();
