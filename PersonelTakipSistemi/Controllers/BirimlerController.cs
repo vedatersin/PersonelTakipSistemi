@@ -195,8 +195,8 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(k => k.Il)
                 .Select(k => new 
                 {
-                    IlId = k.IlId.Value,
-                    Ad = k.Il.Ad
+                    IlId = k.IlId!.Value,
+                    Ad = k.Il!.Ad
                 })
                 .Distinct()
                 .OrderBy(c => c.Ad)
@@ -754,7 +754,7 @@ namespace PersonelTakipSistemi.Controllers
                     p.PersonelKurumsalRolAtamalari.Add(new PersonelKurumsalRolAtama { 
                         KurumsalRolId = 1, // Generic Member
                         KomisyonId = model.KomisyonId.Value,
-                        KoordinatorlukId = model.KoordinatorlukId.Value 
+                        KoordinatorlukId = model.KoordinatorlukId!.Value 
                     });
                 }
                 else if (model.KoordinatorlukId.HasValue)

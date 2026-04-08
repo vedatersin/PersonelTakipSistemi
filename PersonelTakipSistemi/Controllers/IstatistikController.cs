@@ -164,14 +164,14 @@ namespace PersonelTakipSistemi.Controllers
 
             // 1. Categories (Pie)
             var kategoriData = await query
-                .GroupBy(g => new { g.Kategori.Ad, g.Kategori.Renk })
+                .GroupBy(g => new { Ad = g.Kategori!.Ad, Renk = g.Kategori!.Renk })
                 .Select(g => new { Label = g.Key.Ad, Count = g.Count(), Color = g.Key.Renk })
                 .ToListAsync();
 
             // 2. Task Status (Bar)
              var durumData = await query
                 .Include(g => g.GorevDurum)
-                .GroupBy(g => new { g.GorevDurum.Ad, g.GorevDurum.Renk })
+                .GroupBy(g => new { Ad = g.GorevDurum!.Ad, Renk = g.GorevDurum!.Renk })
                 .Select(g => new 
                 { 
                     Label = g.Key.Ad, 
@@ -248,9 +248,9 @@ namespace PersonelTakipSistemi.Controllers
                     {
                         GorevId = t.GorevId,
                         Baslik = t.Ad,
-                        Durum = t.GorevDurum.Ad,
-                        Renk = t.GorevDurum.RenkSinifi ?? "bg-secondary",
-                        RenkKod = t.GorevDurum.Renk,
+                        Durum = t.GorevDurum!.Ad,
+                        Renk = t.GorevDurum!.RenkSinifi ?? "bg-secondary",
+                        RenkKod = t.GorevDurum!.Renk,
                         Tarih = t.CreatedAt,
                         SonIslem = t.UpdatedAt
                     })
@@ -417,7 +417,7 @@ namespace PersonelTakipSistemi.Controllers
             ws1.Cells.AutoFitColumns();
 
             // Kategori Data for Chart
-            var kategoriData = await query.GroupBy(g => g.Kategori.Ad).Select(g => new { Label = g.Key, Count = g.Count() }).ToListAsync();
+            var kategoriData = await query.GroupBy(g => g.Kategori!.Ad).Select(g => new { Label = g.Key, Count = g.Count() }).ToListAsync();
             var wsKat = package.Workbook.Worksheets.Add("KategoriData"); // Data sheet, hidden
             wsKat.Hidden = eWorkSheetHidden.Hidden;
             wsKat.Cells["A1"].Value = "Kategori";
@@ -439,7 +439,7 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             // Sheet 2: Durum Analizi ve Sütun Grafik
-            var durumData = await query.GroupBy(g => g.GorevDurum.Ad).Select(g => new { Label = g.Key, Count = g.Count() }).ToListAsync();
+            var durumData = await query.GroupBy(g => g.GorevDurum!.Ad).Select(g => new { Label = g.Key, Count = g.Count() }).ToListAsync();
             var ws2 = package.Workbook.Worksheets.Add("Durum Analizi");
             ws2.Cells["A1"].Value = "Durum";
             ws2.Cells["B1"].Value = "Görev Sayısı";

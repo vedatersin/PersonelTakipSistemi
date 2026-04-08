@@ -27,7 +27,7 @@ namespace PersonelTakipSistemi.Controllers
 
             // Coordinator roles: 3 (İl), 5 (Merkez)
             var coordinatingRoles = await _context.PersonelKurumsalRolAtamalari
-                .Include(a => a.Koordinatorluk).ThenInclude(k => k.Il)
+                .Include(a => a.Koordinatorluk!).ThenInclude(k => k.Il)
                 .Where(a => a.PersonelId == userId && (a.KurumsalRolId == 3 || a.KurumsalRolId == 5))
                 .ToListAsync();
 
@@ -36,6 +36,11 @@ namespace PersonelTakipSistemi.Controllers
             // Kombine görünüm (Eğer birden fazla koordinatörlükte görevliyse hepsini kapsayacak şekilde de olabilir 
             // ama genellikle 1 tanedir. Basitlik için ilkini alıyoruz.)
             var role = coordinatingRoles.First();
+            if (!role.KoordinatorlukId.HasValue || role.Koordinatorluk == null)
+            {
+                return Forbid();
+            }
+
             var koordId = role.KoordinatorlukId!.Value;
             var koordinatorluk = role.Koordinatorluk!;
 

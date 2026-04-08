@@ -1028,8 +1028,8 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.PersonelIsNitelikleri)
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.KurumsalRol)
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Teskilat)
-                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Koordinatorluk).ThenInclude(k => k.Teskilat)
-                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(k => k.Teskilat)
+                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Koordinatorluk!).ThenInclude(k => k.Teskilat)
+                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Komisyon!).ThenInclude(k => k.Koordinatorluk!).ThenInclude(k => k.Teskilat)
                 // Missing Includes for Implicit Roles
                 .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(koord => koord.Teskilat)
                 .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk).ThenInclude(k => k.Teskilat)
@@ -1293,10 +1293,10 @@ namespace PersonelTakipSistemi.Controllers
                 if (isUpdate)
                 {
                     // UPDATE: Check OTHER records
-                    var duplicateTc = await _context.Personeller.AnyAsync(p => p.TcKimlikNo == model.TcKimlikNo && p.PersonelId != model.PersonelId.Value);
+                    var duplicateTc = await _context.Personeller.AnyAsync(p => p.TcKimlikNo == model.TcKimlikNo && p.PersonelId != model.PersonelId!.Value);
                     if (duplicateTc) conflicts.Add($"TC Kimlik No ({model.TcKimlikNo}) kullanımda.");
 
-                    var duplicateEmail = await _context.Personeller.AnyAsync(p => p.Eposta == model.Eposta && p.PersonelId != model.PersonelId.Value);
+                    var duplicateEmail = await _context.Personeller.AnyAsync(p => p.Eposta == model.Eposta && p.PersonelId != model.PersonelId!.Value);
                     if (duplicateEmail) conflicts.Add($"E-posta ({model.Eposta}) kullanımda.");
                 }
                 else
@@ -1366,7 +1366,7 @@ namespace PersonelTakipSistemi.Controllers
                             .Include(p => p.PersonelTeskilatlar)
                             .Include(p => p.Brans)
                             .Include(p => p.GorevliIl)
-                            .FirstOrDefaultAsync(p => p.PersonelId == model.PersonelId.Value);
+                            .FirstOrDefaultAsync(p => p.PersonelId == model.PersonelId!.Value);
 
                         if (personel == null) return NotFound();
 
@@ -2055,8 +2055,8 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
                 .Include(p => p.SistemRol) // Include SistemRol
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pk => pk.KurumsalRol)
-                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pk => pk.Koordinatorluk).ThenInclude(k => k.Teskilat)
-                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pk => pk.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(ko => ko.Teskilat)
+                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pk => pk.Koordinatorluk!).ThenInclude(k => k.Teskilat)
+                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pk => pk.Komisyon!).ThenInclude(k => k.Koordinatorluk!).ThenInclude(ko => ko.Teskilat)
                 .Include(p => p.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
                 .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk).ThenInclude(k => k.Teskilat)
                 .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(ko => ko.Teskilat)
@@ -2079,8 +2079,8 @@ namespace PersonelTakipSistemi.Controllers
                 Telefon = personel.Telefon,
                 Eposta = personel.Eposta,
                 Cinsiyet = personel.PersonelCinsiyet ? "Kadın" : "Erkek",
-                GorevliIl = personel.GorevliIl.Ad,
-                Brans = personel.Brans.Ad,
+                GorevliIl = personel.GorevliIl?.Ad ?? string.Empty,
+                Brans = personel.Brans?.Ad ?? string.Empty,
                 KadroIl = personel.KadroIl?.Ad,
                 KadroIlce = personel.KadroIlce?.Ad,
                 KadroKurum = personel.KadroKurum,
@@ -2092,7 +2092,7 @@ namespace PersonelTakipSistemi.Controllers
                 GorevTurleri = personel.PersonelGorevTurleri.Select(pg => pg.GorevTuru.Ad).ToList(),
                 IsNitelikleri = personel.PersonelIsNitelikleri.Select(pi => pi.IsNiteligi.Ad).ToList(),
 
-                SistemRol = personel.SistemRol?.Ad,
+                SistemRol = personel.SistemRol?.Ad ?? string.Empty,
             };
 
             // Aggregate Roles Logic (Unified with Frontend)
@@ -2120,7 +2120,10 @@ namespace PersonelTakipSistemi.Controllers
 
                     fullString = path + roleName;
                     
-                    coveredKomIds.Add(r.KomisyonId.Value);
+                    if (r.KomisyonId.HasValue)
+                    {
+                        coveredKomIds.Add(r.KomisyonId.Value);
+                    }
                     if (kom.KoordinatorlukId != 0) coveredKoordIds.Add(kom.KoordinatorlukId);
                     if (koord != null && koord.TeskilatId != 0) coveredTesIds.Add(koord.TeskilatId);
                 }
@@ -2135,14 +2138,17 @@ namespace PersonelTakipSistemi.Controllers
                     
                     fullString = path + roleName;
 
-                    coveredKoordIds.Add(r.KoordinatorlukId.Value);
+                    if (r.KoordinatorlukId.HasValue)
+                    {
+                        coveredKoordIds.Add(r.KoordinatorlukId.Value);
+                    }
                     if (koord.TeskilatId != 0) coveredTesIds.Add(koord.TeskilatId);
                 }
                 
                 model.KurumsalRoller.Add(new RoleDisplayModel
                 {
                     Title = fullString,
-                    Subtitle = null, // No subtitle needed
+                    Subtitle = string.Empty, // No subtitle needed
                     ColorClass = "primary"
                 });
             }
@@ -2164,7 +2170,7 @@ namespace PersonelTakipSistemi.Controllers
                 model.KurumsalRoller.Add(new RoleDisplayModel
                 {
                     Title = $"{fullString} (Rolü Yok)", 
-                    Subtitle = null,
+                    Subtitle = string.Empty,
                     ColorClass = "danger" // Red for warning
                 });
 
@@ -2190,7 +2196,7 @@ namespace PersonelTakipSistemi.Controllers
                 model.KurumsalRoller.Add(new RoleDisplayModel
                 {
                     Title = $"{fullString} (Rolü Yok)",
-                    Subtitle = null,
+                    Subtitle = string.Empty,
                     ColorClass = "danger"
                 });
 
@@ -2205,7 +2211,7 @@ namespace PersonelTakipSistemi.Controllers
                 model.KurumsalRoller.Add(new RoleDisplayModel
                 {
                     Title = $"{pt.Teskilat.Ad} (Rolü Yok)",
-                    Subtitle = null,
+                    Subtitle = string.Empty,
                     ColorClass = "danger"
                 });
             }
@@ -2519,7 +2525,8 @@ namespace PersonelTakipSistemi.Controllers
                             );
                             
                             // LOG
-                            await _logService.LogAsync("Yetkilendirme", $"Yetkilendirme güncellendi: {targetP.Ad} {targetP.Soyad}", targetP.PersonelId, $"İşlemi Yapan: {User.Identity.Name}");
+                            var actorName = User.Identity?.Name ?? "Bilinmiyor";
+                            await _logService.LogAsync("Yetkilendirme", $"Yetkilendirme güncellendi: {targetP.Ad} {targetP.Soyad}", targetP.PersonelId, $"İşlemi Yapan: {actorName}");
                         }
                     }
                     catch(Exception) { }

@@ -204,7 +204,7 @@
                             <select id="kadroCityFilter" class="form-select">
                                 <option value="">Kadro iline göre filtrele</option>
                                 @{
-                                    var uniqueKadroCities = Model.Personeller.Where(p => p.KadroIl != null).Select(p => p.KadroIl.Ad).Distinct().OrderBy(x => x);
+                                    var uniqueKadroCities = Model.Personeller.Where(p => p.KadroIl != null).Select(p => p.KadroIl!.Ad).Distinct().OrderBy(x => x);
                                     foreach(var city in uniqueKadroCities)
                                     {
                                         <option value="@city">@city</option>

@@ -213,7 +213,7 @@ namespace PersonelTakipSistemi.Controllers
                     Year = g.Key.Year,
                     Month = g.Key.Month,
                     Total = g.Count(),
-                    Completed = g.Count(x => x.GorevDurum.Ad == "Tamamlandı")
+                    Completed = g.Count(x => x.GorevDurum!.Ad == "Tamamlandı")
                 })
                 .OrderByDescending(x => x.Year).ThenByDescending(x => x.Month)
                 .ToListAsync();
@@ -322,7 +322,7 @@ namespace PersonelTakipSistemi.Controllers
 
             var monthlyStats = await gorevQuery
                 .GroupBy(g => new { g.CreatedAt.Year, g.CreatedAt.Month })
-                .Select(g => new { Year = g.Key.Year, Month = g.Key.Month, Total = g.Count(), Completed = g.Count(x => x.GorevDurum.Ad == "Tamamlandı") })
+                .Select(g => new { Year = g.Key.Year, Month = g.Key.Month, Total = g.Count(), Completed = g.Count(x => x.GorevDurum!.Ad == "Tamamlandı") })
                 .OrderByDescending(x => x.Year).ThenByDescending(x => x.Month)
                 .ToListAsync();
 

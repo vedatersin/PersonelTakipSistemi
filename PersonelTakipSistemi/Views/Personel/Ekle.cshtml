@@ -674,7 +674,7 @@
             @if(TempData["ModalItems"] != null)
             {
                 <ul>
-                    @foreach(var item in TempData["ModalItems"].ToString().Split('|'))
+                    @foreach(var item in (TempData["ModalItems"]?.ToString() ?? string.Empty).Split('|', StringSplitOptions.RemoveEmptyEntries))
                     {
                         <li>@item</li>
                     }

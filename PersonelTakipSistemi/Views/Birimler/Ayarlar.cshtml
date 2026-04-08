@@ -555,7 +555,7 @@
         var selectedKoordId = null;
 
         // List of City IDs that have a Provincial Coordinatorship (Teskilat.Tur = "Taşra")
-        var validTasraCityIds = @Html.Raw(Json.Serialize(Model.Koordinatorlukler.Where(x => x.Teskilat != null && x.Teskilat.Tur == "Taşra" && x.IlId.HasValue).Select(x => x.IlId.Value).Distinct().ToList()));
+        var validTasraCityIds = @Html.Raw(Json.Serialize(Model.Koordinatorlukler.Where(x => x.Teskilat != null && x.Teskilat.Tur == "Taşra" && x.IlId.HasValue).Select(x => x.IlId!.Value).Distinct().ToList()));
 
         $(document).ready(function() {
             console.log('[Ayarlar] Document ready. Initializing cascading...');
