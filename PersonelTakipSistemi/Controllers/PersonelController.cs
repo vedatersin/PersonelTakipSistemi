@@ -9,7 +9,6 @@ using PersonelTakipSistemi.Data;
 using PersonelTakipSistemi.Models;
 
 using PersonelTakipSistemi.Models.ViewModels;
-using Microsoft.Extensions.Caching.Memory;
 using System.Diagnostics;
 
 using PersonelTakipSistemi.Services;
@@ -23,23 +22,23 @@ namespace PersonelTakipSistemi.Controllers
     {
         private readonly TegmPersonelTakipDbContext _context;
         private readonly IWebHostEnvironment _hostEnvironment;
-        private readonly IMemoryCache _memoryCache;
         private readonly INotificationService _notificationService;
         private readonly ILogService _logService;
         private readonly IExcelService _excelService;
         private readonly IFileValidationService _fileValidationService;
         private readonly IPasswordService _passwordService;
+        private readonly IPersonelLookupService _personelLookupService;
 
-        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, IMemoryCache memoryCache, INotificationService notificationService, ILogService logService, IExcelService excelService, IFileValidationService fileValidationService, IPasswordService passwordService)
+        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, INotificationService notificationService, ILogService logService, IExcelService excelService, IFileValidationService fileValidationService, IPasswordService passwordService, IPersonelLookupService personelLookupService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
-            _memoryCache = memoryCache;
             _notificationService = notificationService;
             _logService = logService;
             _excelService = excelService;
             _fileValidationService = fileValidationService;
             _passwordService = passwordService;
+            _personelLookupService = personelLookupService;
         }
 
         private int CurrentUserId => int.Parse(User.FindFirst("PersonelId")?.Value ?? "0");
@@ -129,7 +128,7 @@ namespace PersonelTakipSistemi.Controllers
                 PersonelId = p.PersonelId,
                 AdSoyad = $"{p.Ad} {p.Soyad}",
                 FotografYolu = p.FotografYolu,
-                SistemRol = p.SistemRol?.Ad,
+                SistemRol = p.SistemRol?.Ad ?? string.Empty,
                 AktifMi = p.AktifMi,
                 
                 // Extract Names for Chips
@@ -198,7 +197,7 @@ namespace PersonelTakipSistemi.Controllers
                 PersonelId = p.PersonelId,
                 AdSoyad = $"{p.Ad} {p.Soyad}",
                 FotografYolu = p.FotografYolu,
-                SistemRol = p.SistemRol?.Ad,
+                SistemRol = p.SistemRol?.Ad ?? string.Empty,
                 AktifMi = p.AktifMi,
 
                 // Selected IDs
@@ -611,6 +610,7 @@ namespace PersonelTakipSistemi.Controllers
             if (rol.Ad == "Komisyon Başkanı" && komisyonId.HasValue)
             {
                 var kom = await _context.Komisyonlar.FindAsync(komisyonId.Value);
+                if (kom == null) return BadRequest("Komisyon bulunamadı.");
                 if (kom.BaskanPersonelId != null && kom.BaskanPersonelId != personelId)
                 {
                     if (!force)
@@ -630,8 +630,9 @@ namespace PersonelTakipSistemi.Controllers
             }
             else if ((rol.Ad == "İl Koordinatörü" || rol.Ad == "Genel Koordinatör") && koordinatorlukId.HasValue)
             {
-                var koord = await _context.Koordinatorlukler.FindAsync(koordinatorlukId.Value);
-                 if (koord.BaskanPersonelId != null && koord.BaskanPersonelId != personelId)
+                 var koord = await _context.Koordinatorlukler.FindAsync(koordinatorlukId.Value);
+                 if (koord == null) return BadRequest("Koordinatörlük bulunamadı.");
+                  if (koord.BaskanPersonelId != null && koord.BaskanPersonelId != personelId)
                 {
                     if (!force)
                     {
@@ -753,12 +754,12 @@ namespace PersonelTakipSistemi.Controllers
                 if (assignment.KurumsalRol.Ad == "Komisyon Başkanı" && assignment.KomisyonId.HasValue)
                 {
                     var kom = await _context.Komisyonlar.FindAsync(assignment.KomisyonId.Value);
-                    if (kom.BaskanPersonelId == assignment.PersonelId) kom.BaskanPersonelId = null;
+                    if (kom != null && kom.BaskanPersonelId == assignment.PersonelId) kom.BaskanPersonelId = null;
                 }
                 else if ((assignment.KurumsalRol.Ad == "İl Koordinatörü" || assignment.KurumsalRol.Ad == "Genel Koordinatör") && assignment.KoordinatorlukId.HasValue)
                 {
                      var koord = await _context.Koordinatorlukler.FindAsync(assignment.KoordinatorlukId.Value);
-                     if (koord.BaskanPersonelId == assignment.PersonelId) koord.BaskanPersonelId = null;
+                     if (koord != null && koord.BaskanPersonelId == assignment.PersonelId) koord.BaskanPersonelId = null;
                 }
 
                 _context.PersonelKurumsalRolAtamalari.Remove(assignment);
@@ -963,16 +964,11 @@ namespace PersonelTakipSistemi.Controllers
             };
 
             // 4. Lookup Doldurma
-            await FillIndexLookups(model.Lookups, filter);
+            await FillIndexLookupsAsync(model.Lookups, filter);
             
             if (filter.KadroIlId.HasValue)
             {
-                model.Lookups.KadroIlceler = await _context.Ilceler
-                    .AsNoTracking()
-                    .Where(x => x.IlId == filter.KadroIlId.Value)
-                    .OrderBy(x => x.Ad)
-                    .Select(x => new LookupItemVm { Id = x.IlceId, Ad = x.Ad })
-                    .ToListAsync();
+                model.Lookups.KadroIlceler = await _personelLookupService.GetIlceLookupItemsAsync(filter.KadroIlId.Value);
             }
 
             sw.Stop();
@@ -1009,7 +1005,7 @@ namespace PersonelTakipSistemi.Controllers
                     AktifMi = true // Default to Active
                 };
                 
-                await FillLookupLists(cleanModel);
+                await FillLookupListsAsync(cleanModel);
                 return View(cleanModel);
             }
 
@@ -1188,7 +1184,7 @@ namespace PersonelTakipSistemi.Controllers
                     .ToListAsync();
             }
 
-            await FillLookupLists(model);
+            await FillLookupListsAsync(model);
             return View(model);
         }
 
@@ -1238,7 +1234,7 @@ namespace PersonelTakipSistemi.Controllers
                     {
                         ModelState.AddModelError("Telefon", "Telefon numarası 10 haneli olmalıdır (Örn: 5551234567).");
                         // Hata durumunda dropdownları tekrar doldurup view'a dön
-                        await FillLookupLists(model);
+                        await FillLookupListsAsync(model);
                         return View(model);
                     }
 
@@ -1269,7 +1265,7 @@ namespace PersonelTakipSistemi.Controllers
                 {
                      var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
                      TempData["Error"] = "Lütfen tüm zorunlu seçimleri yapınız.";
-                     await FillLookupLists(model);
+                     await FillLookupListsAsync(model);
                      return View(model);
                 }
                 // --- END FAZ 2A ---
@@ -1285,7 +1281,7 @@ namespace PersonelTakipSistemi.Controllers
                     if (model.PersonelId != currentUserId)
                     {
                          TempData["Error"] = "Yetki Hatası: Sadece kendi bilgilerinizi güncelleyebilirsiniz.";
-                         await FillLookupLists(model);
+                         await FillLookupListsAsync(model);
                          return View(model);
                     }
                 }
@@ -1324,7 +1320,7 @@ namespace PersonelTakipSistemi.Controllers
                     var tcConflict = conflicts.Any(c => c.Contains("TC"));
                     TempData["FocusId"] = tcConflict ? "personelTcKimlik" : "personelemail";
                     
-                    await FillLookupLists(model);
+                    await FillLookupListsAsync(model);
                     return View(model);
                 }
 
@@ -1336,7 +1332,7 @@ namespace PersonelTakipSistemi.Controllers
                     if (!validation.isValid)
                     {
                         TempData["Error"] = validation.message;
-                        await FillLookupLists(model);
+                        await FillLookupListsAsync(model);
                         return View(model);
                     }
 
@@ -1517,7 +1513,7 @@ namespace PersonelTakipSistemi.Controllers
                                         ModelState.AddModelError("EskiSifre", "Mevcut şifrenizi girmelisiniz.");
                                         TempData["Error"] = "Şifre değiştirme hatası: Mevcut şifrenizi giriniz.";
                                         TempData["OpenTab"] = "tab_password"; // Hata durumunda ilgili tabı aç
-                                        await FillLookupLists(model);
+                                        await FillLookupListsAsync(model);
                                         return View(model);
                                     }
 
@@ -1526,7 +1522,7 @@ namespace PersonelTakipSistemi.Controllers
                                         ModelState.AddModelError("EskiSifre", "Mevcut şifreniz hatalı.");
                                         TempData["Error"] = "Şifre değiştirme hatası: Mevcut şifreniz hatalı.";
                                         TempData["OpenTab"] = "tab_password";
-                                        await FillLookupLists(model);
+                                        await FillLookupListsAsync(model);
                                         return View(model);
                                     }
                                 }
@@ -1722,7 +1718,7 @@ namespace PersonelTakipSistemi.Controllers
                TempData["Error"] = "Formda hatalar var: " + string.Join(", ", errors.Take(3)) + "...";
             }
 
-            await FillLookupLists(model);
+                    await FillLookupListsAsync(model);
             return View(model);
         }
 
@@ -2217,162 +2213,23 @@ namespace PersonelTakipSistemi.Controllers
             return View(model);
         }
 
-        // Helper Method: Index Lookup Listelerini Doldurma
-        private async Task FillIndexLookups(LookupListsViewModel model, PersonelIndexFilterViewModel filter = null)
+        private Task FillIndexLookupsAsync(LookupListsViewModel model, PersonelIndexFilterViewModel? filter = null)
         {
-             var cacheDuration = TimeSpan.FromMinutes(10);
-             
-             model.Yazilimlar = await _memoryCache.GetOrCreateAsync("YazilimlarList", async entry =>
-             {
-                 entry.AbsoluteExpirationRelativeToNow = cacheDuration;
-                 return await _context.Yazilimlar.AsNoTracking().Select(x => new LookupItemVm { Id = x.YazilimId, Ad = x.Ad }).ToListAsync();
-             }) ?? new List<LookupItemVm>();
-
-             model.Uzmanliklar = await _memoryCache.GetOrCreateAsync("UzmanliklarList", async entry =>
-             {
-                 entry.AbsoluteExpirationRelativeToNow = cacheDuration;
-                 return await _context.Uzmanliklar.AsNoTracking().Select(x => new LookupItemVm { Id = x.UzmanlikId, Ad = x.Ad }).ToListAsync();
-             }) ?? new List<LookupItemVm>();
-
-             model.GorevTurleri = await _memoryCache.GetOrCreateAsync("GorevTurleriList", async entry =>
-             {
-                 entry.AbsoluteExpirationRelativeToNow = cacheDuration;
-                 return await _context.GorevTurleri.AsNoTracking().Select(x => new LookupItemVm { Id = x.GorevTuruId, Ad = x.Ad }).ToListAsync();
-             }) ?? new List<LookupItemVm>();
-
-             model.IsNitelikleri = await _memoryCache.GetOrCreateAsync("IsNitelikleriList", async entry =>
-             {
-                 entry.AbsoluteExpirationRelativeToNow = cacheDuration;
-                 return await _context.IsNitelikleri.AsNoTracking().Select(x => new LookupItemVm { Id = x.IsNiteligiId, Ad = x.Ad }).ToListAsync();
-             }) ?? new List<LookupItemVm>();
-
-             // Refactored Lookups for new Entities
-             model.Branslar = await _context.Branslar.AsNoTracking().OrderBy(b => b.Ad).Select(b => new LookupItemVm { Id = b.BransId, Ad = b.Ad }).ToListAsync();
-             model.Iller = await _context.Iller.AsNoTracking().OrderBy(i => i.Ad).Select(i => new LookupItemVm { Id = i.IlId, Ad = i.Ad }).ToListAsync();
-             
-             // Cascading Filter Lookups (Initial Population)
-             model.Teskilatlar = await _context.Teskilatlar.AsNoTracking().OrderBy(t => t.Ad).Select(t => new LookupItemVm { Id = t.TeskilatId, Ad = t.Ad }).ToListAsync();
-             
-             if (filter != null && filter.TeskilatId.HasValue)
-             {
-                 model.Koordinatorlukler = await _context.Koordinatorlukler.AsNoTracking().Where(k => k.TeskilatId == filter.TeskilatId.Value).OrderBy(k => k.Ad).Select(k => new LookupItemVm { Id = k.KoordinatorlukId, Ad = k.Ad }).ToListAsync();
-             }
-             else
-             {
-                 model.Koordinatorlukler = new List<LookupItemVm>();
-             }
-
-             if (filter != null && filter.KoordinatorlukId.HasValue)
-             {
-                 var koms = await _context.Komisyonlar
-                     .Include(k => k.Koordinatorluk).ThenInclude(koord => koord.Il)
-                     .Where(x => (x.KoordinatorlukId == filter.KoordinatorlukId.Value || x.BagliMerkezKoordinatorlukId == filter.KoordinatorlukId.Value) && x.IsActive)
-                     .ToListAsync();
-
-                 model.Komisyonlar = koms.Select(k => new LookupItemVm { 
-                     Id = k.KomisyonId, 
-                     Ad = k.BagliMerkezKoordinatorlukId == filter.KoordinatorlukId.Value && k.Koordinatorluk?.Il != null ? $"{k.Koordinatorluk.Il.Ad} Komisyonu" : k.Ad 
-                 }).OrderBy(x => x.Ad).ToList();
-             }
-             else
-             {
-                 model.Komisyonlar = new List<LookupItemVm>();
-             }
+            return _personelLookupService.FillIndexLookupsAsync(model, filter);
         }
 
-        // Helper Method: Lookup Listelerini Doldurma
-        private async Task FillLookupLists(PersonelEkleViewModel model)
+        private async Task FillLookupListsAsync(PersonelEkleViewModel model)
         {
             try
             {
-                var cacheDuration = TimeSpan.FromMinutes(10);
-
-                var yazilimlar = await _memoryCache.GetOrCreateAsync("YazilimlarList", async entry =>
-                {
-                    entry.AbsoluteExpirationRelativeToNow = cacheDuration;
-                    return await _context.Yazilimlar
-                        .AsNoTracking()
-                        .Select(x => new LookupItemVm { Id = x.YazilimId, Ad = x.Ad })
-                        .ToListAsync();
-                });
-
-                var uzmanliklar = await _memoryCache.GetOrCreateAsync("UzmanliklarList", async entry =>
-                {
-                    entry.AbsoluteExpirationRelativeToNow = cacheDuration;
-                    return await _context.Uzmanliklar
-                        .AsNoTracking()
-                        .Select(x => new LookupItemVm { Id = x.UzmanlikId, Ad = x.Ad })
-                        .ToListAsync();
-                });
-
-                var gorevTurleri = await _memoryCache.GetOrCreateAsync("GorevTurleriList", async entry =>
-                {
-                    entry.AbsoluteExpirationRelativeToNow = cacheDuration;
-                    return await _context.GorevTurleri
-                        .AsNoTracking()
-                        .Select(x => new LookupItemVm { Id = x.GorevTuruId, Ad = x.Ad })
-                        .ToListAsync();
-                });
-
-                var isNitelikleri = await _memoryCache.GetOrCreateAsync("IsNitelikleriList", async entry =>
-                {
-                    entry.AbsoluteExpirationRelativeToNow = cacheDuration;
-                    return await _context.IsNitelikleri
-                        .AsNoTracking()
-                        .Select(x => new LookupItemVm { Id = x.IsNiteligiId, Ad = x.Ad })
-                        .ToListAsync();
-                });
-
-                // Fetch new lists (can be cached too if desired)
-                var iller = await _context.Iller.AsNoTracking().OrderBy(i => i.Ad).Select(x => new LookupItemVm { Id = x.IlId, Ad = x.Ad }).ToListAsync();
-                var branslar = await _context.Branslar.AsNoTracking().OrderBy(b => b.Ad).Select(x => new LookupItemVm { Id = x.BransId, Ad = x.Ad }).ToListAsync();
-
-                model.Yazilimlar = yazilimlar ?? new List<LookupItemVm>();
-                model.Uzmanliklar = uzmanliklar ?? new List<LookupItemVm>();
-                model.GorevTurleri = gorevTurleri ?? new List<LookupItemVm>();
-                model.IsNitelikleri = isNitelikleri ?? new List<LookupItemVm>();
-                model.Iller = iller;
-                model.Branslar = branslar;
-
-                // Auth Lookups
-                model.SistemRolleri = await _context.SistemRoller.AsNoTracking().Select(x => new LookupItemVm { Id = x.SistemRolId, Ad = x.Ad }).ToListAsync();
-                model.KurumsalRoller = await _context.KurumsalRoller.AsNoTracking().Select(x => new LookupItemVm { Id = x.KurumsalRolId, Ad = x.Ad }).ToListAsync();
-                model.Teskilatlar = await _context.Teskilatlar.AsNoTracking().Select(x => new LookupItemVm { Id = x.TeskilatId, Ad = x.Ad, Tur = x.Tur }).ToListAsync();
-
-                // Preload Hierarchy for Client-Side Cascading (Refined)
-                try {
-                    // Using simple anonymous types to avoid EF Core complexity
-                    var allKoords = await _context.Koordinatorlukler
-                        .AsNoTracking()
-                        .Select(x => new { id = x.KoordinatorlukId, ad = x.Ad, parentId = x.TeskilatId })
-                        .ToListAsync();
-                    
-                    var allKoms = await _context.Komisyonlar
-                        .AsNoTracking()
-                        .Include(k => k.Koordinatorluk)
-                        .ThenInclude(koord => koord.Il)
-                        .Select(x => new 
-                        { 
-                            id = x.KomisyonId, 
-                            ad = x.BagliMerkezKoordinatorlukId != null && x.Koordinatorluk.Il != null
-                                 ? $"{x.Koordinatorluk.Il.Ad} {x.Ad}" 
-                                 : x.Ad, 
-                            parentId = x.KoordinatorlukId,
-                            bagliMerkezKoordinatorlukId = x.BagliMerkezKoordinatorlukId
-                        })
-                        .ToListAsync();
-                    
-                    this.ViewData["AllKoordinatorlukler"] = allKoords;
-                    this.ViewData["AllKomisyonlar"] = allKoms;
-                } catch(Exception ex) {
-                    // Fallback to empty lists to avoid null ref in View, but define checking key
-                     this.ViewData["AllKoordinatorlukler"] = new List<object>();
-                     this.ViewData["AllKomisyonlar"] = new List<object>();
-                     Debug.WriteLine("Hierarchy Load Error: " + ex.Message);
-                }
+                var hierarchy = await _personelLookupService.FillFormLookupsAsync(model);
+                ViewData["AllKoordinatorlukler"] = hierarchy.AllKoordinatorlukler;
+                ViewData["AllKomisyonlar"] = hierarchy.AllKomisyonlar;
             }
             catch (Exception ex)
             {
+                ViewData["AllKoordinatorlukler"] = new List<PersonelHierarchyItemDto>();
+                ViewData["AllKomisyonlar"] = new List<PersonelHierarchyKomisyonItemDto>();
                 Debug.WriteLine("Error fetching lookup data: " + ex.Message);
             }
         }
