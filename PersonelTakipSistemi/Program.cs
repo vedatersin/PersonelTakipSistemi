@@ -14,6 +14,7 @@ builder.Services.AddScoped<PersonelTakipSistemi.Services.INotificationService, P
 builder.Services.AddScoped<PersonelTakipSistemi.Services.ILogService, PersonelTakipSistemi.Services.LogService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IPasswordService, PersonelTakipSistemi.Services.PasswordService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IPersonelLookupService, PersonelTakipSistemi.Services.PersonelLookupService>();
+builder.Services.AddScoped<PersonelTakipSistemi.Services.IPersonelAuthorizationService, PersonelTakipSistemi.Services.PersonelAuthorizationService>();
 
 builder.Services.AddHostedService<PersonelTakipSistemi.Services.NotificationBackgroundService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IExcelService, PersonelTakipSistemi.Services.ExcelService>();

@@ -28,8 +28,9 @@ namespace PersonelTakipSistemi.Controllers
         private readonly IFileValidationService _fileValidationService;
         private readonly IPasswordService _passwordService;
         private readonly IPersonelLookupService _personelLookupService;
+        private readonly IPersonelAuthorizationService _personelAuthorizationService;
 
-        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, INotificationService notificationService, ILogService logService, IExcelService excelService, IFileValidationService fileValidationService, IPasswordService passwordService, IPersonelLookupService personelLookupService)
+        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, INotificationService notificationService, ILogService logService, IExcelService excelService, IFileValidationService fileValidationService, IPasswordService passwordService, IPersonelLookupService personelLookupService, IPersonelAuthorizationService personelAuthorizationService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
@@ -39,6 +40,7 @@ namespace PersonelTakipSistemi.Controllers
             _fileValidationService = fileValidationService;
             _passwordService = passwordService;
             _personelLookupService = personelLookupService;
+            _personelAuthorizationService = personelAuthorizationService;
         }
 
         private int CurrentUserId => int.Parse(User.FindFirst("PersonelId")?.Value ?? "0");
@@ -58,6 +60,13 @@ namespace PersonelTakipSistemi.Controllers
         [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin,Yönetici")] // Only Admin/Manager
         public async Task<IActionResult> Yetkilendirme()
         {
+            if (HttpContext != null)
+            {
+                int serviceCurrentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+                var serviceModel = await _personelAuthorizationService.BuildAuthorizationIndexAsync(serviceCurrentUserId, User.IsInRole("Admin"), User.IsInRole("EditÃ¶r"));
+                return View(serviceModel);
+            }
+
             // Get Current User ID
             int currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
             bool isAdmin = User.IsInRole("Admin");
@@ -177,6 +186,14 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetYetkilendirmeData(int id)
         {
+            if (HttpContext != null)
+            {
+                int serviceCurrentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+                var serviceModel = await _personelAuthorizationService.BuildAuthorizationDetailAsync(id, serviceCurrentUserId, User.IsInRole("Admin"));
+                if (serviceModel == null) return NotFound();
+                return Json(serviceModel);
+            }
+
             int currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
             bool isAdmin = User.IsInRole("Admin");
 
