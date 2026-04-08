@@ -153,6 +153,120 @@ namespace PersonelTakipSistemi.Services
                 .ToListAsync();
         }
 
+        public async Task<(bool TcExists, bool EmailExists)> CheckDuplicatesAsync(int? id, string tc, string email)
+        {
+            if (id.HasValue && id.Value > 0)
+            {
+                var tcExists = await _context.Personeller.AnyAsync(x => x.TcKimlikNo == tc && x.PersonelId != id.Value);
+                var emailExists = await _context.Personeller.AnyAsync(x => x.Eposta == email && x.PersonelId != id.Value);
+                return (tcExists, emailExists);
+            }
+
+            return (
+                await _context.Personeller.AnyAsync(x => x.TcKimlikNo == tc),
+                await _context.Personeller.AnyAsync(x => x.Eposta == email)
+            );
+        }
+
+        public async Task<List<string>> GetKoordinatorlukNamesAsync(string? teskilatAd)
+        {
+            if (string.IsNullOrEmpty(teskilatAd))
+            {
+                return await _context.Koordinatorlukler
+                    .AsNoTracking()
+                    .Select(k => k.Ad)
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToListAsync();
+            }
+
+            return await _context.Koordinatorlukler
+                .AsNoTracking()
+                .Where(k => k.Teskilat.Ad == teskilatAd)
+                .Select(k => k.Ad)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToListAsync();
+        }
+
+        public async Task<List<string>> GetKomisyonNamesAsync(string? koordinatorlukAd)
+        {
+            if (string.IsNullOrEmpty(koordinatorlukAd))
+            {
+                var allKomisyonlar = await _context.Komisyonlar
+                    .AsNoTracking()
+                    .Include(k => k.Koordinatorluk)
+                    .ThenInclude(k => k.Il)
+                    .Select(k => k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk != null && k.Koordinatorluk.Il != null
+                        ? $"{k.Koordinatorluk.Il.Ad} Komisyonu"
+                        : k.Ad)
+                    .Distinct()
+                    .ToListAsync();
+
+                return allKomisyonlar.OrderBy(x => x).ToList();
+            }
+
+            var komisyonlar = await _context.Komisyonlar
+                .AsNoTracking()
+                .Include(k => k.Koordinatorluk)
+                .ThenInclude(k => k.Il)
+                .Include(k => k.BagliMerkezKoordinatorluk)
+                .Where(k => k.IsActive &&
+                            ((k.Koordinatorluk != null && k.Koordinatorluk.Ad == koordinatorlukAd) ||
+                             (k.BagliMerkezKoordinatorluk != null && k.BagliMerkezKoordinatorluk.Ad == koordinatorlukAd)))
+                .ToListAsync();
+
+            return komisyonlar
+                .Select(k => k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null
+                    ? $"{k.Koordinatorluk.Il.Ad} Komisyonu"
+                    : k.Ad)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList();
+        }
+
+        public Task<List<LookupItemVm>> GetKoordinatorluklerByTeskilatAsync(int teskilatId)
+        {
+            return _context.Koordinatorlukler
+                .AsNoTracking()
+                .Where(k => k.TeskilatId == teskilatId)
+                .OrderBy(k => k.Ad)
+                .Select(k => new LookupItemVm { Id = k.KoordinatorlukId, Ad = k.Ad })
+                .ToListAsync();
+        }
+
+        public async Task<List<LookupItemVm>> GetKomisyonlarByKoordinatorlukAsync(int koordinatorlukId)
+        {
+            var komisyonlar = await _context.Komisyonlar
+                .AsNoTracking()
+                .Include(k => k.Koordinatorluk)
+                .ThenInclude(koord => koord.Il)
+                .Where(k => (k.KoordinatorlukId == koordinatorlukId || k.BagliMerkezKoordinatorlukId == koordinatorlukId) && k.IsActive)
+                .ToListAsync();
+
+            return komisyonlar
+                .Select(k => new LookupItemVm
+                {
+                    Id = k.KomisyonId,
+                    Ad = k.BagliMerkezKoordinatorlukId == koordinatorlukId && k.Koordinatorluk?.Il != null
+                        ? $"{k.Koordinatorluk.Il.Ad} Komisyonu"
+                        : k.Ad
+                })
+                .OrderBy(k => k.Ad)
+                .ToList();
+        }
+
+        public Task<List<LookupItemVm>> GetPersonellerByKomisyonAsync(int komisyonId)
+        {
+            return _context.Personeller
+                .AsNoTracking()
+                .Where(p => p.AktifMi && p.PersonelKomisyonlar.Any(pk => pk.KomisyonId == komisyonId))
+                .OrderBy(p => p.Ad)
+                .ThenBy(p => p.Soyad)
+                .Select(p => new LookupItemVm { Id = p.PersonelId, Ad = p.Ad + " " + p.Soyad })
+                .ToListAsync();
+        }
+
         private async Task<List<LookupItemVm>> GetCachedLookupAsync<TEntity>(
             string cacheKey,
             IQueryable<TEntity> source,
