@@ -7,6 +7,8 @@ namespace PersonelTakipSistemi.Services
 {
     public class PersonelAuthorizationService : IPersonelAuthorizationService
     {
+        private static readonly int[] CoordinatorRoleIds = { 3, 5 };
+
         private readonly TegmPersonelTakipDbContext _context;
 
         public PersonelAuthorizationService(TegmPersonelTakipDbContext context)
@@ -16,45 +18,8 @@ namespace PersonelTakipSistemi.Services
 
         public async Task<YetkilendirmeIndexViewModel> BuildAuthorizationIndexAsync(int currentUserId, bool isAdmin, bool isEditor)
         {
-            var query = _context.Personeller.AsQueryable();
-
-            if (!isAdmin)
-            {
-                var authUnits = await _context.PersonelKurumsalRolAtamalari
-                    .Where(a => a.PersonelId == currentUserId && (a.KurumsalRolId == 3 || a.KurumsalRolId == 5))
-                    .Select(a => new { a.KoordinatorlukId })
-                    .ToListAsync();
-
-                if (authUnits.Any())
-                {
-                    var authKoordIds = authUnits.Select(u => u.KoordinatorlukId!.Value).ToList();
-                    var authKomIds = await _context.Komisyonlar
-                        .Where(k => authKoordIds.Contains(k.KoordinatorlukId) || authKoordIds.Contains(k.BagliMerkezKoordinatorlukId ?? 0))
-                        .Select(k => k.KomisyonId)
-                        .ToListAsync();
-
-                    query = query.Where(p =>
-                        p.PersonelKoordinatorlukler.Any(pk => authKoordIds.Contains(pk.KoordinatorlukId)) ||
-                        p.PersonelKomisyonlar.Any(pk => authKomIds.Contains(pk.KomisyonId)) ||
-                        p.PersonelId == currentUserId);
-                }
-                else
-                {
-                    var chairComms = await _context.PersonelKurumsalRolAtamalari
-                        .Where(a => a.PersonelId == currentUserId && a.KurumsalRolId == 2)
-                        .Select(a => a.KomisyonId!.Value)
-                        .ToListAsync();
-
-                    if (chairComms.Any())
-                    {
-                        query = query.Where(p => p.PersonelKomisyonlar.Any(pk => chairComms.Contains(pk.KomisyonId)) || p.PersonelId == currentUserId);
-                    }
-                    else if (!isEditor)
-                    {
-                        query = query.Where(p => p.PersonelId == currentUserId);
-                    }
-                }
-            }
+            var scope = await BuildScopeAsync(currentUserId, isAdmin, isEditor);
+            var query = ApplyPersonnelScope(_context.Personeller.AsQueryable(), scope, currentUserId);
 
             var personeller = await query
                 .Include(p => p.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
@@ -79,11 +44,7 @@ namespace PersonelTakipSistemi.Services
                 AktifMi = p.AktifMi,
                 TeskilatAdlari = p.PersonelTeskilatlar.Select(pt => pt.Teskilat.Ad).ToList(),
                 KoordinatorlukAdlari = p.PersonelKoordinatorlukler.Select(pk => pk.Koordinatorluk.Ad).ToList(),
-                KomisyonAdlari = p.PersonelKomisyonlar.Select(pk =>
-                    pk.Komisyon.BagliMerkezKoordinatorlukId != null && pk.Komisyon.Koordinatorluk?.Il != null
-                    ? $"{pk.Komisyon.Koordinatorluk.Il.Ad} Komisyonu"
-                    : pk.Komisyon.Ad
-                ).ToList(),
+                KomisyonAdlari = p.PersonelKomisyonlar.Select(pk => FormatKomisyonAd(pk.Komisyon)).ToList(),
                 KurumsalRolAdlari = p.PersonelKurumsalRolAtamalari.Select(ra => ra.KurumsalRol.Ad).Distinct().ToList(),
                 Brans = p.Brans?.Ad,
                 Yazilimlar = p.PersonelYazilimlar.Select(py => py.Yazilim.Ad).ToList(),
@@ -100,9 +61,7 @@ namespace PersonelTakipSistemi.Services
                 KurumsalRolList = await _context.KurumsalRoller.Select(r => new SelectListItem { Value = r.KurumsalRolId.ToString(), Text = r.Ad }).ToListAsync(),
                 SistemRolList = await _context.SistemRoller.OrderBy(r => r.Ad).Select(r => new SelectListItem { Value = r.Ad, Text = r.Ad }).ToListAsync(),
                 KomisyonList = await _context.Komisyonlar.Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
-                    .Select(k => k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk != null && k.Koordinatorluk.Il != null
-                        ? $"{k.Koordinatorluk.Il.Ad} Komisyonu"
-                        : k.Ad)
+                    .Select(k => FormatKomisyonAd(k))
                     .Distinct()
                     .Select(ad => new SelectListItem { Value = ad, Text = ad })
                     .ToListAsync(),
@@ -132,6 +91,8 @@ namespace PersonelTakipSistemi.Services
                 return null;
             }
 
+            var scope = await BuildScopeAsync(currentUserId, isAdmin, isEditor: false);
+
             var model = new PersonelYetkiDetailViewModel
             {
                 PersonelId = personel.PersonelId,
@@ -156,52 +117,195 @@ namespace PersonelTakipSistemi.Services
                 }).ToList()
             };
 
-            if (isAdmin)
-            {
-                model.AllTeskilatlar = await _context.Teskilatlar.Select(x => new LookupItemViewModel { Id = x.TeskilatId, Ad = x.Ad }).ToListAsync();
-                model.AllKoordinatorlukler = await _context.Koordinatorlukler.Select(x => new LookupItemViewModel { Id = x.KoordinatorlukId, Ad = x.Ad, ParentId = x.TeskilatId }).ToListAsync();
-                model.AllKomisyonlar = await _context.Komisyonlar.Include(k => k.Koordinatorluk).ThenInclude(koord => koord.Il)
-                    .Select(x => new LookupItemViewModel
-                    {
-                        Id = x.KomisyonId,
-                        Ad = x.BagliMerkezKoordinatorlukId != null && x.Koordinatorluk != null && x.Koordinatorluk.Il != null ? $"{x.Koordinatorluk.Il.Ad} {x.Ad}" : x.Ad,
-                        ParentId = x.KoordinatorlukId,
-                        BagliMerkezKoordinatorlukId = x.BagliMerkezKoordinatorlukId
-                    })
-                    .ToListAsync();
-            }
-            else
-            {
-                var authUnits = await _context.PersonelKurumsalRolAtamalari
-                    .Where(a => a.PersonelId == currentUserId && (a.KurumsalRolId == 3 || a.KurumsalRolId == 5))
-                    .Select(a => new { a.TeskilatId, a.KoordinatorlukId })
-                    .ToListAsync();
-
-                var authKoordIds = authUnits.Select(u => u.KoordinatorlukId!.Value).ToList();
-                var authTesId = authUnits.FirstOrDefault()?.TeskilatId;
-
-                model.AllTeskilatlar = await _context.Teskilatlar.Where(t => t.TeskilatId == authTesId)
-                    .Select(x => new LookupItemViewModel { Id = x.TeskilatId, Ad = x.Ad })
-                    .ToListAsync();
-
-                model.AllKoordinatorlukler = await _context.Koordinatorlukler.Where(k => authKoordIds.Contains(k.KoordinatorlukId))
-                    .Select(x => new LookupItemViewModel { Id = x.KoordinatorlukId, Ad = x.Ad, ParentId = x.TeskilatId })
-                    .ToListAsync();
-
-                model.AllKomisyonlar = await _context.Komisyonlar
-                    .Include(k => k.Koordinatorluk).ThenInclude(koord => koord.Il)
-                    .Where(k => authKoordIds.Contains(k.KoordinatorlukId) || authKoordIds.Contains(k.BagliMerkezKoordinatorlukId ?? 0))
-                    .Select(x => new LookupItemViewModel
-                    {
-                        Id = x.KomisyonId,
-                        Ad = x.BagliMerkezKoordinatorlukId != null && x.Koordinatorluk != null && x.Koordinatorluk.Il != null ? $"{x.Koordinatorluk.Il.Ad} {x.Ad}" : x.Ad,
-                        ParentId = x.KoordinatorlukId,
-                        BagliMerkezKoordinatorlukId = x.BagliMerkezKoordinatorlukId
-                    })
-                    .ToListAsync();
-            }
+            model.AllTeskilatlar = await BuildTeskilatLookupsAsync(scope);
+            model.AllKoordinatorlukler = await BuildKoordinatorlukLookupsAsync(scope);
+            model.AllKomisyonlar = await BuildKomisyonLookupsAsync(scope);
 
             return model;
+        }
+
+        private async Task<AuthorizationScope> BuildScopeAsync(int currentUserId, bool isAdmin, bool isEditor)
+        {
+            if (isAdmin)
+            {
+                return AuthorizationScope.Admin;
+            }
+
+            var coordinatorAssignments = await _context.PersonelKurumsalRolAtamalari
+                .Where(a => a.PersonelId == currentUserId && CoordinatorRoleIds.Contains(a.KurumsalRolId))
+                .Select(a => new { a.TeskilatId, a.KoordinatorlukId })
+                .ToListAsync();
+
+            if (coordinatorAssignments.Any())
+            {
+                var koordinatorlukIds = coordinatorAssignments
+                    .Where(x => x.KoordinatorlukId.HasValue)
+                    .Select(x => x.KoordinatorlukId!.Value)
+                    .Distinct()
+                    .ToList();
+
+                var komisyonIds = await GetAuthorizedKomisyonIdsAsync(koordinatorlukIds);
+
+                return AuthorizationScope.Coordinator(
+                    coordinatorAssignments.Select(x => x.TeskilatId).FirstOrDefault(),
+                    koordinatorlukIds,
+                    komisyonIds);
+            }
+
+            var chairKomisyonIds = await _context.PersonelKurumsalRolAtamalari
+                .Where(a => a.PersonelId == currentUserId && a.KurumsalRolId == 2 && a.KomisyonId.HasValue)
+                .Select(a => a.KomisyonId!.Value)
+                .ToListAsync();
+
+            if (chairKomisyonIds.Any())
+            {
+                return AuthorizationScope.Chair(chairKomisyonIds);
+            }
+
+            return isEditor ? AuthorizationScope.Editor : AuthorizationScope.SelfOnly;
+        }
+
+        private IQueryable<Models.Personel> ApplyPersonnelScope(IQueryable<Models.Personel> query, AuthorizationScope scope, int currentUserId)
+        {
+            return scope.Kind switch
+            {
+                AuthorizationScopeKind.Admin => query,
+                AuthorizationScopeKind.Editor => query,
+                AuthorizationScopeKind.Coordinator => query.Where(p =>
+                    p.PersonelKoordinatorlukler.Any(pk => scope.KoordinatorlukIds.Contains(pk.KoordinatorlukId)) ||
+                    p.PersonelKomisyonlar.Any(pk => scope.KomisyonIds.Contains(pk.KomisyonId)) ||
+                    p.PersonelId == currentUserId),
+                AuthorizationScopeKind.Chair => query.Where(p =>
+                    p.PersonelKomisyonlar.Any(pk => scope.KomisyonIds.Contains(pk.KomisyonId)) ||
+                    p.PersonelId == currentUserId),
+                _ => query.Where(p => p.PersonelId == currentUserId)
+            };
+        }
+
+        private async Task<List<int>> GetAuthorizedKomisyonIdsAsync(List<int> koordinatorlukIds)
+        {
+            if (koordinatorlukIds.Count == 0)
+            {
+                return new List<int>();
+            }
+
+            return await _context.Komisyonlar
+                .Where(k => koordinatorlukIds.Contains(k.KoordinatorlukId) || koordinatorlukIds.Contains(k.BagliMerkezKoordinatorlukId ?? 0))
+                .Select(k => k.KomisyonId)
+                .ToListAsync();
+        }
+
+        private async Task<List<LookupItemViewModel>> BuildTeskilatLookupsAsync(AuthorizationScope scope)
+        {
+            if (scope.Kind == AuthorizationScopeKind.Admin || scope.Kind == AuthorizationScopeKind.Editor)
+            {
+                return await _context.Teskilatlar
+                    .Select(x => new LookupItemViewModel { Id = x.TeskilatId, Ad = x.Ad })
+                    .ToListAsync();
+            }
+
+            if (!scope.TeskilatId.HasValue)
+            {
+                return new List<LookupItemViewModel>();
+            }
+
+            return await _context.Teskilatlar
+                .Where(t => t.TeskilatId == scope.TeskilatId.Value)
+                .Select(x => new LookupItemViewModel { Id = x.TeskilatId, Ad = x.Ad })
+                .ToListAsync();
+        }
+
+        private async Task<List<LookupItemViewModel>> BuildKoordinatorlukLookupsAsync(AuthorizationScope scope)
+        {
+            if (scope.Kind == AuthorizationScopeKind.Admin || scope.Kind == AuthorizationScopeKind.Editor)
+            {
+                return await _context.Koordinatorlukler
+                    .Select(x => new LookupItemViewModel { Id = x.KoordinatorlukId, Ad = x.Ad, ParentId = x.TeskilatId })
+                    .ToListAsync();
+            }
+
+            if (scope.KoordinatorlukIds.Count == 0)
+            {
+                return new List<LookupItemViewModel>();
+            }
+
+            return await _context.Koordinatorlukler
+                .Where(k => scope.KoordinatorlukIds.Contains(k.KoordinatorlukId))
+                .Select(x => new LookupItemViewModel { Id = x.KoordinatorlukId, Ad = x.Ad, ParentId = x.TeskilatId })
+                .ToListAsync();
+        }
+
+        private async Task<List<LookupItemViewModel>> BuildKomisyonLookupsAsync(AuthorizationScope scope)
+        {
+            var query = _context.Komisyonlar
+                .Include(k => k.Koordinatorluk)
+                .ThenInclude(koord => koord.Il)
+                .AsQueryable();
+
+            if (scope.Kind != AuthorizationScopeKind.Admin && scope.Kind != AuthorizationScopeKind.Editor)
+            {
+                if (scope.KomisyonIds.Count == 0)
+                {
+                    return new List<LookupItemViewModel>();
+                }
+
+                query = query.Where(k => scope.KomisyonIds.Contains(k.KomisyonId));
+            }
+
+            return await query
+                .Select(x => new LookupItemViewModel
+                {
+                    Id = x.KomisyonId,
+                    Ad = FormatKomisyonLookupAd(x),
+                    ParentId = x.KoordinatorlukId,
+                    BagliMerkezKoordinatorlukId = x.BagliMerkezKoordinatorlukId
+                })
+                .ToListAsync();
+        }
+
+        private static string FormatKomisyonAd(Models.Komisyon komisyon)
+        {
+            return komisyon.BagliMerkezKoordinatorlukId != null && komisyon.Koordinatorluk?.Il != null
+                ? $"{komisyon.Koordinatorluk.Il.Ad} Komisyonu"
+                : komisyon.Ad;
+        }
+
+        private static string FormatKomisyonLookupAd(Models.Komisyon komisyon)
+        {
+            return komisyon.BagliMerkezKoordinatorlukId != null && komisyon.Koordinatorluk?.Il != null
+                ? $"{komisyon.Koordinatorluk.Il.Ad} {komisyon.Ad}"
+                : komisyon.Ad;
+        }
+
+        private sealed record AuthorizationScope(
+            AuthorizationScopeKind Kind,
+            int? TeskilatId,
+            List<int> KoordinatorlukIds,
+            List<int> KomisyonIds)
+        {
+            public static AuthorizationScope Admin { get; } =
+                new(AuthorizationScopeKind.Admin, null, new List<int>(), new List<int>());
+
+            public static AuthorizationScope Editor { get; } =
+                new(AuthorizationScopeKind.Editor, null, new List<int>(), new List<int>());
+
+            public static AuthorizationScope SelfOnly { get; } =
+                new(AuthorizationScopeKind.SelfOnly, null, new List<int>(), new List<int>());
+
+            public static AuthorizationScope Coordinator(int? teskilatId, List<int> koordinatorlukIds, List<int> komisyonIds) =>
+                new(AuthorizationScopeKind.Coordinator, teskilatId, koordinatorlukIds, komisyonIds);
+
+            public static AuthorizationScope Chair(List<int> komisyonIds) =>
+                new(AuthorizationScopeKind.Chair, null, new List<int>(), komisyonIds);
+        }
+
+        private enum AuthorizationScopeKind
+        {
+            Admin,
+            Editor,
+            Coordinator,
+            Chair,
+            SelfOnly
         }
     }
 }
