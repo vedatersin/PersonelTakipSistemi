@@ -330,20 +330,7 @@ namespace PersonelTakipSistemi.Controllers
         {
             try
             {
-                var merkez = await _context.Teskilatlar.FirstOrDefaultAsync(t => t.Ad.Contains("Merkez"));
-                if (merkez != null)
-                {
-                    merkez.Ad = "Merkez";
-                }
-
-                var tasra = await _context.Teskilatlar.FirstOrDefaultAsync(t => t.Ad.Contains("Taşra"));
-                if (tasra != null)
-                {
-                    tasra.Ad = "Taşra";
-                }
-
-                await _context.SaveChangesAsync();
-                return Content("Teşkilat isimleri güncellendi: Merkez, Taşra");
+                return Content(await _personelMaintenanceService.FixTeskilatNamesAsync());
             }
             catch (Exception ex)
             {

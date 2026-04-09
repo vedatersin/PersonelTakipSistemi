@@ -16,6 +16,7 @@ builder.Services.AddScoped<PersonelTakipSistemi.Services.IPasswordService, Perso
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IPersonelLookupService, PersonelTakipSistemi.Services.PersonelLookupService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IPersonelAuthorizationService, PersonelTakipSistemi.Services.PersonelAuthorizationService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IPersonelAssignmentService, PersonelTakipSistemi.Services.PersonelAssignmentService>();
+builder.Services.AddScoped<PersonelTakipSistemi.Services.IPersonelMaintenanceService, PersonelTakipSistemi.Services.PersonelMaintenanceService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IGorevWorkflowService, PersonelTakipSistemi.Services.GorevWorkflowService>();
 
 builder.Services.AddHostedService<PersonelTakipSistemi.Services.NotificationBackgroundService>();

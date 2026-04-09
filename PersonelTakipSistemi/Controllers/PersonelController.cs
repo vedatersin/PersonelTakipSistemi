@@ -30,8 +30,9 @@ namespace PersonelTakipSistemi.Controllers
         private readonly IPersonelLookupService _personelLookupService;
         private readonly IPersonelAuthorizationService _personelAuthorizationService;
         private readonly IPersonelAssignmentService _personelAssignmentService;
+        private readonly IPersonelMaintenanceService _personelMaintenanceService;
 
-        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, INotificationService notificationService, ILogService logService, IExcelService excelService, IFileValidationService fileValidationService, IPasswordService passwordService, IPersonelLookupService personelLookupService, IPersonelAuthorizationService personelAuthorizationService, IPersonelAssignmentService personelAssignmentService)
+        public PersonelController(TegmPersonelTakipDbContext context, IWebHostEnvironment hostEnvironment, INotificationService notificationService, ILogService logService, IExcelService excelService, IFileValidationService fileValidationService, IPasswordService passwordService, IPersonelLookupService personelLookupService, IPersonelAuthorizationService personelAuthorizationService, IPersonelAssignmentService personelAssignmentService, IPersonelMaintenanceService personelMaintenanceService)
         {
             _context = context;
             _hostEnvironment = hostEnvironment;
@@ -43,6 +44,7 @@ namespace PersonelTakipSistemi.Controllers
             _personelLookupService = personelLookupService;
             _personelAuthorizationService = personelAuthorizationService;
             _personelAssignmentService = personelAssignmentService;
+            _personelMaintenanceService = personelMaintenanceService;
         }
 
         [HttpGet]
