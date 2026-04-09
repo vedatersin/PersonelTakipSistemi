@@ -29,6 +29,11 @@
             padding-bottom: 0.3rem;
             height: 38px;
         }
+
+        .filter-hidden,
+        .page-hidden {
+            display: none !important;
+        }
     </style>
 
     <style>
@@ -213,6 +218,22 @@
                     <h5 class="text-muted">Kayıt bulunamadı.</h5>
                 </div>
             </div>
+
+            <div class="card-footer d-flex justify-content-center align-items-center gap-2 flex-wrap d-none" id="authPaginationContainer">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0" id="authPagination"></ul>
+                </nav>
+
+                <button type="button" class="btn btn-primary px-4 d-none" style="min-width: 190px;" id="authShowAllBtn" onclick="showAllUsers()">
+                    <i class="bx bx-down-arrow-alt me-1"></i> Tümünü Göster
+                </button>
+            </div>
+
+            <div class="card-footer d-flex justify-content-center d-none" id="authShowAllFooter">
+                <button type="button" class="btn btn-primary px-4" style="min-width: 190px;" onclick="hideAllUsers()">
+                    <i class="bx bx-up-arrow-alt me-1"></i> Tümünü Gösterme
+                </button>
+            </div>
         </div>
     </div>
 
@@ -341,6 +362,12 @@
         }
 
         // --- Filtering Logic ---
+        var authPageSize = 10;
+        var authCurrentPage = 1;
+        var authHasFilteredOnce = false;
+        var authFiltersActive = false;
+        var authShowAll = false;
+
         $(document).ready(function() {
             const inputs = [
                 '#filterSearch', '#filterTeskilat', '#filterKoordinatorluk', '#filterSistemRol', '#filterKurumsalRol', '#filterKomisyon',
@@ -361,6 +388,9 @@
                 var val = $(this).val();
                 loadKomisyonlar(val);
             });
+
+            // Initial render
+            filterTable(true);
         });
 
         function loadKoordinatorlukler(teskilatAd) {
@@ -472,7 +502,7 @@
             }
         }
 
-        function filterTable() {
+        function filterTable(resetToFirstPage) {
             const search = $('#filterSearch').val().toLowerCase();
             const teskilat = $('#filterTeskilat').val();
             const koordinatorluk = $('#filterKoordinatorluk').val();
@@ -485,6 +515,12 @@
             const uzmanlik = $('#filterUzmanlik').val();
             const gorevTuru = $('#filterGorevTuru').val();
             const isNiteligi = $('#filterIsNiteligi').val();
+
+            authFiltersActive = !!(search || teskilat || koordinatorluk || sistem || kurumsal || komisyon || brans || yazilim || uzmanlik || gorevTuru || isNiteligi);
+            if (authFiltersActive && !authHasFilteredOnce)
+            {
+                authHasFilteredOnce = true;
+            }
 
             let visibleCount = 0;
 
@@ -523,18 +559,22 @@
                 }}}}}}}}}}}
 
                 if(isVisible) {
-                    $row.show();
+                    $row.removeClass('filter-hidden');
                     visibleCount++;
                 } else {
-                    $row.hide();
+                    $row.addClass('filter-hidden');
                 }
             });
 
+            updateAuthPagination(resetToFirstPage === true);
             if(visibleCount === 0) $('#noResults').removeClass('d-none');
             else $('#noResults').addClass('d-none');
         }
 
-        function clearFilters() {
+        function clearFilters(resetFilteredOnce) {
+            if (resetFilteredOnce === undefined) resetFilteredOnce = true;
+            if (resetFilteredOnce) authHasFilteredOnce = false;
+            authShowAll = false;
             $('#filterSearch').val('');
             
             // Clear parents triggers cascading clear
@@ -553,7 +593,109 @@
             $('#filterGorevTuru').val('');
             $('#filterIsNiteligi').val('');
             
-            filterTable();
+            filterTable(true);
+        }
+
+        function showAllUsers() {
+            authShowAll = true;
+            authCurrentPage = 1;
+            updateAuthPagination(false);
+        }
+
+        function hideAllUsers() {
+            authShowAll = false;
+            authCurrentPage = 1;
+            updateAuthPagination(false);
+        }
+
+        function updateAuthPagination(resetToFirstPage) {
+            var $allRows = $('#personelTable tbody tr');
+            var $matchedRows = $allRows.not('.filter-hidden');
+            var totalItems = $matchedRows.length;
+            var totalPages = Math.max(1, Math.ceil(totalItems / authPageSize));
+
+            if (resetToFirstPage) authCurrentPage = 1;
+            authCurrentPage = Math.min(authCurrentPage, totalPages);
+
+            if (authShowAll) {
+                $allRows.addClass('page-hidden');
+                $matchedRows.removeClass('page-hidden');
+                $('#authPaginationContainer').addClass('d-none');
+                $('#authShowAllFooter').removeClass('d-none');
+                return;
+            }
+
+            $('#authShowAllFooter').addClass('d-none');
+
+            // Apply page slicing
+            $allRows.addClass('page-hidden');
+            if (totalItems > 0)
+            {
+                var start = (authCurrentPage - 1) * authPageSize;
+                var end = start + authPageSize;
+                $matchedRows.slice(start, end).removeClass('page-hidden');
+            }
+
+            // Render footer
+            renderAuthPagination(totalPages);
+        }
+
+        function renderAuthPagination(totalPages) {
+            var $container = $('#authPaginationContainer');
+            var $ul = $('#authPagination');
+            var $showAllBtn = $('#authShowAllBtn');
+            $ul.empty();
+            $showAllBtn.addClass('d-none');
+
+            if (totalPages <= 1) {
+                $container.addClass('d-none');
+                return;
+            }
+
+            $container.removeClass('d-none');
+
+            var startPage = Math.max(1, authCurrentPage - 2);
+            var endPage = Math.min(totalPages, authCurrentPage + 2);
+
+            // Prev
+            $ul.append(`<li class="page-item ${authCurrentPage === 1 ? 'disabled' : ''}">
+                <a class="page-link" href="javascript:void(0);" onclick="changeAuthPage(${authCurrentPage - 1})">«</a>
+            </li>`);
+
+            // First
+            if (startPage > 1) {
+                $ul.append(`<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="changeAuthPage(1)">1</a></li>`);
+                if (startPage > 2) $ul.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+
+            // Numbers
+            for (var i = startPage; i <= endPage; i++) {
+                $ul.append(`<li class="page-item ${i === authCurrentPage ? 'active' : ''}">
+                    <a class="page-link" href="javascript:void(0);" onclick="changeAuthPage(${i})">${i}</a>
+                </li>`);
+            }
+
+            // Last
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) $ul.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+                $ul.append(`<li class="page-item"><a class="page-link" href="javascript:void(0);" onclick="changeAuthPage(${totalPages})">${totalPages}</a></li>`);
+            }
+
+            // Next
+            $ul.append(`<li class="page-item ${authCurrentPage === totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="javascript:void(0);" onclick="changeAuthPage(${authCurrentPage + 1})">»</a>
+            </li>`);
+
+            // Show All button (appears only after a filter is applied once)
+            if (!authShowAll && authHasFilteredOnce && authFiltersActive) {
+                $showAllBtn.removeClass('d-none');
+            }
+        }
+
+        function changeAuthPage(page) {
+            if (!page || page < 1) return;
+            authCurrentPage = page;
+            updateAuthPagination(false);
         }
         // Toplu Atama'dan gelen highlight parametresini işle
         function highlightFromUrl() {

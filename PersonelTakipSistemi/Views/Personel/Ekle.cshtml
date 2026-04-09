@@ -332,11 +332,11 @@
                    <span asp-validation-for="TcKimlikNo" class="text-danger"></span>
                </div>
 
-               <div class="mb-3">
-                   <label asp-for="DogumTarihi" class="form-label">Doğum Tarihi *</label>
-                   <input type="date" asp-for="DogumTarihi" class="form-control" min="1900-01-01" max="@DateTime.Now.AddYears(-18).ToString("yyyy-MM-dd")">
-                   <span asp-validation-for="DogumTarihi" class="text-danger"></span>
-               </div>
+                <div class="mb-3">
+                    <label asp-for="DogumTarihi" class="form-label">Doğum Tarihi</label>
+                    <input type="date" asp-for="DogumTarihi" class="form-control" min="1900-01-01" max="@DateTime.Now.AddYears(-18).ToString("yyyy-MM-dd")">
+                    <span asp-validation-for="DogumTarihi" class="text-danger"></span>
+                </div>
                
                 <!-- AktifMi Switch: Only Show to Admin -->
                 @if(User.IsInRole("Admin"))
@@ -360,14 +360,14 @@
                   <span asp-validation-for="Telefon" class="text-danger"></span>
               </div>
 
-              <div class="mb-3">
-                  <label asp-for="Eposta" class="form-label">E-posta *</label>
+               <div class="mb-3">
+                  <label asp-for="Eposta" class="form-label">E-posta</label>
                   <input type="email" asp-for="Eposta" class="form-control" id="personelemail" data-msg-email="Lütfen geçerli bir e-posta adresi giriniz.">
                   <span asp-validation-for="Eposta" class="text-danger"></span>
               </div>
 
-               <div class="mb-3">
-                  <label asp-for="GorevliIlId" class="form-label">Görevli İl *</label>
+                <div class="mb-3">
+                  <label asp-for="GorevliIlId" class="form-label">Görevli İl</label>
                   <select class="form-select select2" asp-for="GorevliIlId" id="personelgorevli_il">
                       <option value="">Seçiniz...</option>
                       @if(Model.Iller != null) { 
@@ -378,7 +378,7 @@
               </div>
 
               <div class="mb-3">
-                  <label asp-for="BransId" class="form-label">Branş *</label>
+                  <label asp-for="BransId" class="form-label">Branş</label>
                   <select class="form-select select2" asp-for="BransId" id="personelBrans">
                       <option value="">Seçiniz...</option>
                       @if(Model.Branslar != null) { 
@@ -388,8 +388,8 @@
                   <span asp-validation-for="BransId" class="text-danger"></span>
               </div>
 
-               <div class="mb-3">
-                  <label asp-for="KadroIlId" class="form-label">Kadro İli *</label>
+                <div class="mb-3">
+                  <label asp-for="KadroIlId" class="form-label">Kadro İli</label>
                   <select class="form-select select2" asp-for="KadroIlId" id="KadroIlId">
                       <option value="">Seçiniz...</option>
                       @if(Model.Iller != null) { 
@@ -399,8 +399,8 @@
                   <span asp-validation-for="KadroIlId" class="text-danger"></span>
               </div>
 
-               <div class="mb-3">
-                  <label asp-for="KadroIlceId" class="form-label">Kadro İlçesi *</label>
+                <div class="mb-3">
+                  <label asp-for="KadroIlceId" class="form-label">Kadro İlçesi</label>
                   <select class="form-select select2" asp-for="KadroIlceId" id="KadroIlceId">
                       <option value="">Seçiniz...</option>
                       @if(Model.KadroIlceler != null) { 
@@ -411,7 +411,7 @@
               </div>
 
               <div class="mb-3">
-                  <label asp-for="KadroKurum" class="form-label">Kadro Kurum *</label>
+                  <label asp-for="KadroKurum" class="form-label">Kadro Kurum</label>
                   <input type="text" asp-for="KadroKurum" class="form-control" id="personelKadroKurum">
                   <span asp-validation-for="KadroKurum" class="text-danger"></span>
               </div>
@@ -1464,10 +1464,10 @@
                 });
             };
 
-            setupNextBtn("next2", "tab2", "SeciliYazilimIdleri");
-            setupNextBtn("next3", "tab3", "SeciliUzmanlikIdleri");
-            setupNextBtn("next4", "tab4", "SeciliGorevTuruIdleri");
-            setupNextBtn("next5", "tab5", "SeciliIsNiteligiIdleri");
+            setupNextBtn("next2", "tab2");
+            setupNextBtn("next3", "tab3");
+            setupNextBtn("next4", "tab4");
+            setupNextBtn("next5", "tab5");
 
             // --- Next 1 (AJAX Check) ---
             const btnNext1 = document.getElementById("next1");
@@ -1771,29 +1771,6 @@
 
                 if (korId) {
                     window.loadKomisyonlar(korId);
-                }
-            });
-
-            // Final Submit Guard
-            $('form').submit(function (e) {
-                const groups = [
-                    { name: "SeciliYazilimIdleri", label: "Beceriler" },
-                    { name: "SeciliUzmanlikIdleri", label: "Uzmanlık" },
-                    { name: "SeciliGorevTuruIdleri", label: "Görev Türü" },
-                    { name: "SeciliIsNiteligiIdleri", label: "İş Niteliği" }
-                ];
-                let hasError = false;
-                groups.forEach(function (g) {
-                    if ($(`input[name="${g.name}"]:checked`).length === 0) hasError = true;
-                });
-                if (hasError) {
-                    e.preventDefault();
-                    Swal.fire({
-                        title: 'Eksik Seçim',
-                        text: "Lütfen Beceriler, Uzmanlık, Görev Türü ve İş Niteliği sekmelerinden en az birer seçim yapınız.",
-                        icon: 'warning',
-                        confirmButtonText: 'Tamam'
-                    });
                 }
             });
 

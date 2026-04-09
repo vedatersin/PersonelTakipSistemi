@@ -1093,7 +1093,7 @@ namespace PersonelTakipSistemi.Controllers
             // Görevler
             var gorevler = await _context.GorevAtamaKomisyonlar
                 .Include(ga => ga.Gorev).ThenInclude(g => g.GorevDurum)
-                .Include(ga => ga.Gorev).ThenInclude(g => g.Kategori)
+                .Include(ga => ga.Gorev).ThenInclude(g => g.IsNiteligi)
                 .Where(ga => ga.KomisyonId == id)
                 .Select(ga => new KomisyonGorevItem
                 {
@@ -1101,7 +1101,7 @@ namespace PersonelTakipSistemi.Controllers
                     Baslik = ga.Gorev.Ad,
                     Durum = ga.Gorev.GorevDurum != null ? ga.Gorev.GorevDurum.Ad : "Bilinmiyor",
                     DurumRenk = ga.Gorev.GorevDurum != null ? ga.Gorev.GorevDurum.Renk : "#6c757d",
-                    Kategori = ga.Gorev.Kategori != null ? ga.Gorev.Kategori.Ad : null,
+                    Kategori = ga.Gorev.IsNiteligi != null ? ga.Gorev.IsNiteligi.Ad : null,
                     BaslangicTarihi = ga.Gorev.BaslangicTarihi,
                     BitisTarihi = ga.Gorev.BitisTarihi
                 })
@@ -1202,3 +1202,4 @@ namespace PersonelTakipSistemi.Controllers
         }
     }
 }
+

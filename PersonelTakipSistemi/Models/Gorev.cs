@@ -15,10 +15,9 @@ namespace PersonelTakipSistemi.Models
 
         public string? Aciklama { get; set; }
 
-        // Foreing Keys
-        // Foreing Keys
-        public int KategoriId { get; set; }
-        public GorevKategori? Kategori { get; set; }
+        // Foreign keys
+        public int IsNiteligiId { get; set; }
+        public IsNiteligi? IsNiteligi { get; set; }
 
         public int? PersonelId { get; set; }
         public Personel? Personel { get; set; }

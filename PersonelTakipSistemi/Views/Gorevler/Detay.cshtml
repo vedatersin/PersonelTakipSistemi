@@ -35,8 +35,8 @@
             <div class="card-body">
                 <div class="row mb-3">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label text-muted">Kategori</label>
-                        <div class="fw-bold">@Model.Kategori?.Ad</div>
+                        <label class="form-label text-muted">İş Niteliği</label>
+                        <div class="fw-bold">@Model.IsNiteligi?.Ad</div>
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label text-muted">Durum Açıklaması / Notu</label>
@@ -96,24 +96,28 @@
                          @foreach(var ap in Model.GorevAtamaPersoneller)
                          {
                              <li class="list-group-item d-flex align-items-center">
-                                 <div class="avatar avatar-xs me-2">
-                                     <span class="avatar-initial rounded-circle bg-label-primary">
-                                         @(ap.Personel?.Ad?.Substring(0,1))@(ap.Personel?.Soyad?.Substring(0,1))
-                                     </span>
-                                 </div>
-                                 @if(User.IsInRole("Admin") || User.IsInRole("Yönetici") || User.IsInRole("Editör"))
-                                 {
-                                     <a href="/Personel/Detay/@ap.PersonelId" class="text-body fw-semibold">
-                                         @ap.Personel?.Ad @ap.Personel?.Soyad
-                                     </a>
-                                 }
-                                 else
-                                 {
-                                     <span>@ap.Personel?.Ad @ap.Personel?.Soyad</span>
-                                 }
-                             </li>
-                         }
-                     }
+                                  <div class="avatar avatar-xs me-2">
+                                      <span class="avatar-initial rounded-circle bg-label-primary">
+                                          @(ap.Personel?.Ad?.Substring(0,1))@(ap.Personel?.Soyad?.Substring(0,1))
+                                      </span>
+                                  </div>
+                                  @if(User.IsInRole("Admin") || User.IsInRole("Yönetici") || User.IsInRole("Editör"))
+                                  {
+                                      <a href="/Personel/Detay/@ap.PersonelId" class="text-body fw-semibold">
+                                          @ap.Personel?.Ad @ap.Personel?.Soyad
+                                      </a>
+                                  }
+                                  else
+                                  {
+                                      <span>@ap.Personel?.Ad @ap.Personel?.Soyad</span>
+                                  }
+                                  @if(ap.GorevTuru != null)
+                                  {
+                                      <span class="badge bg-label-secondary ms-auto">@ap.GorevTuru.Ad</span>
+                                  }
+                              </li>
+                          }
+                      }
 
                      <!-- Teskilatlar -->
                      @if(Model.GorevAtamaTeskilatlar != null && Model.GorevAtamaTeskilatlar.Any())
@@ -121,40 +125,52 @@
                           <li class="list-group-item bg-light fw-bold small text-uppercase mt-2">Teşkilatlar</li>
                           @foreach(var at in Model.GorevAtamaTeskilatlar)
                           {
-                              <li class="list-group-item">
+                              <li class="list-group-item d-flex align-items-center">
                                   <i class="bx bx-building me-2 text-muted"></i> @at.Teskilat?.Ad
+                                  @if(at.GorevTuru != null)
+                                  {
+                                      <span class="badge bg-label-secondary ms-auto">@at.GorevTuru.Ad</span>
+                                  }
                               </li>
-                          }
-                     }
+                           }
+                      }
                       <!-- Coordination and Commissions -->
                      @if(Model.GorevAtamaKoordinatorlukler != null && Model.GorevAtamaKoordinatorlukler.Any())
                      {
                           <li class="list-group-item bg-light fw-bold small text-uppercase mt-2">Koordinatörlükler</li>
                           @foreach(var at in Model.GorevAtamaKoordinatorlukler)
                           {
-                              <li class="list-group-item">
+                              <li class="list-group-item d-flex align-items-center">
                                   <i class="bx bx-business me-2 text-muted"></i> @at.Koordinatorluk?.Ad
+                                  @if(at.GorevTuru != null)
+                                  {
+                                      <span class="badge bg-label-secondary ms-auto">@at.GorevTuru.Ad</span>
+                                  }
                               </li>
-                          }
-                     }
+                           }
+                      }
                       @if(Model.GorevAtamaKomisyonlar != null && Model.GorevAtamaKomisyonlar.Any())
                      {
                           <li class="list-group-item bg-light fw-bold small text-uppercase mt-2">Komisyonlar</li>
                           @foreach(var at in Model.GorevAtamaKomisyonlar)
                           {
-                              <li class="list-group-item">
-                                  <i class="bx bx-group me-2 text-muted"></i> 
-                                  @{
-                                      var displayText2 = at.Komisyon?.Ad;
-                                      if (at.Komisyon?.BagliMerkezKoordinatorlukId != null && at.Komisyon.Koordinatorluk != null)
-                                      {
-                                          var birimAd2 = at.Komisyon.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "");
-                                          var sehirAd2 = at.Komisyon.Koordinatorluk.Il?.Ad ?? "";
-                                          displayText2 = $"{sehirAd2} {birimAd2} {at.Komisyon.Ad}";
-                                      }
-                                  }
-                                  @displayText2
-                              </li>
+                              <li class="list-group-item d-flex align-items-center">
+                                   <i class="bx bx-group me-2 text-muted"></i> 
+                                   @{
+                                       var displayText2 = at.Komisyon?.Ad;
+                                       if (at.Komisyon?.BagliMerkezKoordinatorlukId != null && at.Komisyon.Koordinatorluk != null)
+                                       {
+                                           var birimAd2 = at.Komisyon.Koordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "");
+                                           var sehirAd2 = at.Komisyon.Koordinatorluk.Il?.Ad ?? "";
+                                           displayText2 = $"{sehirAd2} {birimAd2} {at.Komisyon.Ad}";
+                                       }
+                                   }
+                                   <span>@displayText2</span>
+                                   @if(at.GorevTuru != null)
+                                   {
+                                       <span class="badge bg-label-secondary ms-auto">@at.GorevTuru.Ad</span>
+                                   }
+                               </li>
                           }
                      }
                  </ul>
@@ -340,3 +356,4 @@
         }
     </script>
 }
+

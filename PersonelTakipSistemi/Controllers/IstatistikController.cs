@@ -129,7 +129,7 @@ namespace PersonelTakipSistemi.Controllers
                 }
             }
             
-            var query = _context.Gorevler.Include(g => g.Kategori).AsQueryable();
+            var query = _context.Gorevler.Include(g => g.IsNiteligi).AsQueryable();
 
             if (personelId.HasValue)
             {
@@ -164,8 +164,8 @@ namespace PersonelTakipSistemi.Controllers
 
             // 1. Categories (Pie)
             var kategoriData = await query
-                .GroupBy(g => new { Ad = g.Kategori!.Ad, Renk = g.Kategori!.Renk })
-                .Select(g => new { Label = g.Key.Ad, Count = g.Count(), Color = g.Key.Renk })
+                .GroupBy(g => g.IsNiteligi!.Ad)
+                .Select(g => new { Label = g.Key, Count = g.Count(), Color = "#696cff" })
                 .ToListAsync();
 
             // 2. Task Status (Bar)
@@ -386,7 +386,7 @@ namespace PersonelTakipSistemi.Controllers
                 else return Unauthorized();
             }
 
-            var query = _context.Gorevler.Include(g => g.Kategori).Include(g => g.GorevDurum).AsQueryable();
+            var query = _context.Gorevler.Include(g => g.IsNiteligi).Include(g => g.GorevDurum).AsQueryable();
 
             if (personelId.HasValue)
                 query = query.Where(g => g.GorevAtamaPersoneller.Any(gap => gap.PersonelId == personelId));
@@ -417,7 +417,7 @@ namespace PersonelTakipSistemi.Controllers
             ws1.Cells.AutoFitColumns();
 
             // Kategori Data for Chart
-            var kategoriData = await query.GroupBy(g => g.Kategori!.Ad).Select(g => new { Label = g.Key, Count = g.Count() }).ToListAsync();
+            var kategoriData = await query.GroupBy(g => g.IsNiteligi!.Ad).Select(g => new { Label = g.Key, Count = g.Count() }).ToListAsync();
             var wsKat = package.Workbook.Worksheets.Add("KategoriData"); // Data sheet, hidden
             wsKat.Hidden = eWorkSheetHidden.Hidden;
             wsKat.Cells["A1"].Value = "Kategori";
@@ -493,3 +493,4 @@ namespace PersonelTakipSistemi.Controllers
         }
     }
 }
+

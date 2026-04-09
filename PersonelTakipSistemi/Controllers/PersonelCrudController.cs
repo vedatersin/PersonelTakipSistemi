@@ -31,7 +31,6 @@ namespace PersonelTakipSistemi.Controllers
                 {
                     IsEditMode = false,
                     PersonelId = 0,
-                    DogumTarihi = new DateTime(1990, 1, 1), // Default date
                     SeciliYazilimIdleri = new List<int>(),
                     SeciliUzmanlikIdleri = new List<int>(),
                     SeciliGorevTuruIdleri = new List<int>(),
@@ -280,33 +279,7 @@ namespace PersonelTakipSistemi.Controllers
                     model.Telefon = cleanPhone;
                 }
 
-                // --- FAZ 2A: Zorunlu Alan Kontrolleri (Multi-Select) ---
-                if (model.SeciliYazilimIdleri == null || !model.SeciliYazilimIdleri.Any())
-                {
-                    ModelState.AddModelError("SeciliYazilimIdleri", "En az bir yazilim seçilmelidir.");
-                }
-                if (model.SeciliUzmanlikIdleri == null || !model.SeciliUzmanlikIdleri.Any())
-                {
-                     ModelState.AddModelError("SeciliUzmanlikIdleri", "En az bir uzmanlik seçilmelidir.");
-                }
-                if (model.SeciliGorevTuruIdleri == null || !model.SeciliGorevTuruIdleri.Any())
-                {
-                     ModelState.AddModelError("SeciliGorevTuruIdleri", "En az bir görev türü seçilmelidir.");
-                }
-                if (model.SeciliIsNiteligiIdleri == null || !model.SeciliIsNiteligiIdleri.Any())
-                {
-                     ModelState.AddModelError("SeciliIsNiteligiIdleri", "En az bir is niteligi seçilmelidir.");
-                }
-                
-                // Eger manuel ekledigimiz hatalar varsa IsValid false dönecek (state check needed potentially, or re-check)
-                if(!ModelState.IsValid)
-                {
-                     var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                     TempData["Error"] = "Lütfen tüm zorunlu seçimleri yapiniz.";
-                     await FillLookupListsAsync(model);
-                     return View(model);
-                }
-                // --- END FAZ 2A ---
+                await NormalizeOptionalFieldsAsync(model);
 
 
                 // 1. Logic Separation
@@ -416,9 +389,9 @@ namespace PersonelTakipSistemi.Controllers
                         if (personel.TcKimlikNo != model.TcKimlikNo) changes.Add($"TC: Degisti");
                         if (personel.Telefon != (model.Telefon ?? "")) changes.Add($"Telefon Degisti");
                         if (personel.Eposta != model.Eposta) changes.Add($"E-posta: {personel.Eposta} -> {model.Eposta}");
-                        if (personel.GorevliIlId != model.GorevliIlId) 
+                        if (personel.GorevliIlId != model.GorevliIlId!.Value) 
                         {
-                             var newIl = await _context.Iller.FindAsync(model.GorevliIlId);
+                             var newIl = await _context.Iller.FindAsync(model.GorevliIlId!.Value);
                              changes.Add($"Il: {personel.GorevliIl?.Ad} -> {newIl?.Ad}");
                         }
                         if (personel.KadroIlId != model.KadroIlId)
@@ -431,9 +404,9 @@ namespace PersonelTakipSistemi.Controllers
                              var newKadroIlce = await _context.Ilceler.FindAsync(model.KadroIlceId);
                              changes.Add($"Kadro Ilçesi: {personel.KadroIlce?.Ad} -> {newKadroIlce?.Ad}");
                         }
-                        if (personel.BransId != model.BransId) 
+                        if (personel.BransId != model.BransId!.Value) 
                         {
-                             var newBrans = await _context.Branslar.FindAsync(model.BransId);
+                             var newBrans = await _context.Branslar.FindAsync(model.BransId!.Value);
                              changes.Add($"Brans: {personel.Brans?.Ad} -> {newBrans?.Ad}");
                         }
                         if (personel.SistemRolId != model.SistemRolId)
@@ -498,13 +471,13 @@ namespace PersonelTakipSistemi.Controllers
                         personel.Soyad = model.Soyad;
                         personel.TcKimlikNo = model.TcKimlikNo;
                         personel.Telefon = model.Telefon ?? "";
-                        personel.Eposta = model.Eposta;
-                        personel.PersonelCinsiyet = model.PersonelCinsiyet == 1;
-                        personel.DogumTarihi = model.DogumTarihi;
-                        personel.GorevliIlId = (int)model.GorevliIlId;
+                        personel.Eposta = model.Eposta!;
+                        personel.PersonelCinsiyet = (model.PersonelCinsiyet ?? 0) == 1;
+                        personel.DogumTarihi = model.DogumTarihi!.Value;
+                        personel.GorevliIlId = model.GorevliIlId!.Value;
                         personel.KadroIlId = model.KadroIlId;
                         personel.KadroIlceId = model.KadroIlceId;
-                        personel.BransId = (int)model.BransId;
+                        personel.BransId = model.BransId!.Value;
                         personel.KadroKurum = model.KadroKurum ?? "";
                         
                         // Rule: Only Admin can change AktifMi
@@ -671,13 +644,13 @@ namespace PersonelTakipSistemi.Controllers
                             Soyad = model.Soyad,
                             TcKimlikNo = model.TcKimlikNo,
                             Telefon = model.Telefon ?? "",
-                            Eposta = model.Eposta,
-                            PersonelCinsiyet = model.PersonelCinsiyet == 1,
-                            DogumTarihi = model.DogumTarihi,
-                            GorevliIlId = (int)model.GorevliIlId,
+                            Eposta = model.Eposta!,
+                            PersonelCinsiyet = (model.PersonelCinsiyet ?? 0) == 1,
+                            DogumTarihi = model.DogumTarihi!.Value,
+                            GorevliIlId = model.GorevliIlId!.Value,
                             KadroIlId = model.KadroIlId,
                             KadroIlceId = model.KadroIlceId,
-                            BransId = (int)model.BransId,
+                            BransId = model.BransId!.Value,
                             KadroKurum = model.KadroKurum ?? "",
                             AktifMi = effectiveAktifMi,
                             FotografYolu = AvatarHelper.NormalizePhoto(yeniFotoYolu),
@@ -793,6 +766,50 @@ namespace PersonelTakipSistemi.Controllers
             // Since we call AddRelations from both, let's keep it clean and do it in the main block for better control over async/await and error handling, 
             // OR move the common logic here.
             // Given the complexity of the JSON parsing, let's keep it in the Controller action but ensure it runs for Insert too.
+        }
+
+        private async Task NormalizeOptionalFieldsAsync(PersonelEkleViewModel model)
+        {
+            model.KadroKurum ??= "";
+
+            if (string.IsNullOrWhiteSpace(model.Eposta))
+            {
+                model.Eposta = $"{model.TcKimlikNo}@noemail.local";
+            }
+
+            model.DogumTarihi ??= new DateTime(1990, 1, 1);
+
+            if (!model.GorevliIlId.HasValue)
+            {
+                var defaultIlId = await _context.Iller
+                    .AsNoTracking()
+                    .OrderBy(x => x.IlId)
+                    .Select(x => x.IlId)
+                    .FirstOrDefaultAsync();
+
+                if (defaultIlId <= 0)
+                {
+                    throw new InvalidOperationException("Iller katalogu bos. Varsayilan il atanamadi.");
+                }
+
+                model.GorevliIlId = defaultIlId;
+            }
+
+            if (!model.BransId.HasValue)
+            {
+                var defaultBransId = await _context.Branslar
+                    .AsNoTracking()
+                    .OrderBy(x => x.BransId)
+                    .Select(x => x.BransId)
+                    .FirstOrDefaultAsync();
+
+                if (defaultBransId <= 0)
+                {
+                    throw new InvalidOperationException("Branslar katalogu bos. Varsayilan brans atanamadi.");
+                }
+
+                model.BransId = defaultBransId;
+            }
         }
 
 

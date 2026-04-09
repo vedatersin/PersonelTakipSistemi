@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using PersonelTakipSistemi; // For ApplicationState
+using System.Globalization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,7 +47,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LogoutPath = "/Account/Logout";
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.SlidingExpiration = true;
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+        options.ExpireTimeSpan = TimeSpan.FromHours(4);
         
         options.Events = new CookieAuthenticationEvents
         {
@@ -55,6 +56,17 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                 var user = context.Principal;
                 if (user != null)
                 {
+                    // Absolute session cap (4 hours) to avoid "always-on" sessions even with sliding expiration.
+                    var loginUtcClaim = user.FindFirst("LoginUtc");
+                    if (loginUtcClaim != null &&
+                        DateTimeOffset.TryParse(loginUtcClaim.Value, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var loginUtc) &&
+                        DateTimeOffset.UtcNow - loginUtc > TimeSpan.FromHours(4))
+                    {
+                        context.RejectPrincipal();
+                        await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                        return;
+                    }
+
                     // "InstanceId" claim'i var mı kontrol et
                     var instanceIdClaim = user.FindFirst("InstanceId");
                     

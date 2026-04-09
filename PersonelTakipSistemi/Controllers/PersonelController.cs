@@ -59,7 +59,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(PersonelIndexFilterViewModel filter, int? highlightId = null)
+        public async Task<IActionResult> Index(PersonelIndexFilterViewModel filter, bool showAll = false, int? highlightId = null)
         {
             ViewBag.HighlightId = highlightId;
             var sw = Stopwatch.StartNew();
@@ -149,10 +149,18 @@ namespace PersonelTakipSistemi.Controllers
 
             // 2. Sayfalama Hazirligi
             var totalItems = await query.CountAsync();
-            var results = await query
-                .OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
-                .Skip((filter.Page - 1) * filter.PageSize)
-                .Take(filter.PageSize)
+
+            var ordered = query.OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt);
+            if (showAll)
+            {
+                filter.Page = 1;
+            }
+
+            var paged = showAll
+                ? ordered
+                : ordered.Skip((filter.Page - 1) * filter.PageSize).Take(filter.PageSize);
+
+            var results = await paged
                 .Select(p => new PersonelIndexRowViewModel
                 {
                     PersonelId = p.PersonelId,
@@ -177,6 +185,7 @@ namespace PersonelTakipSistemi.Controllers
             {
                 Filter = filter,
                 Results = results,
+                ShowAll = showAll,
                 Pagination = new PaginationInfoViewModel
                 {
                     CurrentPage = filter.Page,
@@ -196,6 +205,131 @@ namespace PersonelTakipSistemi.Controllers
             sw.Stop();
             ViewBag.LoadTime = sw.ElapsedMilliseconds;
             return View("PersonelIndex", model); // Explicitly specifying view name
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ExportExcel(PersonelIndexFilterViewModel filter)
+        {
+            var query = _context.Personeller
+                .Include(p => p.GorevliIl)
+                .Include(p => p.Brans)
+                .Include(p => p.PersonelYazilimlar).ThenInclude(py => py.Yazilim)
+                .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
+                .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
+                .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
+                .AsNoTracking()
+                .AsQueryable();
+
+            // Same filtering logic as Index
+            if (!string.IsNullOrEmpty(filter.SearchName))
+            {
+                var term = filter.SearchName.ToLower();
+                query = query.Where(p => p.Ad.ToLower().Contains(term) || p.Soyad.ToLower().Contains(term));
+            }
+
+            if (!string.IsNullOrEmpty(filter.TcKimlikNo))
+            {
+                query = query.Where(p => p.TcKimlikNo.StartsWith(filter.TcKimlikNo));
+            }
+
+            if (filter.BransId.HasValue) query = query.Where(p => p.BransId == filter.BransId.Value);
+            if (filter.GorevliIlId.HasValue) query = query.Where(p => p.GorevliIlId == filter.GorevliIlId.Value);
+            if (filter.KadroIlId.HasValue) query = query.Where(p => p.KadroIlId == filter.KadroIlId.Value);
+            if (filter.KadroIlceId.HasValue) query = query.Where(p => p.KadroIlceId == filter.KadroIlceId.Value);
+            if (filter.DogumBaslangic.HasValue) query = query.Where(p => p.DogumTarihi >= filter.DogumBaslangic.Value);
+
+            if (filter.SeciliYazilimIdleri != null && filter.SeciliYazilimIdleri.Any())
+            {
+                query = query.Where(p => p.PersonelYazilimlar.Any(py => filter.SeciliYazilimIdleri.Contains(py.YazilimId)));
+            }
+
+            if (filter.TeskilatId.HasValue)
+            {
+                query = query.Where(p => p.PersonelTeskilatlar.Any(pt => pt.TeskilatId == filter.TeskilatId.Value));
+            }
+
+            if (filter.KoordinatorlukId.HasValue)
+            {
+                query = query.Where(p => p.PersonelKoordinatorlukler.Any(pk => pk.KoordinatorlukId == filter.KoordinatorlukId.Value));
+            }
+
+            if (filter.KomisyonId.HasValue)
+            {
+                query = query.Where(p => p.PersonelKomisyonlar.Any(pk => pk.KomisyonId == filter.KomisyonId.Value));
+            }
+
+            if (filter.SeciliUzmanlikIdleri != null && filter.SeciliUzmanlikIdleri.Any())
+            {
+                query = query.Where(p => p.PersonelUzmanliklar.Any(pu => filter.SeciliUzmanlikIdleri.Contains(pu.UzmanlikId)));
+            }
+
+            if (filter.SeciliGorevTuruIdleri != null && filter.SeciliGorevTuruIdleri.Any())
+            {
+                query = query.Where(p => p.PersonelGorevTurleri.Any(pg => filter.SeciliGorevTuruIdleri.Contains(pg.GorevTuruId)));
+            }
+
+            if (filter.SeciliIsNiteligiIdleri != null && filter.SeciliIsNiteligiIdleri.Any())
+            {
+                query = query.Where(p => p.PersonelIsNitelikleri.Any(pi => filter.SeciliIsNiteligiIdleri.Contains(pi.IsNiteligiId)));
+            }
+
+            var rows = await query
+                .OrderBy(p => p.Ad).ThenBy(p => p.Soyad)
+                .Select(p => new
+                {
+                    Ad = p.Ad,
+                    Soyad = p.Soyad,
+                    Eposta = p.Eposta,
+                    Brans = p.Brans.Ad,
+                    GorevliIl = p.GorevliIl.Ad,
+                    KadroIl = p.KadroIl != null ? p.KadroIl.Ad : "",
+                    KadroIlce = p.KadroIlce != null ? p.KadroIlce.Ad : "",
+                    AktifMi = p.AktifMi,
+                    Yazilimlar = string.Join(", ", p.PersonelYazilimlar.Select(py => py.Yazilim.Ad)),
+                    Uzmanliklar = string.Join(", ", p.PersonelUzmanliklar.Select(pu => pu.Uzmanlik.Ad)),
+                    GorevTurleri = string.Join(", ", p.PersonelGorevTurleri.Select(pg => pg.GorevTuru.Ad)),
+                    IsNitelikleri = string.Join(", ", p.PersonelIsNitelikleri.Select(pi => pi.IsNiteligi.Ad))
+                })
+                .ToListAsync();
+
+            OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
+            using var package = new OfficeOpenXml.ExcelPackage();
+            var ws = package.Workbook.Worksheets.Add("Personel");
+
+            string[] headers =
+            [
+                "Ad", "Soyad", "E-posta", "Branş", "Görevli İl", "Kadro İl", "Kadro İlçe", "Durum",
+                "Yazılımlar", "Uzmanlıklar", "Görev Türleri", "İş Nitelikleri"
+            ];
+
+            for (int i = 0; i < headers.Length; i++)
+            {
+                ws.Cells[1, i + 1].Value = headers[i];
+                ws.Cells[1, i + 1].Style.Font.Bold = true;
+            }
+
+            for (int i = 0; i < rows.Count; i++)
+            {
+                var r = rows[i];
+                ws.Cells[i + 2, 1].Value = r.Ad;
+                ws.Cells[i + 2, 2].Value = r.Soyad;
+                ws.Cells[i + 2, 3].Value = r.Eposta;
+                ws.Cells[i + 2, 4].Value = r.Brans;
+                ws.Cells[i + 2, 5].Value = r.GorevliIl;
+                ws.Cells[i + 2, 6].Value = r.KadroIl;
+                ws.Cells[i + 2, 7].Value = r.KadroIlce;
+                ws.Cells[i + 2, 8].Value = r.AktifMi ? "Aktif" : "Pasif";
+                ws.Cells[i + 2, 9].Value = r.Yazilimlar;
+                ws.Cells[i + 2, 10].Value = r.Uzmanliklar;
+                ws.Cells[i + 2, 11].Value = r.GorevTurleri;
+                ws.Cells[i + 2, 12].Value = r.IsNitelikleri;
+            }
+
+            ws.Cells[ws.Dimension.Address].AutoFitColumns();
+
+            var content = await package.GetAsByteArrayAsync();
+            var fileName = $"Personel_Filtreli_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
         [HttpGet]
@@ -405,7 +539,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> CheckDuplicates(int? id, string tc, string email)
+        public async Task<IActionResult> CheckDuplicates(int? id, string tc, string? email)
         {
             var result = await _personelLookupService.CheckDuplicatesAsync(id, tc, email);
             return Json(new { tcExists = result.TcExists, emailExists = result.EmailExists });

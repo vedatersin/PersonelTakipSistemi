@@ -5,7 +5,8 @@ using System.Security.Claims;
 
 namespace PersonelTakipSistemi.Controllers
 {
-    [Authorize(Roles = "Admin,Yönetici,Editör")]
+    // Inbox is for every authenticated user. Only the sending panels are restricted (BildirimModulu).
+    [Authorize]
     public class BildirimlerController : Controller
     {
         private readonly INotificationService _notificationService;

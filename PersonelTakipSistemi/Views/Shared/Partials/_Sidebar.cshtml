@@ -236,7 +236,6 @@
     @{
         bool isGorevlerController = string.Equals(currentController, "Gorevler", StringComparison.OrdinalIgnoreCase);
         bool isGorevYeni = isGorevlerController && string.Equals(currentAction, "Yeni", StringComparison.OrdinalIgnoreCase);
-        bool isGorevKategori = isGorevlerController && string.Equals(currentAction, "KategoriYeni", StringComparison.OrdinalIgnoreCase);
         bool isGorevListe = isGorevlerController && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase);
         // bool isGorevModuleOpen = isGorevlerController; // This variable is no longer used directly for the parent li's active state
     }
@@ -295,14 +294,11 @@
                     <div class="text-truncate" data-i18n="İstatistiklerim">İstatistiklerim</div>
                 </a>
             </li>
-            @if (userRole != "Kullanıcı")
-            {
-                <li class="menu-item @(currentController == "Bildirimler" ? "active" : "")">
-                    <a asp-controller="Bildirimler" asp-action="Index" class="menu-link">
-                        <div class="text-truncate" data-i18n="Bildirimler">Bildirimler</div>
-                    </a>
-                </li>
-            }
+            <li class="menu-item @(currentController == "Bildirimler" ? "active" : "")">
+                <a asp-controller="Bildirimler" asp-action="Index" class="menu-link">
+                    <div class="text-truncate" data-i18n="Bildirimlerim">Bildirimlerim</div>
+                </a>
+            </li>
           </ul>
     </li>
 

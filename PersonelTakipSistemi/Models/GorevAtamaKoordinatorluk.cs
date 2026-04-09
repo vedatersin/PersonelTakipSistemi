@@ -10,5 +10,9 @@ namespace PersonelTakipSistemi.Models
 
         public int KoordinatorlukId { get; set; }
         public Koordinatorluk Koordinatorluk { get; set; } = null!;
+
+        public int GorevTuruId { get; set; } // Görev Rolü
+        [ForeignKey("GorevTuruId")]
+        public GorevTuru? GorevTuru { get; set; }
     }
 }

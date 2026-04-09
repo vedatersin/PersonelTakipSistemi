@@ -14,7 +14,7 @@
     <ul class="navbar-nav flex-row align-items-center ms-auto">
       
       <!-- Notification Dropdown -->
-      @if (!User.IsInRole("Kullanıcı"))
+      @if (User.Identity!.IsAuthenticated)
       {
       <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
         <a class="nav-link dropdown-toggle hide-arrow position-relative" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="display: inline-block;">

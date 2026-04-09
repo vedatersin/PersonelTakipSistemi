@@ -35,13 +35,14 @@ namespace PersonelTakipSistemi.Controllers
         [Authorize(Roles = "Admin,Yönetici,Editör")]
         public async Task<IActionResult> Liste(
             string? q, 
-            int? kategoriId, 
+            int? isNiteligiId, 
             int? gorevDurumId, 
             // Assignment Filters
             int? assignedTeskilatId,
             int? assignedKoordinatorlukId,
             int? assignedKomisyonId,
             int? assignedPersonelId,
+            string? baslangicSure,
             
             DateTime? baslangicTarihi, 
             DateTime? bitisTarihi, 
@@ -50,7 +51,7 @@ namespace PersonelTakipSistemi.Controllers
             int page = 1)
         {
             var query = _context.Gorevler
-                .Include(g => g.Kategori)
+                .Include(g => g.IsNiteligi)
                 .Include(g => g.GorevDurum)
                 // Eager Load Assignments for Display & Filter
                 .Include(g => g.GorevAtamaTeskilatlar).ThenInclude(t => t.Teskilat)
@@ -68,8 +69,22 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             // 2. Standard Filters
-            if (kategoriId.HasValue) query = query.Where(x => x.KategoriId == kategoriId.Value);
+            if (isNiteligiId.HasValue) query = query.Where(x => x.IsNiteligiId == isNiteligiId.Value);
             if (gorevDurumId.HasValue) query = query.Where(x => x.GorevDurumId == gorevDurumId.Value);
+
+            if (!string.IsNullOrWhiteSpace(baslangicSure))
+            {
+                var today = DateTime.Today;
+                query = baslangicSure switch
+                {
+                    "gt1y" => query.Where(x => x.BaslangicTarihi < today.AddYears(-1)),
+                    "1y" => query.Where(x => x.BaslangicTarihi >= today.AddYears(-1)),
+                    "6m" => query.Where(x => x.BaslangicTarihi >= today.AddMonths(-6)),
+                    "3m" => query.Where(x => x.BaslangicTarihi >= today.AddMonths(-3)),
+                    "1m" => query.Where(x => x.BaslangicTarihi >= today.AddMonths(-1)),
+                    _ => query
+                };
+            }
             
             if (baslangicTarihi.HasValue) query = query.Where(x => x.BaslangicTarihi >= baslangicTarihi.Value);
             if (bitisTarihi.HasValue) query = query.Where(x => x.BaslangicTarihi <= bitisTarihi.Value);
@@ -103,7 +118,7 @@ namespace PersonelTakipSistemi.Controllers
             var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
             // Prepare ViewBags for Dropdowns
-            ViewBag.Kategoriler = await _context.GorevKategorileri.Where(x => x.IsActive).OrderBy(x => x.Ad).ToListAsync();
+            ViewBag.IsNitelikleri = await _context.IsNitelikleri.OrderBy(x => x.Ad).ToListAsync();
             // Durumlar list
             ViewBag.GorevDurumlari = await _context.Set<GorevDurum>().OrderBy(x => x.Sira).ToListAsync();
             
@@ -114,6 +129,7 @@ namespace PersonelTakipSistemi.Controllers
             // Assign SelectListItem to ViewBag
             var komisyonQuery = _context.Komisyonlar
                                         .Include(k => k.Koordinatorluk).ThenInclude(koord => koord.Il)
+                                        .Include(k => k.BagliMerkezKoordinatorluk)
                                         .AsQueryable();
 
             if (assignedKoordinatorlukId.HasValue)
@@ -123,17 +139,28 @@ namespace PersonelTakipSistemi.Controllers
 
             var komisyonList = await komisyonQuery.OrderBy(x => x.Ad).ToListAsync();
 
-            ViewBag.Komisyonlar = komisyonList.Select(k => {
-                var displayText = k.Ad;
-                if (k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null)
+            ViewBag.Komisyonlar = komisyonList
+                .Select(k =>
                 {
-                    displayText = $"{k.Koordinatorluk.Il.Ad} Komisyonu";
-                }
-                return new SelectListItem {
-                    Value = k.KomisyonId.ToString(),
-                    Text = displayText
-                };
-            }).ToList();
+                    var displayText = k.Ad;
+
+                    // Taşra komisyonlarında, bağlı olduğu Merkez Birim Koordinatörlüğünü de göster
+                    // Örn: "Sivas Almanca Komisyonu" / "Sivas Türkçe Komisyonu"
+                    if (k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null && k.BagliMerkezKoordinatorluk != null)
+                    {
+                        var ilAd = k.Koordinatorluk.Il.Ad;
+                        var merkezBirimAd = k.BagliMerkezKoordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "");
+                        displayText = $"{ilAd} {merkezBirimAd} Komisyonu";
+                    }
+
+                    return new SelectListItem
+                    {
+                        Value = k.KomisyonId.ToString(),
+                        Text = displayText
+                    };
+                })
+                .OrderBy(x => x.Text)
+                .ToList();
             
             // Use SelectListItem to avoid "internal anonymous type" visibility issues in Razor
             var personelQuery = _context.Personeller.AsQueryable();
@@ -153,13 +180,20 @@ namespace PersonelTakipSistemi.Controllers
                                               Disabled = !x.AktifMi
                                           }).ToListAsync();
 
+            // Görev Rolü (Görev Türü) Lookup for Assignments
+            ViewBag.GorevRolleri = await _context.GorevTurleri
+                .AsNoTracking()
+                .OrderBy(x => x.Ad)
+                .Select(x => new SelectListItem { Value = x.GorevTuruId.ToString(), Text = x.Ad })
+                .ToListAsync();
+
             // Filter State Persistence
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
             ViewBag.TotalItems = totalItems;
             
             ViewBag.Q = q;
-            ViewBag.KategoriId = kategoriId;
+            ViewBag.IsNiteligiId = isNiteligiId;
             ViewBag.GorevDurumId = gorevDurumId;
             ViewBag.BaslangicTarihi = baslangicTarihi?.ToString("yyyy-MM-dd");
             ViewBag.BitisTarihi = bitisTarihi?.ToString("yyyy-MM-dd");
@@ -171,6 +205,7 @@ namespace PersonelTakipSistemi.Controllers
             ViewBag.AssignedKoordinatorlukId = assignedKoordinatorlukId;
             ViewBag.AssignedKomisyonId = assignedKomisyonId;
             ViewBag.AssignedPersonelId = assignedPersonelId;
+            ViewBag.BaslangicSure = baslangicSure;
 
             return View(items);
         }
@@ -276,7 +311,7 @@ namespace PersonelTakipSistemi.Controllers
                 // Update fields
                 existing.Ad = model.Ad;
                 existing.Aciklama = model.Aciklama;
-                existing.KategoriId = model.KategoriId;
+                existing.IsNiteligiId = model.IsNiteligiId;
                 // PersonelId related logic is handled via assignments now
                 // existing.PersonelId = model.PersonelId; 
                 existing.BirimId = model.BirimId;
@@ -357,39 +392,9 @@ namespace PersonelTakipSistemi.Controllers
             }
         }
 
-        // ==============================================================
-        // 4. KATEGORİ EKLE
-        // ==============================================================
-        [HttpGet]
-        public IActionResult KategoriYeni()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> KategoriYeni(GorevKategori model)
-        {
-            if (ModelState.IsValid)
-            {
-                if (await _context.GorevKategorileri.AnyAsync(x => x.Ad == model.Ad))
-                {
-                    ModelState.AddModelError("Ad", "Bu kategori adı zaten mevcut.");
-                    return View(model);
-                }
-
-                model.CreatedAt = DateTime.Now;
-                _context.GorevKategorileri.Add(model);
-                await _context.SaveChangesAsync();
-                await _logService.LogAsync("Kategori Ekleme", $"Yeni görev kategorisi eklendi: {model.Ad}", null, null);
-                TempData["SuccessMessage"] = "Kategori eklendi.";
-                return RedirectToAction("Liste"); // Or stay
-            }
-            return View(model);
-        }
-
         private async Task PopulateDropdowns()
         {
-            ViewBag.Kategoriler = new SelectList(await _context.GorevKategorileri.Where(x => x.IsActive).OrderBy(x => x.Ad).ToListAsync(), "GorevKategoriId", "Ad");
+            ViewBag.IsNitelikleri = new SelectList(await _context.IsNitelikleri.OrderBy(x => x.Ad).ToListAsync(), "IsNiteligiId", "Ad");
             ViewBag.GorevDurumlari = new SelectList(await _context.Set<GorevDurum>().OrderBy(x => x.Sira).ToListAsync(), "GorevDurumId", "Ad");
         }
         // ==============================================================
@@ -515,3 +520,4 @@ namespace PersonelTakipSistemi.Controllers
         }
     }
 }
+

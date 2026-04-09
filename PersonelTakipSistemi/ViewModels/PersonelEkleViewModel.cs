@@ -23,31 +23,24 @@ namespace PersonelTakipSistemi.ViewModels
         [Required(ErrorMessage = "Telefon alanı zorunludur.")]
         public string Telefon { get; set; } = null!;
 
-        [Required(ErrorMessage = "E-posta alanı zorunludur.")]
         [RegularExpression(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", ErrorMessage = "Lütfen geçerli bir e-posta adresi giriniz (Örn: isim@ornek.com).")]
-        public string Eposta { get; set; } = null!;
+        public string? Eposta { get; set; }
 
-        public int PersonelCinsiyet { get; set; } // 0: Erkek, 1: Kadın
-        
-        [Required(ErrorMessage = "Doğum Tarihi zorunludur.")]
-        public DateTime DogumTarihi { get; set; }
+        [Required(ErrorMessage = "Cinsiyet alanı zorunludur.")]
+        [Range(0, 1, ErrorMessage = "Cinsiyet seçimi zorunludur.")]
+        public int? PersonelCinsiyet { get; set; } // 0: Erkek, 1: Kadın
+         
+        public DateTime? DogumTarihi { get; set; }
 
-        [Required(ErrorMessage = "İl seçimi zorunludur.")]
-        [Range(1, int.MaxValue, ErrorMessage = "İl seçimi zorunludur.")]
-        public int GorevliIlId { get; set; }
-        
-        [Required(ErrorMessage = "Branş seçimi zorunludur.")]
-        [Range(1, int.MaxValue, ErrorMessage = "Branş seçimi zorunludur.")]
-        public int BransId { get; set; }
-        
-        [Required(ErrorMessage = "Kadro İli seçimi zorunludur.")]
+        public int? GorevliIlId { get; set; }
+         
+        public int? BransId { get; set; }
+         
         public int? KadroIlId { get; set; }
 
-        [Required(ErrorMessage = "Kadro İlçesi seçimi zorunludur.")]
         public int? KadroIlceId { get; set; }
 
-        [Required(ErrorMessage = "Kadro/Kurum zorunludur.")]
-        public string KadroKurum { get; set; } = null!;
+        public string? KadroKurum { get; set; }
         public bool AktifMi { get; set; } = true;
         public string? FotografYolu { get; set; } // Existing photo path
         public string? FotografBase64 { get; set; } // Keep photo on validation error
@@ -105,9 +98,14 @@ namespace PersonelTakipSistemi.ViewModels
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
+            if (DogumTarihi == null)
+            {
+                yield break;
+            }
+
             // 18 yaş kontrolü
             var minDate = DateTime.Today.AddYears(-18);
-            if (DogumTarihi > minDate)
+            if (DogumTarihi.Value > minDate)
             {
                 yield return new ValidationResult(
                     "Personel en az 18 yaşında olmalıdır.",
@@ -115,7 +113,7 @@ namespace PersonelTakipSistemi.ViewModels
             }
 
             // Mantıksız tarih kontrolü (Opsiyonel, zaten min="1900" view tarafında var ama backend de koruyalım)
-            if (DogumTarihi < new DateTime(1900, 1, 1))
+            if (DogumTarihi.Value < new DateTime(1900, 1, 1))
             {
                 yield return new ValidationResult(
                     "Doğum tarihi 1900 yılından küçük olamaz.",

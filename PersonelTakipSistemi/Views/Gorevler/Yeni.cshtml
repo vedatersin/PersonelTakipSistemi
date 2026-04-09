@@ -47,13 +47,13 @@
                             <span asp-validation-for="Aciklama" class="text-danger"></span>
                         </div>
 
-                        <!-- Kategori -->
+                        <!-- İş Niteliği -->
                         <div class="col-md-6">
-                            <label asp-for="KategoriId" class="form-label">Görev Kategorisi *</label>
-                            <select asp-for="KategoriId" class="form-select" asp-items="ViewBag.Kategoriler">
+                            <label asp-for="IsNiteligiId" class="form-label">İş Niteliği *</label>
+                            <select asp-for="IsNiteligiId" class="form-select" asp-items="ViewBag.IsNitelikleri">
                                 <option value="">Seçiniz...</option>
                             </select>
-                            <span asp-validation-for="KategoriId" class="text-danger"></span>
+                            <span asp-validation-for="IsNiteligiId" class="text-danger"></span>
                         </div>
 
                          <!-- Durum -->
@@ -105,3 +105,4 @@
         </div>
     </div>
 </div>
+

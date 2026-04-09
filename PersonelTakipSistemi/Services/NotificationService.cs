@@ -16,6 +16,29 @@ namespace PersonelTakipSistemi.Services
 
         public async Task CreateAsync(int aliciId, int? gonderenId, string baslik, string aciklama, string tip, string? refType = null, int? refId = null, string? url = null)
         {
+            // Prevent duplicate notifications for the same recipient + action + reference.
+            // Rule: if a notification for the same "tip" has already been delivered for the same reference (or same URL),
+            // do not create it again.
+            var hasReference = !string.IsNullOrWhiteSpace(refType) && refId.HasValue;
+            var hasUrl = !string.IsNullOrWhiteSpace(url);
+
+            if (!string.IsNullOrWhiteSpace(tip) && (hasReference || hasUrl))
+            {
+                var existsQuery = _context.Bildirimler
+                    .AsNoTracking()
+                    .Where(b => b.AliciPersonelId == aliciId && !b.SilindiMi && b.Tip == tip);
+
+                existsQuery = existsQuery.Where(b =>
+                    (hasReference && b.RefType == refType && b.RefId == refId) ||
+                    (hasUrl && b.Url == url));
+
+                var alreadyExists = await existsQuery.AnyAsync();
+                if (alreadyExists)
+                {
+                    return;
+                }
+            }
+
             // 1. Resolve Sender
             int senderId = await GetOrCreateSenderIdAsync(gonderenId);
 

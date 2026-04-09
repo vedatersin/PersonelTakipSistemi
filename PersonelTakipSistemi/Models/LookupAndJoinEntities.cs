@@ -29,6 +29,7 @@ namespace PersonelTakipSistemi.Models
         public int IsNiteligiId { get; set; }
         public string Ad { get; set; } = null!;
         public ICollection<PersonelIsNiteligi> PersonelIsNitelikleri { get; set; } = new List<PersonelIsNiteligi>();
+        public ICollection<Gorev> Gorevler { get; set; } = new List<Gorev>();
     }
 
     // Join Entities

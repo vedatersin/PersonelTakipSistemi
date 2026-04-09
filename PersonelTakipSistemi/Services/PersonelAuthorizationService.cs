@@ -22,6 +22,8 @@ namespace PersonelTakipSistemi.Services
             var query = ApplyPersonnelScope(_context.Personeller.AsQueryable(), scope, currentUserId);
 
             var personeller = await query
+                .AsNoTracking()
+                .AsSplitQuery()
                 .Include(p => p.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
                 .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk)
                 .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(koord => koord.Il)
@@ -57,21 +59,55 @@ namespace PersonelTakipSistemi.Services
             return new YetkilendirmeIndexViewModel
             {
                 Personeller = rowViewModels,
-                TeskilatList = await _context.Teskilatlar.Select(t => new SelectListItem { Value = t.TeskilatId.ToString(), Text = t.Ad }).ToListAsync(),
-                KurumsalRolList = await _context.KurumsalRoller.Select(r => new SelectListItem { Value = r.KurumsalRolId.ToString(), Text = r.Ad }).ToListAsync(),
-                SistemRolList = await _context.SistemRoller.OrderBy(r => r.Ad).Select(r => new SelectListItem { Value = r.Ad, Text = r.Ad }).ToListAsync(),
-                KomisyonList = await _context.Komisyonlar.Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
-                    .Select(k => FormatKomisyonAd(k))
+                TeskilatList = await _context.Teskilatlar.AsNoTracking()
+                    .Select(t => new SelectListItem { Value = t.TeskilatId.ToString(), Text = t.Ad })
+                    .ToListAsync(),
+                KurumsalRolList = await _context.KurumsalRoller.AsNoTracking()
+                    .Select(r => new SelectListItem { Value = r.KurumsalRolId.ToString(), Text = r.Ad })
+                    .ToListAsync(),
+                SistemRolList = await _context.SistemRoller.AsNoTracking()
+                    .OrderBy(r => r.Ad)
+                    .Select(r => new SelectListItem { Value = r.Ad, Text = r.Ad })
+                    .ToListAsync(),
+                KomisyonList = await BuildKomisyonSelectListAsync(),
+                KoordinatorlukList = await _context.Koordinatorlukler.AsNoTracking()
+                    .Select(k => k.Ad)
                     .Distinct()
+                    .OrderBy(x => x)
                     .Select(ad => new SelectListItem { Value = ad, Text = ad })
                     .ToListAsync(),
-                KoordinatorlukList = await _context.Koordinatorlukler.Select(k => new SelectListItem { Value = k.Ad, Text = k.Ad }).Distinct().ToListAsync(),
-                BransList = await _context.Branslar.Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad }).ToListAsync(),
-                YazilimList = await _context.Yazilimlar.Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad }).ToListAsync(),
-                UzmanlikList = await _context.Uzmanliklar.Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad }).ToListAsync(),
-                GorevTuruList = await _context.GorevTurleri.Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad }).ToListAsync(),
-                IsNiteligiList = await _context.IsNitelikleri.Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad }).ToListAsync()
+                BransList = await _context.Branslar.AsNoTracking()
+                    .Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad })
+                    .ToListAsync(),
+                YazilimList = await _context.Yazilimlar.AsNoTracking()
+                    .Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad })
+                    .ToListAsync(),
+                UzmanlikList = await _context.Uzmanliklar.AsNoTracking()
+                    .Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad })
+                    .ToListAsync(),
+                GorevTuruList = await _context.GorevTurleri.AsNoTracking()
+                    .Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad })
+                    .ToListAsync(),
+                IsNiteligiList = await _context.IsNitelikleri.AsNoTracking()
+                    .Select(x => new SelectListItem { Value = x.Ad, Text = x.Ad })
+                    .ToListAsync()
             };
+        }
+
+        private async Task<List<SelectListItem>> BuildKomisyonSelectListAsync()
+        {
+            var komisyonlar = await _context.Komisyonlar
+                .AsNoTracking()
+                .Include(k => k.Koordinatorluk)
+                .ThenInclude(k => k.Il)
+                .ToListAsync();
+
+            return komisyonlar
+                .Select(FormatKomisyonAd)
+                .Distinct()
+                .OrderBy(x => x)
+                .Select(ad => new SelectListItem { Value = ad, Text = ad })
+                .ToList();
         }
 
         public async Task<PersonelYetkiDetailViewModel?> BuildAuthorizationDetailAsync(int personelId, int currentUserId, bool isAdmin)

@@ -19,20 +19,6 @@ namespace PersonelTakipSistemi.Data
                 );
             });
 
-            modelBuilder.Entity<GorevKategori>(entity => {
-                entity.ToTable("GorevKategorileri");
-                entity.HasKey(e => e.GorevKategoriId);
-                entity.Property(e => e.Ad).IsRequired().HasMaxLength(150);
-                entity.HasIndex(e => e.Ad).IsUnique();
-
-                entity.HasData(
-                    new GorevKategori { GorevKategoriId = 1, Ad = "Ders Kitapları", Aciklama = "Ders kitabı hazırlık işleri", Renk = "#3B82F6" },
-                    new GorevKategori { GorevKategoriId = 2, Ad = "Yardımcı Kaynaklar", Aciklama = "Soru bankası ve etkinlikler", Renk = "#10B981" },
-                    new GorevKategori { GorevKategoriId = 3, Ad = "Dijital İçerik", Aciklama = "Video ve animasyon işleri", Renk = "#F59E0B" },
-                    new GorevKategori { GorevKategoriId = 4, Ad = "Programlar", Aciklama = "Müfredat çalışmaları", Renk = "#8B5CF6" }
-                );
-            });
-
             modelBuilder.Entity<GorevDurum>(entity => {
                 entity.ToTable("GorevDurumlari");
                 entity.HasKey(e => e.GorevDurumId);
@@ -52,9 +38,9 @@ namespace PersonelTakipSistemi.Data
                 entity.HasKey(e => e.GorevId);
                 entity.Property(e => e.Ad).IsRequired().HasMaxLength(200);
 
-                entity.HasOne(e => e.Kategori)
+                entity.HasOne(e => e.IsNiteligi)
                     .WithMany(k => k.Gorevler)
-                    .HasForeignKey(e => e.KategoriId)
+                    .HasForeignKey(e => e.IsNiteligiId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(e => e.Personel)
@@ -77,7 +63,7 @@ namespace PersonelTakipSistemi.Data
                     .HasForeignKey(e => e.GorevDurumId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasIndex(e => e.KategoriId);
+                entity.HasIndex(e => e.IsNiteligiId);
                 entity.HasIndex(e => e.PersonelId);
                 entity.HasIndex(e => e.GorevDurumId);
                 entity.HasIndex(e => e.BaslangicTarihi);
@@ -85,21 +71,21 @@ namespace PersonelTakipSistemi.Data
                 var tasks = new List<Gorev>();
                 int idCounter = 1;
 
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Matematik 9 Kitap Dizgisi", Aciklama = "Dizgi taslağını hazırla", KategoriId = 1, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 01), BitisTarihi = new DateTime(2025, 11, 20) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Fizik 10 Kapak Tasarımı", Aciklama = "Kapak görseli revizesi", KategoriId = 1, PersonelId = 1, BirimId = 3, GorevDurumId = 3, BaslangicTarihi = new DateTime(2025, 11, 05), BitisTarihi = new DateTime(2025, 11, 08) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Kimya 11 Yazım Denetimi", Aciklama = "Yazım hatalarının kontrolü", KategoriId = 1, PersonelId = 1, BirimId = 2, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 01) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Matematik 9 Kitap Dizgisi", Aciklama = "Dizgi taslağını hazırla", IsNiteligiId = 1, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 01), BitisTarihi = new DateTime(2025, 11, 20) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Fizik 10 Kapak Tasarımı", Aciklama = "Kapak görseli revizesi", IsNiteligiId = 1, PersonelId = 1, BirimId = 3, GorevDurumId = 3, BaslangicTarihi = new DateTime(2025, 11, 05), BitisTarihi = new DateTime(2025, 11, 08) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Kimya 11 Yazım Denetimi", Aciklama = "Yazım hatalarının kontrolü", IsNiteligiId = 1, PersonelId = 1, BirimId = 2, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 01) });
 
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "LGS Soru Bankası", Aciklama = "Soru girişleri", KategoriId = 2, PersonelId = 1, BirimId = 2, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 15), BitisTarihi = new DateTime(2025, 12, 15) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "YKS Deneme Seti", Aciklama = "Baskı öncesi kontrol", KategoriId = 2, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 25) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Etkinlik Yaprakları", Aciklama = "İlkokul seviyesi görselleştirme", KategoriId = 2, PersonelId = 1, BirimId = 3, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 10, 20), BitisTarihi = new DateTime(2025, 10, 25) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "LGS Soru Bankası", Aciklama = "Soru girişleri", IsNiteligiId = 2, PersonelId = 1, BirimId = 2, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 15), BitisTarihi = new DateTime(2025, 12, 15) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "YKS Deneme Seti", Aciklama = "Baskı öncesi kontrol", IsNiteligiId = 2, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 25) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Etkinlik Yaprakları", Aciklama = "İlkokul seviyesi görselleştirme", IsNiteligiId = 2, PersonelId = 1, BirimId = 3, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 10, 20), BitisTarihi = new DateTime(2025, 10, 25) });
 
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "EBA Video Montaj", Aciklama = "Ders videoları kurgusu", KategoriId = 3, PersonelId = 1, BirimId = 1, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 05) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Animasyon Karakterleri", Aciklama = "Karakter çizimleri", KategoriId = 3, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 10), BitisTarihi = new DateTime(2025, 12, 30) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Seslendirme Kayıtları", Aciklama = "Stüdyo planlaması", KategoriId = 3, PersonelId = 1, BirimId = 2, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 11, 01), BitisTarihi = new DateTime(2025, 11, 02) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "EBA Video Montaj", Aciklama = "Ders videoları kurgusu", IsNiteligiId = 9, PersonelId = 1, BirimId = 1, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 05) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Animasyon Karakterleri", Aciklama = "Karakter çizimleri", IsNiteligiId = 5, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 10), BitisTarihi = new DateTime(2025, 12, 30) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Seslendirme Kayıtları", Aciklama = "Stüdyo planlaması", IsNiteligiId = 8, PersonelId = 1, BirimId = 2, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 11, 01), BitisTarihi = new DateTime(2025, 11, 02) });
 
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Müfredat İncelemesi", Aciklama = "Talim Terbiye notları", KategoriId = 4, PersonelId = 1, BirimId = 2, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 12, 10) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Kazanım Eşleştirme", Aciklama = "Excel tablosu hazırlığı", KategoriId = 4, PersonelId = 1, BirimId = 2, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 12) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Haftalık Plan", Aciklama = "2. Dönem planlaması", KategoriId = 4, PersonelId = 1, BirimId = 1, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 11, 28), BitisTarihi = new DateTime(2025, 11, 30) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Müfredat İncelemesi", Aciklama = "Talim Terbiye notları", IsNiteligiId = 10, PersonelId = 1, BirimId = 2, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 12, 10) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Kazanım Eşleştirme", Aciklama = "Excel tablosu hazırlığı", IsNiteligiId = 10, PersonelId = 1, BirimId = 2, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 12) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Haftalık Plan", Aciklama = "2. Dönem planlaması", IsNiteligiId = 10, PersonelId = 1, BirimId = 1, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 11, 28), BitisTarihi = new DateTime(2025, 11, 30) });
 
                 entity.HasData(tasks);
             });
@@ -134,6 +120,13 @@ namespace PersonelTakipSistemi.Data
                     .WithMany()
                     .HasForeignKey(e => e.TeskilatId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.GorevTuru)
+                    .WithMany()
+                    .HasForeignKey(e => e.GorevTuruId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(e => e.GorevTuruId);
             });
 
             modelBuilder.Entity<GorevAtamaKoordinatorluk>(entity => {
@@ -146,6 +139,13 @@ namespace PersonelTakipSistemi.Data
                     .WithMany()
                     .HasForeignKey(e => e.KoordinatorlukId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.GorevTuru)
+                    .WithMany()
+                    .HasForeignKey(e => e.GorevTuruId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(e => e.GorevTuruId);
             });
 
             modelBuilder.Entity<GorevAtamaKomisyon>(entity => {
@@ -158,6 +158,13 @@ namespace PersonelTakipSistemi.Data
                     .WithMany()
                     .HasForeignKey(e => e.KomisyonId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.GorevTuru)
+                    .WithMany()
+                    .HasForeignKey(e => e.GorevTuruId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(e => e.GorevTuruId);
             });
 
             modelBuilder.Entity<GorevAtamaPersonel>(entity => {
@@ -170,6 +177,13 @@ namespace PersonelTakipSistemi.Data
                     .WithMany()
                     .HasForeignKey(e => e.PersonelId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.GorevTuru)
+                    .WithMany()
+                    .HasForeignKey(e => e.GorevTuruId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasIndex(e => e.GorevTuruId);
             });
         }
     }

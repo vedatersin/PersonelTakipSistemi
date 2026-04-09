@@ -40,21 +40,27 @@ namespace PersonelTakipSistemi.Services
                 Teskilatlar = await _context.GorevAtamaTeskilatlar
                     .Where(x => x.GorevId == gorevId)
                     .Include(x => x.Teskilat)
+                    .Include(x => x.GorevTuru)
                     .Select(x => new IdNamePair
                     {
                         Id = x.TeskilatId,
                         Name = x.Teskilat != null ? x.Teskilat.Ad : "Silinmis",
-                        Type = "Teskilat"
+                        Type = "Teskilat",
+                        GorevTuruId = x.GorevTuruId,
+                        GorevTuruAd = x.GorevTuru != null ? x.GorevTuru.Ad : null
                     })
                     .ToListAsync(),
                 Koordinatorlukler = await _context.GorevAtamaKoordinatorlukler
                     .Where(x => x.GorevId == gorevId)
                     .Include(x => x.Koordinatorluk)
+                    .Include(x => x.GorevTuru)
                     .Select(x => new IdNamePair
                     {
                         Id = x.KoordinatorlukId,
                         Name = x.Koordinatorluk != null ? x.Koordinatorluk.Ad : "Silinmis",
-                        Type = "Koordinatorluk"
+                        Type = "Koordinatorluk",
+                        GorevTuruId = x.GorevTuruId,
+                        GorevTuruAd = x.GorevTuru != null ? x.GorevTuru.Ad : null
                     })
                     .ToListAsync(),
                 Komisyonlar = await _context.GorevAtamaKomisyonlar
@@ -62,6 +68,7 @@ namespace PersonelTakipSistemi.Services
                     .Include(x => x.Komisyon)
                     .ThenInclude(k => k.Koordinatorluk)
                     .ThenInclude(koord => koord.Il)
+                    .Include(x => x.GorevTuru)
                     .Select(x => new IdNamePair
                     {
                         Id = x.KomisyonId,
@@ -72,17 +79,22 @@ namespace PersonelTakipSistemi.Services
                                 ? $"{x.Komisyon.Koordinatorluk.Il.Ad} Komisyonu"
                                 : x.Komisyon.Ad)
                             : "Silinmis",
-                        Type = "Komisyon"
+                        Type = "Komisyon",
+                        GorevTuruId = x.GorevTuruId,
+                        GorevTuruAd = x.GorevTuru != null ? x.GorevTuru.Ad : null
                     })
                     .ToListAsync(),
                 Personeller = await _context.GorevAtamaPersoneller
                     .Where(x => x.GorevId == gorevId)
                     .Include(x => x.Personel)
+                    .Include(x => x.GorevTuru)
                     .Select(x => new IdNamePair
                     {
                         Id = x.PersonelId,
                         Name = x.Personel != null ? $"{x.Personel.Ad} {x.Personel.Soyad}" : "Silinmis",
-                        Type = "Personel"
+                        Type = "Personel",
+                        GorevTuruId = x.GorevTuruId,
+                        GorevTuruAd = x.GorevTuru != null ? x.GorevTuru.Ad : null
                     })
                     .ToListAsync()
             };
@@ -96,9 +108,35 @@ namespace PersonelTakipSistemi.Services
                 return GorevCommandResult.NotFound("Gorev bulunamadi.");
             }
 
-            var passivePersonels = model.PersonelIds.Any()
+            var allItems = model.Teskilatlar.Concat(model.Koordinatorlukler).Concat(model.Komisyonlar).Concat(model.Personeller).ToList();
+            if (allItems.Any(x => x.GorevTuruId <= 0))
+            {
+                return GorevCommandResult.BadRequest("Lütfen atama yapılacak kişi/birim için Görev Rolü seçiniz.");
+            }
+
+            var previousKoordinatorlukIds = await _context.GorevAtamaKoordinatorlukler
+                .AsNoTracking()
+                .Where(x => x.GorevId == model.GorevId)
+                .Select(x => x.KoordinatorlukId)
+                .ToListAsync();
+
+            var previousKomisyonIds = await _context.GorevAtamaKomisyonlar
+                .AsNoTracking()
+                .Where(x => x.GorevId == model.GorevId)
+                .Select(x => x.KomisyonId)
+                .ToListAsync();
+
+            var previousPersonelIds = await _context.GorevAtamaPersoneller
+                .AsNoTracking()
+                .Where(x => x.GorevId == model.GorevId)
+                .Select(x => x.PersonelId)
+                .ToListAsync();
+
+            var personelIds = model.Personeller.Select(x => x.Id).Distinct().ToList();
+
+            var passivePersonels = personelIds.Any()
                 ? await _context.Personeller
-                    .Where(p => model.PersonelIds.Contains(p.PersonelId) && !p.AktifMi)
+                    .Where(p => personelIds.Contains(p.PersonelId) && !p.AktifMi)
                     .Select(p => $"{p.Ad} {p.Soyad}")
                     .ToListAsync()
                 : [];
@@ -108,9 +146,9 @@ namespace PersonelTakipSistemi.Services
                 return GorevCommandResult.BadRequest($"Pasif personel atanamaz: {string.Join(", ", passivePersonels)}");
             }
 
-            var unauthorizedPersonels = model.PersonelIds.Any()
+            var unauthorizedPersonels = personelIds.Any()
                 ? await _context.Personeller
-                    .Where(p => model.PersonelIds.Contains(p.PersonelId) &&
+                    .Where(p => personelIds.Contains(p.PersonelId) &&
                                 p.PersonelKurumsalRolAtamalari.Any(r => HighLevelRoleIds.Contains(r.KurumsalRolId)))
                     .Select(p => $"{p.Ad} {p.Soyad}")
                     .ToListAsync()
@@ -124,36 +162,74 @@ namespace PersonelTakipSistemi.Services
 
             var existingTeskilat = _context.GorevAtamaTeskilatlar.Where(x => x.GorevId == model.GorevId);
             _context.GorevAtamaTeskilatlar.RemoveRange(existingTeskilat);
-            foreach (var id in model.TeskilatIds)
+            foreach (var item in model.Teskilatlar.DistinctBy(x => x.Id))
             {
-                _context.GorevAtamaTeskilatlar.Add(new GorevAtamaTeskilat { GorevId = model.GorevId, TeskilatId = id });
+                _context.GorevAtamaTeskilatlar.Add(new GorevAtamaTeskilat { GorevId = model.GorevId, TeskilatId = item.Id, GorevTuruId = item.GorevTuruId });
             }
 
             var existingKoordinatorluk = _context.GorevAtamaKoordinatorlukler.Where(x => x.GorevId == model.GorevId);
             _context.GorevAtamaKoordinatorlukler.RemoveRange(existingKoordinatorluk);
-            foreach (var id in model.KoordinatorlukIds)
+            foreach (var item in model.Koordinatorlukler.DistinctBy(x => x.Id))
             {
-                _context.GorevAtamaKoordinatorlukler.Add(new GorevAtamaKoordinatorluk { GorevId = model.GorevId, KoordinatorlukId = id });
+                _context.GorevAtamaKoordinatorlukler.Add(new GorevAtamaKoordinatorluk { GorevId = model.GorevId, KoordinatorlukId = item.Id, GorevTuruId = item.GorevTuruId });
             }
 
             var existingKomisyon = _context.GorevAtamaKomisyonlar.Where(x => x.GorevId == model.GorevId);
             _context.GorevAtamaKomisyonlar.RemoveRange(existingKomisyon);
-            foreach (var id in model.KomisyonIds)
+            foreach (var item in model.Komisyonlar.DistinctBy(x => x.Id))
             {
-                _context.GorevAtamaKomisyonlar.Add(new GorevAtamaKomisyon { GorevId = model.GorevId, KomisyonId = id });
+                _context.GorevAtamaKomisyonlar.Add(new GorevAtamaKomisyon { GorevId = model.GorevId, KomisyonId = item.Id, GorevTuruId = item.GorevTuruId });
             }
 
             var existingPersonel = _context.GorevAtamaPersoneller.Where(x => x.GorevId == model.GorevId);
             _context.GorevAtamaPersoneller.RemoveRange(existingPersonel);
-            foreach (var id in model.PersonelIds)
+            foreach (var item in model.Personeller.DistinctBy(x => x.Id))
             {
-                _context.GorevAtamaPersoneller.Add(new GorevAtamaPersonel { GorevId = model.GorevId, PersonelId = id });
+                _context.GorevAtamaPersoneller.Add(new GorevAtamaPersonel { GorevId = model.GorevId, PersonelId = item.Id, GorevTuruId = item.GorevTuruId });
             }
 
             await _context.SaveChangesAsync();
 
             await LogAssignmentDetailsAsync(model);
-            await SendAssignmentNotificationsAsync(model, senderPersonelId);
+
+            var addedPersonelIds = personelIds.Except(previousPersonelIds).ToList();
+            var koordinatorlukIds = model.Koordinatorlukler.Select(x => x.Id).Distinct().ToList();
+            var komisyonIds = model.Komisyonlar.Select(x => x.Id).Distinct().ToList();
+
+            var addedKoordinatorlukIds = koordinatorlukIds.Except(previousKoordinatorlukIds).ToList();
+            var addedKomisyonIds = komisyonIds.Except(previousKomisyonIds).ToList();
+
+            var recipients = new HashSet<int>(addedPersonelIds);
+
+            if (addedKoordinatorlukIds.Any())
+            {
+                var koordinatorlukHeads = await _context.Koordinatorlukler
+                    .AsNoTracking()
+                    .Where(k => addedKoordinatorlukIds.Contains(k.KoordinatorlukId) && k.BaskanPersonelId != null)
+                    .Select(k => k.BaskanPersonelId!.Value)
+                    .ToListAsync();
+
+                foreach (var id in koordinatorlukHeads)
+                {
+                    recipients.Add(id);
+                }
+            }
+
+            if (addedKomisyonIds.Any())
+            {
+                var komisyonHeads = await _context.Komisyonlar
+                    .AsNoTracking()
+                    .Where(k => addedKomisyonIds.Contains(k.KomisyonId) && k.BaskanPersonelId != null)
+                    .Select(k => k.BaskanPersonelId!.Value)
+                    .ToListAsync();
+
+                foreach (var id in komisyonHeads)
+                {
+                    recipients.Add(id);
+                }
+            }
+
+            await SendAssignmentNotificationsAsync(model.GorevId, recipients, senderPersonelId);
 
             return GorevCommandResult.SuccessResult();
         }
@@ -170,6 +246,9 @@ namespace PersonelTakipSistemi.Services
                 return GorevCommandResult.NotFound();
             }
 
+            var now = DateTime.Now;
+            var normalizedNote = string.IsNullOrWhiteSpace(model.Aciklama) ? null : model.Aciklama.Trim();
+
             if (isManager)
             {
                 var isResponsible = await _context.PersonelKurumsalRolAtamalari.AnyAsync(a =>
@@ -185,16 +264,48 @@ namespace PersonelTakipSistemi.Services
                 }
             }
 
+            var lastHistory = await _context.GorevDurumGecmisleri
+                .AsNoTracking()
+                .Where(x => x.GorevId == model.GorevId)
+                .OrderByDescending(x => x.Tarih)
+                .FirstOrDefaultAsync();
+
+            if (lastHistory != null)
+            {
+                var minInterval = TimeSpan.FromMinutes(5);
+                var elapsed = now - lastHistory.Tarih;
+                if (elapsed < minInterval)
+                {
+                    var remainingMinutes = (int)Math.Ceiling((minInterval - elapsed).TotalMinutes);
+                    remainingMinutes = Math.Max(1, remainingMinutes);
+                    return GorevCommandResult.ApplicationFailure(
+                        $"Bu görevde çok sık durum güncellenemez. Lütfen {remainingMinutes} dakika sonra tekrar deneyin.");
+                }
+
+                var lastNote = string.IsNullOrWhiteSpace(lastHistory.Aciklama) ? null : lastHistory.Aciklama.Trim();
+                if (lastHistory.GorevDurumId == model.DurumId &&
+                    string.Equals(lastNote, normalizedNote, StringComparison.Ordinal))
+                {
+                    return GorevCommandResult.ApplicationFailure("Aynı durum bilgisi zaten son kayıtta mevcut. Mükerrer kayıt oluşturulmadı.");
+                }
+            }
+
+            var currentNote = string.IsNullOrWhiteSpace(gorev.DurumAciklamasi) ? null : gorev.DurumAciklamasi.Trim();
+            if (gorev.GorevDurumId == model.DurumId && string.Equals(currentNote, normalizedNote, StringComparison.Ordinal))
+            {
+                return GorevCommandResult.ApplicationFailure("Durum bilgisi değişmedi. Mükerrer kayıt oluşturulmadı.");
+            }
+
             gorev.GorevDurumId = model.DurumId;
-            gorev.DurumAciklamasi = model.Aciklama;
-            gorev.UpdatedAt = DateTime.Now;
+            gorev.DurumAciklamasi = normalizedNote;
+            gorev.UpdatedAt = now;
 
             _context.GorevDurumGecmisleri.Add(new GorevDurumGecmisi
             {
                 GorevId = gorev.GorevId,
                 GorevDurumId = model.DurumId,
-                Aciklama = model.Aciklama,
-                Tarih = DateTime.Now,
+                Aciklama = normalizedNote,
+                Tarih = now,
                 IslemYapanPersonelId = currentUserId
             });
 
@@ -277,9 +388,9 @@ namespace PersonelTakipSistemi.Services
         public async Task<List<Gorev>> GetUserTasksAsync(int userId)
         {
             return await _context.Gorevler
-                .Include(g => g.Kategori)
+                .Include(g => g.IsNiteligi)
                 .Include(g => g.GorevDurum)
-                .Include(g => g.GorevAtamaPersoneller)
+                .Include(g => g.GorevAtamaPersoneller).ThenInclude(ap => ap.GorevTuru)
                 .Where(g => g.IsActive && g.GorevAtamaPersoneller.Any(p => p.PersonelId == userId))
                 .OrderByDescending(g => g.BaslangicTarihi)
                 .AsNoTracking()
@@ -289,14 +400,18 @@ namespace PersonelTakipSistemi.Services
         public Task<Gorev?> GetDetailAsync(int gorevId)
         {
             return _context.Gorevler
-                .Include(g => g.Kategori)
+                .Include(g => g.IsNiteligi)
                 .Include(g => g.GorevDurum)
                 .Include(g => g.GorevDurumGecmisleri).ThenInclude(gh => gh.IslemYapanPersonel)
                 .Include(g => g.GorevDurumGecmisleri).ThenInclude(gh => gh.GorevDurum)
                 .Include(g => g.GorevAtamaTeskilatlar).ThenInclude(t => t.Teskilat)
+                .Include(g => g.GorevAtamaTeskilatlar).ThenInclude(t => t.GorevTuru)
                 .Include(g => g.GorevAtamaKoordinatorlukler).ThenInclude(k => k.Koordinatorluk)
+                .Include(g => g.GorevAtamaKoordinatorlukler).ThenInclude(k => k.GorevTuru)
                 .Include(g => g.GorevAtamaKomisyonlar).ThenInclude(k => k.Komisyon).ThenInclude(kom => kom.Koordinatorluk).ThenInclude(koord => koord.Il)
+                .Include(g => g.GorevAtamaKomisyonlar).ThenInclude(k => k.GorevTuru)
                 .Include(g => g.GorevAtamaPersoneller).ThenInclude(p => p.Personel)
+                .Include(g => g.GorevAtamaPersoneller).ThenInclude(p => p.GorevTuru)
                 .FirstOrDefaultAsync(x => x.GorevId == gorevId);
         }
 
@@ -333,34 +448,38 @@ namespace PersonelTakipSistemi.Services
                     .Select(x => x.Ad)
                     .FirstOrDefaultAsync() ?? "Bilinmeyen Gorev";
 
-                var assignedPersonelNames = model.PersonelIds.Any()
+                var personelIds = model.Personeller.Select(x => x.Id).Distinct().ToList();
+                var assignedPersonelNames = personelIds.Any()
                     ? await _context.Personeller
-                        .Where(p => model.PersonelIds.Contains(p.PersonelId))
+                        .Where(p => personelIds.Contains(p.PersonelId))
                         .Select(p => $"{p.Ad} {p.Soyad}")
                         .ToListAsync()
                     : [];
 
                 var assignedUnitNames = new List<string>();
-                if (model.TeskilatIds.Any())
+                var teskilatIds = model.Teskilatlar.Select(x => x.Id).Distinct().ToList();
+                if (teskilatIds.Any())
                 {
                     assignedUnitNames.AddRange(await _context.Teskilatlar
-                        .Where(t => model.TeskilatIds.Contains(t.TeskilatId))
+                        .Where(t => teskilatIds.Contains(t.TeskilatId))
                         .Select(t => t.Ad)
                         .ToListAsync());
                 }
 
-                if (model.KoordinatorlukIds.Any())
+                var koordinatorlukIds = model.Koordinatorlukler.Select(x => x.Id).Distinct().ToList();
+                if (koordinatorlukIds.Any())
                 {
                     assignedUnitNames.AddRange(await _context.Koordinatorlukler
-                        .Where(k => model.KoordinatorlukIds.Contains(k.KoordinatorlukId))
+                        .Where(k => koordinatorlukIds.Contains(k.KoordinatorlukId))
                         .Select(k => k.Ad)
                         .ToListAsync());
                 }
 
-                if (model.KomisyonIds.Any())
+                var komisyonIds = model.Komisyonlar.Select(x => x.Id).Distinct().ToList();
+                if (komisyonIds.Any())
                 {
                     assignedUnitNames.AddRange(await _context.Komisyonlar
-                        .Where(k => model.KomisyonIds.Contains(k.KomisyonId))
+                        .Where(k => komisyonIds.Contains(k.KomisyonId))
                         .Select(k => k.Ad)
                         .ToListAsync());
                 }
@@ -393,19 +512,20 @@ namespace PersonelTakipSistemi.Services
             }
         }
 
-        private async Task SendAssignmentNotificationsAsync(GorevAtamaViewModel model, int? senderPersonelId)
+        private async Task SendAssignmentNotificationsAsync(int gorevId, IEnumerable<int> recipientIds, int? senderPersonelId)
         {
-            if (!model.PersonelIds.Any())
+            var recipients = recipientIds?.Distinct().ToList() ?? new List<int>();
+            if (!recipients.Any())
             {
                 return;
             }
 
             var taskName = await _context.Gorevler
-                .Where(x => x.GorevId == model.GorevId)
+                .Where(x => x.GorevId == gorevId)
                 .Select(x => x.Ad)
                 .FirstOrDefaultAsync() ?? "Gorev";
 
-            foreach (var personelId in model.PersonelIds)
+            foreach (var personelId in recipients)
             {
                 await _notificationService.CreateAsync(
                     personelId,
@@ -413,10 +533,11 @@ namespace PersonelTakipSistemi.Services
                     "Yeni Gorev Atamasi",
                     $"Size '{taskName}' adli gorev atandi.",
                     "GorevAtama",
-                    null,
-                    null,
-                    $"/Gorevler/Detay/{model.GorevId}");
+                    "Gorev",
+                    gorevId,
+                    $"/Gorevler/Detay/{gorevId}");
             }
         }
     }
 }
+

@@ -1,8 +1,11 @@
+@using System.Security.Claims
 @model List<PersonelTakipSistemi.Models.Gorev>
 
 @{
     ViewData["Title"] = "Görevlerim";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
+    int.TryParse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value, out var currentUserId);
 }
 
 <div class="card">
@@ -15,7 +18,8 @@
             <thead>
                 <tr>
                     <th>Görev Adı</th>
-                    <th>Kategori</th>
+                    <th>Is Niteligi</th>
+                    <th>Görev Rolü</th>
                     <th>Durum</th>
                     <th>Başlangıç / Bitiş</th>
                     <th class="text-end">İşlem</th>
@@ -26,6 +30,7 @@
                 {
                     foreach (var item in Model)
                     {
+                        var myRole = item.GorevAtamaPersoneller?.FirstOrDefault(x => x.PersonelId == currentUserId)?.GorevTuru?.Ad;
                         var statusClass = item.GorevDurumId switch
                         {
                             1 => "bg-label-warning", // Atanmayı Bekliyor
@@ -45,7 +50,17 @@
                                     </div>
                                 }
                             </td>
-                            <td><span class="badge bg-label-primary">@item.Kategori?.Ad</span></td>
+                            <td><span class="badge bg-label-primary">@item.IsNiteligi?.Ad</span></td>
+                            <td>
+                                @if(!string.IsNullOrWhiteSpace(myRole))
+                                {
+                                    <span class="badge bg-label-secondary">@myRole</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
                             <td>
                                 <span class="badge @statusClass">@item.GorevDurum?.Ad</span>
                                 @if(!string.IsNullOrEmpty(item.DurumAciklamasi))
@@ -70,7 +85,7 @@
                 else
                 {
                     <tr>
-                        <td colspan="5" class="text-center py-4">
+                        <td colspan="6" class="text-center py-4">
                             <div class="text-muted">
                                 <i class="bx bx-task mb-2" style="font-size: 2rem;"></i>
                                 <p>Size atanan herhangi bir görev bulunmamaktadır.</p>
@@ -82,3 +97,5 @@
         </table>
     </div>
 </div>
+
+

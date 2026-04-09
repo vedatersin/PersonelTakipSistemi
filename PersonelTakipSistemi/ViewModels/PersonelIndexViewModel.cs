@@ -8,6 +8,7 @@ namespace PersonelTakipSistemi.ViewModels
         public List<PersonelIndexRowViewModel> Results { get; set; } = new List<PersonelIndexRowViewModel>();
         public PaginationInfoViewModel Pagination { get; set; } = new PaginationInfoViewModel();
         public LookupListsViewModel Lookups { get; set; } = new LookupListsViewModel();
+        public bool ShowAll { get; set; }
     }
 
     public class PersonelIndexFilterViewModel

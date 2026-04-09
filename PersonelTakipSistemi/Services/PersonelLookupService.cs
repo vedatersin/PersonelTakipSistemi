@@ -153,18 +153,19 @@ namespace PersonelTakipSistemi.Services
                 .ToListAsync();
         }
 
-        public async Task<(bool TcExists, bool EmailExists)> CheckDuplicatesAsync(int? id, string tc, string email)
+        public async Task<(bool TcExists, bool EmailExists)> CheckDuplicatesAsync(int? id, string tc, string? email)
         {
+            var shouldCheckEmail = !string.IsNullOrWhiteSpace(email);
             if (id.HasValue && id.Value > 0)
             {
                 var tcExists = await _context.Personeller.AnyAsync(x => x.TcKimlikNo == tc && x.PersonelId != id.Value);
-                var emailExists = await _context.Personeller.AnyAsync(x => x.Eposta == email && x.PersonelId != id.Value);
+                var emailExists = shouldCheckEmail && await _context.Personeller.AnyAsync(x => x.Eposta == email && x.PersonelId != id.Value);
                 return (tcExists, emailExists);
             }
 
             return (
                 await _context.Personeller.AnyAsync(x => x.TcKimlikNo == tc),
-                await _context.Personeller.AnyAsync(x => x.Eposta == email)
+                shouldCheckEmail && await _context.Personeller.AnyAsync(x => x.Eposta == email)
             );
         }
 

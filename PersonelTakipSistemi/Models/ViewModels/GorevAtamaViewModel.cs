@@ -2,15 +2,21 @@ using System.Collections.Generic;
 
 namespace PersonelTakipSistemi.Models.ViewModels
 {
+    public class GorevAtamaItemViewModel
+    {
+        public int Id { get; set; }
+        public int GorevTuruId { get; set; }
+    }
+
     public class GorevAtamaViewModel
     {
         public int GorevId { get; set; }
-        
-        // Incoming IDs
-        public List<int> TeskilatIds { get; set; } = new List<int>();
-        public List<int> KoordinatorlukIds { get; set; } = new List<int>();
-        public List<int> KomisyonIds { get; set; } = new List<int>();
-        public List<int> PersonelIds { get; set; } = new List<int>();
+         
+        // Incoming Assignments with Role Info (Görev Rolü == GorevTuru)
+        public List<GorevAtamaItemViewModel> Teskilatlar { get; set; } = new();
+        public List<GorevAtamaItemViewModel> Koordinatorlukler { get; set; } = new();
+        public List<GorevAtamaItemViewModel> Komisyonlar { get; set; } = new();
+        public List<GorevAtamaItemViewModel> Personeller { get; set; } = new();
     }
 
     public class GorevAtamaResultViewModel
@@ -30,6 +36,10 @@ namespace PersonelTakipSistemi.Models.ViewModels
         public int Id { get; set; }
         public string Name { get; set; } = "";
         public string? Type { get; set; } // "Merkez", "Taşra" etc for badges
+
+        // Optional: assignment role info (Görev Rolü)
+        public int? GorevTuruId { get; set; }
+        public string? GorevTuruAd { get; set; }
     }
 
     public class GorevDurumUpdateViewModel

@@ -73,6 +73,7 @@ namespace PersonelTakipSistemi.Controllers
                 new Claim("PersonelId", personel.PersonelId.ToString()),
                 new Claim("TcKimlikNo", personel.TcKimlikNo),
                 new Claim("PhotoUrl", personel.FotografYolu ?? ""),
+                new Claim("LoginUtc", DateTime.UtcNow.ToString("O")),
                 new Claim(ClaimTypes.Role, personel.SistemRol?.Ad ?? "Kullanıcı")
             };
 
@@ -85,7 +86,7 @@ namespace PersonelTakipSistemi.Controllers
             var authProperties = new AuthenticationProperties
             {
                 IsPersistent = model.RememberMe,
-                ExpiresUtc = model.RememberMe ? DateTime.UtcNow.AddDays(30) : null
+                ExpiresUtc = DateTime.UtcNow.AddHours(4)
             };
 
             await HttpContext.SignInAsync(

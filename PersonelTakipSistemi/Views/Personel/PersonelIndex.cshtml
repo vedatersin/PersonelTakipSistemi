@@ -240,6 +240,12 @@
                 <div class="col-12 col-lg-auto d-flex gap-2">
                     <div>
                         <label class="form-label d-block">&nbsp;</label>
+                        <button type="button" class="btn btn-outline-primary w-100" onclick="exportExcel()">
+                            <i class="bx bx-download me-1"></i> Excel İndir
+                        </button>
+                    </div>
+                    <div>
+                        <label class="form-label d-block">&nbsp;</label>
                         <a href="/Personel/Index" class="btn btn-outline-secondary w-100">Temizle</a>
                     </div>
                     <div>
@@ -251,6 +257,7 @@
 
             <input type="hidden" name="Filter.Page" value="1" id="pageInput" />
             <input type="hidden" name="Filter.PageSize" value="@Model.Filter.PageSize" />
+            <input type="hidden" name="showAll" value="@(Model.ShowAll ? "true" : "false")" id="showAllInput" />
         </form>
     </div>
 </div>
@@ -507,10 +514,27 @@
         var totalPages = Model.Pagination.TotalPages;
         var startPage = Math.Max(1, currentPage - 2);
         var endPage = Math.Min(totalPages, currentPage + 2);
+        var hasFilter =
+            !string.IsNullOrWhiteSpace(Model.Filter.SearchName) ||
+            !string.IsNullOrWhiteSpace(Model.Filter.TcKimlikNo) ||
+            Model.Filter.BransId.HasValue ||
+            Model.Filter.GorevliIlId.HasValue ||
+            Model.Filter.KadroIlId.HasValue ||
+            Model.Filter.KadroIlceId.HasValue ||
+            Model.Filter.TeskilatId.HasValue ||
+            Model.Filter.KoordinatorlukId.HasValue ||
+            Model.Filter.KomisyonId.HasValue ||
+            Model.Filter.DogumBaslangic.HasValue ||
+            (Model.Filter.SeciliYazilimIdleri?.Any() ?? false) ||
+            (Model.Filter.SeciliUzmanlikIdleri?.Any() ?? false) ||
+            (Model.Filter.SeciliGorevTuruIdleri?.Any() ?? false) ||
+            (Model.Filter.SeciliIsNiteligiIdleri?.Any() ?? false);
 
-        <div class="card-footer d-flex justify-content-center">
-            <nav aria-label="Page navigation">
-                <ul class="pagination">
+        @if (!Model.ShowAll)
+        {
+            <div class="card-footer d-flex justify-content-center align-items-center gap-2 flex-wrap">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
                     <!-- Previous -->
                     <li class="page-item @(Model.Pagination.HasPreviousPage ? "" : "disabled")">
                         <a class="page-link" href="javascript:void(0);" onclick="changePage(@(currentPage - 1))">«</a>
@@ -552,8 +576,25 @@
                     <li class="page-item @(Model.Pagination.HasNextPage ? "" : "disabled")">
                         <a class="page-link" href="javascript:void(0);" onclick="changePage(@(currentPage + 1))">»</a>
                     </li>
-                </ul>
-            </nav>
+                    </ul>
+                </nav>
+
+                @if (hasFilter)
+                {
+                    <button type="button" class="btn btn-primary px-4" style="min-width: 190px;" onclick="showAllResults()">
+                        <i class="bx bx-down-arrow-alt me-1"></i> Tümünü Göster
+                    </button>
+                }
+            </div>
+        }
+    }
+
+    @if (Model.ShowAll)
+    {
+        <div class="card-footer d-flex justify-content-center">
+            <button type="button" class="btn btn-primary px-4" style="min-width: 190px;" onclick="hideAllResults()">
+                <i class="bx bx-up-arrow-alt me-1"></i> Tümünü Gösterme
+            </button>
         </div>
     }
 </div>
@@ -659,7 +700,36 @@
 
     function changePage(page) {
         document.getElementById('pageInput').value = page;
+        document.getElementById('showAllInput').value = 'false';
         document.getElementById('filterForm').submit();
+    }
+
+    function showAllResults() {
+        document.getElementById('pageInput').value = 1;
+        document.getElementById('showAllInput').value = 'true';
+        document.getElementById('filterForm').submit();
+    }
+
+    function hideAllResults() {
+        document.getElementById('pageInput').value = 1;
+        document.getElementById('showAllInput').value = 'false';
+        document.getElementById('filterForm').submit();
+    }
+
+    function exportExcel() {
+        const form = document.getElementById('filterForm');
+        const data = new FormData(form);
+        data.set('Filter.Page', '1');
+        data.delete('showAll');
+
+        const params = new URLSearchParams();
+        for (const [key, value] of data.entries()) {
+            if (value === null || value === undefined) continue;
+            if (typeof value === 'string' && value.trim() === '') continue;
+            params.append(key, value.toString());
+        }
+
+        window.open('/Personel/ExportExcel?' + params.toString(), '_blank');
     }
     
     function toggleContainer(element) {
