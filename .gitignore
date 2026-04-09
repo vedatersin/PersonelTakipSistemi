@@ -66,6 +66,8 @@ TestResults/
 ############################
 **/publish/
 **/wwwroot/lib/
+PersonelTakipSistemi/wwwroot/uploads/personeller/*
+!PersonelTakipSistemi/wwwroot/uploads/personeller/.gitkeep
 
 ############################
 # User secrets (local)
