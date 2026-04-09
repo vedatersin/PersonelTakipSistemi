@@ -13,8 +13,8 @@ namespace PersonelTakipSistemi.Data
                 entity.Property(e => e.Ad).IsRequired().HasMaxLength(150);
 
                 entity.HasData(
-                    new Birim { BirimId = 1, Ad = "YazÄ±lÄ±m Birimi" },
-                    new Birim { BirimId = 2, Ad = "Ä°Ã§erik Birimi" },
+                    new Birim { BirimId = 1, Ad = "Yazılım Birimi" },
+                    new Birim { BirimId = 2, Ad = "İçerik Birimi" },
                     new Birim { BirimId = 3, Ad = "Grafik Birimi" }
                 );
             });
@@ -26,10 +26,10 @@ namespace PersonelTakipSistemi.Data
                 entity.HasIndex(e => e.Ad).IsUnique();
 
                 entity.HasData(
-                    new GorevKategori { GorevKategoriId = 1, Ad = "Ders KitaplarÄ±", Aciklama = "Ders kitabÄ± hazÄ±rlÄ±k iÅŸleri", Renk = "#3B82F6" },
-                    new GorevKategori { GorevKategoriId = 2, Ad = "YardÄ±mcÄ± Kaynaklar", Aciklama = "Soru bankasÄ± ve etkinlikler", Renk = "#10B981" },
-                    new GorevKategori { GorevKategoriId = 3, Ad = "Dijital Ä°Ã§erik", Aciklama = "Video ve animasyon iÅŸleri", Renk = "#F59E0B" },
-                    new GorevKategori { GorevKategoriId = 4, Ad = "Programlar", Aciklama = "MÃ¼fredat Ã§alÄ±ÅŸmalarÄ±", Renk = "#8B5CF6" }
+                    new GorevKategori { GorevKategoriId = 1, Ad = "Ders Kitapları", Aciklama = "Ders kitabı hazırlık işleri", Renk = "#3B82F6" },
+                    new GorevKategori { GorevKategoriId = 2, Ad = "Yardımcı Kaynaklar", Aciklama = "Soru bankası ve etkinlikler", Renk = "#10B981" },
+                    new GorevKategori { GorevKategoriId = 3, Ad = "Dijital İçerik", Aciklama = "Video ve animasyon işleri", Renk = "#F59E0B" },
+                    new GorevKategori { GorevKategoriId = 4, Ad = "Programlar", Aciklama = "Müfredat çalışmaları", Renk = "#8B5CF6" }
                 );
             });
 
@@ -39,11 +39,11 @@ namespace PersonelTakipSistemi.Data
                 entity.Property(e => e.Ad).IsRequired().HasMaxLength(100);
 
                 entity.HasData(
-                    new GorevDurum { GorevDurumId = 1, Ad = "AtanmayÄ± Bekliyor", Sira = 1, RenkSinifi = "bg-warning", Renk = "#F59E0B" },
+                    new GorevDurum { GorevDurumId = 1, Ad = "Atanmayı Bekliyor", Sira = 1, RenkSinifi = "bg-warning", Renk = "#F59E0B" },
                     new GorevDurum { GorevDurumId = 2, Ad = "Devam Ediyor", Sira = 2, RenkSinifi = "bg-primary", Renk = "#3B82F6" },
                     new GorevDurum { GorevDurumId = 3, Ad = "Kontrolde", Sira = 3, RenkSinifi = "bg-info", Renk = "#06B6D4" },
-                    new GorevDurum { GorevDurumId = 4, Ad = "TamamlandÄ±", Sira = 4, RenkSinifi = "bg-success", Renk = "#10B981" },
-                    new GorevDurum { GorevDurumId = 5, Ad = "Ä°ptal", Sira = 5, RenkSinifi = "bg-secondary", Renk = "#6B7280" }
+                    new GorevDurum { GorevDurumId = 4, Ad = "Tamamlandı", Sira = 4, RenkSinifi = "bg-success", Renk = "#10B981" },
+                    new GorevDurum { GorevDurumId = 5, Ad = "İptal", Sira = 5, RenkSinifi = "bg-secondary", Renk = "#6B7280" }
                 );
             });
 
@@ -85,21 +85,21 @@ namespace PersonelTakipSistemi.Data
                 var tasks = new List<Gorev>();
                 int idCounter = 1;
 
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Matematik 9 Kitap Dizgisi", Aciklama = "Dizgi taslaÄŸÄ±nÄ± hazÄ±rla", KategoriId = 1, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 01), BitisTarihi = new DateTime(2025, 11, 20) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Fizik 10 Kapak TasarÄ±mÄ±", Aciklama = "Kapak gÃ¶rseli revizesi", KategoriId = 1, PersonelId = 1, BirimId = 3, GorevDurumId = 3, BaslangicTarihi = new DateTime(2025, 11, 05), BitisTarihi = new DateTime(2025, 11, 08) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Kimya 11 YazÄ±m Denetimi", Aciklama = "YazÄ±m hatalarÄ±nÄ±n kontrolÃ¼", KategoriId = 1, PersonelId = 1, BirimId = 2, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 01) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Matematik 9 Kitap Dizgisi", Aciklama = "Dizgi taslağını hazırla", KategoriId = 1, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 01), BitisTarihi = new DateTime(2025, 11, 20) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Fizik 10 Kapak Tasarımı", Aciklama = "Kapak görseli revizesi", KategoriId = 1, PersonelId = 1, BirimId = 3, GorevDurumId = 3, BaslangicTarihi = new DateTime(2025, 11, 05), BitisTarihi = new DateTime(2025, 11, 08) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Kimya 11 Yazım Denetimi", Aciklama = "Yazım hatalarının kontrolü", KategoriId = 1, PersonelId = 1, BirimId = 2, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 01) });
 
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "LGS Soru BankasÄ±", Aciklama = "Soru giriÅŸleri", KategoriId = 2, PersonelId = 1, BirimId = 2, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 15), BitisTarihi = new DateTime(2025, 12, 15) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "YKS Deneme Seti", Aciklama = "BaskÄ± Ã¶ncesi kontrol", KategoriId = 2, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 25) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Etkinlik YapraklarÄ±", Aciklama = "Ä°lkokul seviyesi gÃ¶rselleÅŸtirme", KategoriId = 2, PersonelId = 1, BirimId = 3, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 10, 20), BitisTarihi = new DateTime(2025, 10, 25) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "LGS Soru Bankası", Aciklama = "Soru girişleri", KategoriId = 2, PersonelId = 1, BirimId = 2, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 15), BitisTarihi = new DateTime(2025, 12, 15) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "YKS Deneme Seti", Aciklama = "Baskı öncesi kontrol", KategoriId = 2, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 25) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Etkinlik Yaprakları", Aciklama = "İlkokul seviyesi görselleştirme", KategoriId = 2, PersonelId = 1, BirimId = 3, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 10, 20), BitisTarihi = new DateTime(2025, 10, 25) });
 
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "EBA Video Montaj", Aciklama = "Ders videolarÄ± kurgusu", KategoriId = 3, PersonelId = 1, BirimId = 1, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 05) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Animasyon Karakterleri", Aciklama = "Karakter Ã§izimleri", KategoriId = 3, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 10), BitisTarihi = new DateTime(2025, 12, 30) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Seslendirme KayÄ±tlarÄ±", Aciklama = "StÃ¼dyo planlamasÄ±", KategoriId = 3, PersonelId = 1, BirimId = 2, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 11, 01), BitisTarihi = new DateTime(2025, 11, 02) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "EBA Video Montaj", Aciklama = "Ders videoları kurgusu", KategoriId = 3, PersonelId = 1, BirimId = 1, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 05) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Animasyon Karakterleri", Aciklama = "Karakter çizimleri", KategoriId = 3, PersonelId = 1, BirimId = 3, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 11, 10), BitisTarihi = new DateTime(2025, 12, 30) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Seslendirme Kayıtları", Aciklama = "Stüdyo planlaması", KategoriId = 3, PersonelId = 1, BirimId = 2, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 11, 01), BitisTarihi = new DateTime(2025, 11, 02) });
 
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "MÃ¼fredat Ä°ncelemesi", Aciklama = "Talim Terbiye notlarÄ±", KategoriId = 4, PersonelId = 1, BirimId = 2, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 12, 10) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "KazanÄ±m EÅŸleÅŸtirme", Aciklama = "Excel tablosu hazÄ±rlÄ±ÄŸÄ±", KategoriId = 4, PersonelId = 1, BirimId = 2, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 12) });
-                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "HaftalÄ±k Plan", Aciklama = "2. DÃ¶nem planlamasÄ±", KategoriId = 4, PersonelId = 1, BirimId = 1, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 11, 28), BitisTarihi = new DateTime(2025, 11, 30) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Müfredat İncelemesi", Aciklama = "Talim Terbiye notları", KategoriId = 4, PersonelId = 1, BirimId = 2, GorevDurumId = 2, BaslangicTarihi = new DateTime(2025, 12, 10) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Kazanım Eşleştirme", Aciklama = "Excel tablosu hazırlığı", KategoriId = 4, PersonelId = 1, BirimId = 2, GorevDurumId = 1, BaslangicTarihi = new DateTime(2025, 12, 12) });
+                tasks.Add(new Gorev { GorevId = idCounter++, Ad = "Haftalık Plan", Aciklama = "2. Dönem planlaması", KategoriId = 4, PersonelId = 1, BirimId = 1, GorevDurumId = 4, BaslangicTarihi = new DateTime(2025, 11, 28), BitisTarihi = new DateTime(2025, 11, 30) });
 
                 entity.HasData(tasks);
             });

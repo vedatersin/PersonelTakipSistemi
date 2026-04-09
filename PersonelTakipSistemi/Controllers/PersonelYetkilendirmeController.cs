@@ -26,6 +26,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> GetYetkilendirmeData(int id)
         {
             int currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
@@ -39,6 +40,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> SetSistemRol(int id, string rol)
         {
             var personel = await _context.Personeller.FindAsync(id);
@@ -82,6 +84,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> AddTeskilat(int personelId, int teskilatId)
         {
             var result = await _personelAssignmentService.AddTeskilatAsync(personelId, teskilatId, CurrentUserId, User.Identity?.Name);
@@ -94,6 +97,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> RemoveTeskilat(int personelId, int teskilatId)
         {
             await _personelAssignmentService.RemoveTeskilatAsync(personelId, teskilatId, CurrentUserId, User.Identity?.Name);
@@ -101,6 +105,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> AddKoordinatorluk(int personelId, int koordinatorlukId)
         {
             var result = await _personelAssignmentService.AddKoordinatorlukAsync(personelId, koordinatorlukId, CurrentUserId);
@@ -113,6 +118,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> RemoveKoordinatorluk(int personelId, int koordinatorlukId)
         {
             await _personelAssignmentService.RemoveKoordinatorlukAsync(personelId, koordinatorlukId, CurrentUserId);
@@ -120,6 +126,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> AddKomisyon(int personelId, int komisyonId)
         {
             var result = await _personelAssignmentService.AddKomisyonAsync(personelId, komisyonId, CurrentUserId);
@@ -132,6 +139,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> RemoveKomisyon(int personelId, int komisyonId)
         {
             await _personelAssignmentService.RemoveKomisyonAsync(personelId, komisyonId, CurrentUserId);
@@ -139,6 +147,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> AddKurumsalRol(int personelId, int kurumsalRolId, int? koordinatorlukId, int? komisyonId, bool force = false)
         {
             var result = await _personelAssignmentService.AddKurumsalRolAsync(personelId, kurumsalRolId, koordinatorlukId, komisyonId, force, CurrentUserId);
@@ -156,6 +165,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> RemoveKurumsalRol(int assignmentId)
         {
             await _personelAssignmentService.RemoveKurumsalRolAsync(assignmentId, CurrentUserId);
@@ -326,6 +336,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> FixTeskilatNames()
         {
             try

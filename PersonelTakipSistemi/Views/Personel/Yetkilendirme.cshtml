@@ -185,7 +185,7 @@
                                 
                                 <td class="ps-4">
                                      <div class="avatar avatar-sm">
-                                        @if (!string.IsNullOrEmpty(p.FotografYolu))
+                                        @if (AvatarHelper.HasCustomPhoto(p.FotografYolu))
                                         {
                                             <img src="@p.FotografYolu" alt="Avatar" class="rounded-circle user-avatar">
                                         }

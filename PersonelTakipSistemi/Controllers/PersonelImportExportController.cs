@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace PersonelTakipSistemi.Controllers
@@ -6,10 +6,10 @@ namespace PersonelTakipSistemi.Controllers
     public partial class PersonelController
     {
         [HttpPost]
-        [Authorize(Roles = "Admin,YÃ¶netici")]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> ImportExcel(IFormFile file)
         {
-            if (file == null) return Json(new { success = false, message = "Dosya seÃ§ilmedi." });
+            if (file == null) return Json(new { success = false, message = "Dosya seçilmedi." });
 
             var validation = _fileValidationService.ValidateExcel(file);
             if (!validation.isValid) return Json(new { success = false, message = validation.message });
@@ -28,7 +28,7 @@ namespace PersonelTakipSistemi.Controllers
                 { 
                     success = personeller.Count > 0, // True if some succeeded, false if all failed
                     partial = personeller.Count > 0,
-                    message = personeller.Count > 0 ? $"{personeller.Count} personel eklendi. Ancak bazi satirlarda hatalar mevcut:" : "HiÃ§bir personel eklenemedi. LÃ¼tfen hatalari kontrol edin:",
+                    message = personeller.Count > 0 ? $"{personeller.Count} personel eklendi. Ancak bazi satirlarda hatalar mevcut:" : "Hiçbir personel eklenemedi. Lütfen hatalari kontrol edin:",
                     errors = errors,
                     importedIds = personeller.Select(p => p.PersonelId).ToList()
                 });

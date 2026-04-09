@@ -113,7 +113,7 @@
                         {
                             <tr onclick="window.location.href='/Personel/Detay/@p.PersonelId'">
                                 <td>
-                                    @if (!string.IsNullOrEmpty(p.FotografYolu))
+                                        @if (AvatarHelper.HasCustomPhoto(p.FotografYolu))
                                     {
                                         <img src="@p.FotografYolu" alt="@p.AdSoyad">
                                     }

@@ -5,7 +5,7 @@ using System.Security.Claims;
 
 namespace PersonelTakipSistemi.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin,Yönetici,Editör")]
     public class BildirimlerController : Controller
     {
         private readonly INotificationService _notificationService;

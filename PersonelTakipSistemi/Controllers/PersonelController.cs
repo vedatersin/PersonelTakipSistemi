@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using PersonelTakipSistemi.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -202,9 +202,9 @@ namespace PersonelTakipSistemi.Controllers
         public async Task<IActionResult> Detay(int id)
         {
             // Security Check
-            // Admin/YÃ¶netici: All Access
-            // EditÃ¶r/Kullanici: Only Own Data
-            if (!User.IsInRole("Admin") && !User.IsInRole("YÃ¶netici"))
+            // Admin/Yönetici: All Access
+            // Editör/Kullanici: Only Own Data
+            if (!User.IsInRole("Admin") && !User.IsInRole("Yönetici"))
             {
                 var currentUserId = User.FindFirst("PersonelId")?.Value;
                 if (currentUserId != null && currentUserId != id.ToString())
@@ -339,7 +339,7 @@ namespace PersonelTakipSistemi.Controllers
 
                 model.KurumsalRoller.Add(new RoleDisplayModel
                 {
-                    Title = $"{fullString} (RolÃ¼ Yok)", 
+                    Title = $"{fullString} (Rolü Yok)", 
                     Subtitle = string.Empty,
                     ColorClass = "danger" // Red for warning
                 });
@@ -365,7 +365,7 @@ namespace PersonelTakipSistemi.Controllers
                 
                 model.KurumsalRoller.Add(new RoleDisplayModel
                 {
-                    Title = $"{fullString} (RolÃ¼ Yok)",
+                    Title = $"{fullString} (Rolü Yok)",
                     Subtitle = string.Empty,
                     ColorClass = "danger"
                 });
@@ -380,7 +380,7 @@ namespace PersonelTakipSistemi.Controllers
 
                 model.KurumsalRoller.Add(new RoleDisplayModel
                 {
-                    Title = $"{pt.Teskilat.Ad} (RolÃ¼ Yok)",
+                    Title = $"{pt.Teskilat.Ad} (Rolü Yok)",
                     Subtitle = string.Empty,
                     ColorClass = "danger"
                 });

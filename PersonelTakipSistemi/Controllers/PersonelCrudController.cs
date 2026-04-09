@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using PersonelTakipSistemi.Infrastructure;
 using PersonelTakipSistemi.Models;
 using PersonelTakipSistemi.Models.ViewModels;
 using PersonelTakipSistemi.Services;
@@ -15,7 +16,7 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public IActionResult Yeni()
         {
-            // "Yeni Personel Ekle" tiklandiginda kesinlikle temiz state ile gitmek iÃ§in redirect kullaniyoruz.
+            // "Yeni Personel Ekle" tiklandiginda kesinlikle temiz state ile gitmek için redirect kullaniyoruz.
             return RedirectToAction("Ekle", new { id = (int?)null });
         }
 
@@ -45,10 +46,10 @@ namespace PersonelTakipSistemi.Controllers
                 return View(cleanModel);
             }
 
-            // 2. DÃ¼zenleme Modu (Update)
+            // 2. Düzenleme Modu (Update)
             
             // Security Check for Edit
-            if (id.HasValue && !User.IsInRole("Admin") && !User.IsInRole("YÃ¶netici"))
+            if (id.HasValue && !User.IsInRole("Admin") && !User.IsInRole("Yönetici"))
             {
                  var currentUserId = User.FindFirst("PersonelId")?.Value;
                  if (currentUserId != null && currentUserId != id.Value.ToString())
@@ -70,6 +71,7 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(koord => koord.Teskilat)
                 .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk).ThenInclude(k => k.Teskilat)
                 .Include(p => p.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
+                .AsSplitQuery()
                 .AsNoTracking() 
                 .FirstOrDefaultAsync(p => p.PersonelId == id.Value);
 
@@ -97,9 +99,9 @@ namespace PersonelTakipSistemi.Controllers
                 BransId = personel.BransId,
                 KadroKurum = personel.KadroKurum,
                 AktifMi = personel.AktifMi,
-                FotografYolu = personel.FotografYolu,
+                FotografYolu = AvatarHelper.NormalizePhoto(personel.FotografYolu),
                 
-                // Iliskili tablolari seÃ§ili olarak isaretle
+                // Iliskili tablolari seçili olarak isaretle
                 SeciliYazilimIdleri = personel.PersonelYazilimlar.Select(x => x.YazilimId).ToList(),
                 SeciliUzmanlikIdleri = personel.PersonelUzmanliklar.Select(x => x.UzmanlikId).ToList(),
                 SeciliGorevTuruIdleri = personel.PersonelGorevTurleri.Select(x => x.GorevTuruId).ToList(),
@@ -167,7 +169,7 @@ namespace PersonelTakipSistemi.Controllers
                 existingRoles.Add(new RoleAssignmentDto
                 {
                      rolId = "", 
-                     rolAd = "", // Empty to trigger "RolÃ¼ Yok" in UI
+                     rolAd = "", // Empty to trigger "Rolü Yok" in UI
                      teskilatId = pk.Komisyon.Koordinatorluk?.TeskilatId.ToString(),
                      teskilatAd = pk.Komisyon.Koordinatorluk?.Teskilat?.Ad,
                      koordinatorlukId = pk.Komisyon.KoordinatorlukId.ToString(),
@@ -265,11 +267,11 @@ namespace PersonelTakipSistemi.Controllers
                         cleanPhone = cleanPhone.Substring(1);
                     }
 
-                    // 10 hane kontrolÃ¼
+                    // 10 hane kontrolü
                     if (cleanPhone.Length != 10)
                     {
-                        ModelState.AddModelError("Telefon", "Telefon numarasi 10 haneli olmalidir (Ã–rn: 5551234567).");
-                        // Hata durumunda dropdownlari tekrar doldurup view'a dÃ¶n
+                        ModelState.AddModelError("Telefon", "Telefon numarasi 10 haneli olmalidir (Örn: 5551234567).");
+                        // Hata durumunda dropdownlari tekrar doldurup view'a dön
                         await FillLookupListsAsync(model);
                         return View(model);
                     }
@@ -281,26 +283,26 @@ namespace PersonelTakipSistemi.Controllers
                 // --- FAZ 2A: Zorunlu Alan Kontrolleri (Multi-Select) ---
                 if (model.SeciliYazilimIdleri == null || !model.SeciliYazilimIdleri.Any())
                 {
-                    ModelState.AddModelError("SeciliYazilimIdleri", "En az bir yazilim seÃ§ilmelidir.");
+                    ModelState.AddModelError("SeciliYazilimIdleri", "En az bir yazilim seçilmelidir.");
                 }
                 if (model.SeciliUzmanlikIdleri == null || !model.SeciliUzmanlikIdleri.Any())
                 {
-                     ModelState.AddModelError("SeciliUzmanlikIdleri", "En az bir uzmanlik seÃ§ilmelidir.");
+                     ModelState.AddModelError("SeciliUzmanlikIdleri", "En az bir uzmanlik seçilmelidir.");
                 }
                 if (model.SeciliGorevTuruIdleri == null || !model.SeciliGorevTuruIdleri.Any())
                 {
-                     ModelState.AddModelError("SeciliGorevTuruIdleri", "En az bir gÃ¶rev tÃ¼rÃ¼ seÃ§ilmelidir.");
+                     ModelState.AddModelError("SeciliGorevTuruIdleri", "En az bir görev türü seçilmelidir.");
                 }
                 if (model.SeciliIsNiteligiIdleri == null || !model.SeciliIsNiteligiIdleri.Any())
                 {
-                     ModelState.AddModelError("SeciliIsNiteligiIdleri", "En az bir is niteligi seÃ§ilmelidir.");
+                     ModelState.AddModelError("SeciliIsNiteligiIdleri", "En az bir is niteligi seçilmelidir.");
                 }
                 
-                // Eger manuel ekledigimiz hatalar varsa IsValid false dÃ¶necek (state check needed potentially, or re-check)
+                // Eger manuel ekledigimiz hatalar varsa IsValid false dönecek (state check needed potentially, or re-check)
                 if(!ModelState.IsValid)
                 {
                      var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                     TempData["Error"] = "LÃ¼tfen tÃ¼m zorunlu seÃ§imleri yapiniz.";
+                     TempData["Error"] = "Lütfen tüm zorunlu seçimleri yapiniz.";
                      await FillLookupListsAsync(model);
                      return View(model);
                 }
@@ -310,13 +312,13 @@ namespace PersonelTakipSistemi.Controllers
                 // 1. Logic Separation
                 bool isUpdate = model.IsEditMode && model.PersonelId.HasValue && model.PersonelId.Value > 0;
 
-                // --- NEW: Security Check for "YÃ¶netici" role ---
-                if (isUpdate && User.IsInRole("YÃ¶netici"))
+                // --- NEW: Security Check for "Yönetici" role ---
+                if (isUpdate && User.IsInRole("Yönetici"))
                 {
                     var currentUserId = int.Parse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "0");
                     if (model.PersonelId != currentUserId)
                     {
-                         TempData["Error"] = "Yetki Hatasi: Sadece kendi bilgilerinizi gÃ¼ncelleyebilirsiniz.";
+                         TempData["Error"] = "Yetki Hatasi: Sadece kendi bilgilerinizi güncelleyebilirsiniz.";
                          await FillLookupListsAsync(model);
                          return View(model);
                     }
@@ -349,7 +351,7 @@ namespace PersonelTakipSistemi.Controllers
                 {
                     TempData["Error"] = "Kayit Uyari: " + string.Join(" | ", conflicts);
                     TempData["ShowUserExistsModal"] = "1";
-                    TempData["ModalTitle"] = "Kayit Ã‡akismasi";
+                    TempData["ModalTitle"] = "Kayit Çakismasi";
                     TempData["ModalItems"] = string.Join("|", conflicts);
                     TempData["OpenTab"] = "tab1";
                     
@@ -427,7 +429,7 @@ namespace PersonelTakipSistemi.Controllers
                         if (personel.KadroIlceId != model.KadroIlceId)
                         {
                              var newKadroIlce = await _context.Ilceler.FindAsync(model.KadroIlceId);
-                             changes.Add($"Kadro IlÃ§esi: {personel.KadroIlce?.Ad} -> {newKadroIlce?.Ad}");
+                             changes.Add($"Kadro Ilçesi: {personel.KadroIlce?.Ad} -> {newKadroIlce?.Ad}");
                         }
                         if (personel.BransId != model.BransId) 
                         {
@@ -438,7 +440,7 @@ namespace PersonelTakipSistemi.Controllers
                         {
                             var newSistemRol = await _context.SistemRoller.FindAsync(model.SistemRolId);
                             var oldSistemRol = await _context.SistemRoller.FindAsync(personel.SistemRolId);
-                            changes.Add($"Sistem RolÃ¼: {oldSistemRol?.Ad} -> {newSistemRol?.Ad}");
+                            changes.Add($"Sistem Rolü: {oldSistemRol?.Ad} -> {newSistemRol?.Ad}");
                         }
 
                         // 2. Collection Changes (Helper Function)
@@ -454,7 +456,7 @@ namespace PersonelTakipSistemi.Controllers
                         var addedYazilim = newYazilim.Except(oldYazilim).ToList();
                         var removedYazilim = oldYazilim.Except(newYazilim).ToList();
                         if (addedYazilim.Any()) changes.Add($"Eklenen Beceriler: {string.Join(", ", addedYazilim)}");
-                        if (removedYazilim.Any()) changes.Add($"Ã‡ikarilan Beceriler: {string.Join(", ", removedYazilim)}");
+                        if (removedYazilim.Any()) changes.Add($"Çikarilan Beceriler: {string.Join(", ", removedYazilim)}");
 
                         // Uzmanlik
                         var oldUzmanlik = personel.PersonelUzmanliklar.Select(x => x.Uzmanlik.Ad).ToList();
@@ -465,7 +467,7 @@ namespace PersonelTakipSistemi.Controllers
                         var addedUzmanlik = newUzmanlik.Except(oldUzmanlik).ToList();
                         var removedUzmanlik = oldUzmanlik.Except(newUzmanlik).ToList();
                         if (addedUzmanlik.Any()) changes.Add($"Eklenen Uzmanliklar: {string.Join(", ", addedUzmanlik)}");
-                        if (removedUzmanlik.Any()) changes.Add($"Ã‡ikarilan Uzmanliklar: {string.Join(", ", removedUzmanlik)}");
+                        if (removedUzmanlik.Any()) changes.Add($"Çikarilan Uzmanliklar: {string.Join(", ", removedUzmanlik)}");
 
                         // Gorev Turu
                         var oldGorev = personel.PersonelGorevTurleri.Select(x => x.GorevTuru.Ad).ToList();
@@ -475,8 +477,8 @@ namespace PersonelTakipSistemi.Controllers
 
                         var addedGorev = newGorev.Except(oldGorev).ToList();
                         var removedGorev = oldGorev.Except(newGorev).ToList();
-                        if (addedGorev.Any()) changes.Add($"Eklenen GÃ¶rev TÃ¼rleri: {string.Join(", ", addedGorev)}");
-                        if (removedGorev.Any()) changes.Add($"Ã‡ikarilan GÃ¶rev TÃ¼rleri: {string.Join(", ", removedGorev)}");
+                        if (addedGorev.Any()) changes.Add($"Eklenen Görev Türleri: {string.Join(", ", addedGorev)}");
+                        if (removedGorev.Any()) changes.Add($"Çikarilan Görev Türleri: {string.Join(", ", removedGorev)}");
                         
                         // Is Niteligi
                         var oldNitelik = personel.PersonelIsNitelikleri.Select(x => x.IsNiteligi.Ad).ToList();
@@ -487,11 +489,11 @@ namespace PersonelTakipSistemi.Controllers
                         var addedNitelik = newNitelik.Except(oldNitelik).ToList();
                         var removedNitelik = oldNitelik.Except(newNitelik).ToList();
                         if (addedNitelik.Any()) changes.Add($"Eklenen Is Nitelikleri: {string.Join(", ", addedNitelik)}");
-                        if (removedNitelik.Any()) changes.Add($"Ã‡ikarilan Is Nitelikleri: {string.Join(", ", removedNitelik)}");
+                        if (removedNitelik.Any()) changes.Add($"Çikarilan Is Nitelikleri: {string.Join(", ", removedNitelik)}");
 
                         // --- CHANGE DETECTION END ---
 
-                        // Alan GÃ¼ncellemeleri
+                        // Alan Güncellemeleri
                         personel.Ad = model.Ad;
                         personel.Soyad = model.Soyad;
                         personel.TcKimlikNo = model.TcKimlikNo;
@@ -518,26 +520,26 @@ namespace PersonelTakipSistemi.Controllers
                         }
                         // Non-admins keep their existing role (personel.SistemRolId remains unchanged)
                         
-                        // Fotograf GÃ¼ncelleme
+                        // Fotograf Güncelleme
                         if (yeniFotoYolu != null) 
                         {
                             DeletePhotoFile(personel.FotografYolu); // Eskiyi sil
                             personel.FotografYolu = yeniFotoYolu;   // Yeniyi ata
-                            changes.Add("Fotograf gÃ¼ncellendi");
+                            changes.Add("Fotograf güncellendi");
                         }
                         
                         personel.UpdatedAt = DateTime.Now;
 
-                        // Sifre GÃ¼ncelleme (Secure Logic)
+                        // Sifre Güncelleme (Secure Logic)
                         if (!string.IsNullOrEmpty(model.NewPassword))
                         {
-                            bool isAdminOrManager = User.IsInRole("Admin") || User.IsInRole("YÃ¶netici");
+                            bool isAdminOrManager = User.IsInRole("Admin") || User.IsInRole("Yönetici");
                             
-                            // Kural: Admin/YÃ¶netici degilse Eski Sifre sorulmali.
+                            // Kural: Admin/Yönetici degilse Eski Sifre sorulmali.
                             // Istisna: Ilk sifre degisimi ise (Varsayilan sifre kullaniliyorsa) sorulmaz.
                             if (!isAdminOrManager)
                             {
-                                // Varsayilan sifre kontrolÃ¼ (TC ilk 6 hane)
+                                // Varsayilan sifre kontrolü (TC ilk 6 hane)
                                 string defaultPass = personel.TcKimlikNo.Length >= 6 ? personel.TcKimlikNo.Substring(0, 6) : "123456";
                                 bool isDefaultPassword = _passwordService.VerifyPassword(defaultPass, personel.SifreHash, personel.SifreSalt);
 
@@ -547,7 +549,7 @@ namespace PersonelTakipSistemi.Controllers
                                     {
                                         ModelState.AddModelError("EskiSifre", "Mevcut sifrenizi girmelisiniz.");
                                         TempData["Error"] = "Sifre degistirme hatasi: Mevcut sifrenizi giriniz.";
-                                        TempData["OpenTab"] = "tab_password"; // Hata durumunda ilgili tabi aÃ§
+                                        TempData["OpenTab"] = "tab_password"; // Hata durumunda ilgili tabi aç
                                         await FillLookupListsAsync(model);
                                         return View(model);
                                     }
@@ -616,14 +618,14 @@ namespace PersonelTakipSistemi.Controllers
                             catch (Exception ex) { Debug.WriteLine($"Error deserializing or adding roles: {ex.Message}"); /* Ignore parse errors */ }
                         }
 
-                        // BILDIRIM GÃ–NDER (Profil GÃ¼ncelleme)
+                        // BILDIRIM GÖNDER (Profil Güncelleme)
                         try 
                         {
                             await _notificationService.CreateAsync(
                                 aliciId: personel.PersonelId, 
                                 gonderenId: null, // System
-                                baslik: "Profil bilgileri gÃ¼ncellemesi", 
-                                aciklama: $"Sayin {personel.Ad} {personel.Soyad}, personel bilgileriniz gÃ¼ncellenmistir.", 
+                                baslik: "Profil bilgileri güncellemesi", 
+                                aciklama: $"Sayin {personel.Ad} {personel.Soyad}, personel bilgileriniz güncellenmistir.", 
                                 tip: "Profil",
                                 refType: "Personel",
                                 refId: personel.PersonelId
@@ -634,18 +636,34 @@ namespace PersonelTakipSistemi.Controllers
                             // Truncate if too long (DB limit protection)
                             if (logDetail.Length > 400) logDetail = logDetail.Substring(0, 397) + "...";
 
-                            await _logService.LogAsync("Guncelleme", $"Personel gÃ¼ncellendi: {personel.Ad} {personel.Soyad}", personel.PersonelId, logDetail);
+                            await _logService.LogAsync("Guncelleme", $"Personel güncellendi: {personel.Ad} {personel.Soyad}", personel.PersonelId, logDetail);
                         }
-                        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Profil gÃ¼ncelleme bildirim hatasi: {ex.Message}"); }
+                        catch (Exception ex) { System.Diagnostics.Debug.WriteLine($"Profil güncelleme bildirim hatasi: {ex.Message}"); }
 
-                        TempData["Success"] = "Personel bilgileri gÃ¼ncellendi.";
-                        return RedirectToAction("Index", new { highlightId = personel.PersonelId });
+                        TempData["Success"] = "Personel bilgileri güncellendi.";
+
+                        var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+                        bool isSelfUpdate = currentUserId == personel.PersonelId;
+
+                        if (isSelfUpdate)
+                        {
+                            return RedirectToAction("BenimDetay");
+                        }
+
+                        if (User.IsInRole("Admin"))
+                        {
+                            return RedirectToAction("Index", new { highlightId = personel.PersonelId });
+                        }
+
+                        return RedirectToAction("AccessDenied", "Account");
                     }
                     else
                     {
                         // --- INSERT EXECUTION ---
                         string autoPasword = model.TcKimlikNo.Length >= 6 ? model.TcKimlikNo.Substring(0, 6) : "123456";
                         var passwordResult = _passwordService.HashPassword(autoPasword);
+
+                        var effectiveAktifMi = User.IsInRole("Admin") ? model.AktifMi : true;
 
                         var personel = new Personel
                         {
@@ -661,8 +679,8 @@ namespace PersonelTakipSistemi.Controllers
                             KadroIlceId = model.KadroIlceId,
                             BransId = (int)model.BransId,
                             KadroKurum = model.KadroKurum ?? "",
-                            AktifMi = model.AktifMi,
-                            FotografYolu = yeniFotoYolu,
+                            AktifMi = effectiveAktifMi,
+                            FotografYolu = AvatarHelper.NormalizePhoto(yeniFotoYolu),
                             SifreHash = passwordResult.Hash,
                             SifreSalt = passwordResult.Salt,
                             CreatedAt = DateTime.Now,
@@ -725,7 +743,7 @@ namespace PersonelTakipSistemi.Controllers
                                 aliciId: personel.PersonelId,
                                 gonderenId: null, // System
                                 baslik: "Hosgeldiniz!",
-                                aciklama: "Temel Egitim Genel MÃ¼dÃ¼rlÃ¼gÃ¼ Personel Takip Sistemine Hosgeldiniz!",
+                                aciklama: "Temel Egitim Genel Müdürlügü Personel Takip Sistemine Hosgeldiniz!",
                                 tip: "Sistem"
                             );
 
@@ -737,7 +755,7 @@ namespace PersonelTakipSistemi.Controllers
                             Debug.WriteLine($"Hata: Bildirim veya log eklenemedi: {ex.Message}");
                         }
 
-                        TempData["Success"] = $"Yeni personel kaydedildi. BaslangiÃ§ sifresi: {autoPasword}";
+                        TempData["Success"] = $"Yeni personel kaydedildi. Baslangiç sifresi: {autoPasword}";
                         return RedirectToAction("Index", new { highlightId = personel.PersonelId });
                     }
                 }
@@ -801,7 +819,7 @@ namespace PersonelTakipSistemi.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Admin,YÃ¶netici")]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> Sil(int id)
         {
             // 1. Mevcut (Islemi Yapan) Kullaniciyi Bul
@@ -812,7 +830,7 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             // Security Check for Manager: Managers cannot delete others.
-            if (User.IsInRole("YÃ¶netici"))
+            if (User.IsInRole("Yönetici"))
             {
                 if (id != currentUserId) // If trying to delete someone else
                 {
@@ -820,7 +838,7 @@ namespace PersonelTakipSistemi.Controllers
                     return RedirectToAction("Index");
                 }
                 // If id == currentUserId, the manager is trying to delete themselves.
-                // The existing "Kural 1: HiÃ§ kimse kendini silemez." will handle this.
+                // The existing "Kural 1: Hiç kimse kendini silemez." will handle this.
             }
 
             // 2. Silinecek Personeli Bul
@@ -833,7 +851,7 @@ namespace PersonelTakipSistemi.Controllers
 
             // 3. Yetki Kontrolleri (MATRIX)
             
-            // Kural 1: HiÃ§ kimse kendini silemez.
+            // Kural 1: Hiç kimse kendini silemez.
             if (silinecekPersonel.PersonelId == currentUserId)
             {
                 TempData["Error"] = "Kendi hesabinizi silemezsiniz.";
@@ -841,19 +859,19 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             // Rolleri belirle
-            var currentUserRole = User.FindFirstValue(ClaimTypes.Role); // Admin, YÃ¶netici, EditÃ¶r, Kullanici
-            var targetUserRole = silinecekPersonel.SistemRol?.Ad; // Admin, YÃ¶netici, EditÃ¶r, Kullanici
+            var currentUserRole = User.FindFirstValue(ClaimTypes.Role); // Admin, Yönetici, Editör, Kullanici
+            var targetUserRole = silinecekPersonel.SistemRol?.Ad; // Admin, Yönetici, Editör, Kullanici
 
-            // Kural 2: EditÃ¶r ve Kullanici kimseyi silemez (This is now handled by [Authorize(Roles = "Admin,YÃ¶netici")] )
-            // if (currentUserRole == "EditÃ¶r" || currentUserRole == "Kullanici")
+            // Kural 2: Editör ve Kullanici kimseyi silemez (This is now handled by [Authorize(Roles = "Admin,Yönetici")] )
+            // if (currentUserRole == "Editör" || currentUserRole == "Kullanici")
             // {
             //      return Forbid();
             // }
 
-            // Kural 3: YÃ¶netici -> Admin'i SILEMEZ
-            if (currentUserRole == "YÃ¶netici" && targetUserRole == "Admin")
+            // Kural 3: Yönetici -> Admin'i SILEMEZ
+            if (currentUserRole == "Yönetici" && targetUserRole == "Admin")
             {
-                TempData["Error"] = "YÃ¶neticiler, Admin hesabini silemez.";
+                TempData["Error"] = "Yöneticiler, Admin hesabini silemez.";
                 return RedirectToAction("Index");
             }
 
@@ -864,14 +882,14 @@ namespace PersonelTakipSistemi.Controllers
                 return RedirectToAction("Index");
             }
 
-            // Kural 5: YÃ¶netici -> Diger YÃ¶neticiyi SILEBILIR (Engel yok) - This is now blocked by the new YÃ¶netici check above if it's not their own account.
+            // Kural 5: Yönetici -> Diger Yöneticiyi SILEBILIR (Engel yok) - This is now blocked by the new Yönetici check above if it's not their own account.
             
-            // --- Iliskili Kayitlari Temizle/GÃ¼ncelle ---
+            // --- Iliskili Kayitlari Temizle/Güncelle ---
             
-            // 1. Gelen Bildirimleri SIL (Ã‡Ã¼nkÃ¼ AliciPersonelId zorunlu alan)
+            // 1. Gelen Bildirimleri SIL (Çünkü AliciPersonelId zorunlu alan)
             await _context.Bildirimler.Where(b => b.AliciPersonelId == id).ExecuteDeleteAsync();
 
-            // 2. Giden Bildirimlerin GÃ¶nderenini NULL yap (Eger gÃ¶nderen silinirse bildirim kalsin ama gÃ¶nderen anonim olsun)
+            // 2. Giden Bildirimlerin Gönderenini NULL yap (Eger gönderen silinirse bildirim kalsin ama gönderen anonim olsun)
             await _context.Bildirimler.Where(b => b.GonderenPersonelId == id)
                 .ExecuteUpdateAsync(setters => setters.SetProperty(b => b.GonderenPersonelId, (int?)null));
 
@@ -881,7 +899,7 @@ namespace PersonelTakipSistemi.Controllers
 
             // 4. Toplu Bildirim / Bildirim Gonderen Zinciri (TopluBildirim -> Restrict -> BildirimGonderen -> Cascade -> Personel)
             // Personel silinince BildirimGonderen silinmek ister, ama TopluBildirim buna izin vermez.
-            // Bu yÃ¼zden Ã¶nce kullanicinin gÃ¶nderdigi toplu bildirimleri bulup silmeliyiz.
+            // Bu yüzden önce kullanicinin gönderdigi toplu bildirimleri bulup silmeliyiz.
             // "BirimGonderenler" tablosunda bu personele ait kayit var mi?
             var bildirimGonderenIds = await _context.BildirimGonderenler
                 .Where(bg => bg.PersonelId == silinecekPersonel.PersonelId)
@@ -890,7 +908,7 @@ namespace PersonelTakipSistemi.Controllers
 
             if (bildirimGonderenIds.Any())
             {
-                // Bu gÃ¶nderenlere ait toplu bildirimleri sil
+                // Bu gönderenlere ait toplu bildirimleri sil
                 await _context.TopluBildirimler
                     .Where(tb => bildirimGonderenIds.Contains(tb.GonderenId))
                     .ExecuteDeleteAsync();
@@ -912,33 +930,33 @@ namespace PersonelTakipSistemi.Controllers
 
         [HttpPost]
         // [ValidateAntiForgeryToken] // AJAX JSON calls need header setup, disabling for bulk action convenience/speed fix.
-        [Authorize(Roles = "Admin,YÃ¶netici")]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> TopluSil([FromBody] List<int> ids)
         {
             // Security Check for Manager: Managers cannot perform bulk delete at all.
-            if (User.IsInRole("YÃ¶netici"))
+            if (User.IsInRole("Yönetici"))
             {
                 return Json(new { success = false, message = "Yetki Hatasi: Toplu silme yetkiniz bulunmamaktadir." });
             }
 
             if (ids == null || !ids.Any())
             {
-                return Json(new { success = false, message = "HiÃ§bir kayit seÃ§ilmedi." });
+                return Json(new { success = false, message = "Hiçbir kayit seçilmedi." });
             }
 
             // 1. Mevcut (Islemi Yapan) Kullaniciyi Bul
             var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(currentUserIdStr) || !int.TryParse(currentUserIdStr, out int currentUserId))
             {
-                // Yetkisiz veya oturum dÃ¼smÃ¼s
-                 return Json(new { success = false, message = "Oturum sÃ¼reniz dolmus." });
+                // Yetkisiz veya oturum düsmüs
+                 return Json(new { success = false, message = "Oturum süreniz dolmus." });
             }
             
             // Rolleri belirle
-            var currentUserRole = User.FindFirstValue(ClaimTypes.Role); // Admin, YÃ¶netici, EditÃ¶r, Kullanici
+            var currentUserRole = User.FindFirstValue(ClaimTypes.Role); // Admin, Yönetici, Editör, Kullanici
             
-            // Kural: EditÃ¶r ve Kullanici kimseyi silemez
-            if (currentUserRole == "EditÃ¶r" || currentUserRole == "Kullanici")
+            // Kural: Editör ve Kullanici kimseyi silemez
+            if (currentUserRole == "Editör" || currentUserRole == "Kullanici")
             {
                  return Json(new { success = false, message = "Silme yetkiniz yok." });
             }
@@ -952,7 +970,7 @@ namespace PersonelTakipSistemi.Controllers
 
             foreach (var silinecekPersonel in silinecekPersoneller)
             {
-                 // Kural 1: HiÃ§ kimse kendini silemez.
+                 // Kural 1: Hiç kimse kendini silemez.
                 if (silinecekPersonel.PersonelId == currentUserId)
                 {
                     skippedCount++;
@@ -961,8 +979,8 @@ namespace PersonelTakipSistemi.Controllers
 
                 var targetUserRole = silinecekPersonel.SistemRol?.Ad;
 
-                // Kural 3: YÃ¶netici -> Admin'i SILEMEZ
-                if (currentUserRole == "YÃ¶netici" && targetUserRole == "Admin")
+                // Kural 3: Yönetici -> Admin'i SILEMEZ
+                if (currentUserRole == "Yönetici" && targetUserRole == "Admin")
                 {
                     skippedCount++;
                     continue;
@@ -975,19 +993,19 @@ namespace PersonelTakipSistemi.Controllers
                     continue;
                 }
 
-                // --- Iliskili Kayitlari Temizle/GÃ¼ncelle ---
+                // --- Iliskili Kayitlari Temizle/Güncelle ---
                 
                 try
                 {
-                    // 1. GÃ¶rev Sahibi (Creator) Olan Kayitlari Null Yap (Restrict engeli)
-                    // Gorev.PersonelId nullable oldugu iÃ§in null yapabiliriz.
+                    // 1. Görev Sahibi (Creator) Olan Kayitlari Null Yap (Restrict engeli)
+                    // Gorev.PersonelId nullable oldugu için null yapabiliriz.
                     await _context.Gorevler.Where(g => g.PersonelId == silinecekPersonel.PersonelId)
                         .ExecuteUpdateAsync(setters => setters.SetProperty(g => g.PersonelId, (int?)null));
 
                     // 2. Gelen Bildirimleri SIL (AliciPersonelId Restrict)
                     await _context.Bildirimler.Where(b => b.AliciPersonelId == silinecekPersonel.PersonelId).ExecuteDeleteAsync();
 
-                    // 3. Giden Bildirimlerin GÃ¶nderenini NULL yap (GonderenPersonelId Restrict)
+                    // 3. Giden Bildirimlerin Gönderenini NULL yap (GonderenPersonelId Restrict)
                     await _context.Bildirimler.Where(b => b.GonderenPersonelId == silinecekPersonel.PersonelId)
                         .ExecuteUpdateAsync(setters => setters.SetProperty(b => b.GonderenPersonelId, (int?)null));
 
@@ -997,7 +1015,7 @@ namespace PersonelTakipSistemi.Controllers
 
                     // 5. Toplu Bildirim / Bildirim Gonderen Zinciri (TopluBildirim -> Restrict -> BildirimGonderen -> Cascade -> Personel)
                     // Personel silinince BildirimGonderen silinmek ister, ama TopluBildirim buna izin vermez.
-                    // Bu yÃ¼zden Ã¶nce kullanicinin gÃ¶nderdigi toplu bildirimleri bulup silmeliyiz.
+                    // Bu yüzden önce kullanicinin gönderdigi toplu bildirimleri bulup silmeliyiz.
                     // "BirimGonderenler" tablosunda bu personele ait kayit var mi?
                     var bildirimGonderenIds = await _context.BildirimGonderenler
                         .Where(bg => bg.PersonelId == silinecekPersonel.PersonelId)
@@ -1006,7 +1024,7 @@ namespace PersonelTakipSistemi.Controllers
 
                     if (bildirimGonderenIds.Any())
                     {
-                        // Bu gÃ¶nderenlere ait toplu bildirimleri sil
+                        // Bu gönderenlere ait toplu bildirimleri sil
                         await _context.TopluBildirimler
                             .Where(tb => bildirimGonderenIds.Contains(tb.GonderenId))
                             .ExecuteDeleteAsync();
@@ -1026,9 +1044,9 @@ namespace PersonelTakipSistemi.Controllers
                     }
 
                     _context.Personeller.Remove(silinecekPersonel);
-                    // Her dÃ¶ngÃ¼de save yapip hatayi yakalayalim ki hangisinin basarisiz oldugunu anlayabilelim (veya batch save disarida)
+                    // Her döngüde save yapip hatayi yakalayalim ki hangisinin basarisiz oldugunu anlayabilelim (veya batch save disarida)
                     // Ancak burada transaction mantigi yoksa partial delete olabilir. 
-                    // GÃ¼venlik ve tutarlilik iÃ§in SaveChanges'i loop iÃ§inde yapiyoruz simdilik (hata yÃ¶netimi iÃ§in).
+                    // Güvenlik ve tutarlilik için SaveChanges'i loop içinde yapiyoruz simdilik (hata yönetimi için).
                     await _context.SaveChangesAsync(); 
                     deletedCount++;
                 } 
@@ -1038,12 +1056,12 @@ namespace PersonelTakipSistemi.Controllers
                     var innerMsg = ex.InnerException?.Message ?? ex.Message;
                     lastError = innerMsg; // Capture the last error
                     skippedCount++;
-                    // Isterseniz hatayi bir yerde toplayip dÃ¶ndÃ¼rebilirsiniz ancak simdilik skippedCount yeterli.
+                    // Isterseniz hatayi bir yerde toplayip döndürebilirsiniz ancak simdilik skippedCount yeterli.
                 }
             }
 
-            // SaveChanges loop iÃ§inde yapildigi iÃ§in burada tekrar Ã§agirmaya gerek yok (veya batch yapilacaksa yukarida remove deyip burada save denirdi)
-            // Biz loop iÃ§i try-catch tercih ettik ki bir hata tÃ¼m islemi durdurmasin.
+            // SaveChanges loop içinde yapildigi için burada tekrar çagirmaya gerek yok (veya batch yapilacaksa yukarida remove deyip burada save denirdi)
+            // Biz loop içi try-catch tercih ettik ki bir hata tüm islemi durdurmasin.
 
             if (deletedCount > 0)
             {

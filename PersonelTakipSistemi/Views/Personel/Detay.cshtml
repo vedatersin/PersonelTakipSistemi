@@ -58,14 +58,17 @@
             <div class="card h-100">
                 <div class="card-body text-center">
                     <div class="mx-auto mb-3">
-                        @if (!string.IsNullOrEmpty(Model.FotografYolu))
+                        @if (AvatarHelper.HasCustomPhoto(Model.FotografYolu))
                         {
-                            <img src="@Model.FotografYolu" alt="Personel Foto" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;" onerror="this.onerror=null;this.src='/sevilay-tema/assets/img/avatars/1.png';" />
+                            <img src="@Model.FotografYolu" alt="Personel Foto" class="rounded-circle" style="width: 150px; height: 150px; object-fit: cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                            <div class="avatar-initial rounded-circle bg-label-primary mx-auto" style="width: 150px; height: 150px; font-size: 3rem; display: none; align-items: center; justify-content: center;">
+                                @AvatarHelper.GetInitials(Model.Ad, Model.Soyad)
+                            </div>
                         }
                         else
                         {
-                             <div class="avatar avatar-xl mx-auto" style="width: 150px; height: 150px;">
-                                <img src="/sevilay-tema/assets/img/avatars/1.png" alt="Avatar" class="rounded-circle" style="width: 100%; height: 100%; object-fit: cover;" />
+                             <div class="avatar-initial rounded-circle bg-label-primary mx-auto" style="width: 150px; height: 150px; font-size: 3rem; display: flex; align-items: center; justify-content: center;">
+                                @AvatarHelper.GetInitials(Model.Ad, Model.Soyad)
                             </div>
                         }
                     </div>

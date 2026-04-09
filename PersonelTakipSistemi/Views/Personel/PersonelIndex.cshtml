@@ -295,14 +295,14 @@
                             </td>
                         }
                         <td>
-                            @if (!string.IsNullOrEmpty(item.FotografYolu))
+                            @if (AvatarHelper.HasCustomPhoto(item.FotografYolu))
                             {
                                 <img src="@item.FotografYolu" alt="Avatar" class="rounded-circle" width="32" height="32" />
                             }
                             else
                             {
                                 <div class="avatar avatar-xs">
-                                     <span class="avatar-initial rounded-circle bg-label-primary">@item.AdSoyad.Substring(0,1)</span>
+                                     <span class="avatar-initial rounded-circle bg-label-primary">@AvatarHelper.GetInitials(item.AdSoyad)</span>
                                 </div>
                             }
                         </td>

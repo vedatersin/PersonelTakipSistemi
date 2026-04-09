@@ -1,4 +1,4 @@
-﻿@model PersonelTakipSistemi.ViewModels.PersonelEkleViewModel
+@model PersonelTakipSistemi.ViewModels.PersonelEkleViewModel
 @{
     ViewData["Title"] = "Personel Ekle";
 }
@@ -148,11 +148,44 @@
       /* Action Buttons */
       .action-bar {
           display: flex;
-          justify-content: flex-end;
+          justify-content: space-between;
+          align-items: center;
           gap: 10px;
           margin-top: 2rem;
           padding-top: 1rem;
           border-top: 1px solid #e7e7e8;
+      }
+      .btn-step-back {
+          background-color: #696cff;
+          border-color: #696cff;
+          color: #fff;
+      }
+      .btn-step-back:hover,
+      .btn-step-back:focus {
+          background-color: #5f62e8;
+          border-color: #5f62e8;
+          color: #fff;
+      }
+      .control-back-link {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.4rem;
+          color: #696cff;
+          font-weight: 600;
+          text-decoration: none;
+          margin-bottom: 1rem;
+      }
+      .control-back-link:hover,
+      .control-back-link:focus {
+          color: #5f62e8;
+          text-decoration: none;
+      }
+      .control-back-link i {
+          font-size: 150%;
+      }
+      .control-back-link span {
+          font-size: 170%;
+          line-height: 1;
       }
   </style>
 }
@@ -237,19 +270,22 @@
       <div class="photo-upload-area">
           <div class="photo-circle" id="previewContainer">
               @{
-                  var imgSrc = !string.IsNullOrEmpty(Model.FotografBase64) ? Model.FotografBase64 : Model.FotografYolu;
+                  var imgSrc = !string.IsNullOrEmpty(Model.FotografBase64)
+                      ? Model.FotografBase64
+                      : AvatarHelper.NormalizePhoto(Model.FotografYolu);
                   var hasPhoto = !string.IsNullOrEmpty(imgSrc);
+                  var initials = AvatarHelper.GetInitials(Model.Ad, Model.Soyad);
               }
               
               @if(hasPhoto)
               {
-                   <img id="photoPreview" src="@imgSrc" onerror="this.onerror=null;this.src='/sevilay-tema/assets/img/avatars/1.png';"/>
-                   <i class='bx bx-user' style="display:none"></i>
+                   <img id="photoPreview" src="@imgSrc" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+                   <span id="previewInitials" class="avatar-initial rounded-circle bg-label-primary" style="display:none; width:100%; height:100%; font-size:2rem;">@initials</span>
               }
               else
               {
-                   <img id="photoPreview" src="" style="display:none" onerror="this.onerror=null;this.src='/sevilay-tema/assets/img/avatars/1.png';"/>
-                   <i class='bx bx-user'></i>
+                   <img id="photoPreview" src="" style="display:none" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+                   <span id="previewInitials" class="avatar-initial rounded-circle bg-label-primary" style="display:flex; width:100%; height:100%; font-size:2rem;">@initials</span>
               }
           </div>
           <div class="flex-grow-1">
@@ -302,8 +338,8 @@
                    <span asp-validation-for="DogumTarihi" class="text-danger"></span>
                </div>
                
-                <!-- AktifMi Switch: Only Show in Edit Mode or Default Checked -->
-                @if(Model.IsEditMode)
+                <!-- AktifMi Switch: Only Show to Admin -->
+                @if(User.IsInRole("Admin"))
                 {
                     <div class="form-check form-switch mt-4">
                         <input class="form-check-input" type="checkbox" asp-for="AktifMi" id="gorevAktif">
@@ -312,7 +348,7 @@
                 }
                 else
                 {
-                    <input type="hidden" asp-for="AktifMi" value="true" />
+                    <input type="hidden" asp-for="AktifMi" />
                 }
           </div>
 
@@ -383,8 +419,11 @@
       </div>
 
       <div class="action-bar">
-          <button type="button" class="btn btn-outline-secondary" onclick="clearTab1()">Temizle</button>
-          <button type="button" class="btn btn-primary px-4" id="next1">İlerle</button>
+          <div></div>
+          <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-secondary" onclick="clearTab1()"><i class="bx bx-eraser me-1"></i>Temizle</button>
+              <button type="button" class="btn btn-primary px-4" id="next1">İlerle <i class="bx bx-chevron-right ms-1"></i></button>
+          </div>
       </div>
   </div> <!-- /Tab1 -->
 
@@ -487,17 +526,18 @@
                                     </div>
 
                                     <div class="d-flex justify-content-between mt-4 align-items-center">
-                                        <div class="d-flex justify-content-start">
+                                        <div class="d-flex justify-content-start gap-2">
                                             @if (!Model.IsEditMode)
                                             {
                                                 <button type="button" class="btn btn-outline-warning" id="btnSkipAuth">
                                                     <i class="fas fa-fast-forward me-2"></i>Yetkilendirme İşlemini Atla
                                                 </button>
                                             }
+                                            <button type="button" class="btn btn-step-back px-4" onclick="goPrev('tab_auth')"><i class='bx bx-chevron-left me-1'></i>Geri</button>
                                         </div>
                                         <div class="d-flex justify-content-end gap-2">
-                                             <button type="button" class="btn btn-outline-secondary" onclick="clearTabAuth()">Temizle</button>
-                                             <button type="button" class="btn btn-primary px-4" id="next_auth">İlerle <i class="fas fa-arrow-right ms-2"></i></button>
+                                             <button type="button" class="btn btn-outline-secondary" onclick="clearTabAuth()"><i class='bx bx-eraser me-1'></i>Temizle</button>
+                                             <button type="button" class="btn btn-primary px-4" id="next_auth">İlerle <i class='bx bx-chevron-right ms-1'></i></button>
                                         </div>
                                     </div>
                                 </div>
@@ -519,8 +559,13 @@
         }
     </div>
     <div class="action-bar">
-        <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab2')">Temizle</button>
-        <button type="button" class="btn btn-primary px-4" id="next2">İlerle</button>
+        <div>
+            <button type="button" class="btn btn-step-back px-4" onclick="goPrev('tab2')"><i class='bx bx-chevron-left me-1'></i>Geri</button>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab2')"><i class='bx bx-eraser me-1'></i>Temizle</button>
+            <button type="button" class="btn btn-primary px-4" id="next2">İlerle <i class='bx bx-chevron-right ms-1'></i></button>
+        </div>
     </div>
   </div>
 
@@ -539,8 +584,13 @@
         }
     </div>
     <div class="action-bar">
-        <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab3')">Temizle</button>
-        <button type="button" class="btn btn-primary px-4" id="next3">İlerle</button>
+        <div>
+            <button type="button" class="btn btn-step-back px-4" onclick="goPrev('tab3')"><i class='bx bx-chevron-left me-1'></i>Geri</button>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab3')"><i class='bx bx-eraser me-1'></i>Temizle</button>
+            <button type="button" class="btn btn-primary px-4" id="next3">İlerle <i class='bx bx-chevron-right ms-1'></i></button>
+        </div>
     </div>
   </div>
 
@@ -559,8 +609,13 @@
         }
     </div>
     <div class="action-bar">
-        <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab4')">Temizle</button>
-        <button type="button" class="btn btn-primary px-4" id="next4">İlerle</button>
+        <div>
+            <button type="button" class="btn btn-step-back px-4" onclick="goPrev('tab4')"><i class='bx bx-chevron-left me-1'></i>Geri</button>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab4')"><i class='bx bx-eraser me-1'></i>Temizle</button>
+            <button type="button" class="btn btn-primary px-4" id="next4">İlerle <i class='bx bx-chevron-right ms-1'></i></button>
+        </div>
     </div>
   </div>
 
@@ -579,8 +634,13 @@
         }
     </div>
     <div class="action-bar">
-        <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab5')">Temizle</button>
-        <button type="button" class="btn btn-primary px-4" id="next5">İlerle</button>
+        <div>
+            <button type="button" class="btn btn-step-back px-4" onclick="goPrev('tab5')"><i class='bx bx-chevron-left me-1'></i>Geri</button>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab5')"><i class='bx bx-eraser me-1'></i>Temizle</button>
+            <button type="button" class="btn btn-primary px-4" id="next5">İlerle <i class='bx bx-chevron-right ms-1'></i></button>
+        </div>
     </div>
   </div>
 
@@ -612,17 +672,29 @@
             <input type="password" asp-for="NewPasswordConfirm" class="form-control" placeholder="Yeni şifreyi tekrar girin">
             <span asp-validation-for="NewPasswordConfirm" class="text-danger"></span>
         </div>
-         <button type="button" class="btn btn-primary mt-3" id="next_pass">İlerle</button>
+        <div class="action-bar">
+            <div>
+                <button type="button" class="btn btn-step-back px-4" onclick="goPrev('tab_password')"><i class='bx bx-chevron-left me-1'></i>Geri</button>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary px-4" id="next_pass">İlerle <i class='bx bx-chevron-right ms-1'></i></button>
+            </div>
+        </div>
       </div>
   }
 
   <div id="tab6" class="tab-content">
 
+    <a href="javascript:void(0)" class="control-back-link" onclick="goPrev('tab6')">
+        <i class='bx bx-chevron-left'></i>
+        <span>Geri</span>
+    </a>
+
     <!-- Control Tab Photo Section: Simplified to single image source -->
     <div class="text-center mb-4">
         <div class="photo-preview-container mx-auto" id="controlContainer">
-            <i class='bx bx-user' id="controlIcon"></i>
-            <img id="kontrolFoto" src="" alt="Personel Fotoğrafı" style="display:none;" onerror="this.onerror=null;this.src='/sevilay-tema/assets/img/avatars/1.png';"/>
+            <span id="controlIcon" class="avatar-initial rounded-circle bg-label-primary" style="display:flex; width:100%; height:100%; font-size:2rem;">@initials</span>
+            <img id="kontrolFoto" src="" alt="Personel Fotoğrafı" style="display:none;" onerror="this.style.display='none'; document.getElementById('controlIcon').style.display='inline-block';"/>
         </div>
         <p class="mt-2 fw-bold">Personel Fotoğrafı</p>
     </div>
@@ -652,8 +724,10 @@
         </div>
     </div>
 
-  <div class="d-grid gap-2 mt-4">
-    <button type="submit" class="btn btn-success btn-lg">@(Model.IsEditMode ? "Bilgileri Güncelle" : "Bilgileri Kaydet")</button>
+  <div class="action-bar mt-4">
+    <div class="w-100">
+        <button type="submit" class="btn btn-success btn-lg w-100"><i class='bx bx-save me-1'></i>Kaydet</button>
+    </div>
   </div>
 
   </div>
@@ -745,6 +819,13 @@
             activateTab(tabId);
         };
 
+        window.goPrev = function (currentTabId) {
+            const idx = window.wizardState.tabOrder.indexOf(currentTabId);
+            if (idx > 0) {
+                activateTab(window.wizardState.tabOrder[idx - 1]);
+            }
+        };
+
         window.activateTab = function (tabId) {
             let isAllowed = false;
             if (window.wizardState.unlockedTabs.has(tabId)) isAllowed = true;
@@ -825,7 +906,10 @@
             addRow(leftBody, "Cinsiyet", cinsiyet);
 
             const aktifMiEl = document.getElementById("gorevAktif");
-            const aktifMi = aktifMiEl ? (aktifMiEl.checked ? "Aktif" : "Pasif") : "Aktif";
+            const hiddenAktifMiEl = document.getElementById("AktifMi");
+            const aktifMi = aktifMiEl
+                ? (aktifMiEl.checked ? "Aktif" : "Pasif")
+                : (hiddenAktifMiEl?.value === "false" ? "Pasif" : "Aktif");
             addRow(leftBody, "Durum", aktifMi);
 
             addRow(rightBody, "Kadro Kurum", document.getElementById("personelKadroKurum")?.value);
@@ -1123,10 +1207,40 @@
         });
 
         // --- Photo Logic ---
+        function getPersonInitials() {
+            const ad = document.getElementById("personelAdi")?.value || "";
+            const soyad = document.getElementById("personelSoyadi")?.value || "";
+            const fullName = `${ad} ${soyad}`.trim();
+            if (!fullName) {
+                return "?";
+            }
+
+            const parts = fullName.split(/\s+/).filter(Boolean);
+            if (parts.length === 1) {
+                return parts[0].substring(0, 1).toUpperCase();
+            }
+
+            return `${parts[0].substring(0, 1)}${parts[parts.length - 1].substring(0, 1)}`.toUpperCase();
+        }
+
+        function refreshInitialBadges() {
+            const initials = getPersonInitials();
+            const previewInitials = document.getElementById("previewInitials");
+            const controlInitials = document.getElementById("controlIcon");
+
+            if (previewInitials) {
+                previewInitials.textContent = initials;
+            }
+
+            if (controlInitials) {
+                controlInitials.textContent = initials;
+            }
+        }
+
         function updateControlPhoto() {
             const previewImg = document.getElementById("photoPreview");
             const controlImg = document.getElementById("kontrolFoto");
-            const controlIcon = document.getElementById("controlIcon");
+            const controlInitials = document.getElementById("controlIcon");
             if (!controlImg) return;
 
             let hasValidPreview = false;
@@ -1139,10 +1253,10 @@
             if (hasValidPreview) {
                 controlImg.src = previewImg.src;
                 controlImg.style.display = "block";
-                if (controlIcon) controlIcon.style.display = "none";
+                if (controlInitials) controlInitials.style.display = "none";
             } else {
                 controlImg.style.display = "none";
-                if (controlIcon) controlIcon.style.display = "block";
+                if (controlInitials) controlInitials.style.display = "flex";
             }
         }
 
@@ -1160,8 +1274,8 @@
                 previewImg.src = src;
 
                 const container = previewImg.parentElement;
-                const icon = container ? container.querySelector("i") : null;
-                if (icon) icon.style.display = "none";
+                const initialsBadge = container ? container.querySelector("#previewInitials") : null;
+                if (initialsBadge) initialsBadge.style.display = "none";
                 previewImg.style.display = "block";
             }
         }
@@ -1177,10 +1291,11 @@
             $('input[name="IsEditMode"]').val('False');
 
             const preview = document.getElementById("photoPreview");
-            const icon = document.querySelector("#previewContainer i");
+            const initialsBadge = document.getElementById("previewInitials");
             if (preview) { preview.src = ""; preview.style.display = 'none'; }
-            if (icon) icon.style.display = 'block';
+            if (initialsBadge) initialsBadge.style.display = 'flex';
             document.getElementById("personelFoto").value = "";
+            refreshInitialBadges();
         };
 
         window.clearCheckboxes = function (tabId) {
@@ -1204,7 +1319,15 @@
         $(document).ready(function () {
             updateStepperUI("tab1");
             renderRoles();
+            refreshInitialBadges();
             restorePhotoFromHidden();
+            updateControlPhoto();
+            $('button[type="submit"].btn-success').html('<i class="bx bx-save me-1"></i>Kaydet');
+
+            $('#personelAdi, #personelSoyadi').on('input', function () {
+                refreshInitialBadges();
+                if ($('#tab6').hasClass('active')) updateControlPhoto();
+            });
 
             // Init Select2
             $('.select2').select2({
@@ -1306,7 +1429,7 @@
                         if (img) {
                             img.src = evt.target.result;
                             img.style.display = 'block';
-                            $(img).siblings('i').hide();
+                            $('#previewInitials').hide();
                             if ($('#tab6').hasClass('active')) updateControlPhoto();
                         }
                     };
@@ -1413,6 +1536,44 @@
 
                     wizardState.unlockedTabs.add("tab2");
                     activateTab("tab2");
+                });
+            }
+
+            const btnNextPass = document.getElementById("next_pass");
+            if (btnNextPass) {
+                btnNextPass.addEventListener("click", function () {
+                    const $tabInputs = $('#tab_password').find(':input');
+                    const newPassword = ($('#NewPassword').val() || '').trim();
+                    const confirmPassword = ($('#NewPasswordConfirm').val() || '').trim();
+
+                    if (newPassword === "" && confirmPassword === "") {
+                        wizardState.unlockedTabs.add("tab6");
+                        activateTab("tab6");
+                        return;
+                    }
+
+                    if (!$tabInputs.valid()) {
+                        Swal.fire({
+                            title: 'Eksik veya Hatali Bilgi',
+                            text: 'Sifre alanlarini kontrol ediniz.',
+                            icon: 'warning',
+                            timer: 2000,
+                            showConfirmButton: false
+                        });
+                        return;
+                    }
+
+                    if (newPassword !== confirmPassword) {
+                        Swal.fire({
+                            title: 'Sifreler Eslesmiyor',
+                            text: 'Yeni sifre ve tekrar alani ayni olmalidir.',
+                            icon: 'warning'
+                        });
+                        return;
+                    }
+
+                    wizardState.unlockedTabs.add("tab6");
+                    activateTab("tab6");
                 });
             }
 
@@ -1639,3 +1800,11 @@
         }); // End Ready
     </script>
 }
+
+
+
+
+
+
+
+

@@ -14,6 +14,8 @@
     <ul class="navbar-nav flex-row align-items-center ms-auto">
       
       <!-- Notification Dropdown -->
+      @if (!User.IsInRole("Kullanıcı"))
+      {
       <li class="nav-item dropdown-notifications navbar-dropdown dropdown me-3 me-xl-1">
         <a class="nav-link dropdown-toggle hide-arrow position-relative" href="javascript:void(0);" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" style="display: inline-block;">
           <i class="bx bx-bell" style="font-size: 2.25rem !important; color: #566a7f !important;"></i>
@@ -38,6 +40,7 @@
           </li>
         </ul>
       </li>
+      }
 
 @using PersonelTakipSistemi.Data
 @using Microsoft.EntityFrameworkCore
@@ -57,7 +60,7 @@
                             .ThenInclude(kr => kr.KurumsalRol)
                         .FirstOrDefault(x => x.PersonelId == pid);
               if(p != null) {
-                 photoUrl = p.FotografYolu;
+                 photoUrl = AvatarHelper.NormalizePhoto(p.FotografYolu) ?? "";
                  displayName = p.Ad + " " + p.Soyad; 
                  
                  if (p.SistemRol != null) {
@@ -67,13 +70,7 @@
           }
 
           // Initials Logic
-          var initials = "";
-          if(!string.IsNullOrEmpty(displayName)) {
-              var parts = displayName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-              if(parts.Length > 0) initials += parts[0][0];
-              if(parts.Length > 1) initials += parts[parts.Length - 1][0];
-          }
-          initials = initials.ToUpper();
+          var initials = AvatarHelper.GetInitials(displayName);
 
           <li class="nav-item navbar-dropdown dropdown-user dropdown">
             <a class="nav-link dropdown-toggle hide-arrow p-0 d-flex align-items-center" href="javascript:void(0);" data-bs-toggle="dropdown">

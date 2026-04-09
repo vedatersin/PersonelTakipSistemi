@@ -202,8 +202,8 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            @if (!string.IsNullOrEmpty(p.FotografYolu)) { <img src="@p.FotografYolu" class="rounded-circle me-3" width="35" height="35" /> }
-                                            else { <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width:35px; height:35px; font-weight:700;">@p.AdSoyad[0]</div> }
+                                        @if (AvatarHelper.HasCustomPhoto(p.FotografYolu)) { <img src="@p.FotografYolu" class="rounded-circle me-3" width="35" height="35" /> }
+                                        else { <div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width:35px; height:35px; font-weight:700;">@AvatarHelper.GetInitials(p.AdSoyad)</div> }
                                             <span class="fw-bold">@p.AdSoyad</span>
                                         </div>
                                     </td>
