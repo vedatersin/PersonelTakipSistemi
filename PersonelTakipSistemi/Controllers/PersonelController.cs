@@ -222,7 +222,6 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
                 .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
                 .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
-                .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
                 .Include(p => p.SistemRol) // Include SistemRol
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pk => pk.KurumsalRol)
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pk => pk.Koordinatorluk!).ThenInclude(k => k.Teskilat)
@@ -230,6 +229,7 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.PersonelTeskilatlar).ThenInclude(pt => pt.Teskilat)
                 .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk).ThenInclude(k => k.Teskilat)
                 .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(ko => ko.Teskilat)
+                .AsSplitQuery()
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.PersonelId == id);
 
