@@ -66,6 +66,7 @@ namespace PersonelTakipSistemi.Models
         // İlişkiler
         public ICollection<Komisyon> Komisyonlar { get; set; } = new List<Komisyon>();
         public ICollection<PersonelKoordinatorluk> PersonelKoordinatorlukler { get; set; } = new List<PersonelKoordinatorluk>();
+        public ICollection<Cihaz> Cihazlar { get; set; } = new List<Cihaz>();
     }
 
     public class Komisyon

@@ -48,6 +48,10 @@ namespace PersonelTakipSistemi.Data
         public DbSet<GorevAtamaKomisyon> GorevAtamaKomisyonlar { get; set; }
         public DbSet<GorevAtamaPersonel> GorevAtamaPersoneller { get; set; }
         public DbSet<DaireBaskanligi> DaireBaskanliklari { get; set; }
+        public DbSet<CihazTuru> CihazTurleri { get; set; }
+        public DbSet<CihazMarka> CihazMarkalari { get; set; }
+        public DbSet<Cihaz> Cihazlar { get; set; }
+        public DbSet<CihazHareketi> CihazHareketleri { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -56,6 +60,7 @@ namespace PersonelTakipSistemi.Data
             ConfigureAuthorizationModule(modelBuilder);
             ConfigureCoreCatalogs(modelBuilder);
             ConfigureTaskModule(modelBuilder);
+            ConfigureDeviceModule(modelBuilder);
         }
     }
 }

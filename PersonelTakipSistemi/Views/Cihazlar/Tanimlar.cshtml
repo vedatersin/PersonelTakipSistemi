@@ -1,0 +1,377 @@
+@model PersonelTakipSistemi.ViewModels.CihazTanimlariViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Cihaz Tanımları";
+    var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    var initialData = new PersonelTakipSistemi.ViewModels.CihazTanimResponseViewModel
+    {
+        SeciliCihazTuruId = Model.SeciliCihazTuruId,
+        CihazTurleri = Model.CihazTurleri.Select(x => new PersonelTakipSistemi.ViewModels.CihazTuruListItemViewModel
+        {
+            CihazTuruId = x.CihazTuruId,
+            Ad = x.Ad,
+            KullanimAmaci = x.KullanimAmaci,
+            SistemSecenegiMi = x.SistemSecenegiMi,
+            BagliMarkaSayisi = x.Markalar?.Count ?? 0,
+            BagliCihazSayisi = x.Cihazlar?.Count ?? 0
+        }).ToList(),
+        Markalar = Model.Markalar.Select(x => new PersonelTakipSistemi.ViewModels.CihazMarkaListItemViewModel
+        {
+            CihazMarkaId = x.CihazMarkaId,
+            CihazTuruId = x.CihazTuruId,
+            Ad = x.Ad,
+            SistemSecenegiMi = x.SistemSecenegiMi,
+            BagliCihazSayisi = x.Cihazlar?.Count ?? 0
+        }).ToList()
+    };
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Yazılım Lisansları ve Cihazlar /</span> Cihaz Tanımları</h4>
+    @Html.AntiForgeryToken()
+    <div id="pageAlert"></div>
+
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center bg-success text-white">
+                    <h5 class="mb-0 text-white">Cihaz Türleri</h5>
+                    <button class="btn btn-sm btn-light" type="button" onclick="openTypeModal()">+ Ekle</button>
+                </div>
+                <div class="list-group list-group-flush" id="deviceTypeList"></div>
+            </div>
+        </div>
+        <div class="col-lg-6 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center bg-info text-white">
+                    <h5 class="mb-0 text-white">Markalar</h5>
+                    <button class="btn btn-sm btn-light" type="button" onclick="openBrandModal()">+ Ekle</button>
+                </div>
+                <div class="list-group list-group-flush" id="brandList"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="cihazTuruModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="deviceTypeForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deviceTypeModalTitle">Cihaz Türü Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="deviceTypeId" name="CihazTuruId" />
+                    <div class="mb-3">
+                        <label class="form-label">Cihaz Türü</label>
+                        <input id="deviceTypeName" name="Ad" class="form-control" />
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Kullanım Amacı (Opsiyonel)</label>
+                        <textarea id="deviceTypePurpose" name="KullanimAmaci" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div id="deviceTypeWarning" class="alert alert-warning d-none mb-0"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="markaModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="brandForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="brandModalTitle">Marka Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="brandId" name="CihazMarkaId" />
+                    <input type="hidden" id="brandOriginalTypeId" />
+                    <input type="hidden" id="brandOriginalName" />
+                    <input type="hidden" id="brandDeviceCount" />
+                    <div class="mb-3">
+                        <label class="form-label">Cihaz Türü</label>
+                        <select id="brandTypeId" name="CihazTuruId" class="form-select"></select>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label">Marka Adı</label>
+                        <input id="brandName" name="Ad" class="form-control" />
+                    </div>
+                    <div id="brandWarning" class="alert alert-warning d-none mb-0"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .definition-item.active {
+        background: rgba(105, 108, 255, 0.14);
+        border-color: rgba(105, 108, 255, 0.2);
+    }
+
+    .definition-item.active .definition-title,
+    .definition-item.active .definition-subtitle {
+        color: #4f46e5 !important;
+    }
+
+    .definition-title {
+        font-weight: 700;
+    }
+
+    .definition-subtitle {
+        font-size: .85rem;
+        font-weight: 600;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        const antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
+        const typeModal = new bootstrap.Modal(document.getElementById('cihazTuruModal'));
+        const brandModal = new bootstrap.Modal(document.getElementById('markaModal'));
+        let state = @Html.Raw(JsonSerializer.Serialize(initialData, jsonOptions));
+
+        function showAlert(message, type = 'success') {
+            document.getElementById('pageAlert').innerHTML = `<div class="alert alert-${type} alert-dismissible fade show">${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+        }
+
+        function render() {
+            renderTypeList();
+            renderBrandList();
+            populateTypeOptions();
+        }
+
+        function canManageDefinition(item) {
+            return !item?.sistemSecenegiMi;
+        }
+
+        function renderTypeList() {
+            const container = document.getElementById('deviceTypeList');
+            if (!state.cihazTurleri?.length) {
+                container.innerHTML = '<div class="list-group-item text-muted">Cihaz türü bulunamadı.</div>';
+                return;
+            }
+
+            container.innerHTML = state.cihazTurleri.map(item => `
+                <div class="list-group-item definition-item ${state.seciliCihazTuruId === item.cihazTuruId ? 'active' : ''}">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div role="button" class="flex-grow-1" onclick="selectType(${item.cihazTuruId})">
+                            <div class="definition-title">${escapeHtml(item.ad)}</div>
+                            <div class="definition-subtitle ${state.seciliCihazTuruId === item.cihazTuruId ? '' : 'text-muted'}">${escapeHtml(item.kullanimAmaci || 'Kullanım amacı belirtilmedi')}</div>
+                        </div>
+                        <div class="text-nowrap">
+                            ${canManageDefinition(item) ? `
+                            <button class="btn btn-sm btn-icon btn-outline-secondary me-1" type="button" onclick='openTypeModal(${JSON.stringify(item)})' title="Düzenle"><i class="bx bx-pencil"></i></button>
+                            <button class="btn btn-sm btn-icon btn-outline-danger" type="button" onclick='deleteType(${JSON.stringify(item)})' title="Sil"><i class="bx bx-trash"></i></button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderBrandList() {
+            const container = document.getElementById('brandList');
+            if (!state.markalar?.length) {
+                container.innerHTML = '<div class="list-group-item text-muted">Marka bulunamadı.</div>';
+                return;
+            }
+
+            container.innerHTML = state.markalar.map(item => `
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div class="flex-grow-1">
+                            <div class="definition-title">${escapeHtml(item.ad)}</div>
+                            <div class="definition-subtitle text-muted">Seçili cihaz türüne bağlı marka</div>
+                        </div>
+                        <div class="text-nowrap">
+                            ${canManageDefinition(item) ? `
+                            <button class="btn btn-sm btn-icon btn-outline-secondary me-1" type="button" onclick='openBrandModal(${JSON.stringify(item)})' title="Düzenle"><i class="bx bx-pencil"></i></button>
+                            <button class="btn btn-sm btn-icon btn-outline-danger" type="button" onclick='deleteBrand(${JSON.stringify(item)})' title="Sil"><i class="bx bx-trash"></i></button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function populateTypeOptions() {
+            const select = document.getElementById('brandTypeId');
+            select.innerHTML = '<option value="">Seçiniz</option>' + state.cihazTurleri.map(item =>
+                `<option value="${item.cihazTuruId}">${escapeHtml(item.ad)}</option>`
+            ).join('');
+        }
+
+        async function selectType(typeId) {
+            await refreshDefinitions(typeId);
+        }
+
+        function openTypeModal(item = null) {
+            document.getElementById('deviceTypeForm').reset();
+            document.getElementById('deviceTypeId').value = item?.cihazTuruId || '';
+            document.getElementById('deviceTypeName').value = item?.ad || '';
+            document.getElementById('deviceTypePurpose').value = item?.kullanimAmaci || '';
+            document.getElementById('deviceTypeModalTitle').textContent = item ? 'Cihaz Türünü Düzenle' : 'Cihaz Türü Ekle';
+            const warning = document.getElementById('deviceTypeWarning');
+            if (item?.bagliCihazSayisi > 0) {
+                warning.textContent = `Bu cihaz türüne bağlı ${item.bagliCihazSayisi} cihaz var. Güncelleme cihaz kayıtlarını etkileyebilir.`;
+                warning.classList.remove('d-none');
+            } else {
+                warning.classList.add('d-none');
+                warning.textContent = '';
+            }
+            typeModal.show();
+        }
+
+        function openBrandModal(item = null) {
+            document.getElementById('brandForm').reset();
+            populateTypeOptions();
+            document.getElementById('brandId').value = item?.cihazMarkaId || '';
+            document.getElementById('brandTypeId').value = item?.cihazTuruId || state.seciliCihazTuruId || '';
+            document.getElementById('brandOriginalTypeId').value = item?.cihazTuruId || '';
+            document.getElementById('brandOriginalName').value = item?.ad || '';
+            document.getElementById('brandDeviceCount').value = item?.bagliCihazSayisi || 0;
+            document.getElementById('brandName').value = item?.ad || '';
+            document.getElementById('brandModalTitle').textContent = item ? 'Markayı Düzenle' : 'Marka Ekle';
+            updateBrandWarning();
+            brandModal.show();
+        }
+
+        function updateBrandWarning() {
+            const warning = document.getElementById('brandWarning');
+            const originalTypeId = document.getElementById('brandOriginalTypeId').value;
+            const currentTypeId = document.getElementById('brandTypeId').value;
+            const originalName = document.getElementById('brandOriginalName').value;
+            const currentName = document.getElementById('brandName').value.trim();
+            const deviceCount = parseInt(document.getElementById('brandDeviceCount').value || '0');
+
+            let message = '';
+            if (deviceCount > 0 && originalTypeId && currentTypeId && originalTypeId !== currentTypeId) {
+                message = `Bu markaya bağlı ${deviceCount} cihaz var. Cihaz türünü değiştirmeden önce bağlı cihaz kayıtlarını doğru tür ve markaya güncellemeniz gerekir.`;
+            } else if (deviceCount > 0 && originalName && originalName !== currentName) {
+                message = `Bu markaya bağlı ${deviceCount} cihaz var. Marka adı değişince bağlı cihaz kayıtları etkilenebilir.`;
+            }
+
+            warning.textContent = message;
+            warning.classList.toggle('d-none', !message);
+        }
+
+        async function deleteType(item) {
+            if (item.bagliCihazSayisi > 0) {
+                showAlert(`"${item.ad}" türüne bağlı ${item.bagliCihazSayisi} cihaz var. Önce cihaz kayıtlarını doğru tür/markaya güncelleyin, sonra bu tanımı silin.`, 'warning');
+                return;
+            }
+
+            const confirmed = confirm(`"${item.ad}" cihaz türünü silmek istiyor musunuz?`);
+            if (!confirmed) return;
+
+            await postForm('@Url.Action("CihazTuruSil")', { id: item.cihazTuruId, onaylandi: true, seciliCihazTuruId: state.seciliCihazTuruId });
+        }
+
+        async function deleteBrand(item) {
+            if (item.bagliCihazSayisi > 0) {
+                showAlert(`"${item.ad}" markasına bağlı ${item.bagliCihazSayisi} cihaz var. Önce cihaz kayıtlarını güncelleyip bu markayı boşa çıkarın.`, 'warning');
+                return;
+            }
+
+            const confirmed = confirm(`"${item.ad}" markasını silmek istiyor musunuz?`);
+            if (!confirmed) return;
+
+            await postForm('@Url.Action("MarkaSil")', { id: item.cihazMarkaId, onaylandi: true, seciliCihazTuruId: state.seciliCihazTuruId });
+        }
+
+        document.getElementById('deviceTypeForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const id = document.getElementById('deviceTypeId').value;
+            const actionUrl = id ? '@Url.Action("CihazTuruGuncelle")' : '@Url.Action("CihazTuruEkle")';
+            const result = await postForm(actionUrl, {
+                CihazTuruId: id,
+                Ad: document.getElementById('deviceTypeName').value,
+                KullanimAmaci: document.getElementById('deviceTypePurpose').value
+            });
+            if (result) typeModal.hide();
+        });
+
+        document.getElementById('brandForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const id = document.getElementById('brandId').value;
+            const originalTypeId = document.getElementById('brandOriginalTypeId').value;
+            const currentTypeId = document.getElementById('brandTypeId').value;
+            const deviceCount = parseInt(document.getElementById('brandDeviceCount').value || '0');
+
+            if (id && deviceCount > 0 && originalTypeId && originalTypeId !== currentTypeId) {
+                showAlert(`Bu markaya bağlı ${deviceCount} cihaz var. Önce cihaz kayıtlarını güncellemeden markayı başka cihaz türüne taşıyamazsınız.`, 'warning');
+                return;
+            }
+
+            const actionUrl = id ? '@Url.Action("MarkaGuncelle")' : '@Url.Action("MarkaEkle")';
+            const result = await postForm(actionUrl, {
+                CihazMarkaId: id,
+                CihazTuruId: currentTypeId,
+                Ad: document.getElementById('brandName').value
+            });
+            if (result) brandModal.hide();
+        });
+
+        document.getElementById('brandTypeId').addEventListener('change', updateBrandWarning);
+        document.getElementById('brandName').addEventListener('input', updateBrandWarning);
+
+        async function postForm(url, data) {
+            const formData = new URLSearchParams();
+            formData.append('__RequestVerificationToken', antiForgeryToken);
+            Object.keys(data).forEach(key => formData.append(key, data[key] ?? ''));
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+                body: formData.toString()
+            });
+
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                showAlert(result.message || 'İşlem sırasında hata oluştu.', 'danger');
+                return null;
+            }
+
+            state = normalizePayload(result.data);
+            render();
+            showAlert(result.message || 'İşlem tamamlandı.');
+            return result;
+        }
+
+        async function refreshDefinitions(selectedTypeId = null) {
+            const url = selectedTypeId ? `@Url.Action("TanimlarData")?selectedTypeId=${selectedTypeId}` : '@Url.Action("TanimlarData")';
+            const response = await fetch(url);
+            const data = await response.json();
+            state = normalizePayload(data);
+            render();
+        }
+
+        function normalizePayload(payload) {
+            return {
+                seciliCihazTuruId: payload.seciliCihazTuruId,
+                cihazTurleri: payload.cihazTurleri || [],
+                markalar: payload.markalar || []
+            };
+        }
+
+        function escapeHtml(value) {
+            return (value || '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+        }
+
+        state = normalizePayload(state);
+        render();
+        refreshDefinitions(state.seciliCihazTuruId);
+    </script>
+}

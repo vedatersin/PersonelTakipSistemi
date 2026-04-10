@@ -1,0 +1,254 @@
+@model PersonelTakipSistemi.ViewModels.CihazDetayViewModel
+@{
+    ViewData["Title"] = "Cihaz Detayı";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="mb-3">
+        <a asp-action="BenimCihazlarim" class="btn btn-label-secondary"><i class="bx bx-arrow-back me-1"></i> Cihazlarıma Dön</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">@Model.CihazTuru - @Model.Marka</h5>
+                    <div class="d-flex gap-2">
+                        @if (Model.DuzenlemeYetkisiVarMi)
+                        {
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#duzenleModal">Cihazı Düzenle</button>
+                        }
+                        @if (Model.DevirYetkisiVarMi)
+                        {
+                            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#devirModal">Cihazı Devret</button>
+                        }
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label text-muted">Sahip</label><div class="fw-semibold">@Model.SahipAdSoyad</div></div>
+                        <div class="col-md-6"><label class="form-label text-muted">Koordinatörlük</label><div class="fw-semibold">@Model.KoordinatorlukAd</div></div>
+                        <div class="col-md-6"><label class="form-label text-muted">Model</label><div class="fw-semibold">@Model.Model</div></div>
+                        <div class="col-md-6"><label class="form-label text-muted">Seri No</label><div class="fw-semibold">@Model.SeriNo</div></div>
+                        <div class="col-md-12"><label class="form-label text-muted">Özellikler</label><div class="border rounded bg-light p-3">@Model.Ozellikler</div></div>
+                        <div class="col-md-6"><label class="form-label text-muted">@Model.KayitTarihiBasligi</label><div class="fw-semibold">@Model.GosterilecekKayitTarihi.ToString("dd.MM.yyyy HH:mm")</div></div>
+                        <div class="col-md-6"><label class="form-label text-muted">Durum</label><div><span class="badge @(Model.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Onaylandi ? "bg-label-success" : "bg-label-warning")">@(Model.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Onaylandi ? "Onaylı" : "Onay Bekliyor")</span></div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.HareketlerGorunsunMu)
+    {
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0">Cihaz Hareketliliği</h5></div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Tarih</th>
+                            <th>İşlem</th>
+                            <th>İşlem Yapan</th>
+                            <th>Detay</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var hareket in Model.Hareketler)
+                        {
+                            var detay = $"{(string.IsNullOrWhiteSpace(hareket.OncekiSahip) ? "" : "Önceki: " + hareket.OncekiSahip + " | ")}{(string.IsNullOrWhiteSpace(hareket.YeniSahip) ? "" : "Yeni: " + hareket.YeniSahip + " | ")}{hareket.Aciklama} {(string.IsNullOrWhiteSpace(hareket.DurumNotu) ? "" : " | Not: " + hareket.DurumNotu)}".Trim();
+                            <tr>
+                                <td>@hareket.Tarih.ToString("dd.MM.yyyy HH:mm")</td>
+                                <td>@hareket.HareketTuru</td>
+                                <td>@hareket.IslemYapan</td>
+                                <td>
+                                    <span class="history-short">@((detay.Length > 90) ? detay.Substring(0, 90) + "..." : detay)</span>
+                                    @if (detay.Length > 90)
+                                    {
+                                        <span class="history-full d-none">@detay</span>
+                                        <button type="button" class="btn btn-sm btn-label-secondary history-toggle">...</button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model.DuzenlemeYetkisiVarMi)
+{
+    <div class="modal fade" id="duzenleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="Guncelle" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="DuzenleFormu.CihazId" type="hidden" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cihazı Düzenle / Normalize Et</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Cihaz Türü</label>
+                                <select asp-for="DuzenleFormu.CihazTuruId" class="form-select" id="duzenleCihazTuru">
+                                    <option value="">Seçiniz</option>
+                                    @foreach (var item in Model.CihazTurleri)
+                                    {
+                                        <option value="@item.Id">@item.Ad</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 @(Model.DuzenleFormu.CihazTuruId == 999 ? "" : "d-none")" id="duzenleDigerTurWrap">
+                                <label class="form-label">Diğer Cihaz Türü</label>
+                                <input asp-for="DuzenleFormu.DigerCihazTuruAd" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Marka</label>
+                                <select asp-for="DuzenleFormu.CihazMarkaId" class="form-select" id="duzenleMarka">
+                                    <option value="">Seçiniz</option>
+                                    @foreach (var item in Model.Markalar)
+                                    {
+                                        <option value="@item.Id">@item.Ad</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 @(Model.DuzenleFormu.CihazMarkaId == 99999 ? "" : "d-none")" id="duzenleDigerMarkaWrap">
+                                <label class="form-label">Diğer Marka</label>
+                                <input asp-for="DuzenleFormu.DigerMarkaAd" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Model</label>
+                                <input asp-for="DuzenleFormu.Model" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Özellikler</label>
+                                <input asp-for="DuzenleFormu.Ozellikler" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Seri No</label>
+                                <input asp-for="DuzenleFormu.SeriNo" class="form-control" />
+                            </div>
+                            <div class="col-12">
+                                <div class="alert alert-info mb-0">Bu düzenleme hareket geçmişine yazılmaz; sistem logunda görünür.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.DevirYetkisiVarMi)
+{
+    <div class="modal fade" id="devirModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="Devret" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="DevirFormu.CihazId" type="hidden" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cihazı Devret</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Mevcut Sahip</label>
+                            <input class="form-control" value="@Model.SahipAdSoyad" disabled />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Devredilecek Personel</label>
+                            <select asp-for="DevirFormu.YeniSahipPersonelId" class="form-select">
+                                <option value="">Seçiniz</option>
+                                @foreach (var item in Model.DevredilebilirPersoneller)
+                                {
+                                    <option value="@item.Id">@item.Ad</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Devir Notu</label>
+                            <textarea asp-for="DevirFormu.DevirNotu" class="form-control" rows="3"></textarea>
+                        </div>
+                        <div>
+                            <label class="form-label">Cihaz Notu</label>
+                            <textarea asp-for="DevirFormu.CihazDurumNotu" class="form-control" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-success">Devret</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        async function loadBrandsForEdit(typeId, selectedBrandId) {
+            const brandSelect = document.getElementById('duzenleMarka');
+            if (!brandSelect) return;
+            brandSelect.innerHTML = '<option value="">Seçiniz</option>';
+            if (!typeId) return;
+
+            const res = await fetch(`/Cihazlar/GetBrands?cihazTuruId=${typeId}`);
+            const data = await res.json();
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.ad;
+                if (selectedBrandId && parseInt(selectedBrandId) === item.id) {
+                    option.selected = true;
+                }
+                brandSelect.appendChild(option);
+            });
+            toggleOtherEditFields();
+        }
+
+        function toggleOtherEditFields() {
+            const typeSelect = document.getElementById('duzenleCihazTuru');
+            const brandSelect = document.getElementById('duzenleMarka');
+            document.getElementById('duzenleDigerTurWrap')?.classList.toggle('d-none', typeSelect?.value !== '999');
+            document.getElementById('duzenleDigerMarkaWrap')?.classList.toggle('d-none', brandSelect?.value !== '99999');
+        }
+
+        document.getElementById('duzenleCihazTuru')?.addEventListener('change', async function () {
+            await loadBrandsForEdit(this.value, null);
+        });
+
+        document.getElementById('duzenleMarka')?.addEventListener('change', toggleOtherEditFields);
+
+        document.querySelectorAll('.history-toggle').forEach(button => {
+            button.addEventListener('click', function () {
+                const cell = this.closest('td');
+                const shortEl = cell.querySelector('.history-short');
+                const fullEl = cell.querySelector('.history-full');
+                const expanded = fullEl.classList.contains('d-none');
+                shortEl.classList.toggle('d-none', expanded);
+                fullEl.classList.toggle('d-none', !expanded);
+                this.textContent = expanded ? '×' : '...';
+            });
+        });
+
+        loadBrandsForEdit(document.getElementById('duzenleCihazTuru')?.value, document.getElementById('duzenleMarka')?.value);
+    </script>
+}

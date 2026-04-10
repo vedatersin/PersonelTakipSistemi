@@ -23,6 +23,7 @@ builder.Services.AddScoped<PersonelTakipSistemi.Services.IPersonelAuthorizationS
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IPersonelAssignmentService, PersonelTakipSistemi.Services.PersonelAssignmentService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IPersonelMaintenanceService, PersonelTakipSistemi.Services.PersonelMaintenanceService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IGorevWorkflowService, PersonelTakipSistemi.Services.GorevWorkflowService>();
+builder.Services.AddScoped<PersonelTakipSistemi.Services.ICihazService, PersonelTakipSistemi.Services.CihazService>();
 
 builder.Services.AddHostedService<PersonelTakipSistemi.Services.NotificationBackgroundService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IExcelService, PersonelTakipSistemi.Services.ExcelService>();

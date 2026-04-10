@@ -1,0 +1,25 @@
+@model PersonelTakipSistemi.ViewModels.YazilimLisanslarimViewModel
+@{
+    ViewData["Title"] = "Yazılım Lisanslarım";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Profilim /</span> Yazılım Lisanslarım</h4>
+    <div class="card">
+        <div class="card-body">
+            @if (Model.Yazilimlar.Any())
+            {
+                <div class="d-flex flex-wrap gap-2">
+                    @foreach (var item in Model.Yazilimlar)
+                    {
+                        <span class="badge bg-label-primary">@item</span>
+                    }
+                </div>
+            }
+            else
+            {
+                <span class="text-muted">Tanımlı yazılım lisansı bulunmuyor.</span>
+            }
+        </div>
+    </div>
+</div>

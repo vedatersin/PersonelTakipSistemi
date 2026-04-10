@@ -64,7 +64,10 @@
                                     (string.Equals(currentAction, "Detay", StringComparison.OrdinalIgnoreCase) && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr) ||
                                     (string.Equals(currentAction, "Ekle", StringComparison.OrdinalIgnoreCase) && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr)
                                 ))
-                                || (string.Equals(currentController, "Bildirimler", StringComparison.OrdinalIgnoreCase));
+                                || (string.Equals(currentController, "Bildirimler", StringComparison.OrdinalIgnoreCase))
+                                || (string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) &&
+                                    (string.Equals(currentAction, "BenimCihazlarim", StringComparison.OrdinalIgnoreCase) ||
+                                     string.Equals(currentAction, "YazilimLisanslarim", StringComparison.OrdinalIgnoreCase)));
         
         string openClass = isProfileActive ? "open" : ""; 
     }
@@ -268,6 +271,28 @@
     }
 
     <!-- Profilim & Bildirimler (Tüm Kullanıcılar İçin - En Altta) -->
+    @if (userRole == "Admin" || userRole == "YÃ¶netici")
+    {
+        <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && (string.Equals(currentAction, "Tanimlar", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase)) ? "active open" : "")">
+             <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-devices"></i>
+                <div class="text-truncate">Yazılım Lisansları ve Cihazlar</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "Tanimlar", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                    <a asp-controller="Cihazlar" asp-action="Tanimlar" class="menu-link">
+                        <div class="text-truncate">Cihaz Tanımları</div>
+                    </a>
+                </li>
+                <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                    <a asp-controller="Cihazlar" asp-action="Liste" class="menu-link">
+                        <div class="text-truncate">Cihazlar</div>
+                    </a>
+                </li>
+              </ul>
+        </li>
+    }
+
     <li class="menu-item @(isProfileActive || string.Equals(currentAction, "Gorevlerim", StringComparison.OrdinalIgnoreCase) ? "active open" : "")">
          <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-user-circle"></i>
@@ -297,6 +322,16 @@
             <li class="menu-item @(currentController == "Bildirimler" ? "active" : "")">
                 <a asp-controller="Bildirimler" asp-action="Index" class="menu-link">
                     <div class="text-truncate" data-i18n="Bildirimlerim">Bildirimlerim</div>
+                </a>
+            </li>
+            <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "BenimCihazlarim", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                <a asp-controller="Cihazlar" asp-action="BenimCihazlarim" class="menu-link">
+                    <div class="text-truncate">Cihazlarım</div>
+                </a>
+            </li>
+            <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "YazilimLisanslarim", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                <a asp-controller="Cihazlar" asp-action="YazilimLisanslarim" class="menu-link">
+                    <div class="text-truncate">Yazılım Lisanslarım</div>
                 </a>
             </li>
           </ul>

@@ -1,0 +1,424 @@
+@model PersonelTakipSistemi.ViewModels.CihazListePageViewModel
+@{
+    ViewData["Title"] = Model.Baslik;
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold py-3 mb-0"><span class="text-muted fw-light">Yazılım Lisansları ve Cihazlar /</span> @Model.Baslik</h4>
+        @if (Model.CihazEklemeYetkisiVarMi)
+        {
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cihazEkleModal">+ Ekle</button>
+        }
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
+    }
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                @if (Model.Koordinatorlukler.Any())
+                {
+                    <div class="col-md-3">
+                        <label class="form-label">Koordinatörlük</label>
+                        <select asp-for="Filter.KoordinatorlukId" class="form-select">
+                            <option value="">Tümü</option>
+                            @foreach (var item in Model.Koordinatorlukler)
+                            {
+                                <option value="@item.Id">@item.Ad</option>
+                            }
+                        </select>
+                    </div>
+                }
+                @if (Model.Personeller.Any())
+                {
+                    <div class="col-md-3">
+                        <label class="form-label">Personel</label>
+                        <select asp-for="Filter.PersonelId" class="form-select">
+                            <option value="">Tümü</option>
+                            @foreach (var item in Model.Personeller)
+                            {
+                                <option value="@item.Id">@item.Ad</option>
+                            }
+                        </select>
+                    </div>
+                }
+                <div class="col-md-3">
+                    <label class="form-label">Cihaz Türü</label>
+                    <select asp-for="Filter.CihazTuruId" class="form-select" id="filterCihazTuru">
+                        <option value="">Tümü</option>
+                        @foreach (var item in Model.CihazTurleri)
+                        {
+                            <option value="@item.Id">@item.Ad</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Marka</label>
+                    <select asp-for="Filter.CihazMarkaId" class="form-select" id="filterMarka">
+                        <option value="">Tümü</option>
+                        @foreach (var item in Model.Markalar)
+                        {
+                            <option value="@item.Id">@item.Ad</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Model</label>
+                    <input asp-for="Filter.ModelAra" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Özellik</label>
+                    <input asp-for="Filter.OzellikAra" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Seri No</label>
+                    <input asp-for="Filter.SeriNoAra" class="form-control" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label d-block">Kayıt Yaşı</label>
+                    <input asp-for="Filter.YasSliderDegeri" type="hidden" id="yasSliderDegeri" />
+                    <div class="kayit-yasi-slider-wrap">
+                        <input type="range"
+                               id="kayitYasiSlider"
+                               min="0"
+                               max="5"
+                               step="1"
+                               class="kayit-yasi-slider"
+                               value="@(Model.Filter.YasSliderDegeri >= 0 && Model.Filter.YasSliderDegeri <= 5 ? Model.Filter.YasSliderDegeri : 0)"
+                               data-initial="@Model.Filter.YasSliderDegeri" />
+                        <div id="kayitYasiAktifEtiket" class="kayit-yasi-aktif kayit-yasi-aktif-sol">Tümü</div>
+                    </div>
+                </div>
+                @if (Model.OnayYetkisiVarMi)
+                {
+                    <div class="col-md-3 d-flex align-items-end">
+                        <div class="form-check">
+                            <input asp-for="Filter.SadeceOnayBekleyenler" class="form-check-input" />
+                            <label asp-for="Filter.SadeceOnayBekleyenler" class="form-check-label">Sadece onay bekleyenler</label>
+                        </div>
+                    </div>
+                }
+                <div class="col-12 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Filtrele</button>
+                    <a asp-action="@(Model.PersonelGorunumuMu ? "BenimCihazlarim" : "Liste")" class="btn btn-label-secondary">Temizle</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Tür</th>
+                        <th>Marka</th>
+                        <th>Model</th>
+                        <th>Özellikler</th>
+                        <th>Seri No</th>
+                        <th>Sahip</th>
+                        <th>Koordinatörlük</th>
+                        <th>Durum</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Cihazlar.Any())
+                    {
+                        @foreach (var item in Model.Cihazlar)
+                        {
+                            <tr>
+                                <td>@item.CihazTuru</td>
+                                <td>@item.Marka</td>
+                                <td>@item.Model</td>
+                                <td>@item.Ozellikler</td>
+                                <td>@item.SeriNo</td>
+                                <td>@item.SahipAdSoyad</td>
+                                <td>@item.KoordinatorlukAd</td>
+                                <td>
+                                    <span class="badge @(item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Onaylandi ? "bg-label-success" : "bg-label-warning")">
+                                        @(item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Onaylandi ? "Onaylı" : "Onay Bekliyor")
+                                    </span>
+                                </td>
+                                <td class="text-nowrap">
+                                    <a asp-action="Detay" asp-route-id="@item.CihazId" class="btn btn-sm btn-label-primary">Detay</a>
+                                    @if (Model.OnayYetkisiVarMi && item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Beklemede)
+                                    {
+                                        <form asp-action="Onayla" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="cihazId" value="@item.CihazId" />
+                                            <button type="submit" class="btn btn-sm btn-success">Onayla</button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="9" class="text-center text-muted py-4">Cihaz kaydı bulunamadı.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (Model.CihazEklemeYetkisiVarMi)
+{
+    <div class="modal fade" id="cihazEkleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="Ekle" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnAction" value="@(Model.PersonelGorunumuMu ? "BenimCihazlarim" : "Liste")" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cihaz Ekle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            @if (Model.EklemeIcinPersoneller.Any() && !Model.PersonelGorunumuMu)
+                            {
+                                <div class="col-md-6">
+                                    <label class="form-label">Cihaz Sahibi</label>
+                                    <select asp-for="YeniCihaz.SahipPersonelId" class="form-select">
+                                        <option value="">Seçiniz</option>
+                                        @foreach (var item in Model.EklemeIcinPersoneller)
+                                        {
+                                            <option value="@item.Id">@item.Ad</option>
+                                        }
+                                    </select>
+                                </div>
+                            }
+                            <div class="col-md-6">
+                                <label class="form-label">Cihaz Türü</label>
+                                <select asp-for="YeniCihaz.CihazTuruId" class="form-select" id="eklemeCihazTuru">
+                                    <option value="">Seçiniz</option>
+                                    @foreach (var item in Model.EklemeIcinCihazTurleri)
+                                    {
+                                        <option value="@item.Id">@item.Ad</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 d-none" id="digerTurWrap">
+                                <label class="form-label">Diğer Cihaz Türü</label>
+                                <input asp-for="YeniCihaz.DigerCihazTuruAd" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Marka</label>
+                                <select asp-for="YeniCihaz.CihazMarkaId" class="form-select" id="eklemeMarka">
+                                    <option value="">Önce cihaz türü seçiniz</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 d-none" id="digerMarkaWrap">
+                                <label class="form-label">Diğer Marka</label>
+                                <input asp-for="YeniCihaz.DigerMarkaAd" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Model</label>
+                                <input asp-for="YeniCihaz.Model" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Özellikler</label>
+                                <input asp-for="YeniCihaz.Ozellikler" class="form-control" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Seri No</label>
+                                <input asp-for="YeniCihaz.SeriNo" class="form-control" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary">@(Model.PersonelGorunumuMu ? "Onaya Gönder" : "Kaydet")</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Styles {
+    <style>
+        .kayit-yasi-slider-wrap {
+            --slider-fill: 0%;
+        }
+
+        .kayit-yasi-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 999px;
+            outline: none;
+            background: linear-gradient(to right, #696cff 0%, #696cff var(--slider-fill), #d9dee3 var(--slider-fill), #d9dee3 100%);
+        }
+
+        .kayit-yasi-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #696cff;
+            box-shadow: 0 1px 4px rgba(67, 89, 113, 0.25);
+            cursor: pointer;
+            margin-top: -7px;
+        }
+
+        .kayit-yasi-slider::-moz-range-track {
+            height: 4px;
+            border-radius: 999px;
+            background: #d9dee3;
+        }
+
+        .kayit-yasi-slider::-moz-range-progress {
+            height: 4px;
+            border-radius: 999px;
+            background: #696cff;
+        }
+
+        .kayit-yasi-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #696cff;
+            box-shadow: 0 1px 4px rgba(67, 89, 113, 0.25);
+            cursor: pointer;
+        }
+
+        .kayit-yasi-aktif {
+            margin-top: 0.65rem;
+            min-height: 1.25rem;
+            color: #566a7f;
+            font-size: 0.8125rem;
+            font-weight: 600;
+        }
+
+        .kayit-yasi-aktif-sol {
+            text-align: left;
+        }
+
+        .kayit-yasi-aktif-orta {
+            text-align: center;
+        }
+
+        .kayit-yasi-aktif-sag {
+            text-align: right;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        const yasSliderInput = document.getElementById('kayitYasiSlider');
+        const yasSliderHiddenInput = document.getElementById('yasSliderDegeri');
+        const yasSliderAktifEtiket = document.getElementById('kayitYasiAktifEtiket');
+
+        const yasSliderEtiketleri = [
+            '1 yıldan az',
+            '1 yıldan fazla',
+            '2 yıldan fazla',
+            '3 yıldan fazla',
+            '4 yıldan fazla',
+            '5 yıldan fazla'
+        ];
+
+        function getYasSliderHizaClass(value) {
+            if (value <= 1) return 'kayit-yasi-aktif-sol';
+            if (value <= 3) return 'kayit-yasi-aktif-orta';
+            return 'kayit-yasi-aktif-sag';
+        }
+
+        function updateYasSliderUI(forceAllState = false) {
+            if (!yasSliderInput || !yasSliderHiddenInput || !yasSliderAktifEtiket) return;
+
+            const numericValue = Number(yasSliderInput.value || 0);
+            const maxValue = Number(yasSliderInput.max || 5);
+            const fillPercent = maxValue > 0 ? (numericValue / maxValue) * 100 : 0;
+
+            yasSliderInput.style.setProperty('--slider-fill', `${fillPercent}%`);
+            yasSliderAktifEtiket.classList.remove('kayit-yasi-aktif-sol', 'kayit-yasi-aktif-orta', 'kayit-yasi-aktif-sag');
+
+            if (forceAllState) {
+                yasSliderAktifEtiket.textContent = 'Tümü';
+                yasSliderAktifEtiket.classList.add('kayit-yasi-aktif-sol');
+                return;
+            }
+
+            yasSliderAktifEtiket.textContent = yasSliderEtiketleri[numericValue] || yasSliderEtiketleri[0];
+            yasSliderAktifEtiket.classList.add(getYasSliderHizaClass(numericValue));
+        }
+
+        if (yasSliderInput && yasSliderHiddenInput) {
+            const initialHiddenValue = Number(yasSliderInput.dataset.initial ?? yasSliderHiddenInput.value ?? -1);
+            const isAllState = initialHiddenValue < 0;
+
+            if (isAllState) {
+                yasSliderHiddenInput.value = -1;
+                yasSliderInput.value = 0;
+                updateYasSliderUI(true);
+            } else {
+                yasSliderHiddenInput.value = initialHiddenValue;
+                yasSliderInput.value = initialHiddenValue;
+                updateYasSliderUI(false);
+            }
+
+            yasSliderInput.addEventListener('input', function () {
+                yasSliderHiddenInput.value = yasSliderInput.value;
+                updateYasSliderUI(false);
+            });
+
+            yasSliderInput.addEventListener('change', function () {
+                yasSliderHiddenInput.value = yasSliderInput.value;
+                updateYasSliderUI(false);
+            });
+        }
+
+        async function loadBrands(typeSelectId, brandSelectId) {
+            const typeId = document.getElementById(typeSelectId).value;
+            const brandSelect = document.getElementById(brandSelectId);
+            brandSelect.innerHTML = '<option value="">Seçiniz</option>';
+            if (!typeId) return;
+            const res = await fetch(`/Cihazlar/GetBrands?cihazTuruId=${typeId}`);
+            const data = await res.json();
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = item.ad;
+                brandSelect.appendChild(option);
+            });
+        }
+
+        function toggleOtherFields(typeSelectId, brandSelectId, typeWrapId, brandWrapId) {
+            const typeText = document.getElementById(typeSelectId)?.selectedOptions[0]?.text || '';
+            const brandText = document.getElementById(brandSelectId)?.selectedOptions[0]?.text || '';
+            document.getElementById(typeWrapId)?.classList.toggle('d-none', typeText !== 'Diğer');
+            document.getElementById(brandWrapId)?.classList.toggle('d-none', brandText !== 'Diğer');
+        }
+
+        document.getElementById('filterCihazTuru')?.addEventListener('change', async function () {
+            await loadBrands('filterCihazTuru', 'filterMarka');
+        });
+
+        document.getElementById('eklemeCihazTuru')?.addEventListener('change', async function () {
+            await loadBrands('eklemeCihazTuru', 'eklemeMarka');
+            toggleOtherFields('eklemeCihazTuru', 'eklemeMarka', 'digerTurWrap', 'digerMarkaWrap');
+        });
+
+        document.getElementById('eklemeMarka')?.addEventListener('change', function () {
+            toggleOtherFields('eklemeCihazTuru', 'eklemeMarka', 'digerTurWrap', 'digerMarkaWrap');
+        });
+    </script>
+}
