@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using PersonelTakipSistemi.Data;
 using PersonelTakipSistemi.Models.ViewModels;

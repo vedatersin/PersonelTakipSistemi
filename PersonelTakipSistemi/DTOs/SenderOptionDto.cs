@@ -1,4 +1,4 @@
-namespace PersonelTakipSistemi.Dtos
+﻿namespace PersonelTakipSistemi.Dtos
 {
     public class SenderOptionDto
     {

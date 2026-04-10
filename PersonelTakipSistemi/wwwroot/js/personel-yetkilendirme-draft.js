@@ -1,4 +1,4 @@
-
+﻿
 // State
 let originalState = null;
 let draftState = null;

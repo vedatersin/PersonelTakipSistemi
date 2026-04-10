@@ -1,4 +1,4 @@
-namespace PersonelTakipSistemi.Infrastructure;
+﻿namespace PersonelTakipSistemi.Infrastructure;
 
 public static class AvatarHelper
 {

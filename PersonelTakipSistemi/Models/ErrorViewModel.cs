@@ -1,4 +1,4 @@
-namespace PersonelTakipSistemi.Models
+﻿namespace PersonelTakipSistemi.Models
 {
     public class ErrorViewModel
     {

@@ -1,4 +1,4 @@
-namespace PersonelTakipSistemi.ViewModels
+﻿namespace PersonelTakipSistemi.ViewModels
 {
     public class RoleAssignmentDto
     {

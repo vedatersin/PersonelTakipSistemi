@@ -1,4 +1,4 @@
-import hljs from 'highlight.js';
+﻿import hljs from 'highlight.js';
 
 try {
   window.hljs = hljs;

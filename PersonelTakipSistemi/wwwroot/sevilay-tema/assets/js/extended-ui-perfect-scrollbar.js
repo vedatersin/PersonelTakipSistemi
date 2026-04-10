@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Perfect Scrollbar
  */
 'use strict';

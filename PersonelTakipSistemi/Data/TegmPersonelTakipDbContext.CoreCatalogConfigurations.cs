@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PersonelTakipSistemi.Data.SeedData;
 using PersonelTakipSistemi.Models;
 

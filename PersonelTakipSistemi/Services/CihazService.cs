@@ -1,7 +1,8 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using PersonelTakipSistemi.Data;
 using PersonelTakipSistemi.Models;
 using PersonelTakipSistemi.ViewModels;
+using System.Net;
 
 namespace PersonelTakipSistemi.Services
 {
@@ -90,7 +91,7 @@ namespace PersonelTakipSistemi.Services
                 throw new InvalidOperationException("Cihaz türü adı zorunludur.");
             }
 
-            var name = model.Ad.Trim();
+            var name = NormalizeUserText(model.Ad);
             if (await _context.CihazTurleri.AnyAsync(x => x.Ad == name))
             {
                 throw new InvalidOperationException("Bu cihaz türü zaten tanımlı.");
@@ -99,7 +100,7 @@ namespace PersonelTakipSistemi.Services
             var type = new CihazTuru
             {
                 Ad = name,
-                KullanimAmaci = string.IsNullOrWhiteSpace(model.KullanimAmaci) ? null : model.KullanimAmaci.Trim()
+                KullanimAmaci = NormalizeNullableUserText(model.KullanimAmaci)
             };
 
             _context.CihazTurleri.Add(type);
@@ -129,14 +130,14 @@ namespace PersonelTakipSistemi.Services
                 throw new InvalidOperationException("Diğer cihaz türü düzenlenemez.");
             }
 
-            var name = model.Ad.Trim();
+            var name = NormalizeUserText(model.Ad);
             if (await _context.CihazTurleri.AnyAsync(x => x.CihazTuruId != entity.CihazTuruId && x.Ad == name))
             {
                 throw new InvalidOperationException("Bu cihaz türü adı zaten kullanımda.");
             }
 
             entity.Ad = name;
-            entity.KullanimAmaci = string.IsNullOrWhiteSpace(model.KullanimAmaci) ? null : model.KullanimAmaci.Trim();
+            entity.KullanimAmaci = NormalizeNullableUserText(model.KullanimAmaci);
             await _context.SaveChangesAsync();
         }
 
@@ -172,7 +173,7 @@ namespace PersonelTakipSistemi.Services
                 throw new InvalidOperationException("Cihaz türü ve marka adı zorunludur.");
             }
 
-            var brandName = model.Ad.Trim();
+            var brandName = NormalizeUserText(model.Ad);
             if (!await _context.CihazTurleri.AnyAsync(x => x.CihazTuruId == model.CihazTuruId && x.IsActive))
             {
                 throw new InvalidOperationException("Seçilen cihaz türü bulunamadı.");
@@ -214,7 +215,7 @@ namespace PersonelTakipSistemi.Services
                 throw new InvalidOperationException("Diğer marka düzenlenemez.");
             }
 
-            var newName = model.Ad.Trim();
+            var newName = NormalizeUserText(model.Ad);
             if (!await _context.CihazTurleri.AnyAsync(x => x.CihazTuruId == model.CihazTuruId && x.IsActive))
             {
                 throw new InvalidOperationException("Seçilen cihaz türü bulunamadı.");
@@ -270,6 +271,16 @@ namespace PersonelTakipSistemi.Services
                 .ToListAsync();
         }
 
+        public Task<List<LookupItemVm>> GetActiveDeviceTypesAsync()
+        {
+            return _context.CihazTurleri.AsNoTracking()
+                .Where(x => x.IsActive)
+                .OrderBy(x => x.Ad == DigerSecenekAdi ? 1 : 0)
+                .ThenBy(x => x.Ad)
+                .Select(x => new LookupItemVm { Id = x.CihazTuruId, Ad = x.Ad })
+                .ToListAsync();
+        }
+
         public async Task<CihazListePageViewModel> GetMyDevicesAsync(int currentPersonelId, CihazListeFilterViewModel filter)
         {
             var query = BaseDeviceQuery().Where(x => x.SahipPersonelId == currentPersonelId);
@@ -287,7 +298,7 @@ namespace PersonelTakipSistemi.Services
             var query = BaseDeviceQuery();
             if (isAdmin)
             {
-                query = query.Where(x => x.OnayDurumu == CihazOnayDurumu.Onaylandi || x.KoordinatorTarafindanEklendi);
+                // Admin tum cihazlari gorebilmeli (onay bekleyenler dahil).
             }
             else
             {
@@ -352,11 +363,11 @@ namespace PersonelTakipSistemi.Services
             {
                 CihazTuruId = cihazTuru.CihazTuruId,
                 CihazMarkaId = marka.CihazMarkaId,
-                DigerCihazTuruAd = cihazTuru.CihazTuruId == DigerCihazTuruId ? model.DigerCihazTuruAd?.Trim() : null,
-                DigerMarkaAd = marka.CihazMarkaId == DigerMarkaId ? model.DigerMarkaAd?.Trim() : null,
-                Model = model.Model.Trim(),
-                Ozellikler = model.Ozellikler.Trim(),
-                SeriNo = model.SeriNo.Trim(),
+                DigerCihazTuruAd = cihazTuru.CihazTuruId == DigerCihazTuruId ? NormalizeNullableUserText(model.DigerCihazTuruAd) : null,
+                DigerMarkaAd = marka.CihazMarkaId == DigerMarkaId ? NormalizeNullableUserText(model.DigerMarkaAd) : null,
+                Model = NormalizeUserText(model.Model),
+                Ozellikler = NormalizeUserText(model.Ozellikler),
+                SeriNo = NormalizeUserText(model.SeriNo),
                 SahipPersonelId = ownerId,
                 KoordinatorlukId = koordinatorlukId,
                 IlkKayitTarihi = now,
@@ -443,11 +454,11 @@ namespace PersonelTakipSistemi.Services
 
             entity.CihazTuruId = cihazTuru.CihazTuruId;
             entity.CihazMarkaId = marka.CihazMarkaId;
-            entity.DigerCihazTuruAd = cihazTuru.CihazTuruId == DigerCihazTuruId ? model.DigerCihazTuruAd?.Trim() : null;
-            entity.DigerMarkaAd = marka.CihazMarkaId == DigerMarkaId ? model.DigerMarkaAd?.Trim() : null;
-            entity.Model = model.Model.Trim();
-            entity.Ozellikler = model.Ozellikler.Trim();
-            entity.SeriNo = model.SeriNo.Trim();
+            entity.DigerCihazTuruAd = cihazTuru.CihazTuruId == DigerCihazTuruId ? NormalizeNullableUserText(model.DigerCihazTuruAd) : null;
+            entity.DigerMarkaAd = marka.CihazMarkaId == DigerMarkaId ? NormalizeNullableUserText(model.DigerMarkaAd) : null;
+            entity.Model = NormalizeUserText(model.Model);
+            entity.Ozellikler = NormalizeUserText(model.Ozellikler);
+            entity.SeriNo = NormalizeUserText(model.SeriNo);
             entity.UpdatedAt = DateTime.Now;
 
             await _context.SaveChangesAsync();
@@ -531,11 +542,11 @@ namespace PersonelTakipSistemi.Services
                 CihazId = cihaz.CihazId,
                 CihazTuru = ResolveTypeName(cihaz),
                 Marka = ResolveBrandName(cihaz),
-                Model = cihaz.Model,
-                Ozellikler = cihaz.Ozellikler,
-                SeriNo = cihaz.SeriNo,
-                SahipAdSoyad = $"{cihaz.SahipPersonel.Ad} {cihaz.SahipPersonel.Soyad}",
-                KoordinatorlukAd = cihaz.Koordinatorluk.Ad,
+                Model = DecodeLegacyEntityText(cihaz.Model),
+                Ozellikler = DecodeLegacyEntityText(cihaz.Ozellikler),
+                SeriNo = DecodeLegacyEntityText(cihaz.SeriNo),
+                SahipAdSoyad = DecodeLegacyEntityText($"{cihaz.SahipPersonel.Ad} {cihaz.SahipPersonel.Soyad}"),
+                KoordinatorlukAd = DecodeLegacyEntityText(cihaz.Koordinatorluk.Ad),
                 IlkKayitTarihi = cihaz.IlkKayitTarihi,
                 GosterilecekKayitTarihi = canManage || ilkSahipMi ? cihaz.IlkKayitTarihi : cihaz.AktifSahiplikBaslangicTarihi,
                 KayitTarihiBasligi = canManage || ilkSahipMi ? "İlk Kayıt Tarihi" : "Devralma Tarihi",
@@ -550,11 +561,11 @@ namespace PersonelTakipSistemi.Services
                     CihazId = cihaz.CihazId,
                     CihazTuruId = cihaz.CihazTuruId,
                     CihazMarkaId = cihaz.CihazMarkaId,
-                    DigerCihazTuruAd = cihaz.DigerCihazTuruAd,
-                    DigerMarkaAd = cihaz.DigerMarkaAd,
-                    Model = cihaz.Model,
-                    Ozellikler = cihaz.Ozellikler,
-                    SeriNo = cihaz.SeriNo
+                    DigerCihazTuruAd = DecodeLegacyEntityText(cihaz.DigerCihazTuruAd),
+                    DigerMarkaAd = DecodeLegacyEntityText(cihaz.DigerMarkaAd),
+                    Model = DecodeLegacyEntityText(cihaz.Model),
+                    Ozellikler = DecodeLegacyEntityText(cihaz.Ozellikler),
+                    SeriNo = DecodeLegacyEntityText(cihaz.SeriNo)
                 },
                 DevredilebilirPersoneller = canManage ? await GetAssignablePersonnelByKoordinatorlukAsync(cihaz.KoordinatorlukId, cihaz.SahipPersonelId) : new(),
                 DevirFormu = new CihazTransferFormModel { CihazId = cihaz.CihazId },
@@ -568,11 +579,11 @@ namespace PersonelTakipSistemi.Services
                         CihazHareketTuru.Devir => "Devir",
                         _ => "Hareket"
                     },
-                    IslemYapan = $"{x.IslemYapanPersonel.Ad} {x.IslemYapanPersonel.Soyad}",
-                    OncekiSahip = x.OncekiSahipPersonel != null ? $"{x.OncekiSahipPersonel.Ad} {x.OncekiSahipPersonel.Soyad}" : null,
-                    YeniSahip = x.YeniSahipPersonel != null ? $"{x.YeniSahipPersonel.Ad} {x.YeniSahipPersonel.Soyad}" : null,
-                    Aciklama = x.Aciklama,
-                    DurumNotu = x.DurumNotu
+                    IslemYapan = DecodeLegacyEntityText($"{x.IslemYapanPersonel.Ad} {x.IslemYapanPersonel.Soyad}"),
+                    OncekiSahip = x.OncekiSahipPersonel != null ? DecodeLegacyEntityText($"{x.OncekiSahipPersonel.Ad} {x.OncekiSahipPersonel.Soyad}") : null,
+                    YeniSahip = x.YeniSahipPersonel != null ? DecodeLegacyEntityText($"{x.YeniSahipPersonel.Ad} {x.YeniSahipPersonel.Soyad}") : null,
+                    Aciklama = DecodeLegacyEntityText(x.Aciklama),
+                    DurumNotu = DecodeLegacyEntityText(x.DurumNotu)
                 }).ToList()
             };
         }
@@ -642,8 +653,8 @@ namespace PersonelTakipSistemi.Services
                 OncekiSahipPersonelId = oncekiSahipId,
                 YeniSahipPersonelId = model.YeniSahipPersonelId,
                 IslemYapanPersonelId = currentPersonelId,
-                Aciklama = model.DevirNotu.Trim(),
-                DurumNotu = model.CihazDurumNotu.Trim(),
+                Aciklama = NormalizeUserText(model.DevirNotu),
+                DurumNotu = NormalizeUserText(model.CihazDurumNotu),
                 Tarih = now
             });
 
@@ -696,6 +707,17 @@ namespace PersonelTakipSistemi.Services
                     OnayDurumu = x.OnayDurumu
                 }).ToListAsync();
 
+            foreach (var item in items)
+            {
+                item.CihazTuru = DecodeLegacyEntityText(item.CihazTuru);
+                item.Marka = DecodeLegacyEntityText(item.Marka);
+                item.Model = DecodeLegacyEntityText(item.Model);
+                item.Ozellikler = DecodeLegacyEntityText(item.Ozellikler);
+                item.SeriNo = DecodeLegacyEntityText(item.SeriNo);
+                item.SahipAdSoyad = DecodeLegacyEntityText(item.SahipAdSoyad);
+                item.KoordinatorlukAd = DecodeLegacyEntityText(item.KoordinatorlukAd);
+            }
+
             return new CihazListePageViewModel
             {
                 Baslik = title,
@@ -720,17 +742,16 @@ namespace PersonelTakipSistemi.Services
             if (!string.IsNullOrWhiteSpace(filter.SeriNoAra)) query = query.Where(x => x.SeriNo.ToLower().Contains(filter.SeriNoAra.Trim().ToLower()));
             if (filter.SadeceOnayBekleyenler) query = query.Where(x => x.OnayDurumu == CihazOnayDurumu.Beklemede);
 
-            if (filter.YasSliderDegeri >= 0)
+            if (filter.YasSliderDegeri > 0)
             {
                 var today = DateTime.Now.Date;
                 query = filter.YasSliderDegeri switch
                 {
-                    0 => query.Where(x => x.IlkKayitTarihi >= today.AddYears(-1)),
-                    1 => query.Where(x => x.IlkKayitTarihi < today.AddYears(-1) && x.IlkKayitTarihi >= today.AddYears(-2)),
-                    2 => query.Where(x => x.IlkKayitTarihi < today.AddYears(-2) && x.IlkKayitTarihi >= today.AddYears(-3)),
-                    3 => query.Where(x => x.IlkKayitTarihi < today.AddYears(-3) && x.IlkKayitTarihi >= today.AddYears(-4)),
-                    4 => query.Where(x => x.IlkKayitTarihi < today.AddYears(-4) && x.IlkKayitTarihi >= today.AddYears(-5)),
-                    5 => query.Where(x => x.IlkKayitTarihi < today.AddYears(-5)),
+                    1 => query.Where(x => x.IlkKayitTarihi >= today.AddYears(-1)),
+                    2 => query.Where(x => x.IlkKayitTarihi < today.AddYears(-1)),
+                    3 => query.Where(x => x.IlkKayitTarihi < today.AddYears(-2)),
+                    4 => query.Where(x => x.IlkKayitTarihi < today.AddYears(-3)),
+                    5 => query.Where(x => x.IlkKayitTarihi < today.AddYears(-4)),
                     6 => query.Where(x => x.IlkKayitTarihi < today.AddYears(-5)),
                     _ => query
                 };
@@ -840,12 +861,38 @@ namespace PersonelTakipSistemi.Services
 
         private static string ResolveTypeName(Cihaz cihaz)
         {
-            return string.IsNullOrWhiteSpace(cihaz.DigerCihazTuruAd) ? cihaz.CihazTuru.Ad : cihaz.DigerCihazTuruAd;
+            return DecodeLegacyEntityText(string.IsNullOrWhiteSpace(cihaz.DigerCihazTuruAd) ? cihaz.CihazTuru.Ad : cihaz.DigerCihazTuruAd);
         }
 
         private static string ResolveBrandName(Cihaz cihaz)
         {
-            return string.IsNullOrWhiteSpace(cihaz.DigerMarkaAd) ? cihaz.CihazMarka.Ad : cihaz.DigerMarkaAd;
+            return DecodeLegacyEntityText(string.IsNullOrWhiteSpace(cihaz.DigerMarkaAd) ? cihaz.CihazMarka.Ad : cihaz.DigerMarkaAd);
+        }
+
+        private static string NormalizeUserText(string value)
+        {
+            var decoded = WebUtility.HtmlDecode(value ?? string.Empty);
+            return decoded.Trim();
+        }
+
+        private static string? NormalizeNullableUserText(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return null;
+            }
+
+            return NormalizeUserText(value);
+        }
+
+        private static string DecodeLegacyEntityText(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return value ?? string.Empty;
+            }
+
+            return WebUtility.HtmlDecode(value);
         }
     }
 }

@@ -1,4 +1,4 @@
-@using System.Security.Claims
+﻿@using System.Security.Claims
 @inject PersonelTakipSistemi.Data.TegmPersonelTakipDbContext _sidebarContext
 
 <aside id="layout-menu" class="layout-menu menu-vertical menu bg-menu-theme">
@@ -271,7 +271,7 @@
     }
 
     <!-- Profilim & Bildirimler (Tüm Kullanıcılar İçin - En Altta) -->
-    @if (userRole == "Admin" || userRole == "YÃ¶netici")
+    @if (userRole == "Admin" || userRole == "Yönetici")
     {
         <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && (string.Equals(currentAction, "Tanimlar", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase)) ? "active open" : "")">
              <a href="javascript:void(0);" class="menu-link menu-toggle">

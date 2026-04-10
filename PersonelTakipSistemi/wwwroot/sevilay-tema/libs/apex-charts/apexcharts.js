@@ -1,4 +1,4 @@
-import ApexCharts from 'apexcharts';
+﻿import ApexCharts from 'apexcharts';
 
 try {
   window.ApexCharts = ApexCharts;

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Türkiye İlleri SVG Haritası
  * 81 il için basitleştirilmiş SVG path verileri
  * data-plaka: Plaka kodu (1-81)

@@ -1,4 +1,4 @@
-/* Sidebar Upward Menu Fix */
+﻿/* Sidebar Upward Menu Fix */
 .layout-menu .menu-item.open.upward>.menu-sub {
     display: block;
     position: absolute;

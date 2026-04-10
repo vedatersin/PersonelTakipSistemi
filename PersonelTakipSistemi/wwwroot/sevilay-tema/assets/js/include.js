@@ -1,4 +1,4 @@
-(async () => {
+﻿(async () => {
   const targets = document.querySelectorAll('[data-include]');
   for (const el of targets) {
     const file = el.getAttribute('data-include');

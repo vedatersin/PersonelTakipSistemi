@@ -1,4 +1,4 @@
-import jQuery from 'jquery/dist/jquery';
+﻿import jQuery from 'jquery/dist/jquery';
 
 const $ = jQuery;
 try {

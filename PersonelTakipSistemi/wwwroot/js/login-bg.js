@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('bg-canvas');
     if (!canvas) return;
 

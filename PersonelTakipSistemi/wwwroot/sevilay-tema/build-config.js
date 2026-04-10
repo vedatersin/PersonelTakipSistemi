@@ -1,4 +1,4 @@
-module.exports = {
+﻿module.exports = {
   base: {
     // Excludes folders relative to `root` directory.
     exclude: [

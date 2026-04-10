@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
 using PersonelTakipSistemi.Models;
 

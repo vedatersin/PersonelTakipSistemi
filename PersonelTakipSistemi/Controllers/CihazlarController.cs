@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PersonelTakipSistemi.Services;
 using PersonelTakipSistemi.ViewModels;
@@ -165,6 +165,13 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetTypes()
+        {
+            var types = await _cihazService.GetActiveDeviceTypesAsync();
+            return Json(types.Select(x => new { id = x.Id, ad = x.Ad }));
+        }
+
+        [HttpGet]
         public async Task<IActionResult> GetBrands(int cihazTuruId)
         {
             var brands = await _cihazService.GetBrandsByTypeAsync(cihazTuruId);
@@ -203,6 +210,7 @@ namespace PersonelTakipSistemi.Controllers
             {
                 var cihazId = await _cihazService.CreateDeviceAsync(pageModel.YeniCihaz, currentPersonelId, coordinatorCreate);
                 await _logService.LogAsync("Cihaz Ekleme", $"Yeni cihaz kaydı oluşturuldu. CihazId: {cihazId}");
+                TempData["NewCihazId"] = cihazId;
                 TempData["SuccessMessage"] = coordinatorCreate ? "Cihaz kaydı oluşturuldu." : "Cihaz kaydı oluşturuldu ve onaya gönderildi.";
             }
             catch (Exception ex)
@@ -292,3 +300,4 @@ namespace PersonelTakipSistemi.Controllers
         }
     }
 }
+

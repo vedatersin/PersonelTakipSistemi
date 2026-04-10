@@ -1,17 +1,17 @@
-@model PersonelTakipSistemi.ViewModels.GorevTanimlarViewModel
+﻿@model PersonelTakipSistemi.ViewModels.GorevTanimlarViewModel
 
 @{
-    ViewData["Title"] = "G�rev Tanimlari";
+    ViewData["Title"] = "Görev Tanımları";
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
-    <h4 class="fw-bold py-3 mb-4">G�rev Tanimlari</h4>
+    <h4 class="fw-bold py-3 mb-4">Görev Tanımları</h4>
 
     <div class="row g-4">
         <div class="col-12">
             <div class="card h-100">
                 <div class="card-header d-flex justify-content-between align-items-center bg-warning text-white">
-                    <h5 class="mb-0 text-white"><i class="bx bx-info-circle me-2"></i>G�rev Durumlari</h5>
+                    <h5 class="mb-0 text-white"><i class="bx bx-info-circle me-2"></i>Görev Durumları</h5>
                     @if (ViewBag.IsHighLevelReadOnly != true)
                     {
                         <button class="btn btn-light text-secondary fw-bold" onclick="openAddModal()">
@@ -33,8 +33,8 @@
                                 </div>
 
                                 <div class="edit-mode input-group input-group-sm me-2" style="display:none;">
-                                    <input type="color" class="form-control form-control-color edit-color" value="@(item.Renk ?? "#cccccc")" title="Renk Se�">
-                                    <input type="text" class="form-control edit-name" value="@item.Ad" placeholder="Durum Adi">
+                                    <input type="color" class="form-control form-control-color edit-color" value="@(item.Renk ?? "#cccccc")" title="Renk Seç">
+                                    <input type="text" class="form-control edit-name" value="@item.Ad" placeholder="Durum Adı">
                                 </div>
 
                                 @if (ViewBag.IsHighLevelReadOnly != true)
@@ -61,7 +61,7 @@
                         }
                         @if (!Model.Durumlar.Any())
                         {
-                            <li class="list-group-item text-center text-muted py-4">Kayit bulunamadi.</li>
+                            <li class="list-group-item text-center text-muted py-4">Kayıt bulunamadı.</li>
                         }
                     </ul>
                 </div>
@@ -74,7 +74,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Yeni G�rev Durumu</h5>
+                <h5 class="modal-title">Yeni Görev Durumu</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -85,11 +85,11 @@
 
                 <div class="mb-3">
                     <label class="form-label">Temsili Renk</label>
-                    <input type="color" id="addColor" class="form-control form-control-color" value="#566a7f" title="Renk Se�">
+                    <input type="color" id="addColor" class="form-control form-control-color" value="#566a7f" title="Renk Seç">
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Iptal</button>
+                <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
                 <button type="button" class="btn btn-primary" onclick="saveNewItem()">Kaydet</button>
             </div>
         </div>
@@ -117,43 +117,43 @@
             var color = $('#addColor').val();
 
             if (!name) {
-                Swal.fire('Hata', 'L�tfen ad giriniz.', 'warning');
+                Swal.fire('Hata', 'Lütfen ad giriniz.', 'warning');
                 return;
             }
 
             $.post('/GorevTanimlar/EkleDurum', { ad: name, renk: color })
                 .done(function() {
                     Swal.fire({
-                        title: 'Basarili',
-                        text: 'Kayit eklendi.',
+                        title: 'Başarılı',
+                        text: 'Kayıt eklendi.',
                         icon: 'success',
                         timer: 1500,
                         showConfirmButton: false
                     }).then(() => location.reload());
                 })
                 .fail(function(xhr) {
-                    Swal.fire('Hata', 'Kayit basarisiz: ' + (xhr.responseText || 'Bilinmeyen hata'), 'error');
+                    Swal.fire('Hata', 'Kayıt başarısız: ' + (xhr.responseText || 'Bilinmeyen hata'), 'error');
                 });
         }
 
         function deleteItem(id) {
             Swal.fire({
-                title: 'Silmek istediginizden emin misiniz?',
-                text: 'Bu islem geri alinamaz!',
+                title: 'Silmek istediğinizden emin misiniz?',
+                text: 'Bu işlem geri alınamaz!',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#d33',
                 cancelButtonColor: '#3085d6',
                 confirmButtonText: 'Evet, Sil',
-                cancelButtonText: 'Iptal'
+                cancelButtonText: 'İptal'
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.post('/GorevTanimlar/SilDurum', { id: id })
                         .done(function() {
-                            Swal.fire('Silindi!', 'Kayit silindi.', 'success').then(() => location.reload());
+                            Swal.fire('Silindi!', 'Kayıt silindi.', 'success').then(() => location.reload());
                         })
                         .fail(function(xhr) {
-                            Swal.fire('Hata', 'Silme basarisiz: ' + (xhr.responseText || 'Bagli kayitlar olabilir.'), 'error');
+                            Swal.fire('Hata', 'Silme başarısız: ' + (xhr.responseText || 'Bağlı kayıtlar olabilir.'), 'error');
                         });
                 }
             });
@@ -184,7 +184,7 @@
             var color = row.find('.edit-color').val();
 
             if (!name) {
-                Swal.fire('Hata', 'Ad bos olamaz.', 'warning');
+                Swal.fire('Hata', 'Ad boş olamaz.', 'warning');
                 return;
             }
 
@@ -198,7 +198,7 @@
                     row.find('.view-mode, .view-actions').show();
                 })
                 .fail(function(xhr) {
-                    Swal.fire('Hata', 'G�ncelleme basarisiz: ' + (xhr.responseText || 'Bilinmeyen hata'), 'error');
+                    Swal.fire('Hata', 'Güncelleme başarısız: ' + (xhr.responseText || 'Bilinmeyen hata'), 'error');
                 });
         }
     </script>

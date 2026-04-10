@@ -1,4 +1,4 @@
-// Constants
+﻿// Constants
 const TRANS_EVENTS = ['transitionend', 'webkitTransitionEnd', 'oTransitionEnd']
 const TRANS_PROPERTIES = ['transition', 'MozTransition', 'webkitTransition', 'WebkitTransition', 'OTransition']
 

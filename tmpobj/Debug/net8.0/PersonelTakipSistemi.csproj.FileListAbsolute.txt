@@ -1,0 +1,9 @@
+C:\Users\vedat\source\repos\PersonelTakipSistemi\tmpobj\Debug\net8.0\PersonelTakipSistemi.csproj.AssemblyReference.cache
+C:\Users\vedat\source\repos\PersonelTakipSistemi\tmpobj\Debug\net8.0\PersonelTakipSistemi.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\vedat\source\repos\PersonelTakipSistemi\tmpobj\Debug\net8.0\PersonelTakipSistemi.AssemblyInfoInputs.cache
+C:\Users\vedat\source\repos\PersonelTakipSistemi\tmpobj\Debug\net8.0\PersonelTakipSistemi.AssemblyInfo.cs
+C:\Users\vedat\source\repos\PersonelTakipSistemi\tmpobj\Debug\net8.0\PersonelTakipSistemi.csproj.CoreCompileInputs.cache
+C:\Users\vedat\source\repos\PersonelTakipSistemi\tmpobj\Debug\net8.0\PersonelTakipSistemi.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\vedat\source\repos\PersonelTakipSistemi\tmpobj\Debug\net8.0\PersonelTakipSistemi.RazorAssemblyInfo.cache
+C:\Users\vedat\source\repos\PersonelTakipSistemi\tmpobj\Debug\net8.0\PersonelTakipSistemi.RazorAssemblyInfo.cs
+C:\Users\vedat\source\repos\PersonelTakipSistemi\tmpobj\Debug\net8.0\PersonelTakipSistemi.sourcelink.json

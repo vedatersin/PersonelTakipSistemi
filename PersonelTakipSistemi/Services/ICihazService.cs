@@ -1,4 +1,4 @@
-using PersonelTakipSistemi.ViewModels;
+﻿using PersonelTakipSistemi.ViewModels;
 
 namespace PersonelTakipSistemi.Services
 {
@@ -12,6 +12,7 @@ namespace PersonelTakipSistemi.Services
         Task AddBrandAsync(CihazMarkaFormModel model);
         Task UpdateBrandAsync(CihazMarkaFormModel model);
         Task DeleteBrandAsync(int cihazMarkaId, bool onaylandi);
+        Task<List<LookupItemVm>> GetActiveDeviceTypesAsync();
         Task<List<LookupItemVm>> GetBrandsByTypeAsync(int cihazTuruId);
         Task<CihazListePageViewModel> GetMyDevicesAsync(int currentPersonelId, CihazListeFilterViewModel filter);
         Task<CihazListePageViewModel> GetManagedDevicesAsync(int currentPersonelId, bool isAdmin, CihazListeFilterViewModel filter);

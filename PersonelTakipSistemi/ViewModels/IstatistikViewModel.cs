@@ -1,4 +1,4 @@
-using PersonelTakipSistemi.Models;
+﻿using PersonelTakipSistemi.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace PersonelTakipSistemi.ViewModels

@@ -1,11 +1,11 @@
-@model PersonelTakipSistemi.ViewModels.CihazListePageViewModel
+﻿@model PersonelTakipSistemi.ViewModels.CihazListePageViewModel
 @{
     ViewData["Title"] = Model.Baslik;
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="fw-bold py-3 mb-0"><span class="text-muted fw-light">Yazılım Lisansları ve Cihazlar /</span> @Model.Baslik</h4>
+        <h4 class="fw-bold py-3 mb-0"><span class="text-muted fw-light">Yaz&#305;l&#305;m Lisanslar&#305; ve Cihazlar /</span> @Model.Baslik</h4>
         @if (Model.CihazEklemeYetkisiVarMi)
         {
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#cihazEkleModal">+ Ekle</button>
@@ -27,9 +27,9 @@
                 @if (Model.Koordinatorlukler.Any())
                 {
                     <div class="col-md-3">
-                        <label class="form-label">Koordinatörlük</label>
-                        <select asp-for="Filter.KoordinatorlukId" class="form-select">
-                            <option value="">Tümü</option>
+                        <label class="form-label">Koordinat&ouml;rl&uuml;k</label>
+                        <select asp-for="Filter.KoordinatorlukId" class="form-select searchable-select">
+                            <option value="">T&uuml;m&uuml;</option>
                             @foreach (var item in Model.Koordinatorlukler)
                             {
                                 <option value="@item.Id">@item.Ad</option>
@@ -41,8 +41,8 @@
                 {
                     <div class="col-md-3">
                         <label class="form-label">Personel</label>
-                        <select asp-for="Filter.PersonelId" class="form-select">
-                            <option value="">Tümü</option>
+                        <select asp-for="Filter.PersonelId" class="form-select searchable-select">
+                            <option value="">T&uuml;m&uuml;</option>
                             @foreach (var item in Model.Personeller)
                             {
                                 <option value="@item.Id">@item.Ad</option>
@@ -51,9 +51,9 @@
                     </div>
                 }
                 <div class="col-md-3">
-                    <label class="form-label">Cihaz Türü</label>
-                    <select asp-for="Filter.CihazTuruId" class="form-select" id="filterCihazTuru">
-                        <option value="">Tümü</option>
+                    <label class="form-label">Cihaz T&uuml;r&uuml;</label>
+                    <select asp-for="Filter.CihazTuruId" class="form-select searchable-select" id="filterCihazTuru">
+                        <option value="">T&uuml;m&uuml;</option>
                         @foreach (var item in Model.CihazTurleri)
                         {
                             <option value="@item.Id">@item.Ad</option>
@@ -62,8 +62,8 @@
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Marka</label>
-                    <select asp-for="Filter.CihazMarkaId" class="form-select" id="filterMarka">
-                        <option value="">Tümü</option>
+                    <select asp-for="Filter.CihazMarkaId" class="form-select searchable-select" id="filterMarka">
+                        <option value="">T&uuml;m&uuml;</option>
                         @foreach (var item in Model.Markalar)
                         {
                             <option value="@item.Id">@item.Ad</option>
@@ -75,7 +75,7 @@
                     <input asp-for="Filter.ModelAra" class="form-control" />
                 </div>
                 <div class="col-md-3">
-                    <label class="form-label">Özellik</label>
+                    <label class="form-label">&Ouml;zellik</label>
                     <input asp-for="Filter.OzellikAra" class="form-control" />
                 </div>
                 <div class="col-md-3">
@@ -89,12 +89,12 @@
                         <input type="range"
                                id="kayitYasiSlider"
                                min="0"
-                               max="5"
+                               max="6"
                                step="1"
                                class="kayit-yasi-slider"
-                               value="@(Model.Filter.YasSliderDegeri >= 0 && Model.Filter.YasSliderDegeri <= 5 ? Model.Filter.YasSliderDegeri : 0)"
+                               value="@(Model.Filter.YasSliderDegeri >= 0 && Model.Filter.YasSliderDegeri <= 6 ? Model.Filter.YasSliderDegeri : 0)"
                                data-initial="@Model.Filter.YasSliderDegeri" />
-                        <div id="kayitYasiAktifEtiket" class="kayit-yasi-aktif kayit-yasi-aktif-sol">Tümü</div>
+                        <div id="kayitYasiAktifEtiket" class="kayit-yasi-aktif">Tümü</div>
                     </div>
                 </div>
                 @if (Model.OnayYetkisiVarMi)
@@ -119,14 +119,13 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Tür</th>
+                        <th>T&uuml;r</th>
                         <th>Marka</th>
                         <th>Model</th>
-                        <th>Özellikler</th>
-                        <th>Seri No</th>
+                        <th>&Ouml;zellikler</th>
                         <th>Sahip</th>
-                        <th>Koordinatörlük</th>
-                        <th>Durum</th>
+                        <th>Koordinat&ouml;rl&uuml;k</th>
+                        <th>Koordinat&ouml;r Onay&#305;</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -135,17 +134,16 @@
                     {
                         @foreach (var item in Model.Cihazlar)
                         {
-                            <tr>
+                            <tr id="cihaz-row-@item.CihazId">
                                 <td>@item.CihazTuru</td>
                                 <td>@item.Marka</td>
                                 <td>@item.Model</td>
                                 <td>@item.Ozellikler</td>
-                                <td>@item.SeriNo</td>
                                 <td>@item.SahipAdSoyad</td>
                                 <td>@item.KoordinatorlukAd</td>
                                 <td>
                                     <span class="badge @(item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Onaylandi ? "bg-label-success" : "bg-label-warning")">
-                                        @(item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Onaylandi ? "Onaylı" : "Onay Bekliyor")
+                                        @(item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Onaylandi ? "Onayland\u0131" : "Onay Bekliyor")
                                     </span>
                                 </td>
                                 <td class="text-nowrap">
@@ -164,7 +162,7 @@
                     }
                     else
                     {
-                        <tr><td colspan="9" class="text-center text-muted py-4">Cihaz kaydı bulunamadı.</td></tr>
+                        <tr><td colspan="8" class="text-center text-muted py-4">Cihaz kayd&#305; bulunamad&#305;.</td></tr>
                     }
                 </tbody>
             </table>
@@ -190,8 +188,8 @@
                             {
                                 <div class="col-md-6">
                                     <label class="form-label">Cihaz Sahibi</label>
-                                    <select asp-for="YeniCihaz.SahipPersonelId" class="form-select">
-                                        <option value="">Seçiniz</option>
+                                    <select asp-for="YeniCihaz.SahipPersonelId" class="form-select searchable-select">
+                                        <option value="">Se&ccedil;iniz</option>
                                         @foreach (var item in Model.EklemeIcinPersoneller)
                                         {
                                             <option value="@item.Id">@item.Ad</option>
@@ -200,9 +198,9 @@
                                 </div>
                             }
                             <div class="col-md-6">
-                                <label class="form-label">Cihaz Türü</label>
-                                <select asp-for="YeniCihaz.CihazTuruId" class="form-select" id="eklemeCihazTuru">
-                                    <option value="">Seçiniz</option>
+                                <label class="form-label">Cihaz T&uuml;r&uuml;</label>
+                                <select asp-for="YeniCihaz.CihazTuruId" class="form-select searchable-select" id="eklemeCihazTuru">
+                                    <option value="">Se&ccedil;iniz</option>
                                     @foreach (var item in Model.EklemeIcinCihazTurleri)
                                     {
                                         <option value="@item.Id">@item.Ad</option>
@@ -210,17 +208,17 @@
                                 </select>
                             </div>
                             <div class="col-md-6 d-none" id="digerTurWrap">
-                                <label class="form-label">Diğer Cihaz Türü</label>
+                                <label class="form-label">Di&#287;er Cihaz T&uuml;r&uuml;</label>
                                 <input asp-for="YeniCihaz.DigerCihazTuruAd" class="form-control" />
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label">Marka</label>
-                                <select asp-for="YeniCihaz.CihazMarkaId" class="form-select" id="eklemeMarka">
-                                    <option value="">Önce cihaz türü seçiniz</option>
+                                <select asp-for="YeniCihaz.CihazMarkaId" class="form-select searchable-select" id="eklemeMarka">
+                                    <option value="">&Ouml;nce cihaz t&uuml;r&uuml; se&ccedil;iniz</option>
                                 </select>
                             </div>
                             <div class="col-md-6 d-none" id="digerMarkaWrap">
-                                <label class="form-label">Diğer Marka</label>
+                                <label class="form-label">Di&#287;er Marka</label>
                                 <input asp-for="YeniCihaz.DigerMarkaAd" class="form-control" />
                             </div>
                             <div class="col-md-4">
@@ -228,7 +226,7 @@
                                 <input asp-for="YeniCihaz.Model" class="form-control" />
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label">Özellikler</label>
+                                <label class="form-label">&Ouml;zellikler</label>
                                 <input asp-for="YeniCihaz.Ozellikler" class="form-control" />
                             </div>
                             <div class="col-md-4">
@@ -238,8 +236,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
-                        <button type="submit" class="btn btn-primary">@(Model.PersonelGorunumuMu ? "Onaya Gönder" : "Kaydet")</button>
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">&#304;ptal</button>
+                        <button type="submit" class="btn btn-primary">@Html.Raw(Model.PersonelGorunumuMu ? "Onaya G&ouml;nder" : "G&ouml;nder")</button>
                     </div>
                 </form>
             </div>
@@ -257,7 +255,7 @@
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            height: 4px;
+            height: 10px;
             border-radius: 999px;
             outline: none;
             background: linear-gradient(to right, #696cff 0%, #696cff var(--slider-fill), #d9dee3 var(--slider-fill), #d9dee3 100%);
@@ -273,17 +271,17 @@
             border: 3px solid #696cff;
             box-shadow: 0 1px 4px rgba(67, 89, 113, 0.25);
             cursor: pointer;
-            margin-top: -7px;
+            margin-top: -4px;
         }
 
         .kayit-yasi-slider::-moz-range-track {
-            height: 4px;
+            height: 10px;
             border-radius: 999px;
             background: #d9dee3;
         }
 
         .kayit-yasi-slider::-moz-range-progress {
-            height: 4px;
+            height: 10px;
             border-radius: 999px;
             background: #696cff;
         }
@@ -298,67 +296,66 @@
             cursor: pointer;
         }
 
+        .kayit-yasi-slider-all::-webkit-slider-thumb {
+            border-color: #d9dee3;
+        }
+
+        .kayit-yasi-slider-all::-moz-range-thumb {
+            border-color: #d9dee3;
+        }
+
         .kayit-yasi-aktif {
             margin-top: 0.65rem;
             min-height: 1.25rem;
             color: #566a7f;
             font-size: 0.8125rem;
             font-weight: 600;
-        }
-
-        .kayit-yasi-aktif-sol {
-            text-align: left;
-        }
-
-        .kayit-yasi-aktif-orta {
             text-align: center;
         }
 
-        .kayit-yasi-aktif-sag {
-            text-align: right;
+        @@keyframes highlightBlue {
+            0% { background-color: rgba(13, 110, 253, 0.32); }
+            100% { background-color: transparent; }
+        }
+
+        .highlight-new {
+            animation: highlightBlue 3s ease-out;
         }
     </style>
 }
 
 @section Scripts {
     <script>
+        const yeniCihazId = '@TempData["NewCihazId"]';
         const yasSliderInput = document.getElementById('kayitYasiSlider');
         const yasSliderHiddenInput = document.getElementById('yasSliderDegeri');
         const yasSliderAktifEtiket = document.getElementById('kayitYasiAktifEtiket');
+        const cihazEkleModalElement = document.getElementById('cihazEkleModal');
 
         const yasSliderEtiketleri = [
-            '1 yıldan az',
-            '1 yıldan fazla',
-            '2 yıldan fazla',
-            '3 yıldan fazla',
-            '4 yıldan fazla',
-            '5 yıldan fazla'
+            '1 y\u0131ldan az',
+            '1 y\u0131ldan fazla',
+            '2 y\u0131ldan fazla',
+            '3 y\u0131ldan fazla',
+            '4 y\u0131ldan fazla',
+            '5 y\u0131ldan fazla'
         ];
 
-        function getYasSliderHizaClass(value) {
-            if (value <= 1) return 'kayit-yasi-aktif-sol';
-            if (value <= 3) return 'kayit-yasi-aktif-orta';
-            return 'kayit-yasi-aktif-sag';
-        }
-
-        function updateYasSliderUI(forceAllState = false) {
+        function updateYasSliderUI(isAllState = false) {
             if (!yasSliderInput || !yasSliderHiddenInput || !yasSliderAktifEtiket) return;
 
             const numericValue = Number(yasSliderInput.value || 0);
-            const maxValue = Number(yasSliderInput.max || 5);
+            const maxValue = Number(yasSliderInput.max || 6);
             const fillPercent = maxValue > 0 ? (numericValue / maxValue) * 100 : 0;
 
             yasSliderInput.style.setProperty('--slider-fill', `${fillPercent}%`);
-            yasSliderAktifEtiket.classList.remove('kayit-yasi-aktif-sol', 'kayit-yasi-aktif-orta', 'kayit-yasi-aktif-sag');
 
-            if (forceAllState) {
-                yasSliderAktifEtiket.textContent = 'Tümü';
-                yasSliderAktifEtiket.classList.add('kayit-yasi-aktif-sol');
+            if (isAllState) {
+                yasSliderAktifEtiket.textContent = 'T\u00fcm\u00fc';
                 return;
             }
 
-            yasSliderAktifEtiket.textContent = yasSliderEtiketleri[numericValue] || yasSliderEtiketleri[0];
-            yasSliderAktifEtiket.classList.add(getYasSliderHizaClass(numericValue));
+            yasSliderAktifEtiket.textContent = yasSliderEtiketleri[numericValue - 1] || yasSliderEtiketleri[0];
         }
 
         if (yasSliderInput && yasSliderHiddenInput) {
@@ -376,49 +373,172 @@
             }
 
             yasSliderInput.addEventListener('input', function () {
-                yasSliderHiddenInput.value = yasSliderInput.value;
-                updateYasSliderUI(false);
+                const isAll = Number(yasSliderInput.value) === 0;
+                yasSliderHiddenInput.value = isAll ? -1 : yasSliderInput.value;
+                updateYasSliderUI(isAll);
             });
 
             yasSliderInput.addEventListener('change', function () {
-                yasSliderHiddenInput.value = yasSliderInput.value;
-                updateYasSliderUI(false);
+                const isAll = Number(yasSliderInput.value) === 0;
+                yasSliderHiddenInput.value = isAll ? -1 : yasSliderInput.value;
+                updateYasSliderUI(isAll);
             });
         }
 
-        async function loadBrands(typeSelectId, brandSelectId) {
-            const typeId = document.getElementById(typeSelectId).value;
-            const brandSelect = document.getElementById(brandSelectId);
-            brandSelect.innerHTML = '<option value="">Seçiniz</option>';
-            if (!typeId) return;
-            const res = await fetch(`/Cihazlar/GetBrands?cihazTuruId=${typeId}`);
-            const data = await res.json();
-            data.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item.id;
-                option.textContent = item.ad;
-                brandSelect.appendChild(option);
+        function initSearchableSelects() {
+            if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.select2 === 'undefined') return;
+
+            const $ = window.jQuery;
+            $('.searchable-select').each(function () {
+                const $el = $(this);
+                if ($el.hasClass('select2-hidden-accessible')) {
+                    return;
+                }
+
+                const inCihazEkleModal = cihazEkleModalElement && cihazEkleModalElement.contains(this);
+                $el.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: 'Se\u00e7iniz',
+                    allowClear: true,
+                    dropdownParent: inCihazEkleModal ? $(cihazEkleModalElement) : undefined
+                });
             });
+        }
+
+        initSearchableSelects();
+
+        function getBrandDefaultOptionLabel(brandSelectId) {
+            return brandSelectId === 'filterMarka' ? 'T\u00fcm\u00fc' : 'Se\u00e7iniz';
+        }
+
+        function refreshSelect2(selectEl) {
+            if (typeof window.jQuery === 'undefined') return;
+            window.jQuery(selectEl).trigger('change');
+        }
+
+        async function loadBrands(typeSelectId, brandSelectId) {
+            const typeSelect = document.getElementById(typeSelectId);
+            const brandSelect = document.getElementById(brandSelectId);
+            if (!typeSelect || !brandSelect) return;
+
+            const typeId = typeSelect.value;
+            const defaultOptionLabel = getBrandDefaultOptionLabel(brandSelectId);
+            const previouslySelectedBrand = brandSelect.value;
+
+            brandSelect.innerHTML = `<option value="">${defaultOptionLabel}</option>`;
+
+            if (!typeId) {
+                refreshSelect2(brandSelect);
+                return;
+            }
+
+            try {
+                const res = await fetch(`/Cihazlar/GetBrands?cihazTuruId=${encodeURIComponent(typeId)}`);
+                if (!res.ok) {
+                    refreshSelect2(brandSelect);
+                    return;
+                }
+
+                const data = await res.json();
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = String(item.id);
+                    option.textContent = item.ad;
+                    brandSelect.appendChild(option);
+                });
+
+                const matched = Array.from(brandSelect.options).some(o => o.value === previouslySelectedBrand);
+                brandSelect.value = matched ? previouslySelectedBrand : '';
+                refreshSelect2(brandSelect);
+            } catch {
+                refreshSelect2(brandSelect);
+            }
+        }
+
+        async function loadDeviceTypesIntoModal() {
+            const eklemeTur = document.getElementById('eklemeCihazTuru');
+            if (!eklemeTur || eklemeTur.options.length > 1) return;
+
+            try {
+                const res = await fetch('/Cihazlar/GetTypes');
+                if (!res.ok) return;
+
+                const data = await res.json();
+                if (!Array.isArray(data) || data.length === 0) return;
+
+                eklemeTur.innerHTML = '<option value="">Seçiniz</option>';
+                data.forEach(item => {
+                    const opt = document.createElement('option');
+                    opt.value = String(item.id);
+                    opt.textContent = item.ad;
+                    eklemeTur.appendChild(opt);
+                });
+
+                refreshSelect2(eklemeTur);
+            } catch {
+            }
         }
 
         function toggleOtherFields(typeSelectId, brandSelectId, typeWrapId, brandWrapId) {
             const typeText = document.getElementById(typeSelectId)?.selectedOptions[0]?.text || '';
             const brandText = document.getElementById(brandSelectId)?.selectedOptions[0]?.text || '';
-            document.getElementById(typeWrapId)?.classList.toggle('d-none', typeText !== 'Diğer');
-            document.getElementById(brandWrapId)?.classList.toggle('d-none', brandText !== 'Diğer');
+            document.getElementById(typeWrapId)?.classList.toggle('d-none', typeText !== 'Di\u011fer');
+            document.getElementById(brandWrapId)?.classList.toggle('d-none', brandText !== 'Di\u011fer');
         }
 
-        document.getElementById('filterCihazTuru')?.addEventListener('change', async function () {
+        const onFilterTypeChanged = async () => {
             await loadBrands('filterCihazTuru', 'filterMarka');
-        });
+        };
 
-        document.getElementById('eklemeCihazTuru')?.addEventListener('change', async function () {
+        document.getElementById('filterCihazTuru')?.addEventListener('change', onFilterTypeChanged);
+        if (typeof window.jQuery !== 'undefined') {
+            window.jQuery('#filterCihazTuru').on('select2:select select2:clear', onFilterTypeChanged);
+        }
+
+        const onEklemeTypeChanged = async () => {
             await loadBrands('eklemeCihazTuru', 'eklemeMarka');
             toggleOtherFields('eklemeCihazTuru', 'eklemeMarka', 'digerTurWrap', 'digerMarkaWrap');
-        });
+        };
+
+        document.getElementById('eklemeCihazTuru')?.addEventListener('change', onEklemeTypeChanged);
+        if (typeof window.jQuery !== 'undefined') {
+            window.jQuery('#eklemeCihazTuru').on('select2:select select2:clear', onEklemeTypeChanged);
+        }
 
         document.getElementById('eklemeMarka')?.addEventListener('change', function () {
             toggleOtherFields('eklemeCihazTuru', 'eklemeMarka', 'digerTurWrap', 'digerMarkaWrap');
         });
+
+        if (Number(yeniCihazId) > 0) {
+            const yeniSatir = document.getElementById(`cihaz-row-${yeniCihazId}`);
+            if (yeniSatir) {
+                yeniSatir.classList.add('highlight-new');
+                yeniSatir.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => yeniSatir.classList.remove('highlight-new'), 3000);
+            }
+        }
+
+        if (cihazEkleModalElement) {
+            cihazEkleModalElement.addEventListener('shown.bs.modal', async function () {
+                const eklemeTur = document.getElementById('eklemeCihazTuru');
+                const filtreTur = document.getElementById('filterCihazTuru');
+                if (eklemeTur && filtreTur && eklemeTur.options.length <= 1 && filtreTur.options.length > 1) {
+                    eklemeTur.innerHTML = '<option value="">Se\u00e7iniz</option>';
+                    Array.from(filtreTur.options)
+                        .filter(o => o.value)
+                        .forEach(o => {
+                            const opt = document.createElement('option');
+                            opt.value = o.value;
+                            opt.textContent = o.textContent;
+                            eklemeTur.appendChild(opt);
+                        });
+                    refreshSelect2(eklemeTur);
+                }
+
+                await loadDeviceTypesIntoModal();
+                await loadBrands('eklemeCihazTuru', 'eklemeMarka');
+            });
+        }
     </script>
 }

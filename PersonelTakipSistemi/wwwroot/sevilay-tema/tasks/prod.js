@@ -1,4 +1,4 @@
-const path = require('path');
+﻿const path = require('path');
 const { src, dest, series } = require('gulp');
 const purgecss = require('gulp-purgecss');
 const replace = require('gulp-replace');
