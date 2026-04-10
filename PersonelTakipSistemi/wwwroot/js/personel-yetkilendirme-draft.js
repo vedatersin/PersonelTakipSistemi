@@ -931,6 +931,7 @@ async function saveDraft() {
             confirmButtonText: 'Tamam',
             timer: 2000 // Optional: Auto close and reload after 2s if user doesn't click
         }).then(() => {
+            try { if (window.saveYetkilendirmeFilterState) window.saveYetkilendirmeFilterState(); } catch (e) { }
             location.reload();
         });
 

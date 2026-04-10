@@ -312,6 +312,7 @@
 @section Scripts {
 
     <script>
+        const YETKI_FILTER_STATE_KEY = 'yetkilendirme_filter_state_v1';
         var allTeskilatOptions = @Json.Serialize(Model.TeskilatList);
         var allKurumsalRolOptions = @Json.Serialize(Model.KurumsalRolList);
         var allSistemRolOptions = @Json.Serialize(Model.SistemRolList);
@@ -390,7 +391,9 @@
             });
 
             // Initial render
-            filterTable(true);
+            restoreYetkilendirmeFilterState().finally(function() {
+                filterTable(true);
+            });
         });
 
         function loadKoordinatorlukler(teskilatAd) {
@@ -404,10 +407,10 @@
                 
                 // Notify Select2 if initialized
                 $dropdown.trigger('change.select2'); 
-                return;
+                return $.Deferred().resolve().promise();
             }
 
-            $.ajax({
+            return $.ajax({
                 url: '/Personel/GetKoordinatorlukNames',
                 data: { teskilatAd: teskilatAd },
                 success: function(data) {
@@ -429,10 +432,10 @@
             if (!koordinatorlukAd) {
                 // Disable and Reset
                 $dropdown.empty().append('<option value="">Önce Koordinatörlük Seçiniz</option>').prop('disabled', true);
-                return;
+                return $.Deferred().resolve().promise();
             }
 
-            $.ajax({
+            return $.ajax({
                 url: '/Personel/GetKomisyonNames',
                 data: { koordinatorlukAd: koordinatorlukAd },
                 success: function(data) {
@@ -594,6 +597,73 @@
             $('#filterIsNiteligi').val('');
             
             filterTable(true);
+        }
+
+        function getYetkilendirmeFilterState() {
+            return {
+                search: $('#filterSearch').val() || '',
+                teskilat: $('#filterTeskilat').val() || '',
+                koordinatorluk: $('#filterKoordinatorluk').val() || '',
+                komisyon: $('#filterKomisyon').val() || '',
+                sistemRol: $('#filterSistemRol').val() || '',
+                kurumsalRol: $('#filterKurumsalRol').val() || '',
+                brans: $('#filterBrans').val() || '',
+                yazilim: $('#filterYazilim').val() || '',
+                uzmanlik: $('#filterUzmanlik').val() || '',
+                gorevTuru: $('#filterGorevTuru').val() || '',
+                isNiteligi: $('#filterIsNiteligi').val() || '',
+                page: authCurrentPage || 1,
+                showAll: !!authShowAll
+            };
+        }
+
+        window.saveYetkilendirmeFilterState = function() {
+            try {
+                sessionStorage.setItem(YETKI_FILTER_STATE_KEY, JSON.stringify(getYetkilendirmeFilterState()));
+            } catch { }
+        };
+
+        async function restoreYetkilendirmeFilterState() {
+            let raw = null;
+            try { raw = sessionStorage.getItem(YETKI_FILTER_STATE_KEY); } catch { }
+            if (!raw) return;
+
+            let state = null;
+            try { state = JSON.parse(raw); } catch { }
+            if (!state) return;
+
+            // One-time restore
+            try { sessionStorage.removeItem(YETKI_FILTER_STATE_KEY); } catch { }
+
+            // Restore primitive filters
+            $('#filterSearch').val(state.search || '');
+
+            // Cascading restores
+            if (state.teskilat) {
+                $('#filterTeskilat').val(state.teskilat);
+                updateKurumsalRolFilter(state.teskilat);
+                await loadKoordinatorlukler(state.teskilat);
+            }
+
+            if (state.koordinatorluk) {
+                $('#filterKoordinatorluk').val(state.koordinatorluk).prop('disabled', false).trigger('change.select2');
+                await loadKomisyonlar(state.koordinatorluk);
+            }
+
+            if (state.komisyon) {
+                $('#filterKomisyon').val(state.komisyon).prop('disabled', false);
+            }
+
+            $('#filterSistemRol').val(state.sistemRol || '');
+            $('#filterKurumsalRol').val(state.kurumsalRol || '');
+            $('#filterBrans').val(state.brans || '').trigger('change');
+            $('#filterYazilim').val(state.yazilim || '');
+            $('#filterUzmanlik').val(state.uzmanlik || '');
+            $('#filterGorevTuru').val(state.gorevTuru || '');
+            $('#filterIsNiteligi').val(state.isNiteligi || '');
+
+            authCurrentPage = state.page || 1;
+            authShowAll = !!state.showAll;
         }
 
         function showAllUsers() {

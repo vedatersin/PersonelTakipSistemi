@@ -1920,20 +1920,30 @@
 
                                   // Update Parent Koordinatorluk Passive Status
                                   // If it was added to a Merkez -> Province (bagliMerkezId), both should actially be updated.
-                                  // Update the immediate parent (Centeral Unit)
-                                  updateParentPassiveState('koord', selectedKoordId || data.ParentId); 
-                                  
-                                  // If there's a province unit, ideally update it too, but we might not have the ID here reliably without querying.
-                                  if(parentIdOfNewItem && parentIdOfNewItem > 0 && bagliMerkezIdOfNewItem > 0) {
-                                       updateParentPassiveState('koord', parentIdOfNewItem);
+                                  // Always update the real parent (Komisyon.KoordinatorlukId)
+                                  if(parentIdOfNewItem && parentIdOfNewItem > 0) {
+                                      updateParentPassiveState('koord', parentIdOfNewItem);
+                                  }
+                                  // If it's linked to a Merkez Birim Koordinatörlüğü, that koordinatorluk must also become active
+                                  if(bagliMerkezIdOfNewItem && bagliMerkezIdOfNewItem > 0) {
+                                      updateParentPassiveState('koord', bagliMerkezIdOfNewItem);
                                   }
 
                                   // Re-apply filters to show/hide and rename properly
-                                  // Also explicitly select the parent Koordinatorluk
-                                  var targetKoordId = selectedKoordId || data.ParentId;
-                                  if(targetKoordId) {
+                                  // If linked to Merkez, select Merkez so the new item is visible immediately; otherwise select parent
+                                  var targetKoordId = (bagliMerkezIdOfNewItem && bagliMerkezIdOfNewItem > 0) ? bagliMerkezIdOfNewItem : parentIdOfNewItem;
+                                  if(targetKoordId && targetKoordId > 0) {
                                       var parentKoordRow = $('#row_koord_' + targetKoordId);
                                       if(parentKoordRow.length > 0) {
+                                          // Ensure its parent Teşkilat is selected so the row is visible
+                                          var koordTesId = parseInt(parentKoordRow.attr('data-parent-id')) || 0;
+                                          if(koordTesId > 0 && selectedTeskilatId !== koordTesId) {
+                                              var parentTesRow = $('#row_tes_' + koordTesId);
+                                              if(parentTesRow.length > 0) {
+                                                  selectTeskilat(parentTesRow[0], koordTesId, true);
+                                              }
+                                          }
+
                                           selectKoordinatorluk(parentKoordRow[0], targetKoordId, true);
                                           parentKoordRow[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                                       }

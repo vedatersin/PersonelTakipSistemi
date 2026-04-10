@@ -160,9 +160,14 @@
                      </button>
                      
                      <!-- Selected Count Display -->
-                     <div class="badge bg-label-primary px-3 py-2 d-flex align-items-center fs-6 ms-0 ms-md-0 me-auto mb-2 mb-md-0 flex-grow-1 flex-md-grow-0" style="min-width: 200px; justify-content: space-between;">
-                         <span><i class='bx bx-check-circle me-2'></i>Seçili Kişi Sayısı:</span>
-                         <strong id="selectedCountDisplay">0</strong>
+                     <div class="d-flex align-items-center gap-2 me-auto mb-2 mb-md-0 flex-grow-1 flex-md-grow-0">
+                         <div class="badge bg-label-primary px-3 py-2 d-flex align-items-center fs-6 ms-0 ms-md-0" style="min-width: 200px; justify-content: space-between;">
+                             <span><i class='bx bx-check-circle me-2'></i>Seçili Kişi Sayısı:</span>
+                             <strong id="selectedCountDisplay">0</strong>
+                         </div>
+                         <button type="button" class="btn btn-label-primary fw-bold" onclick="selectAllVisible()">
+                             <i class='bx bx-select-multiple me-1 d-none d-md-inline-block'></i> Tümünü Seç
+                         </button>
                      </div>
 
                      <!-- Clear Filters & Selection Buttons -->
@@ -367,6 +372,26 @@
             const validIds = count > 0;
             
             $('#btnSubmitDesktop, #btnSubmitMobile').prop('disabled', !(validUnit && validIds));
+        }
+
+        function selectAllVisible() {
+            const items = document.getElementsByClassName('personel-col');
+
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].style.display === "none") continue; // hidden by filter
+                const card = items[i].querySelector('.personel-card');
+                if (!card) continue;
+                if (card.classList.contains('passive')) continue;
+
+                const id = parseInt(card.getAttribute('data-id'));
+                if (!Number.isFinite(id)) continue;
+
+                selectedIds.add(id);
+                card.classList.add('selected');
+            }
+
+            updateUI();
+            reorderSelectedToTop();
         }
 
         // Dropdown Logic
