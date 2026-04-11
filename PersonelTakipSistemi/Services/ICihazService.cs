@@ -17,7 +17,7 @@ namespace PersonelTakipSistemi.Services
         Task<CihazListePageViewModel> GetMyDevicesAsync(int currentPersonelId, CihazListeFilterViewModel filter);
         Task<CihazListePageViewModel> GetManagedDevicesAsync(int currentPersonelId, bool isAdmin, CihazListeFilterViewModel filter);
         Task<int> CreateDeviceAsync(CihazCreateViewModel model, int currentPersonelId, bool isCoordinator);
-        Task UpdateDeviceAsync(CihazCreateViewModel model, int currentPersonelId, bool canManage);
+        Task<bool> UpdateDeviceAsync(CihazCreateViewModel model, int currentPersonelId, bool canManage);
         Task QuickUpdateDeviceAsync(CihazHizliDuzenleViewModel model, int currentPersonelId, bool isAdmin);
         Task DeleteDeviceAsync(int cihazId, int currentPersonelId, bool isAdmin);
         Task ApproveDeviceAsync(int cihazId, int currentPersonelId);

@@ -624,8 +624,8 @@ function renderRoleOptions(selectedId) {
         if (merkezRoles.includes(rid) && !isMerkezTeskilat) allowed = false;
 
         // Rule: If a Merkez Birim Koordinatörlüğü is selected, hide specific roles
-        // Hide: Genel Koordinatör (4), Şef (8), Şube Müdürü (7), Daire Başkanı (9), Genel Müdür (10)
-        if (isMerkezBirimKoordinatorluguSelected && [4, 7, 8, 9, 10].includes(rid)) {
+        // Hide: Şef (8), Şube Müdürü (7), Daire Başkanı (9), Genel Müdür (10)
+        if (isMerkezBirimKoordinatorluguSelected && [7, 8, 9, 10].includes(rid)) {
             allowed = false;
         }
 

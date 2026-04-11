@@ -1,0 +1,410 @@
+﻿@model PersonelTakipSistemi.ViewModels.YazilimLisansDetayPageViewModel
+@{
+    ViewData["Title"] = "Yaz&#305;l&#305;m Lisans Detay&#305;";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="mb-3">
+        <a asp-action="YazilimLisansYonetimi" class="btn btn-label-secondary"><i class="bx bx-arrow-back me-1"></i> Geri D&#246;n</a>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">@Model.YazilimAdi</h5>
+            <div class="d-flex gap-2">
+                @if (Model.LisansYonetebilirMi)
+                {
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#lisansDuzenleModal">D&#252;zenle</button>
+                    <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#lisansSilModal">Sil</button>
+                }
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4"><label class="form-label text-muted">Lisans S&#252;resi T&#252;r&#252;</label><div class="fw-semibold">@Model.LisansSuresiTuru</div></div>
+                <div class="col-md-4"><label class="form-label text-muted">Ba&#351;lang&#305;&#231; Tarihi</label><div class="fw-semibold">@(Model.BaslangicTarihi.HasValue ? Model.BaslangicTarihi.Value.ToString("dd.MM.yyyy") : "-")</div></div>
+                <div class="col-md-4"><label class="form-label text-muted">Biti&#351; Tarihi</label><div class="fw-semibold">@(Model.BitisTarihi.HasValue ? Model.BitisTarihi.Value.ToString("dd.MM.yyyy") : "-")</div></div>
+                <div class="col-md-6"><label class="form-label text-muted">Kullan&#305;lan Lisans / Toplam Lisans Adedi</label><div class="fw-semibold">@Model.KullanilanLisansAdedi / @Model.ToplamLisansAdedi</div></div>
+                <div class="col-md-6"><label class="form-label text-muted">Hesap Ba&#351;&#305; Ortak Kullan&#305;m Bilgisi</label><div class="fw-semibold">@(string.IsNullOrWhiteSpace(Model.HesapBasiOrtakKullanimBilgisi) ? "-" : Model.HesapBasiOrtakKullanimBilgisi)</div></div>
+                <div class="col-md-12"><label class="form-label text-muted">Kullan&#305;m Amac&#305;</label><div class="border rounded bg-light p-3">@(string.IsNullOrWhiteSpace(Model.KullanimAmaci) ? "-" : Model.KullanimAmaci)</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Lisansa Kay&#305;tl&#305; Kullan&#305;c&#305;lar</h5>
+            @if (Model.KullaniciYonetebilirMi)
+            {
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#kullaniciEkleModal">+ Yeni Kullan&#305;c&#305; Ekle</button>
+            }
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Lisans Sahibi</th>
+                        <th>Koordinat&#246;rl&#252;&#287;&#252;</th>
+                        <th>Kullan&#305;c&#305; Ad&#305;</th>
+                        <th>Mail Adresi</th>
+                        <th>Durum</th>
+                        <th>&#304;&#351;lemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Kullanicilar.Any())
+                    {
+                        @foreach (var item in Model.Kullanicilar)
+                        {
+                            <tr>
+                                <td>@item.LisansSahibiAdSoyad</td>
+                                <td>@item.Koordinatorluk</td>
+                                <td>@(string.IsNullOrWhiteSpace(item.KullaniciAdi) ? "-" : item.KullaniciAdi)</td>
+                                <td>@(string.IsNullOrWhiteSpace(item.Eposta) ? "-" : item.Eposta)</td>
+                                <td><span class="badge @(item.OnayliMi ? "bg-label-success" : "bg-label-warning")">@item.OnayDurumuText</span></td>
+                                <td class="text-nowrap row-actions">
+                                    @if (item.AdminOnayIslemleriGoster)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-primary"
+                                                data-bs-toggle="modal" data-bs-target="#kullaniciYoneticiOnayModal"
+                                                data-kayit-id="@item.YazilimLisansKullaniciId"
+                                                data-lisans-id="@Model.YazilimLisansId"
+                                                data-personel="@item.LisansSahibiAdSoyad"
+                                                data-kullanici-adi="@(string.IsNullOrWhiteSpace(item.KullaniciAdi) ? "-" : item.KullaniciAdi)"
+                                                data-eposta="@(string.IsNullOrWhiteSpace(item.Eposta) ? "-" : item.Eposta)">
+                                            Onay &#304;&#351;lemleri
+                                        </button>
+                                    }
+                                    @if (Model.KullaniciYonetebilirMi)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-primary action-icon-btn" title="D&#252;zenle" aria-label="D&#252;zenle"
+                                                data-bs-toggle="modal" data-bs-target="#kullaniciDuzenleModal"
+                                                data-kayit-id="@item.YazilimLisansKullaniciId" data-personel-id="@item.PersonelId"
+                                                data-kullanici-adi="@item.KullaniciAdi" data-eposta="@item.Eposta">
+                                            <i class="bx bx-edit-alt"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger action-icon-btn"
+                                                title="Sil" aria-label="Sil"
+                                                data-bs-toggle="modal" data-bs-target="#kullaniciSilModal"
+                                                data-kayit-id="@item.YazilimLisansKullaniciId"
+                                                data-lisans-id="@Model.YazilimLisansId"
+                                                data-kullanici="@item.LisansSahibiAdSoyad">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6" class="text-center text-muted py-4">Bu lisans i&#231;in kullan&#305;c&#305; kayd&#305; bulunamad&#305;.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="modal fade" id="uyariModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Uyarı</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">@TempData["ErrorMessage"]</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Tamam</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.LisansYonetebilirMi)
+{
+    <div class="modal fade" id="lisansDuzenleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="YazilimLisansGuncelle" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="DuzenleFormu.YazilimLisansId" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Lisans Kayd&#305;n&#305; D&#252;zenle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Kullan&#305;lan Yaz&#305;l&#305;m</label>
+                                <select asp-for="DuzenleFormu.YazilimId" class="form-select searchable-select" required>
+                                    <option value="">Se&#231;iniz</option>
+                                    @foreach (var option in Model.Yazilimlar)
+                                    {
+                                        <option value="@option.Id">@option.Ad</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Maksimum Lisans Hesap Adedi</label>
+                                <input asp-for="DuzenleFormu.MaksimumLisansHesapAdedi" type="number" min="1" class="form-control" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Lisans S&#252;resi T&#252;r&#252;</label>
+                                <select asp-for="DuzenleFormu.LisansSuresiTuru" class="form-select lisans-sure-turu" data-prefix="duzenle">
+                                    <option value="@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Aylik)">Ayl&#305;k</option>
+                                    <option value="@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Yillik)">Y&#305;ll&#305;k</option>
+                                    <option value="@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Suresiz)">S&#252;resiz</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Ba&#351;lang&#305;&#231; Tarihi</label>
+                                <input asp-for="DuzenleFormu.BaslangicTarihi" type="date" class="form-control lisans-baslangic" data-prefix="duzenle" />
+                            </div>
+                            <div class="col-md-4 lisans-bitis-wrap" data-prefix="duzenle">
+                                <label class="form-label">Biti&#351; Tarihi</label>
+                                <input asp-for="DuzenleFormu.BitisTarihi" type="date" class="form-control lisans-bitis" data-prefix="duzenle" />
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Hesap Ba&#351;&#305; Ortak Kullan&#305;m Bilgisi (Opsiyonel)</label>
+                                <input asp-for="DuzenleFormu.HesapBasiOrtakKullanimBilgisi" class="form-control" />
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Kullan&#305;m Amac&#305; (Opsiyonel)</label>
+                                <textarea asp-for="DuzenleFormu.KullanimAmaci" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">&#304;ptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="lisansSilModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="YazilimLisansSil" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="lisansId" value="@Model.YazilimLisansId" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Yaz&#305;l&#305;m Lisans&#305; Sil</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        Bu lisans kayd&#305; silinecek. Lisans kullan&#305;c&#305;lar&#305; da silinir. Emin misiniz?
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">&#304;ptal</button>
+                        <button type="submit" class="btn btn-danger">Sil</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.KullaniciYonetebilirMi)
+{
+    <div class="modal fade" id="kullaniciEkleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="YazilimLisansKullaniciEkle" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="YazilimLisansId" value="@Model.YazilimLisansId" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Lisans Kullan&#305;c&#305;s&#305; Ekle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Personel</label>
+                            <select name="PersonelId" class="form-select searchable-select" required>
+                                <option value="">Se&#231;iniz</option>
+                                @foreach (var personel in Model.SecilebilirPersoneller)
+                                {
+                                    <option value="@personel.Id">@personel.Ad</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="alert alert-info mb-0">Kay&#305;t sonras&#305; durum "Onaya G&#246;nderildi" olur. Personel bilgileri doldurup onaya g&#246;nderdi&#287;inde y&#246;netici onay&#305;na d&#252;&#351;er.</div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">&#304;ptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="kullaniciDuzenleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="YazilimLisansKullaniciGuncelle" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="YazilimLisansKullaniciId" id="duzenleKayitId" />
+                    <input type="hidden" name="YazilimLisansId" value="@Model.YazilimLisansId" />
+                    <input type="hidden" name="PersonelId" id="duzenlePersonelId" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Lisans Kullan&#305;c&#305; Bilgisi D&#252;zenle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Kullan&#305;c&#305; Ad&#305;</label>
+                            <input type="text" name="KullaniciAdi" id="duzenleKullaniciAdi" class="form-control" />
+                        </div>
+                        <div>
+                            <label class="form-label">E-posta</label>
+                            <input type="email" name="Eposta" id="duzenleEposta" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">&#304;ptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="kullaniciSilModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="YazilimLisansKullaniciSil" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="lisansKullaniciId" id="silKayitId" />
+                    <input type="hidden" name="lisansId" id="silLisansId" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Lisans Kullan&#305;c&#305;s&#305; Sil</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <span id="silKullaniciMetni">Kullan&#305;c&#305; lisans kayd&#305; silinsin mi?</span>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">&#304;ptal</button>
+                        <button type="submit" class="btn btn-danger">Sil</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="kullaniciYoneticiOnayModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="YazilimLisansKullaniciOnayKarar" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="YazilimLisansKullaniciId" id="yoneticiOnayKayitId" />
+                    <input type="hidden" name="YazilimLisansId" id="yoneticiOnayLisansId" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Onay &#304;&#351;lemleri</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-muted small mb-2" id="yoneticiOnayPersonel"></div>
+                        <div class="small"><strong>Kullan&#305;c&#305; Ad&#305;:</strong> <span id="yoneticiOnayKullaniciAdi">-</span></div>
+                        <div class="small mt-1"><strong>E-posta Adresi:</strong> <span id="yoneticiOnayEposta">-</span></div>
+                    </div>
+                    <div class="modal-footer justify-content-between">
+                        <button type="submit" name="Onayla" value="false" class="btn btn-danger">Onaya Geri G&#246;nder</button>
+                        <button type="submit" name="Onayla" value="true" class="btn btn-primary">Onayla</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Styles {
+    <style>
+        .row-actions { min-width: 245px; }
+        .action-icon-btn i { font-size: 1.35em; color: #fff; vertical-align: middle; }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function initSearchableSelects() {
+            if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.select2 === 'undefined') return;
+            const $ = window.jQuery;
+            $('.searchable-select').each(function () {
+                const $el = $(this);
+                if ($el.hasClass('select2-hidden-accessible')) return;
+                const modalParent = $el.closest('.modal');
+                $el.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: 'Seciniz',
+                    allowClear: true,
+                    dropdownParent: modalParent.length ? modalParent : undefined
+                });
+            });
+        }
+
+        function toggleDateFields(prefix) {
+            const sureTuru = document.querySelector(`.lisans-sure-turu[data-prefix="${prefix}"]`);
+            const baslangic = document.querySelector(`.lisans-baslangic[data-prefix="${prefix}"]`);
+            const bitis = document.querySelector(`.lisans-bitis[data-prefix="${prefix}"]`);
+            const bitisWrap = document.querySelector(`.lisans-bitis-wrap[data-prefix="${prefix}"]`);
+            if (!sureTuru || !baslangic || !bitis || !bitisWrap) return;
+
+            const suresizValue = '@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Suresiz)';
+            const isSuresiz = sureTuru.value === suresizValue;
+            bitisWrap.classList.toggle('d-none', isSuresiz);
+            baslangic.required = !isSuresiz;
+            bitis.required = !isSuresiz;
+            if (isSuresiz) bitis.value = '';
+        }
+
+        document.querySelectorAll('.lisans-sure-turu').forEach(select => {
+            const prefix = select.getAttribute('data-prefix');
+            select.addEventListener('change', () => toggleDateFields(prefix));
+            toggleDateFields(prefix);
+        });
+
+        document.getElementById('kullaniciDuzenleModal')?.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            document.getElementById('duzenleKayitId').value = button.getAttribute('data-kayit-id') || '';
+            document.getElementById('duzenlePersonelId').value = button.getAttribute('data-personel-id') || '';
+            document.getElementById('duzenleKullaniciAdi').value = button.getAttribute('data-kullanici-adi') || '';
+            document.getElementById('duzenleEposta').value = button.getAttribute('data-eposta') || '';
+        });
+
+        document.getElementById('kullaniciSilModal')?.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            document.getElementById('silKayitId').value = button.getAttribute('data-kayit-id') || '';
+            document.getElementById('silLisansId').value = button.getAttribute('data-lisans-id') || '';
+            const kullanici = button.getAttribute('data-kullanici') || 'Secili kullanici';
+            document.getElementById('silKullaniciMetni').textContent = `${kullanici} icin lisans kaydi silinsin mi?`;
+        });
+
+        document.getElementById('kullaniciYoneticiOnayModal')?.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            document.getElementById('yoneticiOnayKayitId').value = button.getAttribute('data-kayit-id') || '';
+            document.getElementById('yoneticiOnayLisansId').value = button.getAttribute('data-lisans-id') || '';
+            document.getElementById('yoneticiOnayPersonel').textContent = button.getAttribute('data-personel') || '';
+            document.getElementById('yoneticiOnayKullaniciAdi').textContent = button.getAttribute('data-kullanici-adi') || '-';
+            document.getElementById('yoneticiOnayEposta').textContent = button.getAttribute('data-eposta') || '-';
+        });
+
+        initSearchableSelects();
+
+        const uyariModalEl = document.getElementById('uyariModal');
+        if (uyariModalEl && typeof bootstrap !== 'undefined') {
+            bootstrap.Modal.getOrCreateInstance(uyariModalEl).show();
+        }
+    </script>
+}

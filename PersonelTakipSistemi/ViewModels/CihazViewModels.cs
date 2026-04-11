@@ -142,6 +142,7 @@ namespace PersonelTakipSistemi.ViewModels
         public bool HareketlerGorunsunMu { get; set; }
         public bool DevirYetkisiVarMi { get; set; }
         public bool DuzenlemeYetkisiVarMi { get; set; }
+        public bool DuzenlemeOnayGerekliMi { get; set; }
         public List<LookupItemVm> CihazTurleri { get; set; } = new();
         public List<LookupItemVm> Markalar { get; set; } = new();
         public CihazCreateViewModel DuzenleFormu { get; set; } = new();
@@ -175,14 +176,125 @@ namespace PersonelTakipSistemi.ViewModels
         public DateTime Tarih { get; set; }
         public string HareketTuru { get; set; } = string.Empty;
         public string IslemYapan { get; set; } = string.Empty;
+        public bool IslemYapanCizili { get; set; }
         public string? OncekiSahip { get; set; }
+        public bool OncekiSahipCizili { get; set; }
         public string? YeniSahip { get; set; }
+        public bool YeniSahipCizili { get; set; }
         public string? Aciklama { get; set; }
         public string? DurumNotu { get; set; }
     }
 
     public class YazilimLisanslarimViewModel
     {
-        public List<string> Yazilimlar { get; set; } = new();
+        public List<YazilimLisanslarimItemViewModel> Lisanslar { get; set; } = new();
+    }
+
+    public class YazilimLisanslarimItemViewModel
+    {
+        public int YazilimLisansKullaniciId { get; set; }
+        public int YazilimLisansId { get; set; }
+        public string YazilimAdi { get; set; } = string.Empty;
+        public string LisansSuresiTuru { get; set; } = string.Empty;
+        public DateTime? BaslangicTarihi { get; set; }
+        public DateTime? BitisTarihi { get; set; }
+        public string? KullaniciAdi { get; set; }
+        public string? Eposta { get; set; }
+        public string OnayDurumu { get; set; } = string.Empty;
+        public bool OnayIslemleriGoster { get; set; }
+    }
+
+    public class YazilimLisansYonetimPageViewModel
+    {
+        public bool LisansYonetebilirMi { get; set; }
+        public bool KullaniciYonetebilirMi { get; set; }
+        public bool KoordinatorMu { get; set; }
+        public List<LookupItemVm> Yazilimlar { get; set; } = new();
+        public YazilimLisansFormViewModel YeniLisans { get; set; } = new();
+        public List<YazilimLisansListeItemViewModel> Lisanslar { get; set; } = new();
+    }
+
+    public class YazilimLisansListeItemViewModel
+    {
+        public int YazilimLisansId { get; set; }
+        public int YazilimId { get; set; }
+        public string YazilimAdi { get; set; } = string.Empty;
+        public string LisansSuresiTuru { get; set; } = string.Empty;
+        public DateTime? BaslangicTarihi { get; set; }
+        public DateTime? BitisTarihi { get; set; }
+        public string? HesapBasiOrtakKullanimBilgisi { get; set; }
+        public string? KullanimAmaci { get; set; }
+        public int KullanilanLisansAdedi { get; set; }
+        public int ToplamLisansAdedi { get; set; }
+    }
+
+    public class YazilimLisansFormViewModel
+    {
+        public int? YazilimLisansId { get; set; }
+        public int YazilimId { get; set; }
+        public int MaksimumLisansHesapAdedi { get; set; }
+        public PersonelTakipSistemi.Models.LisansSuresiTuru LisansSuresiTuru { get; set; } = PersonelTakipSistemi.Models.LisansSuresiTuru.Suresiz;
+        public DateTime? BaslangicTarihi { get; set; }
+        public DateTime? BitisTarihi { get; set; }
+        public string? HesapBasiOrtakKullanimBilgisi { get; set; }
+        public string? KullanimAmaci { get; set; }
+    }
+
+    public class YazilimLisansDetayPageViewModel
+    {
+        public int YazilimLisansId { get; set; }
+        public string YazilimAdi { get; set; } = string.Empty;
+        public string LisansSuresiTuru { get; set; } = string.Empty;
+        public DateTime? BaslangicTarihi { get; set; }
+        public DateTime? BitisTarihi { get; set; }
+        public int KullanilanLisansAdedi { get; set; }
+        public int ToplamLisansAdedi { get; set; }
+        public string? HesapBasiOrtakKullanimBilgisi { get; set; }
+        public string? KullanimAmaci { get; set; }
+        public bool LisansYonetebilirMi { get; set; }
+        public bool KullaniciYonetebilirMi { get; set; }
+        public List<LookupItemVm> Yazilimlar { get; set; } = new();
+        public YazilimLisansFormViewModel DuzenleFormu { get; set; } = new();
+        public YazilimLisansKullaniciFormViewModel YeniKullaniciFormu { get; set; } = new();
+        public List<LookupItemVm> SecilebilirPersoneller { get; set; } = new();
+        public List<YazilimLisansKullaniciItemViewModel> Kullanicilar { get; set; } = new();
+    }
+
+    public class YazilimLisansKullaniciFormViewModel
+    {
+        public int? YazilimLisansKullaniciId { get; set; }
+        public int YazilimLisansId { get; set; }
+        public int PersonelId { get; set; }
+        public string? KullaniciAdi { get; set; }
+        public string? Eposta { get; set; }
+    }
+
+    public class YazilimLisansKullaniciOnayFormViewModel
+    {
+        public int YazilimLisansKullaniciId { get; set; }
+        public int YazilimLisansId { get; set; }
+        public string KullaniciAdi { get; set; } = string.Empty;
+        public string Eposta { get; set; } = string.Empty;
+    }
+
+    public class YazilimLisansKullaniciKararFormViewModel
+    {
+        public int YazilimLisansKullaniciId { get; set; }
+        public int YazilimLisansId { get; set; }
+        public bool Onayla { get; set; }
+    }
+
+    public class YazilimLisansKullaniciItemViewModel
+    {
+        public int YazilimLisansKullaniciId { get; set; }
+        public int PersonelId { get; set; }
+        public string LisansSahibiAdSoyad { get; set; } = string.Empty;
+        public string Koordinatorluk { get; set; } = string.Empty;
+        public string? KullaniciAdi { get; set; }
+        public string? Eposta { get; set; }
+        public bool OnayliMi { get; set; }
+        public LisansKullaniciOnayDurumu OnayDurumu { get; set; }
+        public string OnayDurumuText { get; set; } = string.Empty;
+        public bool AdminOnayIslemleriGoster { get; set; }
     }
 }

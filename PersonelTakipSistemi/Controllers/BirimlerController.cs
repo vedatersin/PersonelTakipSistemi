@@ -825,6 +825,59 @@ namespace PersonelTakipSistemi.Controllers
             return Ok(new { success = true, count = count });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> YapTopluCikarma([FromBody] TopluAtamaPostModel model)
+        {
+            if (model.PersonelIds == null || !model.PersonelIds.Any())
+            {
+                return BadRequest("Personel seçilmedi.");
+            }
+
+            var ids = model.PersonelIds.Distinct().ToList();
+
+            var personelTeskilatlar = await _context.PersonelTeskilatlar
+                .Where(x => ids.Contains(x.PersonelId))
+                .ToListAsync();
+            var personelKoordinatorlukler = await _context.PersonelKoordinatorlukler
+                .Where(x => ids.Contains(x.PersonelId))
+                .ToListAsync();
+            var personelKomisyonlar = await _context.PersonelKomisyonlar
+                .Where(x => ids.Contains(x.PersonelId))
+                .ToListAsync();
+            var kurumsalAtamalar = await _context.PersonelKurumsalRolAtamalari
+                .Where(x => ids.Contains(x.PersonelId))
+                .ToListAsync();
+
+            _context.PersonelTeskilatlar.RemoveRange(personelTeskilatlar);
+            _context.PersonelKoordinatorlukler.RemoveRange(personelKoordinatorlukler);
+            _context.PersonelKomisyonlar.RemoveRange(personelKomisyonlar);
+            _context.PersonelKurumsalRolAtamalari.RemoveRange(kurumsalAtamalar);
+
+            await _context.SaveChangesAsync();
+
+            try
+            {
+                var assignedNames = await _context.Personeller
+                    .Where(p => ids.Contains(p.PersonelId))
+                    .Select(p => p.Ad + " " + p.Soyad)
+                    .ToListAsync();
+
+                var namesStr = string.Join(", ", assignedNames);
+                if (namesStr.Length > 200) namesStr = namesStr.Substring(0, 197) + "...";
+
+                await _logService.LogAsync(
+                    "Toplu Çıkarma",
+                    "Toplu personel çıkarma yapıldı.",
+                    null,
+                    $"Kişiler: {namesStr}, Kaldırılan: Tüm birimler + tüm kurumsal roller");
+            }
+            catch (Exception)
+            {
+            }
+
+            return Ok(new { success = true, count = ids.Count });
+        }
+
         // ==============================================================
         // BİRİMLERİ LİSTELE
         // ==============================================================

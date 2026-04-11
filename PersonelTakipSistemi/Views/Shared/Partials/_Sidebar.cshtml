@@ -103,7 +103,7 @@
         </li>
     }
 
-    @if (userRole == "Admin" || userRole == "Yönetici" || isCoordinator || isCommissionChair)
+    @if (userRole == "Admin" || userRole == "Yönetici" || isCommissionChair)
     {
         <!-- Bildirim Modülü (Admin, Yönetici, Koordinatör, Komisyon Başkanı) -->
         <li class="menu-item @(string.Equals(currentController, "BildirimModulu", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
@@ -145,7 +145,7 @@
         </li>
     }
 
-    @if (userRole == "Admin" || userRole == "Yönetici" || userRole == "Editör" || isCoordinator)
+    @if (userRole == "Admin" || userRole == "Yönetici" || userRole == "Editör")
     {
         <!-- Yetkilendirme Modülü (Admin, Yönetici, Editör, Koordinatör) -->
         <li class="menu-item @(isYetkilendirmeActive ? "active" : "")">
@@ -159,11 +159,49 @@
     <!-- ÖZEL YÖNETİM MODÜLLERİ (Koordinatörlük ve Komisyon) -->
     @if (isCoordinator)
     {
-        <li class="menu-item @(string.Equals(currentController, "BirimYonetimi", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "KordinatorlukYonetimi", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-          <a asp-controller="BirimYonetimi" asp-action="KordinatorlukYonetimi" class="menu-link">
+        var isKoordinatorlukModuleOpen =
+            (string.Equals(currentController, "BirimYonetimi", StringComparison.OrdinalIgnoreCase)
+                && (string.Equals(currentAction, "KordinatorlukYonetimi", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(currentAction, "KomisyonDetay", StringComparison.OrdinalIgnoreCase)))
+            || string.Equals(currentController, "BildirimModulu", StringComparison.OrdinalIgnoreCase)
+            || (isPersonelController && string.Equals(currentAction, "Yetkilendirme", StringComparison.OrdinalIgnoreCase))
+            || (string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase)
+                && (string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(currentAction, "YazilimLisansYonetimi", StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(currentAction, "YazilimLisansDetay", StringComparison.OrdinalIgnoreCase)));
+
+        <li class="menu-item @(isKoordinatorlukModuleOpen ? "active open" : "")">
+          <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-buildings"></i>
             <div class="text-truncate fw-bold" data-i18n="Koordinatörlük Yönetimi">Koordinatörlük Yönetimi</div>
           </a>
+          <ul class="menu-sub">
+            <li class="menu-item @(string.Equals(currentController, "BirimYonetimi", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "KordinatorlukYonetimi", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+              <a asp-controller="BirimYonetimi" asp-action="KordinatorlukYonetimi" class="menu-link">
+                <div class="text-truncate">Birim Yönetimi</div>
+              </a>
+            </li>
+            <li class="menu-item @(isYetkilendirmeActive ? "active" : "")">
+              <a asp-controller="Personel" asp-action="Yetkilendirme" class="menu-link">
+                <div class="text-truncate">Yetkilendirme Yönetimi</div>
+              </a>
+            </li>
+            <li class="menu-item @(string.Equals(currentController, "BildirimModulu", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+              <a asp-controller="BildirimModulu" asp-action="Index" class="menu-link">
+                <div class="text-truncate">Bildirim Yönetimi</div>
+              </a>
+            </li>
+            <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                <a asp-controller="Cihazlar" asp-action="Liste" class="menu-link">
+                    <div class="text-truncate">Cihaz Yönetimi</div>
+                </a>
+            </li>
+            <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && (string.Equals(currentAction, "YazilimLisansYonetimi", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "YazilimLisansDetay", StringComparison.OrdinalIgnoreCase)) ? "active" : "")">
+              <a asp-controller="Cihazlar" asp-action="YazilimLisansYonetimi" class="menu-link">
+                <div class="text-truncate">Yazılım Lisansları Yönetimi</div>
+              </a>
+            </li>
+          </ul>
         </li>
     }
 
@@ -273,7 +311,7 @@
     <!-- Profilim & Bildirimler (Tüm Kullanıcılar İçin - En Altta) -->
     @if (userRole == "Admin" || userRole == "Yönetici")
     {
-        <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && (string.Equals(currentAction, "Tanimlar", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase)) ? "active open" : "")">
+        <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && (string.Equals(currentAction, "Tanimlar", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "YazilimLisansYonetimi", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "YazilimLisansDetay", StringComparison.OrdinalIgnoreCase)) ? "active open" : "")">
              <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-devices"></i>
                 <div class="text-truncate">Yazılım Lisansları ve Cihazlar</div>
@@ -287,6 +325,11 @@
                 <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
                     <a asp-controller="Cihazlar" asp-action="Liste" class="menu-link">
                         <div class="text-truncate">Cihazlar</div>
+                    </a>
+                </li>
+                <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && (string.Equals(currentAction, "YazilimLisansYonetimi", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "YazilimLisansDetay", StringComparison.OrdinalIgnoreCase)) ? "active" : "")">
+                    <a asp-controller="Cihazlar" asp-action="YazilimLisansYonetimi" class="menu-link">
+                        <div class="text-truncate">Yazılım Lisansları</div>
                     </a>
                 </li>
               </ul>

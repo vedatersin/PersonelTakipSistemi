@@ -187,6 +187,15 @@
           font-size: 170%;
           line-height: 1;
       }
+
+      #previewInitials,
+      #controlIcon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          line-height: 1;
+      }
   </style>
 }
 
@@ -694,7 +703,7 @@
     <div class="text-center mb-4">
         <div class="photo-preview-container mx-auto" id="controlContainer">
             <span id="controlIcon" class="avatar-initial rounded-circle bg-label-primary" style="display:flex; width:100%; height:100%; font-size:2rem;">@initials</span>
-            <img id="kontrolFoto" src="" alt="Personel Fotoğrafı" style="display:none;" onerror="this.style.display='none'; document.getElementById('controlIcon').style.display='inline-block';"/>
+            <img id="kontrolFoto" src="" alt="Personel Fotoğrafı" style="display:none;" onerror="this.style.display='none'; document.getElementById('controlIcon').style.display='flex';"/>
         </div>
         <p class="mt-2 fw-bold">Personel Fotoğrafı</p>
     </div>

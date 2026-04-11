@@ -10,11 +10,13 @@ namespace PersonelTakipSistemi.Controllers
     public class CihazlarController : Controller
     {
         private readonly ICihazService _cihazService;
+        private readonly IYazilimLisansService _yazilimLisansService;
         private readonly ILogService _logService;
 
-        public CihazlarController(ICihazService cihazService, ILogService logService)
+        public CihazlarController(ICihazService cihazService, IYazilimLisansService yazilimLisansService, ILogService logService)
         {
             _cihazService = cihazService;
+            _yazilimLisansService = yazilimLisansService;
             _logService = logService;
         }
 
@@ -203,8 +205,9 @@ namespace PersonelTakipSistemi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Ekle(CihazListePageViewModel pageModel, string returnAction = "BenimCihazlarim")
         {
+            var safeReturnAction = NormalizeReturnAction(returnAction);
             var currentPersonelId = GetCurrentPersonelId();
-            var coordinatorCreate = returnAction == "Liste" && (User.IsInRole("Admin") || await _cihazService.IsCoordinatorAsync(currentPersonelId));
+            var coordinatorCreate = safeReturnAction == nameof(Liste) && (User.IsInRole("Admin") || await _cihazService.IsCoordinatorAsync(currentPersonelId));
 
             try
             {
@@ -218,27 +221,30 @@ namespace PersonelTakipSistemi.Controllers
                 TempData["ErrorMessage"] = ex.Message;
             }
 
-            return RedirectToAction(returnAction);
+            return RedirectToAction(safeReturnAction);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Guncelle(CihazCreateViewModel form, string? returnAction = null)
         {
+            var safeReturnAction = NormalizeReturnAction(returnAction);
             var canManage = User.IsInRole("Admin") || await _cihazService.IsCoordinatorAsync(GetCurrentPersonelId());
 
             try
             {
-                await _cihazService.UpdateDeviceAsync(form, GetCurrentPersonelId(), canManage);
+                var onayaGonderildi = await _cihazService.UpdateDeviceAsync(form, GetCurrentPersonelId(), canManage);
                 await _logService.LogAsync("Cihaz Güncelleme", $"Cihaz kaydı güncellendi. CihazId: {form.CihazId}", detay: $"TürId: {form.CihazTuruId}, MarkaId: {form.CihazMarkaId}, Model: {form.Model}");
-                TempData["SuccessMessage"] = "Cihaz kaydı güncellendi.";
+                TempData["SuccessMessage"] = onayaGonderildi
+                    ? "Cihaz düzenlemesi kaydedildi ve onaya gönderildi."
+                    : "Cihaz kaydı güncellendi.";
             }
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Detay), new { id = form.CihazId, returnAction });
+            return RedirectToAction(nameof(Detay), new { id = form.CihazId, returnAction = safeReturnAction });
         }
 
         [HttpPost]
@@ -276,6 +282,26 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SilDetay(int cihazId, string? returnAction = null)
+        {
+            var safeReturnAction = NormalizeReturnAction(returnAction);
+            try
+            {
+                await _cihazService.DeleteDeviceAsync(cihazId, GetCurrentPersonelId(), true);
+                await _logService.LogAsync("Cihaz Silme", $"Cihaz silindi. CihazId: {cihazId}");
+                TempData["SuccessMessage"] = "Cihaz silindi.";
+                return RedirectToAction(safeReturnAction);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(Detay), new { id = cihazId, returnAction = safeReturnAction });
+            }
+        }
+
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Onayla(int cihazId)
         {
@@ -297,6 +323,7 @@ namespace PersonelTakipSistemi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> OnaylaDetay(int cihazId, string? returnAction = null)
         {
+            var safeReturnAction = NormalizeReturnAction(returnAction);
             try
             {
                 await _cihazService.ApproveDeviceAsync(cihazId, GetCurrentPersonelId());
@@ -308,7 +335,7 @@ namespace PersonelTakipSistemi.Controllers
                 TempData["ErrorMessage"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Detay), new { id = cihazId, returnAction });
+            return RedirectToAction(nameof(Detay), new { id = cihazId, returnAction = safeReturnAction });
         }
 
         [HttpPost]
@@ -333,9 +360,7 @@ namespace PersonelTakipSistemi.Controllers
             var currentPersonelId = GetCurrentPersonelId();
             var canManage = User.IsInRole("Admin") || await _cihazService.IsCoordinatorAsync(currentPersonelId);
             var model = await _cihazService.GetDetailAsync(id, currentPersonelId, canManage);
-            var safeReturnAction = string.Equals(returnAction, nameof(Liste), StringComparison.OrdinalIgnoreCase)
-                ? nameof(Liste)
-                : nameof(BenimCihazlarim);
+            var safeReturnAction = NormalizeReturnAction(returnAction);
             ViewBag.ReturnAction = safeReturnAction;
             return model == null ? NotFound() : View(model);
         }
@@ -344,6 +369,7 @@ namespace PersonelTakipSistemi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Devret(CihazTransferFormModel model, string? returnAction = null)
         {
+            var safeReturnAction = NormalizeReturnAction(returnAction);
             var canManage = User.IsInRole("Admin") || await _cihazService.IsCoordinatorAsync(GetCurrentPersonelId());
 
             try
@@ -357,19 +383,227 @@ namespace PersonelTakipSistemi.Controllers
                 TempData["ErrorMessage"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Detay), new { id = model.CihazId, returnAction });
+            return RedirectToAction(nameof(Detay), new { id = model.CihazId, returnAction = safeReturnAction });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> YazilimLisansYonetimi()
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            var coordinatorMi = await _cihazService.IsCoordinatorAsync(currentPersonelId);
+            var kullaniciYonetebilirMi = lisansYonetebilirMi || coordinatorMi;
+            if (!kullaniciYonetebilirMi)
+            {
+                return RedirectToAction(nameof(BenimCihazlarim));
+            }
+
+            return View(await _yazilimLisansService.GetYonetimPageAsync(currentPersonelId, lisansYonetebilirMi, kullaniciYonetebilirMi));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimLisansEkle([Bind(Prefix = "YeniLisans")] YazilimLisansFormViewModel model)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            try
+            {
+                await _yazilimLisansService.CreateLisansAsync(model, currentPersonelId, lisansYonetebilirMi);
+                await _logService.LogAsync("Yazılım Lisans Ekleme", $"Yeni yazılım lisansı eklendi. YazılımId: {model.YazilimId}");
+                TempData["SuccessMessage"] = "Yazılım lisansı kaydedildi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(YazilimLisansYonetimi));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimLisansGuncelle([Bind(Prefix = "DuzenleFormu")] YazilimLisansFormViewModel model, bool returnToYonetim = false)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            try
+            {
+                await _yazilimLisansService.UpdateLisansAsync(model, currentPersonelId, lisansYonetebilirMi);
+                await _logService.LogAsync("Yazılım Lisans Güncelleme", $"Yazılım lisansı güncellendi. LisansId: {model.YazilimLisansId}");
+                TempData["SuccessMessage"] = "Yazılım lisansı güncellendi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            if (returnToYonetim)
+            {
+                return RedirectToAction(nameof(YazilimLisansYonetimi));
+            }
+
+            return RedirectToAction(nameof(YazilimLisansDetay), new { id = model.YazilimLisansId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimLisansSil(int lisansId)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            try
+            {
+                await _yazilimLisansService.DeleteLisansAsync(lisansId, currentPersonelId, lisansYonetebilirMi);
+                await _logService.LogAsync("Yazılım Lisans Silme", $"Yazılım lisansı silindi. LisansId: {lisansId}");
+                TempData["SuccessMessage"] = "Yazılım lisansı silindi.";
+                return RedirectToAction(nameof(YazilimLisansYonetimi));
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(YazilimLisansDetay), new { id = lisansId });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> YazilimLisansDetay(int id)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            var coordinatorMi = await _cihazService.IsCoordinatorAsync(currentPersonelId);
+            var kullaniciYonetebilirMi = lisansYonetebilirMi || coordinatorMi;
+            if (!kullaniciYonetebilirMi)
+            {
+                return RedirectToAction(nameof(BenimCihazlarim));
+            }
+
+            var model = await _yazilimLisansService.GetDetayPageAsync(id, currentPersonelId, lisansYonetebilirMi, kullaniciYonetebilirMi);
+            return model == null ? NotFound() : View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimLisansKullaniciEkle(YazilimLisansKullaniciFormViewModel model)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            var kullaniciYonetebilirMi = lisansYonetebilirMi || await _cihazService.IsCoordinatorAsync(currentPersonelId);
+            try
+            {
+                await _yazilimLisansService.AddKullaniciAsync(model, currentPersonelId, kullaniciYonetebilirMi);
+                await _logService.LogAsync("Yazılım Lisans Kullanıcı Ekleme", $"Lisansa kullanıcı eklendi. LisansId: {model.YazilimLisansId}, PersonelId: {model.PersonelId}");
+                TempData["SuccessMessage"] = "Lisans kullanıcısı eklendi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(YazilimLisansDetay), new { id = model.YazilimLisansId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimLisansKullaniciGuncelle(YazilimLisansKullaniciFormViewModel model)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            var kullaniciYonetebilirMi = lisansYonetebilirMi || await _cihazService.IsCoordinatorAsync(currentPersonelId);
+            try
+            {
+                await _yazilimLisansService.UpdateKullaniciAsync(model, currentPersonelId, kullaniciYonetebilirMi);
+                await _logService.LogAsync("Yazılım Lisans Kullanıcı Güncelleme", $"Lisans kullanıcı kaydı güncellendi. LisansKullaniciId: {model.YazilimLisansKullaniciId}");
+                TempData["SuccessMessage"] = "Lisans kullanıcı bilgileri güncellendi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(YazilimLisansDetay), new { id = model.YazilimLisansId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimLisansKullaniciSil(int lisansKullaniciId, int lisansId)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            var kullaniciYonetebilirMi = lisansYonetebilirMi || await _cihazService.IsCoordinatorAsync(currentPersonelId);
+            try
+            {
+                await _yazilimLisansService.DeleteKullaniciAsync(lisansKullaniciId, lisansId, currentPersonelId, kullaniciYonetebilirMi);
+                await _logService.LogAsync("Yazılım Lisans Kullanıcı Silme", $"Lisans kullanıcı kaydı silindi. LisansKullaniciId: {lisansKullaniciId}");
+                TempData["SuccessMessage"] = "Lisans kullanıcısı silindi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(YazilimLisansDetay), new { id = lisansId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimLisansKullaniciOnayaGonder(YazilimLisansKullaniciOnayFormViewModel model)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            try
+            {
+                await _yazilimLisansService.PersonelOnayaGonderAsync(model, currentPersonelId);
+                await _logService.LogAsync("Yazılım Lisans Kullanıcı Onaya Gönder", $"Personel lisans kullanıcı kaydını onaya gönderdi. LisansKullaniciId: {model.YazilimLisansKullaniciId}");
+                TempData["SuccessMessage"] = "Lisans kullanıcı kaydı onaya gönderildi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(YazilimLisanslarim));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimLisansKullaniciOnayKarar(YazilimLisansKullaniciKararFormViewModel model)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            var kullaniciYonetebilirMi = lisansYonetebilirMi || await _cihazService.IsCoordinatorAsync(currentPersonelId);
+            try
+            {
+                await _yazilimLisansService.YoneticiOnayKarariVerAsync(model, currentPersonelId, kullaniciYonetebilirMi);
+                await _logService.LogAsync("Yazılım Lisans Kullanıcı Onay Kararı", $"Lisans kullanıcı kaydı için onay kararı verildi. LisansKullaniciId: {model.YazilimLisansKullaniciId}, Onayla: {model.Onayla}");
+                TempData["SuccessMessage"] = model.Onayla
+                    ? "Lisans kullanıcı kaydı onaylandı."
+                    : "Lisans kullanıcı kaydı onaya geri gönderildi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(YazilimLisansDetay), new { id = model.YazilimLisansId });
         }
 
         [HttpGet]
         public async Task<IActionResult> YazilimLisanslarim()
         {
-            return View(await _cihazService.GetSoftwareLicensesAsync(GetCurrentPersonelId()));
+            return View(await _yazilimLisansService.GetPersonelLisanslarimAsync(GetCurrentPersonelId()));
         }
 
         private int GetCurrentPersonelId()
         {
             var claim = User.FindFirst("PersonelId")?.Value ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
             return int.TryParse(claim, out var personelId) ? personelId : 0;
+        }
+
+        private static string NormalizeReturnAction(string? returnAction)
+        {
+            return string.Equals(returnAction, nameof(Liste), StringComparison.OrdinalIgnoreCase)
+                ? nameof(Liste)
+                : nameof(BenimCihazlarim);
         }
     }
 }

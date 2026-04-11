@@ -158,7 +158,7 @@
         @foreach (var k in Model.Komisyonlar)
         {
             <div class="col komisyon-kart-wrapper" data-il-id="@k.IlId">
-                <div class="card birim-card h-100" id="kom-card-@k.Id" onclick="window.location.href='/Birimler/KomisyonDetay/@k.Id'">
+                <div class="card birim-card h-100" id="kom-card-@k.Id" onclick="window.location.href='/BirimYonetimi/KomisyonDetay/@k.Id'">
                     <div class="card-body">
                         <div class="birim-ad">@k.Ad</div>
                         <div class="birim-il"><i class="bx bx-map-pin"></i> @k.IlAdi</div>

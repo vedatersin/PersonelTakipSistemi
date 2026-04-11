@@ -1,0 +1,337 @@
+﻿@model PersonelTakipSistemi.ViewModels.YazilimLisansYonetimPageViewModel
+@{
+    ViewData["Title"] = "Yaz&#305;l&#305;m Lisanslar&#305; Y&#246;netimi";
+}
+
+<div class="container-xxl flex-grow-1 container-p-y">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="fw-bold py-3 mb-0"><span class="text-muted fw-light">Yaz&#305;l&#305;m Lisanslar&#305; ve Cihazlar /</span> Yaz&#305;l&#305;m Lisanslar&#305;</h4>
+        @if (Model.LisansYonetebilirMi)
+        {
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#lisansEkleModal">+ Ekle</button>
+        }
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">@TempData["SuccessMessage"]</div>
+    }
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Yaz&#305;l&#305;m Ad&#305;</th>
+                        <th>Lisans S&#252;resi T&#252;r&#252;</th>
+                        <th>Ba&#351;lang&#305;&#231; Tarihi</th>
+                        <th>Biti&#351; Tarihi</th>
+                        <th>Kullan&#305;lan Lisans / Toplam Lisans</th>
+                        <th>&#304;&#351;lemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Lisanslar.Any())
+                    {
+                        @foreach (var item in Model.Lisanslar)
+                        {
+                            <tr class="lisans-row-clickable" data-detail-url="@Url.Action("YazilimLisansDetay", new { id = item.YazilimLisansId })">
+                                <td>@item.YazilimAdi</td>
+                                <td>@item.LisansSuresiTuru</td>
+                                <td>@(item.BaslangicTarihi.HasValue ? item.BaslangicTarihi.Value.ToString("dd.MM.yyyy") : "-")</td>
+                                <td>@(item.BitisTarihi.HasValue ? item.BitisTarihi.Value.ToString("dd.MM.yyyy") : "-")</td>
+                                <td>@item.KullanilanLisansAdedi / @item.ToplamLisansAdedi</td>
+                                <td class="text-nowrap row-actions">
+                                    @if (Model.LisansYonetebilirMi)
+                                    {
+                                        <button type="button" class="btn btn-sm btn-primary action-icon-btn"
+                                                title="D&#252;zenle" aria-label="D&#252;zenle"
+                                                data-bs-toggle="modal" data-bs-target="#lisansDuzenleModal"
+                                                data-id="@item.YazilimLisansId"
+                                                data-yazilim-id="@item.YazilimId"
+                                                data-maksimum="@item.ToplamLisansAdedi"
+                                                data-sure="@item.LisansSuresiTuru"
+                                                data-baslangic="@(item.BaslangicTarihi?.ToString("yyyy-MM-dd"))"
+                                                data-bitis="@(item.BitisTarihi?.ToString("yyyy-MM-dd"))"
+                                                data-ortak-kullanim="@item.HesapBasiOrtakKullanimBilgisi"
+                                                data-kullanim-amaci="@item.KullanimAmaci">
+                                            <i class="bx bx-edit-alt"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger action-icon-btn"
+                                                title="Sil" aria-label="Sil"
+                                                data-bs-toggle="modal" data-bs-target="#lisansSilModal"
+                                                data-id="@item.YazilimLisansId"
+                                                data-yazilim="@item.YazilimAdi">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="6" class="text-center text-muted py-4">Yaz&#305;l&#305;m lisans kayd&#305; bulunamad&#305;.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="modal fade" id="uyariModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Uyarı</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">@TempData["ErrorMessage"]</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Tamam</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.LisansYonetebilirMi)
+{
+    <div class="modal fade" id="lisansEkleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="YazilimLisansEkle" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="modal-header">
+                        <h5 class="modal-title">Yeni Yaz&#305;l&#305;m Lisans&#305;</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Kullan&#305;lan Yaz&#305;l&#305;m</label>
+                                <select asp-for="YeniLisans.YazilimId" class="form-select searchable-select" required>
+                                    <option value="">Se&#231;iniz</option>
+                                    @foreach (var yazilim in Model.Yazilimlar)
+                                    {
+                                        <option value="@yazilim.Id">@yazilim.Ad</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Maksimum Lisans Hesap Adedi</label>
+                                <input asp-for="YeniLisans.MaksimumLisansHesapAdedi" type="number" min="1" class="form-control" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Lisans S&#252;resi T&#252;r&#252;</label>
+                                <select asp-for="YeniLisans.LisansSuresiTuru" class="form-select lisans-sure-turu" data-prefix="ekle">
+                                    <option value="@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Aylik)">Ayl&#305;k</option>
+                                    <option value="@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Yillik)">Y&#305;ll&#305;k</option>
+                                    <option value="@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Suresiz)">S&#252;resiz</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Ba&#351;lang&#305;&#231; Tarihi</label>
+                                <input asp-for="YeniLisans.BaslangicTarihi" type="date" class="form-control lisans-baslangic" data-prefix="ekle" />
+                            </div>
+                            <div class="col-md-4 lisans-bitis-wrap" data-prefix="ekle">
+                                <label class="form-label">Biti&#351; Tarihi</label>
+                                <input asp-for="YeniLisans.BitisTarihi" type="date" class="form-control lisans-bitis" data-prefix="ekle" />
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Hesap Ba&#351;&#305; Ortak Kullan&#305;m Bilgisi (Opsiyonel)</label>
+                                <input asp-for="YeniLisans.HesapBasiOrtakKullanimBilgisi" class="form-control" />
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Kullan&#305;m Amac&#305; (Opsiyonel)</label>
+                                <textarea asp-for="YeniLisans.KullanimAmaci" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">&#304;ptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="lisansDuzenleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="YazilimLisansGuncelle" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="returnToYonetim" value="true" />
+                    <input type="hidden" name="DuzenleFormu.YazilimLisansId" id="duzenleLisansId" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Lisans Kayd&#305;n&#305; D&#252;zenle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Kullan&#305;lan Yaz&#305;l&#305;m</label>
+                                <select name="DuzenleFormu.YazilimId" id="duzenleYazilimId" class="form-select searchable-select" required>
+                                    <option value="">Se&#231;iniz</option>
+                                    @foreach (var yazilim in Model.Yazilimlar)
+                                    {
+                                        <option value="@yazilim.Id">@yazilim.Ad</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Maksimum Lisans Hesap Adedi</label>
+                                <input name="DuzenleFormu.MaksimumLisansHesapAdedi" id="duzenleMaksimum" type="number" min="1" class="form-control" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Lisans S&#252;resi T&#252;r&#252;</label>
+                                <select name="DuzenleFormu.LisansSuresiTuru" id="duzenleSureTuru" class="form-select lisans-sure-turu" data-prefix="duzenle">
+                                    <option value="@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Aylik)">Ayl&#305;k</option>
+                                    <option value="@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Yillik)">Y&#305;ll&#305;k</option>
+                                    <option value="@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Suresiz)">S&#252;resiz</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Ba&#351;lang&#305;&#231; Tarihi</label>
+                                <input name="DuzenleFormu.BaslangicTarihi" id="duzenleBaslangicTarihi" type="date" class="form-control lisans-baslangic" data-prefix="duzenle" />
+                            </div>
+                            <div class="col-md-4 lisans-bitis-wrap" data-prefix="duzenle">
+                                <label class="form-label">Biti&#351; Tarihi</label>
+                                <input name="DuzenleFormu.BitisTarihi" id="duzenleBitisTarihi" type="date" class="form-control lisans-bitis" data-prefix="duzenle" />
+                            </div>
+                            <div class="col-md-8">
+                                <label class="form-label">Hesap Ba&#351;&#305; Ortak Kullan&#305;m Bilgisi (Opsiyonel)</label>
+                                <input name="DuzenleFormu.HesapBasiOrtakKullanimBilgisi" id="duzenleOrtakKullanimBilgisi" class="form-control" />
+                            </div>
+                            <div class="col-md-12">
+                                <label class="form-label">Kullan&#305;m Amac&#305; (Opsiyonel)</label>
+                                <textarea name="DuzenleFormu.KullanimAmaci" id="duzenleKullanimAmaci" class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">&#304;ptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="lisansSilModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form asp-action="YazilimLisansSil" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="lisansId" id="silinecekLisansId" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">Yaz&#305;l&#305;m Lisans&#305; Sil</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <span id="silMesajMetni">Bu lisans kayd&#305; silinecek. Lisans kullan&#305;c&#305;lar&#305; da silinir. Emin misiniz?</span>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">&#304;ptal</button>
+                        <button type="submit" class="btn btn-danger">Sil</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Styles {
+    <style>
+        .lisans-row-clickable { cursor: pointer; }
+        .lisans-row-clickable:hover > td { background: #f8f9fb; }
+        .row-actions { min-width: 120px; }
+        .action-icon-btn i { font-size: 1.35em; color: #fff; vertical-align: middle; }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        function initSearchableSelects() {
+            if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.select2 === 'undefined') return;
+            const $ = window.jQuery;
+            $('.searchable-select').each(function () {
+                const $el = $(this);
+                if ($el.hasClass('select2-hidden-accessible')) return;
+                const modalParent = $el.closest('.modal');
+                $el.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: 'Seciniz',
+                    allowClear: true,
+                    dropdownParent: modalParent.length ? modalParent : undefined
+                });
+            });
+        }
+
+        function lisansSureTuruValue(sureText) {
+            const normalized = (sureText || '').toLocaleLowerCase('tr-TR');
+            if (normalized.includes('aylık') || normalized.includes('aylik')) return '@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Aylik)';
+            if (normalized.includes('yıllık') || normalized.includes('yillik')) return '@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Yillik)';
+            return '@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Suresiz)';
+        }
+
+        function toggleDateFields(prefix) {
+            const sureTuru = document.querySelector(`.lisans-sure-turu[data-prefix="${prefix}"]`);
+            const baslangic = document.querySelector(`.lisans-baslangic[data-prefix="${prefix}"]`);
+            const bitis = document.querySelector(`.lisans-bitis[data-prefix="${prefix}"]`);
+            const bitisWrap = document.querySelector(`.lisans-bitis-wrap[data-prefix="${prefix}"]`);
+            if (!sureTuru || !baslangic || !bitis || !bitisWrap) return;
+
+            const suresizValue = '@((int)PersonelTakipSistemi.Models.LisansSuresiTuru.Suresiz)';
+            const isSuresiz = sureTuru.value === suresizValue;
+            bitisWrap.classList.toggle('d-none', isSuresiz);
+            baslangic.required = !isSuresiz;
+            bitis.required = !isSuresiz;
+            if (isSuresiz) bitis.value = '';
+        }
+
+        document.querySelectorAll('.lisans-row-clickable').forEach(row => {
+            row.addEventListener('click', function (evt) {
+                if (evt.target.closest('a,button,form,.row-actions')) return;
+                const detailUrl = row.getAttribute('data-detail-url');
+                if (detailUrl) window.location.href = detailUrl;
+            });
+        });
+
+        document.querySelectorAll('.lisans-sure-turu').forEach(select => {
+            const prefix = select.getAttribute('data-prefix');
+            select.addEventListener('change', () => toggleDateFields(prefix));
+            toggleDateFields(prefix);
+        });
+
+        document.getElementById('lisansDuzenleModal')?.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            document.getElementById('duzenleLisansId').value = button.getAttribute('data-id') || '';
+            document.getElementById('duzenleYazilimId').value = button.getAttribute('data-yazilim-id') || '';
+            document.getElementById('duzenleMaksimum').value = button.getAttribute('data-maksimum') || '';
+            document.getElementById('duzenleSureTuru').value = lisansSureTuruValue(button.getAttribute('data-sure'));
+            document.getElementById('duzenleBaslangicTarihi').value = button.getAttribute('data-baslangic') || '';
+            document.getElementById('duzenleBitisTarihi').value = button.getAttribute('data-bitis') || '';
+            document.getElementById('duzenleOrtakKullanimBilgisi').value = button.getAttribute('data-ortak-kullanim') || '';
+            document.getElementById('duzenleKullanimAmaci').value = button.getAttribute('data-kullanim-amaci') || '';
+            toggleDateFields('duzenle');
+        });
+
+        document.getElementById('lisansSilModal')?.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            document.getElementById('silinecekLisansId').value = button.getAttribute('data-id') || '';
+            const yazilim = button.getAttribute('data-yazilim') || 'Secili lisans';
+            document.getElementById('silMesajMetni').textContent = `${yazilim} lisansi silinecek. Lisans kullanicilari da silinir. Emin misiniz?`;
+        });
+
+        initSearchableSelects();
+
+        const uyariModalEl = document.getElementById('uyariModal');
+        if (uyariModalEl && typeof bootstrap !== 'undefined') {
+            bootstrap.Modal.getOrCreateInstance(uyariModalEl).show();
+        }
+    </script>
+}

@@ -9,7 +9,7 @@ using PersonelTakipSistemi.Filters;
 
 namespace PersonelTakipSistemi.Controllers
 {
-    [Authorize(Roles = "Admin,Yönetici")]
+    [Authorize]
     [ReadOnlyForHighLevelRoles]
     public class BildirimModuluController : Controller
     {
@@ -26,6 +26,8 @@ namespace PersonelTakipSistemi.Controllers
 
         public async Task<IActionResult> Index()
         {
+            if (!await HasNotificationModuleAccessAsync()) return Forbid();
+
             ViewBag.TeskilatList = await _context.Teskilatlar.OrderBy(x => x.Ad).Select(x => new { Value = x.TeskilatId, Text = x.Ad }).ToListAsync();
 
             ViewBag.BransList = await _context.Branslar.OrderBy(x => x.Ad).Select(x => new { Value = x.Ad, Text = x.Ad }).ToListAsync(); // Using Name for Brans as per Yetkilendirme
@@ -42,6 +44,8 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetSenders()
         {
+            if (!await HasNotificationModuleAccessAsync()) return Forbid();
+
             // Get Current User ID
             int? currentUserId = null;
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -57,6 +61,8 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetFilterData()
         {
+            if (!await HasNotificationModuleAccessAsync()) return Forbid();
+
             int currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
             bool isAdmin = User.IsInRole("Admin");
 
@@ -108,6 +114,8 @@ namespace PersonelTakipSistemi.Controllers
             string? gorevTuruAd,
             string? isNiteligiAd)
         {
+            if (!await HasNotificationModuleAccessAsync()) return Forbid();
+
             // Get Current User ID
             int currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
             bool isAdmin = User.IsInRole("Admin");
@@ -252,6 +260,8 @@ namespace PersonelTakipSistemi.Controllers
         [HttpPost]
         public async Task<IActionResult> SendBulk([FromBody] BulkSendRequest request)
         {
+            if (!await HasNotificationModuleAccessAsync()) return Forbid();
+
             if (request == null || !request.RecipientIds.Any())
             {
                 return BadRequest("En az bir kişi seçmelisiniz.");
@@ -307,6 +317,8 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetKoordinatorlukler(int teskilatId)
         {
+            if (!await HasNotificationModuleAccessAsync()) return Forbid();
+
             var list = await _context.Koordinatorlukler
                 .Where(k => k.TeskilatId == teskilatId)
                 .OrderBy(k => k.Ad)
@@ -318,6 +330,8 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetKomisyonlar(int koordinatorlukId)
         {
+            if (!await HasNotificationModuleAccessAsync()) return Forbid();
+
             var data = await _context.Komisyonlar
                 .Include(x => x.Koordinatorluk).ThenInclude(k => k.Il)
                 .Include(x => x.BagliMerkezKoordinatorluk)
@@ -334,6 +348,23 @@ namespace PersonelTakipSistemi.Controllers
                 .ToList();
 
             return Json(result);
+        }
+
+        private async Task<bool> HasNotificationModuleAccessAsync()
+        {
+            if (User.IsInRole("Admin") || User.IsInRole("Yönetici"))
+            {
+                return true;
+            }
+
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            if (currentUserId <= 0)
+            {
+                return false;
+            }
+
+            return await _context.PersonelKurumsalRolAtamalari.AsNoTracking()
+                .AnyAsync(a => a.PersonelId == currentUserId && (a.KurumsalRolId == 2 || a.KurumsalRolId == 3 || a.KurumsalRolId == 5));
         }
     }
 

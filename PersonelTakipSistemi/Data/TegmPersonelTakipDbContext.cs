@@ -52,6 +52,8 @@ namespace PersonelTakipSistemi.Data
         public DbSet<CihazMarka> CihazMarkalari { get; set; }
         public DbSet<Cihaz> Cihazlar { get; set; }
         public DbSet<CihazHareketi> CihazHareketleri { get; set; }
+        public DbSet<YazilimLisans> YazilimLisanslar { get; set; }
+        public DbSet<YazilimLisansKullanici> YazilimLisansKullanicilar { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

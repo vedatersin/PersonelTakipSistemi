@@ -528,13 +528,28 @@ namespace PersonelTakipSistemi.Controllers
             return _personelLookupService.FillIndexLookupsAsync(model, filter);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> CheckPassword(int id, string password)
         {
-            var personel = await _context.Personeller.FindAsync(id);
-            if(personel == null) return Json(new { success = false, message = "Personel bulunamadi." });
+            if (!int.TryParse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value, out var currentUserId) || currentUserId <= 0)
+            {
+                return Unauthorized();
+            }
 
-            // Check correctness
-            bool isValid = _passwordService.VerifyPassword(password, personel.SifreHash, personel.SifreSalt);
+            var canValidateOtherUsers = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            if (!canValidateOtherUsers && id != currentUserId)
+            {
+                return Forbid();
+            }
+
+            var personel = await _context.Personeller.FindAsync(id);
+            if (personel == null)
+            {
+                return Json(new { success = false, message = "Personel bulunamadi." });
+            }
+
+            var isValid = _passwordService.VerifyPassword(password, personel.SifreHash, personel.SifreSalt);
             return Json(new { success = isValid });
         }
 

@@ -1,4 +1,8 @@
-﻿<!doctype html>
+﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var antiForgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+}
+<!doctype html>
 <html lang="en" class="layout-menu-fixed layout-compact" data-assets-path="/sevilay-tema/assets/" data-template="vertical-menu-template-free">
 
 <head>
@@ -9,6 +13,7 @@
   <title>@ViewData["Title"] - PERSONEL TAKİP SİSTEMİ</title>
 
   <meta name="description" content="" />
+  <meta name="csrf-token" content="@antiForgeryToken" />
 
   <!-- Favicon -->
   <link rel="icon" type="image/x-icon" href="~/sevilay-tema/assets/img/favicon/favicon.ico" />
@@ -190,3 +195,4 @@
 </body>
 
 </html>
+

@@ -95,7 +95,7 @@ namespace PersonelTakipSistemi.Data
 
                 entity.HasOne(e => e.CihazTuru).WithMany(t => t.Cihazlar).HasForeignKey(e => e.CihazTuruId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.CihazMarka).WithMany(m => m.Cihazlar).HasForeignKey(e => e.CihazMarkaId).OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(e => e.SahipPersonel).WithMany(p => p.SahipOlduguCihazlar).HasForeignKey(e => e.SahipPersonelId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.SahipPersonel).WithMany(p => p.SahipOlduguCihazlar).HasForeignKey(e => e.SahipPersonelId).OnDelete(DeleteBehavior.SetNull);
                 entity.HasOne(e => e.OlusturanPersonel).WithMany(p => p.OlusturduguCihazKayitlari).HasForeignKey(e => e.OlusturanPersonelId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.OnaylayanPersonel).WithMany(p => p.OnayladigiCihazlar).HasForeignKey(e => e.OnaylayanPersonelId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.Koordinatorluk).WithMany(k => k.Cihazlar).HasForeignKey(e => e.KoordinatorlukId).OnDelete(DeleteBehavior.Restrict);
@@ -108,12 +108,67 @@ namespace PersonelTakipSistemi.Data
                 entity.Property(e => e.HareketTuru).HasConversion<int>();
                 entity.Property(e => e.Aciklama).HasMaxLength(500);
                 entity.Property(e => e.DurumNotu).HasMaxLength(500);
+                entity.Property(e => e.IslemYapanAdSoyad).HasMaxLength(200);
+                entity.Property(e => e.OncekiSahipAdSoyad).HasMaxLength(200);
+                entity.Property(e => e.YeniSahipAdSoyad).HasMaxLength(200);
                 entity.HasIndex(e => new { e.CihazId, e.Tarih });
 
                 entity.HasOne(e => e.Cihaz).WithMany(c => c.Hareketler).HasForeignKey(e => e.CihazId).OnDelete(DeleteBehavior.Cascade);
                 entity.HasOne(e => e.OncekiSahipPersonel).WithMany().HasForeignKey(e => e.OncekiSahipPersonelId).OnDelete(DeleteBehavior.Restrict);
                 entity.HasOne(e => e.YeniSahipPersonel).WithMany().HasForeignKey(e => e.YeniSahipPersonelId).OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(e => e.IslemYapanPersonel).WithMany(p => p.YaptigiCihazHareketleri).HasForeignKey(e => e.IslemYapanPersonelId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.IslemYapanPersonel).WithMany(p => p.YaptigiCihazHareketleri).HasForeignKey(e => e.IslemYapanPersonelId).OnDelete(DeleteBehavior.SetNull);
+            });
+
+            modelBuilder.Entity<YazilimLisans>(entity =>
+            {
+                entity.ToTable("YazilimLisanslar");
+                entity.HasKey(e => e.YazilimLisansId);
+                entity.Property(e => e.MaksimumLisansHesapAdedi).IsRequired();
+                entity.Property(e => e.LisansSuresiTuru).HasConversion<int>();
+                entity.Property(e => e.KullanimAmaci).HasMaxLength(500);
+                entity.Property(e => e.HesapBasiOrtakKullanimBilgisi).HasMaxLength(200);
+                entity.HasIndex(e => e.YazilimId);
+
+                entity.HasOne(e => e.Yazilim)
+                    .WithMany()
+                    .HasForeignKey(e => e.YazilimId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.OlusturanPersonel)
+                    .WithMany()
+                    .HasForeignKey(e => e.OlusturanPersonelId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<YazilimLisansKullanici>(entity =>
+            {
+                entity.ToTable("YazilimLisansKullanicilar");
+                entity.HasKey(e => e.YazilimLisansKullaniciId);
+                entity.Property(e => e.KullaniciAdi).HasMaxLength(200);
+                entity.Property(e => e.Eposta).HasMaxLength(250);
+                entity.Property(e => e.OnayDurumu).HasConversion<int>();
+                entity.HasIndex(e => new { e.YazilimLisansId, e.PersonelId }).IsUnique();
+                entity.HasIndex(e => e.PersonelId);
+
+                entity.HasOne(e => e.YazilimLisans)
+                    .WithMany(x => x.Kullanicilar)
+                    .HasForeignKey(e => e.YazilimLisansId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(e => e.Personel)
+                    .WithMany()
+                    .HasForeignKey(e => e.PersonelId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.OnaylayanPersonel)
+                    .WithMany()
+                    .HasForeignKey(e => e.OnaylayanPersonelId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
+                entity.HasOne(e => e.KaydiOlusturanPersonel)
+                    .WithMany()
+                    .HasForeignKey(e => e.KaydiOlusturanPersonelId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

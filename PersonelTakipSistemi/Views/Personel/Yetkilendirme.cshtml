@@ -47,6 +47,19 @@
             animation: newRowGlow 5s ease-out;
             border-left: 4px solid #696cff;
         }
+
+        @@keyframes persistentBlink {
+            0% { box-shadow: 0 0 0 0 rgba(105,108,255,0.55); }
+            50% { box-shadow: 0 0 0 8px rgba(105,108,255,0.15); }
+            100% { box-shadow: 0 0 0 0 rgba(105,108,255,0); }
+        }
+        .highlight-new-row-blink {
+            animation: persistentBlink 1.2s ease-in-out 2;
+        }
+        .highlight-new-row-persistent {
+            background-color: #eaf0ff !important;
+            border-left: 4px solid #696cff;
+        }
     </style>
 
 <div class="row h-100">
@@ -313,9 +326,13 @@
 
     <script>
         const YETKI_FILTER_STATE_KEY = 'yetkilendirme_filter_state_v1';
+        const YETKI_HIGHLIGHT_IDS_KEY = 'yetkilendirme_highlight_ids_v2';
+        const YETKI_HIGHLIGHT_ANIMATED_KEY = 'yetkilendirme_highlight_animated_ids_v2';
         var allTeskilatOptions = @Json.Serialize(Model.TeskilatList);
         var allKurumsalRolOptions = @Json.Serialize(Model.KurumsalRolList);
         var allSistemRolOptions = @Json.Serialize(Model.SistemRolList);
+        let persistentHighlightIds = [];
+        let newlyHighlightedIds = [];
         
         // Initialize Select2
         $(document).ready(function() {
@@ -569,6 +586,7 @@
                 }
             });
 
+            applyPersistentHighlightState();
             updateAuthPagination(resetToFirstPage === true);
             if(visibleCount === 0) $('#noResults').removeClass('d-none');
             else $('#noResults').addClass('d-none');
@@ -767,53 +785,86 @@
             authCurrentPage = page;
             updateAuthPagination(false);
         }
-        // Toplu Atama'dan gelen highlight parametresini işle
-        function highlightFromUrl() {
+        function getSessionArray(key) {
+            try {
+                const raw = sessionStorage.getItem(key);
+                if (!raw) return [];
+                const parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? parsed : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function setSessionArray(key, arr) {
+            try {
+                sessionStorage.setItem(key, JSON.stringify(arr));
+            } catch {
+            }
+        }
+
+        function initPersistentHighlightIds() {
             const params = new URLSearchParams(window.location.search);
             const highlightStr = params.get('highlight');
-            if (!highlightStr) return;
+            const referrer = document.referrer || '';
+            const cameFromYetkilendirme = referrer.indexOf('/Personel/Yetkilendirme') >= 0;
+            let storedIds = getSessionArray(YETKI_HIGHLIGHT_IDS_KEY);
 
-            const highlightIds = highlightStr.split(',').map(Number);
-            if (!highlightIds.length) return;
+            if (!highlightStr && !cameFromYetkilendirme) {
+                storedIds = [];
+                setSessionArray(YETKI_HIGHLIGHT_IDS_KEY, []);
+                setSessionArray(YETKI_HIGHLIGHT_ANIMATED_KEY, []);
+            }
 
+            const incomingIds = highlightStr
+                ? highlightStr.split(',').map(x => parseInt(x, 10)).filter(x => Number.isFinite(x) && x > 0)
+                : [];
+
+            newlyHighlightedIds = incomingIds.filter(id => !storedIds.includes(id));
+            persistentHighlightIds = Array.from(new Set(storedIds.concat(incomingIds)));
+            setSessionArray(YETKI_HIGHLIGHT_IDS_KEY, persistentHighlightIds);
+
+            if (window.history.replaceState && highlightStr) {
+                const url = new URL(window.location.href);
+                url.searchParams.delete('highlight');
+                window.history.replaceState({ path: url.href }, '', url.href);
+            }
+        }
+
+        function applyPersistentHighlightState() {
+            const animatedIds = getSessionArray(YETKI_HIGHLIGHT_ANIMATED_KEY);
             const $tbody = $('#personelTable tbody');
             const rowsToMove = [];
 
-            // Highlight edilen satırları bul ve topla
-            highlightIds.forEach(function(pid) {
+            persistentHighlightIds.forEach(function(pid) {
                 const $row = $tbody.find('tr[data-personel-id="' + pid + '"]');
                 if ($row.length) {
-                    $row.addClass('highlight-new-row');
+                    $row.addClass('highlight-new-row-persistent');
+                    if (newlyHighlightedIds.includes(pid) && !animatedIds.includes(pid)) {
+                        $row.addClass('highlight-new-row-blink');
+                        $row.one('animationend webkitAnimationEnd', function () {
+                            $(this).removeClass('highlight-new-row-blink');
+                        });
+                        animatedIds.push(pid);
+                    }
                     rowsToMove.push($row);
                 }
             });
 
-            // Satırları tablonun en üstüne taşı (ters sıra ile prepend)
+            setSessionArray(YETKI_HIGHLIGHT_ANIMATED_KEY, Array.from(new Set(animatedIds)));
+
             for (let i = rowsToMove.length - 1; i >= 0; i--) {
                 $tbody.prepend(rowsToMove[i]);
-            }
-
-            // Sayfanın en üstüne scroll yap
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-
-            // Remove highlight class after 3 seconds so it disappears
-            setTimeout(function() {
-                $('.highlight-new-row').removeClass('highlight-new-row');
-            }, 3000);
-
-            // Clean up the URL so refresh doesn't trigger the highlight again
-            if (window.history.replaceState) {
-                const url = new URL(window.location.href);
-                if (url.searchParams.has('highlight')) {
-                    url.searchParams.delete('highlight');
-                    window.history.replaceState({ path: url.href }, '', url.href);
-                }
             }
         }
 
         // Sayfa yüklendiğinde highlight kontrolü yap
         $(function() {
-            highlightFromUrl();
+            initPersistentHighlightIds();
+            applyPersistentHighlightState();
+            if (newlyHighlightedIds.length > 0) {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
         });
     </script>
     <script src="~/js/personel-yetkilendirme-draft.js" asp-append-version="true"></script>

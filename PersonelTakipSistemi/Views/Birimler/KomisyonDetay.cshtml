@@ -2,6 +2,11 @@
 @using System.Text.Json
 @{
     ViewData["Title"] = Model.KomisyonAd + " — Komisyon Detayı";
+    var currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+    var coordinatorContext = string.Equals(currentController, "BirimYonetimi", StringComparison.OrdinalIgnoreCase);
+    var backController = coordinatorContext ? "BirimYonetimi" : "Birimler";
+    var backAction = coordinatorContext ? "KordinatorlukYonetimi" : "BirimListele";
+    var backLabel = coordinatorContext ? "Birim Yönetimi" : "Birimleri Listele";
 }
 
 <style>
@@ -42,7 +47,7 @@
 <div class="detail-header">
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb mb-2">
-            <li class="breadcrumb-item"><a href="/Birimler/BirimListele"><i class="bx bx-arrow-back me-1"></i>Birimleri Listele</a></li>
+            <li class="breadcrumb-item"><a asp-controller="@backController" asp-action="@backAction"><i class="bx bx-arrow-back me-1"></i>@backLabel</a></li>
             @if (!string.IsNullOrEmpty(Model.TeskilatAd)) { <li class="breadcrumb-item"><span>@Model.TeskilatAd</span></li> }
             @if (!string.IsNullOrEmpty(Model.KoordinatorlukAd)) { <li class="breadcrumb-item"><span>@Model.KoordinatorlukAd</span></li> }
             <li class="breadcrumb-item active">@Model.KomisyonAd</li>

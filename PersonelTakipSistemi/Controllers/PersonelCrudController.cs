@@ -481,6 +481,7 @@ namespace PersonelTakipSistemi.Controllers
                         personel.KadroKurum = model.KadroKurum ?? "";
                         
                         // Rule: Only Admin can change AktifMi
+                        var sahiplikPasifeDusurulecekMi = User.IsInRole("Admin") && personel.AktifMi && !model.AktifMi;
                         if (User.IsInRole("Admin"))
                         {
                             personel.AktifMi = model.AktifMi;
@@ -551,6 +552,15 @@ namespace PersonelTakipSistemi.Controllers
                         _context.PersonelKomisyonlar.RemoveRange(personel.PersonelKomisyonlar);
                         _context.PersonelKoordinatorlukler.RemoveRange(personel.PersonelKoordinatorlukler);
                         _context.PersonelTeskilatlar.RemoveRange(personel.PersonelTeskilatlar);
+
+                        if (sahiplikPasifeDusurulecekMi)
+                        {
+                            await HandleCihazSahipligiDusurmeAsync(
+                                personel.PersonelId,
+                                $"{personel.Ad} {personel.Soyad}",
+                                int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0"),
+                                personelSiliniyorMu: false);
+                        }
 
                         // Main Update
                         _context.Personeller.Update(personel);
@@ -931,6 +941,12 @@ namespace PersonelTakipSistemi.Controllers
                     .ExecuteDeleteAsync();
             }
 
+            await HandleCihazSahipligiDusurmeAsync(
+                silinecekPersonel.PersonelId,
+                $"{silinecekPersonel.Ad} {silinecekPersonel.Soyad}",
+                currentUserId,
+                personelSiliniyorMu: true);
+
             // --- Silme Islemi ---
             DeletePhotoFile(silinecekPersonel.FotografYolu);
             
@@ -946,7 +962,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
-        // [ValidateAntiForgeryToken] // AJAX JSON calls need header setup, disabling for bulk action convenience/speed fix.
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> TopluSil([FromBody] List<int> ids)
         {
@@ -1047,6 +1063,12 @@ namespace PersonelTakipSistemi.Controllers
                             .ExecuteDeleteAsync();
                     }
 
+                    await HandleCihazSahipligiDusurmeAsync(
+                        silinecekPersonel.PersonelId,
+                        $"{silinecekPersonel.Ad} {silinecekPersonel.Soyad}",
+                        currentUserId,
+                        personelSiliniyorMu: true);
+
                     // --- Silme Islemi ---
                     
                     // Fotograf Silme
@@ -1114,5 +1136,112 @@ namespace PersonelTakipSistemi.Controllers
             }
         }
 
+        private async Task HandleCihazSahipligiDusurmeAsync(int personelId, string adSoyad, int? islemYapanPersonelId, bool personelSiliniyorMu)
+        {
+            var now = DateTime.Now;
+            var islemYapanAdSoyad = await ResolvePersonelAdSoyadAsync(islemYapanPersonelId);
+
+            var sahipliCihazlar = await _context.Cihazlar
+                .Where(c => c.SahipPersonelId == personelId)
+                .ToListAsync();
+
+            foreach (var cihaz in sahipliCihazlar)
+            {
+                _context.CihazHareketleri.Add(new CihazHareketi
+                {
+                    CihazId = cihaz.CihazId,
+                    HareketTuru = CihazHareketTuru.Devir,
+                    OncekiSahipPersonelId = personelId,
+                    YeniSahipPersonelId = null,
+                    IslemYapanPersonelId = islemYapanPersonelId,
+                    IslemYapanAdSoyad = islemYapanAdSoyad,
+                    OncekiSahipAdSoyad = adSoyad,
+                    YeniSahipAdSoyad = "Sahipsiz",
+                    Aciklama = personelSiliniyorMu
+                        ? "Personel silindiği için cihaz sahipliği sahipsize alındı."
+                        : "Personel pasife alındığı için cihaz sahipliği sahipsize alındı.",
+                    DurumNotu = "Koordinatörlük bilgisi korunmuştur.",
+                    Tarih = now
+                });
+
+                cihaz.SahipPersonelId = null;
+                cihaz.AktifSahiplikBaslangicTarihi = now;
+                cihaz.SonDevirTarihi = now;
+                cihaz.UpdatedAt = now;
+            }
+
+            var ilgiliHareketler = await _context.CihazHareketleri
+                .Where(h => h.IslemYapanPersonelId == personelId
+                    || h.OncekiSahipPersonelId == personelId
+                    || h.YeniSahipPersonelId == personelId)
+                .ToListAsync();
+
+            foreach (var hareket in ilgiliHareketler)
+            {
+                if (hareket.IslemYapanPersonelId == personelId)
+                {
+                    hareket.IslemYapanAdSoyad = string.IsNullOrWhiteSpace(hareket.IslemYapanAdSoyad) ? adSoyad : hareket.IslemYapanAdSoyad;
+                    if (personelSiliniyorMu)
+                    {
+                        hareket.IslemYapanPersonelId = null;
+                    }
+                }
+
+                if (hareket.OncekiSahipPersonelId == personelId)
+                {
+                    hareket.OncekiSahipAdSoyad = string.IsNullOrWhiteSpace(hareket.OncekiSahipAdSoyad) ? adSoyad : hareket.OncekiSahipAdSoyad;
+                    if (personelSiliniyorMu)
+                    {
+                        hareket.OncekiSahipPersonelId = null;
+                    }
+                }
+
+                if (hareket.YeniSahipPersonelId == personelId)
+                {
+                    hareket.YeniSahipAdSoyad = string.IsNullOrWhiteSpace(hareket.YeniSahipAdSoyad) ? adSoyad : hareket.YeniSahipAdSoyad;
+                    if (personelSiliniyorMu)
+                    {
+                        hareket.YeniSahipPersonelId = null;
+                    }
+                }
+            }
+
+            if (personelSiliniyorMu)
+            {
+                var ilgiliCihazlar = await _context.Cihazlar
+                    .Where(c => c.OlusturanPersonelId == personelId || c.OnaylayanPersonelId == personelId)
+                    .ToListAsync();
+
+                foreach (var cihaz in ilgiliCihazlar)
+                {
+                    if (cihaz.OlusturanPersonelId == personelId)
+                    {
+                        cihaz.OlusturanPersonelId = null;
+                    }
+
+                    if (cihaz.OnaylayanPersonelId == personelId)
+                    {
+                        cihaz.OnaylayanPersonelId = null;
+                    }
+
+                    cihaz.UpdatedAt = now;
+                }
+            }
+        }
+
+        private async Task<string?> ResolvePersonelAdSoyadAsync(int? personelId)
+        {
+            if (!personelId.HasValue || personelId.Value <= 0)
+            {
+                return null;
+            }
+
+            return await _context.Personeller
+                .Where(p => p.PersonelId == personelId.Value)
+                .Select(p => p.Ad + " " + p.Soyad)
+                .FirstOrDefaultAsync();
+        }
+
     }
 }
+

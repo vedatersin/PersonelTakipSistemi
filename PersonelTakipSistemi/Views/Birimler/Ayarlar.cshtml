@@ -1707,7 +1707,8 @@
                                            <span class="fw-bold item-name">${resp.ad}</span>
                                            <br/><small class="text-muted">${data.Tanim || ''}</small>
                                        </div>
-                                       <div style="min-width: 80px; text-align: right;">
+                                       <div style="min-width: 110px; text-align: right;">
+                                           <button class="btn btn-sm btn-icon text-success me-1" title="Toplu Personel Ekle" onclick="event.stopPropagation(); goToTopluAtama('koord', ${newId})"><i class="bx bx-user-plus"></i></button>
                                            <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); openKoordEditModal(${newId}, '${resp.ad}', ${data.TasraTeskilatiVarMi}, ${data.ParentId})"><i class="bx bx-edit"></i></button>
                                            <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('koord', ${newId})"><i class="bx bx-trash"></i></button>
                                        </div>
@@ -1894,7 +1895,8 @@
                                               <span class="fw-bold item-name">${newItemName}</span>
                                               <br/><small class="text-muted">${parentName}</small>
                                           </div>
-                                          <div style="min-width: 80px; text-align: right;">
+                                          <div style="min-width: 110px; text-align: right;">
+                                              <button class="btn btn-sm btn-icon text-success me-1" title="Toplu Personel Ekle" onclick="event.stopPropagation(); goToTopluAtama('kom', ${resp.id})"><i class="bx bx-user-plus"></i></button>
                                               <button class="btn btn-sm btn-icon text-secondary me-1" onclick="event.stopPropagation(); toggleEdit('kom', ${resp.id})"><i class="bx bx-edit"></i></button>
                                               <button class="btn btn-sm btn-icon text-danger" onclick="event.stopPropagation(); deleteItem('kom', ${resp.id})"><i class="bx bx-trash"></i></button>
                                           </div>

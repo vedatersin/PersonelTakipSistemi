@@ -1,6 +1,7 @@
 ﻿@model PersonelTakipSistemi.ViewModels.CihazListePageViewModel
 @{
     ViewData["Title"] = Model.Baslik;
+    var showIslemlerKolonu = Model.AdminPaneliMi || Model.OnayYetkisiVarMi;
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
@@ -22,9 +23,11 @@
     }
     <form id="ajaxAntiForgeryForm" class="d-none">@Html.AntiForgeryToken()</form>
 
-    <div class="card mb-4">
-        <div class="card-body">
-            <form method="get" class="row g-3">
+    @if (!Model.PersonelGorunumuMu)
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="get" class="row g-3">
                 @if (Model.Koordinatorlukler.Any())
                 {
                     <div class="col-md-3">
@@ -44,6 +47,7 @@
                         <label class="form-label">Personel</label>
                         <select asp-for="Filter.PersonelId" class="form-select searchable-select">
                             <option value="">T&uuml;m&uuml;</option>
+                            <option value="-1">Sahipsiz</option>
                             @foreach (var item in Model.Personeller)
                             {
                                 <option value="@item.Id">@item.Ad</option>
@@ -111,9 +115,10 @@
                     <button type="submit" class="btn btn-primary">Filtrele</button>
                     <a asp-action="@(Model.PersonelGorunumuMu ? "BenimCihazlarim" : "Liste")" class="btn btn-label-secondary">Temizle</a>
                 </div>
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
+    }
 
     <div class="card">
         <div class="table-responsive">
@@ -127,7 +132,7 @@
                         <th class="col-owner">Cihaz Sahibi</th>
                         <th>Koordinat&ouml;rl&uuml;k</th>
                         <th class="col-onay">Koordinat&ouml;r Onay&#305;</th>
-                        @if (Model.AdminPaneliMi || Model.OnayYetkisiVarMi)
+                        @if (showIslemlerKolonu)
                         {
                             <th class="col-islemler">İşlemler</th>
                         }
@@ -150,7 +155,7 @@
                                         @(item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Onaylandi ? "Onayland\u0131" : "Onay Bekliyor")
                                     </span>
                                 </td>
-                                @if (Model.AdminPaneliMi || Model.OnayYetkisiVarMi)
+                                @if (showIslemlerKolonu)
                                 {
                                     <td class="text-nowrap row-actions col-islemler">
                                         @if (Model.OnayYetkisiVarMi && item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Beklemede)
@@ -188,7 +193,7 @@
                     }
                     else
                     {
-                        <tr><td colspan="@(Model.AdminPaneliMi || Model.OnayYetkisiVarMi ? 8 : 7)" class="text-center text-muted py-4">Cihaz kayd&#305; bulunamad&#305;.</td></tr>
+                        <tr><td colspan="@(showIslemlerKolonu ? 8 : 7)" class="text-center text-muted py-4">Cihaz kayd&#305; bulunamad&#305;.</td></tr>
                     }
                 </tbody>
             </table>
@@ -903,3 +908,4 @@
         }
     </script>
 }
+

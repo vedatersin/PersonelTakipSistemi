@@ -35,17 +35,26 @@
                         }
                         @if (Model.DuzenlemeYetkisiVarMi)
                         {
-                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#duzenleModal">Cihazı Düzenle</button>
+                            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#duzenleModal">Düzenle</button>
                         }
                         @if (Model.DevirYetkisiVarMi)
                         {
                             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#devirModal">Cihazı Devret</button>
                         }
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <form asp-action="SilDetay" method="post" class="d-inline" onsubmit="return confirm('Bu cihaz kaydını silmek istediğinize emin misiniz?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="cihazId" value="@Model.CihazId" />
+                                <input type="hidden" name="returnAction" value="@returnAction" />
+                                <button type="submit" class="btn btn-danger">Sil</button>
+                            </form>
+                        }
                     </div>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <div class="col-md-6"><label class="form-label text-muted">Sahip</label><div class="fw-semibold">@Model.SahipAdSoyad</div></div>
+                        <div class="col-md-6"><label class="form-label text-muted">Cihaz Sahibi</label><div class="fw-semibold">@Model.SahipAdSoyad</div></div>
                         <div class="col-md-6"><label class="form-label text-muted">Koordinatörlük</label><div class="fw-semibold">@Model.KoordinatorlukAd</div></div>
                         <div class="col-md-6"><label class="form-label text-muted">Model</label><div class="fw-semibold">@Model.Model</div></div>
                         <div class="col-md-6"><label class="form-label text-muted">Seri No</label><div class="fw-semibold">@Model.SeriNo</div></div>
@@ -75,17 +84,34 @@
                     <tbody>
                         @foreach (var hareket in Model.Hareketler)
                         {
-                            var detay = $"{(string.IsNullOrWhiteSpace(hareket.OncekiSahip) ? "" : "Önceki: " + hareket.OncekiSahip + " | ")}{(string.IsNullOrWhiteSpace(hareket.YeniSahip) ? "" : "Yeni: " + hareket.YeniSahip + " | ")}{hareket.Aciklama} {(string.IsNullOrWhiteSpace(hareket.DurumNotu) ? "" : " | Not: " + hareket.DurumNotu)}".Trim();
                             <tr>
                                 <td>@hareket.Tarih.ToString("dd.MM.yyyy HH:mm")</td>
                                 <td>@hareket.HareketTuru</td>
-                                <td>@hareket.IslemYapan</td>
                                 <td>
-                                    <span class="history-short">@((detay.Length > 90) ? detay.Substring(0, 90) + "..." : detay)</span>
-                                    @if (detay.Length > 90)
+                                    <span class="@(hareket.IslemYapanCizili ? "text-decoration-line-through" : "")">@hareket.IslemYapan</span>
+                                </td>
+                                <td>
+                                    @if (!string.IsNullOrWhiteSpace(hareket.OncekiSahip))
                                     {
-                                        <span class="history-full d-none">@detay</span>
-                                        <button type="button" class="btn btn-sm btn-label-secondary history-toggle">...</button>
+                                        <span class="me-2">
+                                            Önceki:
+                                            <span class="@(hareket.OncekiSahipCizili ? "text-decoration-line-through" : "")">@hareket.OncekiSahip</span>
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(hareket.YeniSahip))
+                                    {
+                                        <span class="me-2">
+                                            Yeni:
+                                            <span class="@(hareket.YeniSahipCizili ? "text-decoration-line-through" : "")">@hareket.YeniSahip</span>
+                                        </span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(hareket.Aciklama))
+                                    {
+                                        <span>@hareket.Aciklama</span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(hareket.DurumNotu))
+                                    {
+                                        <span> | Not: @hareket.DurumNotu</span>
                                     }
                                 </td>
                             </tr>
@@ -107,7 +133,7 @@
                     <input type="hidden" name="CihazId" value="@Model.DuzenleFormu.CihazId" />
                     <input type="hidden" name="returnAction" value="@returnAction" />
                     <div class="modal-header">
-                        <h5 class="modal-title">Cihazı Düzenle / Normalize Et</h5>
+                        <h5 class="modal-title">@(Model.DuzenlemeOnayGerekliMi ? "Düzenlemeyi Onaya Gönder" : "Cihazı Düzenle / Normalize Et")</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -167,13 +193,17 @@
                                 <input name="SeriNo" value="@Model.DuzenleFormu.SeriNo" class="form-control" />
                             </div>
                             <div class="col-12">
-                                <div class="alert alert-info mb-0">Bu düzenleme hareket geçmişine yazılmaz; sistem logunda görünür.</div>
+                                <div class="alert alert-info mb-0">
+                                    @(Model.DuzenlemeOnayGerekliMi
+                                        ? "Bu düzenleme onaya gönderilir. Cihaz tekrar admin veya koordinatör onayı bekler."
+                                        : "Bu düzenleme hareket geçmişine yazılmaz; sistem logunda görünür.")
+                                </div>
                             </div>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
-                        <button type="submit" class="btn btn-primary">Kaydet</button>
+                        <button type="submit" class="btn btn-primary">@(Model.DuzenlemeOnayGerekliMi ? "Onaya Gönder" : "Kaydet")</button>
                     </div>
                 </form>
             </div>
@@ -288,18 +318,6 @@
             });
             window.jQuery('#duzenleMarka').on('select2:select select2:clear', toggleOtherEditFields);
         }
-
-        document.querySelectorAll('.history-toggle').forEach(button => {
-            button.addEventListener('click', function () {
-                const cell = this.closest('td');
-                const shortEl = cell.querySelector('.history-short');
-                const fullEl = cell.querySelector('.history-full');
-                const expanded = fullEl.classList.contains('d-none');
-                shortEl.classList.toggle('d-none', expanded);
-                fullEl.classList.toggle('d-none', !expanded);
-                this.textContent = expanded ? '×' : '...';
-            });
-        });
 
         initDetailSearchableSelects();
         loadBrandsForEdit(document.getElementById('duzenleCihazTuru')?.value, document.getElementById('duzenleMarka')?.value);

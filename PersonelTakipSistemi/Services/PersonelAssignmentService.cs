@@ -95,6 +95,7 @@ namespace PersonelTakipSistemi.Services
 
             _context.PersonelKoordinatorlukler.Add(new PersonelKoordinatorluk { PersonelId = personelId, KoordinatorlukId = koordinatorlukId });
             await _context.SaveChangesAsync();
+            await SyncOwnedDevicesToKoordinatorlukAsync(personelId, koordinatorlukId);
 
             koordinatorluk ??= await _context.Koordinatorlukler.FindAsync(koordinatorlukId);
             await _notificationService.CreateAsync(
@@ -526,6 +527,36 @@ namespace PersonelTakipSistemi.Services
             }
 
             return "Genel";
+        }
+
+        private async Task SyncOwnedDevicesToKoordinatorlukAsync(int personelId, int hedefKoordinatorlukId)
+        {
+            var aktifKoordinatorlukIds = await _context.PersonelKoordinatorlukler
+                .Where(x => x.PersonelId == personelId)
+                .Select(x => x.KoordinatorlukId)
+                .ToListAsync();
+
+            if (!aktifKoordinatorlukIds.Contains(hedefKoordinatorlukId))
+            {
+                aktifKoordinatorlukIds.Add(hedefKoordinatorlukId);
+            }
+
+            var guncellenecekCihazlar = await _context.Cihazlar
+                .Where(c => c.SahipPersonelId == personelId && !aktifKoordinatorlukIds.Contains(c.KoordinatorlukId))
+                .ToListAsync();
+
+            if (!guncellenecekCihazlar.Any())
+            {
+                return;
+            }
+
+            foreach (var cihaz in guncellenecekCihazlar)
+            {
+                cihaz.KoordinatorlukId = hedefKoordinatorlukId;
+                cihaz.UpdatedAt = DateTime.Now;
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }

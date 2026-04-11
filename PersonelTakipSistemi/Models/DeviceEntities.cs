@@ -16,6 +16,20 @@ namespace PersonelTakipSistemi.Models
         Devir = 3
     }
 
+    public enum LisansSuresiTuru
+    {
+        Aylik = 1,
+        Yillik = 2,
+        Suresiz = 3
+    }
+
+    public enum LisansKullaniciOnayDurumu
+    {
+        OnayaGonderildi = 1,
+        OnayBekleniyor = 2,
+        Onaylandi = 3
+    }
+
     public class CihazTuru
     {
         [Key]
@@ -89,10 +103,10 @@ namespace PersonelTakipSistemi.Models
         [StringLength(100)]
         public string SeriNo { get; set; } = null!;
 
-        public int SahipPersonelId { get; set; }
+        public int? SahipPersonelId { get; set; }
 
         [ForeignKey(nameof(SahipPersonelId))]
-        public Personel SahipPersonel { get; set; } = null!;
+        public Personel? SahipPersonel { get; set; }
 
         public int KoordinatorlukId { get; set; }
 
@@ -112,10 +126,10 @@ namespace PersonelTakipSistemi.Models
 
         public DateTime? OnayTarihi { get; set; }
 
-        public int OlusturanPersonelId { get; set; }
+        public int? OlusturanPersonelId { get; set; }
 
         [ForeignKey(nameof(OlusturanPersonelId))]
-        public Personel OlusturanPersonel { get; set; } = null!;
+        public Personel? OlusturanPersonel { get; set; }
 
         public bool KoordinatorTarafindanEklendi { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
@@ -146,10 +160,19 @@ namespace PersonelTakipSistemi.Models
         [ForeignKey(nameof(YeniSahipPersonelId))]
         public Personel? YeniSahipPersonel { get; set; }
 
-        public int IslemYapanPersonelId { get; set; }
+        public int? IslemYapanPersonelId { get; set; }
 
         [ForeignKey(nameof(IslemYapanPersonelId))]
-        public Personel IslemYapanPersonel { get; set; } = null!;
+        public Personel? IslemYapanPersonel { get; set; }
+
+        [StringLength(200)]
+        public string? IslemYapanAdSoyad { get; set; }
+
+        [StringLength(200)]
+        public string? OncekiSahipAdSoyad { get; set; }
+
+        [StringLength(200)]
+        public string? YeniSahipAdSoyad { get; set; }
 
         [StringLength(500)]
         public string? Aciklama { get; set; }
@@ -158,5 +181,78 @@ namespace PersonelTakipSistemi.Models
         public string? DurumNotu { get; set; }
 
         public DateTime Tarih { get; set; } = DateTime.Now;
+    }
+
+    public class YazilimLisans
+    {
+        [Key]
+        public int YazilimLisansId { get; set; }
+
+        public int YazilimId { get; set; }
+
+        [ForeignKey(nameof(YazilimId))]
+        public Yazilim Yazilim { get; set; } = null!;
+
+        public int MaksimumLisansHesapAdedi { get; set; }
+
+        public LisansSuresiTuru LisansSuresiTuru { get; set; }
+
+        public DateTime? BaslangicTarihi { get; set; }
+        public DateTime? BitisTarihi { get; set; }
+
+        [StringLength(200)]
+        public string? HesapBasiOrtakKullanimBilgisi { get; set; }
+
+        [StringLength(500)]
+        public string? KullanimAmaci { get; set; }
+
+        public int OlusturanPersonelId { get; set; }
+
+        [ForeignKey(nameof(OlusturanPersonelId))]
+        public Personel OlusturanPersonel { get; set; } = null!;
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
+
+        public ICollection<YazilimLisansKullanici> Kullanicilar { get; set; } = new List<YazilimLisansKullanici>();
+    }
+
+    public class YazilimLisansKullanici
+    {
+        [Key]
+        public int YazilimLisansKullaniciId { get; set; }
+
+        public int YazilimLisansId { get; set; }
+
+        [ForeignKey(nameof(YazilimLisansId))]
+        public YazilimLisans YazilimLisans { get; set; } = null!;
+
+        public int PersonelId { get; set; }
+
+        [ForeignKey(nameof(PersonelId))]
+        public Personel Personel { get; set; } = null!;
+
+        [StringLength(200)]
+        public string? KullaniciAdi { get; set; }
+
+        [StringLength(250)]
+        public string? Eposta { get; set; }
+
+        public LisansKullaniciOnayDurumu OnayDurumu { get; set; } = LisansKullaniciOnayDurumu.OnayaGonderildi;
+
+        public int? OnaylayanPersonelId { get; set; }
+
+        [ForeignKey(nameof(OnaylayanPersonelId))]
+        public Personel? OnaylayanPersonel { get; set; }
+
+        public DateTime? OnayTarihi { get; set; }
+
+        public int KaydiOlusturanPersonelId { get; set; }
+
+        [ForeignKey(nameof(KaydiOlusturanPersonelId))]
+        public Personel KaydiOlusturanPersonel { get; set; } = null!;
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
     }
 }

@@ -326,6 +326,7 @@ namespace PersonelTakipSistemi.Services
         public async Task<int> CreateDeviceAsync(CihazCreateViewModel model, int currentPersonelId, bool isCoordinator)
         {
             ValidateCreateModel(model);
+            var isAdmin = await IsAdminAsync(currentPersonelId);
 
             var cihazTuru = await _context.CihazTurleri.FirstOrDefaultAsync(x => x.CihazTuruId == model.CihazTuruId);
             var marka = await _context.CihazMarkalari.FirstOrDefaultAsync(x => x.CihazMarkaId == model.CihazMarkaId);
@@ -356,7 +357,8 @@ namespace PersonelTakipSistemi.Services
                 throw new InvalidOperationException("Cihaz sahibi seçilmelidir.");
             }
 
-            var koordinatorlukId = await ResolveKoordinatorlukIdAsync(ownerId, currentPersonelId, isCoordinator);
+            await EnsureActivePersonelAsync(ownerId, "Cihaz sahibi aktif personel olmalıdır.");
+            var koordinatorlukId = await ResolveKoordinatorlukIdAsync(ownerId, currentPersonelId, isCoordinator, isAdmin);
             var now = DateTime.Now;
 
             var entity = new Cihaz
@@ -382,6 +384,8 @@ namespace PersonelTakipSistemi.Services
 
             _context.Cihazlar.Add(entity);
             await _context.SaveChangesAsync();
+            var islemYapanAdSoyad = await GetPersonelAdSoyadAsync(currentPersonelId);
+            var sahipAdSoyad = await GetPersonelAdSoyadAsync(ownerId);
 
             _context.CihazHareketleri.Add(new CihazHareketi
             {
@@ -389,6 +393,8 @@ namespace PersonelTakipSistemi.Services
                 HareketTuru = CihazHareketTuru.Kayit,
                 YeniSahipPersonelId = ownerId,
                 IslemYapanPersonelId = currentPersonelId,
+                IslemYapanAdSoyad = islemYapanAdSoyad,
+                YeniSahipAdSoyad = sahipAdSoyad,
                 Aciklama = isCoordinator ? "Koordinatör tarafından cihaz kaydı oluşturuldu." : "Personel tarafından cihaz kaydı oluşturuldu ve onaya gönderildi.",
                 Tarih = now
             });
@@ -401,6 +407,8 @@ namespace PersonelTakipSistemi.Services
                     HareketTuru = CihazHareketTuru.Onay,
                     YeniSahipPersonelId = ownerId,
                     IslemYapanPersonelId = currentPersonelId,
+                    IslemYapanAdSoyad = islemYapanAdSoyad,
+                    YeniSahipAdSoyad = sahipAdSoyad,
                     Aciklama = "Koordinatör cihazı doğrudan onaylı olarak ekledi.",
                     Tarih = now
                 });
@@ -410,7 +418,7 @@ namespace PersonelTakipSistemi.Services
             return entity.CihazId;
         }
 
-        public async Task UpdateDeviceAsync(CihazCreateViewModel model, int currentPersonelId, bool canManage)
+        public async Task<bool> UpdateDeviceAsync(CihazCreateViewModel model, int currentPersonelId, bool canManage)
         {
             if (!model.CihazId.HasValue || model.CihazId <= 0)
             {
@@ -459,9 +467,31 @@ namespace PersonelTakipSistemi.Services
             entity.Model = NormalizeUserText(model.Model);
             entity.Ozellikler = NormalizeUserText(model.Ozellikler);
             entity.SeriNo = NormalizeUserText(model.SeriNo);
-            entity.UpdatedAt = DateTime.Now;
+            var now = DateTime.Now;
+            entity.UpdatedAt = now;
+
+            var approvalRequired = !canManage;
+            if (approvalRequired)
+            {
+                entity.OnayDurumu = CihazOnayDurumu.Beklemede;
+                entity.OnaylayanPersonelId = null;
+                entity.OnayTarihi = null;
+
+                _context.CihazHareketleri.Add(new CihazHareketi
+                {
+                    CihazId = entity.CihazId,
+                    HareketTuru = CihazHareketTuru.Kayit,
+                    YeniSahipPersonelId = entity.SahipPersonelId,
+                    IslemYapanPersonelId = currentPersonelId,
+                    IslemYapanAdSoyad = await GetPersonelAdSoyadAsync(currentPersonelId),
+                    YeniSahipAdSoyad = await GetPersonelAdSoyadAsync(entity.SahipPersonelId),
+                    Aciklama = "Personel cihaz bilgilerini güncelledi ve tekrar onaya gönderdi.",
+                    Tarih = now
+                });
+            }
 
             await _context.SaveChangesAsync();
+            return approvalRequired;
         }
 
         public async Task QuickUpdateDeviceAsync(CihazHizliDuzenleViewModel model, int currentPersonelId, bool isAdmin)
@@ -566,6 +596,8 @@ namespace PersonelTakipSistemi.Services
                 HareketTuru = CihazHareketTuru.Onay,
                 YeniSahipPersonelId = cihaz.SahipPersonelId,
                 IslemYapanPersonelId = currentPersonelId,
+                IslemYapanAdSoyad = await GetPersonelAdSoyadAsync(currentPersonelId),
+                YeniSahipAdSoyad = await GetPersonelAdSoyadAsync(cihaz.SahipPersonelId),
                 Aciklama = "Cihaz koordinatör tarafından onaylandı.",
                 Tarih = now
             });
@@ -604,8 +636,7 @@ namespace PersonelTakipSistemi.Services
                 }
             }
 
-            var ilkKayit = cihaz.Hareketler.Where(x => x.HareketTuru == CihazHareketTuru.Kayit).OrderBy(x => x.Tarih).FirstOrDefault();
-            var ilkSahipMi = ilkKayit?.YeniSahipPersonelId == currentPersonelId;
+            var devralinmisCihazMi = cihaz.AktifSahiplikBaslangicTarihi > cihaz.IlkKayitTarihi;
 
             return new CihazDetayViewModel
             {
@@ -615,16 +646,17 @@ namespace PersonelTakipSistemi.Services
                 Model = DecodeLegacyEntityText(cihaz.Model),
                 Ozellikler = DecodeLegacyEntityText(cihaz.Ozellikler),
                 SeriNo = DecodeLegacyEntityText(cihaz.SeriNo),
-                SahipAdSoyad = DecodeLegacyEntityText($"{cihaz.SahipPersonel.Ad} {cihaz.SahipPersonel.Soyad}"),
+                SahipAdSoyad = DecodeLegacyEntityText(cihaz.SahipPersonel != null ? $"{cihaz.SahipPersonel.Ad} {cihaz.SahipPersonel.Soyad}" : "Sahipsiz"),
                 KoordinatorlukAd = DecodeLegacyEntityText(cihaz.Koordinatorluk.Ad),
                 IlkKayitTarihi = cihaz.IlkKayitTarihi,
-                GosterilecekKayitTarihi = canManage || ilkSahipMi ? cihaz.IlkKayitTarihi : cihaz.AktifSahiplikBaslangicTarihi,
-                KayitTarihiBasligi = canManage || ilkSahipMi ? "İlk Kayıt Tarihi" : "Devralma Tarihi",
+                GosterilecekKayitTarihi = canManage || !devralinmisCihazMi ? cihaz.IlkKayitTarihi : cihaz.AktifSahiplikBaslangicTarihi,
+                KayitTarihiBasligi = canManage || !devralinmisCihazMi ? "İlk Kayıt Tarihi" : "Devir Tarihi",
                 OnayDurumu = cihaz.OnayDurumu,
                 OnayYetkisiVarMi = canManage && cihaz.OnayDurumu == CihazOnayDurumu.Beklemede,
                 HareketlerGorunsunMu = canManage,
                 DevirYetkisiVarMi = canManage && cihaz.OnayDurumu == CihazOnayDurumu.Onaylandi,
                 DuzenlemeYetkisiVarMi = canManage || cihaz.SahipPersonelId == currentPersonelId,
+                DuzenlemeOnayGerekliMi = !canManage && cihaz.SahipPersonelId == currentPersonelId,
                 CihazTurleri = await _context.CihazTurleri.AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.Ad == DigerSecenekAdi ? 1 : 0).ThenBy(x => x.Ad).Select(x => new LookupItemVm { Id = x.CihazTuruId, Ad = x.Ad }).ToListAsync(),
                 Markalar = await GetBrandsByTypeAsync(cihaz.CihazTuruId),
                 DuzenleFormu = new CihazCreateViewModel
@@ -650,9 +682,20 @@ namespace PersonelTakipSistemi.Services
                         CihazHareketTuru.Devir => "Devir",
                         _ => "Hareket"
                     },
-                    IslemYapan = DecodeLegacyEntityText($"{x.IslemYapanPersonel.Ad} {x.IslemYapanPersonel.Soyad}"),
-                    OncekiSahip = x.OncekiSahipPersonel != null ? DecodeLegacyEntityText($"{x.OncekiSahipPersonel.Ad} {x.OncekiSahipPersonel.Soyad}") : null,
-                    YeniSahip = x.YeniSahipPersonel != null ? DecodeLegacyEntityText($"{x.YeniSahipPersonel.Ad} {x.YeniSahipPersonel.Soyad}") : null,
+                    IslemYapan = DecodeLegacyEntityText(ResolvePersonDisplayName(x.IslemYapanPersonel, x.IslemYapanAdSoyad, "Silinen Kullanıcı")),
+                    IslemYapanCizili = ShouldRenderStrikethrough(x.IslemYapanPersonel, x.IslemYapanAdSoyad),
+                    OncekiSahip = x.OncekiSahipPersonelId.HasValue || !string.IsNullOrWhiteSpace(x.OncekiSahipAdSoyad)
+                        ? DecodeLegacyEntityText(ResolvePersonDisplayName(x.OncekiSahipPersonel, x.OncekiSahipAdSoyad, "Silinen Kullanıcı"))
+                        : null,
+                    OncekiSahipCizili = x.OncekiSahipPersonelId.HasValue || !string.IsNullOrWhiteSpace(x.OncekiSahipAdSoyad)
+                        ? ShouldRenderStrikethrough(x.OncekiSahipPersonel, x.OncekiSahipAdSoyad)
+                        : false,
+                    YeniSahip = x.YeniSahipPersonelId.HasValue || !string.IsNullOrWhiteSpace(x.YeniSahipAdSoyad)
+                        ? DecodeLegacyEntityText(ResolvePersonDisplayName(x.YeniSahipPersonel, x.YeniSahipAdSoyad, "Sahipsiz"))
+                        : null,
+                    YeniSahipCizili = x.YeniSahipPersonelId.HasValue || !string.IsNullOrWhiteSpace(x.YeniSahipAdSoyad)
+                        ? ShouldRenderStrikethrough(x.YeniSahipPersonel, x.YeniSahipAdSoyad)
+                        : false,
                     Aciklama = DecodeLegacyEntityText(x.Aciklama),
                     DurumNotu = DecodeLegacyEntityText(x.DurumNotu)
                 }).ToList()
@@ -687,10 +730,12 @@ namespace PersonelTakipSistemi.Services
                 }
             }
 
-            if (cihaz.SahipPersonelId == model.YeniSahipPersonelId)
+            if (cihaz.SahipPersonelId.HasValue && cihaz.SahipPersonelId.Value == model.YeniSahipPersonelId)
             {
                 throw new InvalidOperationException("Cihaz zaten seçilen personele ait.");
             }
+
+            await EnsureActivePersonelAsync(model.YeniSahipPersonelId, "Cihaz sadece aktif personele devredilebilir.");
 
             var hedefAyniKoordinatorlukteMi = await _context.PersonelKoordinatorlukler
                 .AnyAsync(x => x.PersonelId == model.YeniSahipPersonelId && x.KoordinatorlukId == cihaz.KoordinatorlukId);
@@ -712,6 +757,9 @@ namespace PersonelTakipSistemi.Services
 
             var now = DateTime.Now;
             var oncekiSahipId = cihaz.SahipPersonelId;
+            var islemYapanAdSoyad = await GetPersonelAdSoyadAsync(currentPersonelId);
+            var oncekiSahipAdSoyad = await GetPersonelAdSoyadAsync(oncekiSahipId);
+            var yeniSahipAdSoyad = await GetPersonelAdSoyadAsync(model.YeniSahipPersonelId);
             cihaz.SahipPersonelId = model.YeniSahipPersonelId;
             cihaz.AktifSahiplikBaslangicTarihi = now;
             cihaz.SonDevirTarihi = now;
@@ -724,6 +772,9 @@ namespace PersonelTakipSistemi.Services
                 OncekiSahipPersonelId = oncekiSahipId,
                 YeniSahipPersonelId = model.YeniSahipPersonelId,
                 IslemYapanPersonelId = currentPersonelId,
+                IslemYapanAdSoyad = islemYapanAdSoyad,
+                OncekiSahipAdSoyad = oncekiSahipAdSoyad,
+                YeniSahipAdSoyad = yeniSahipAdSoyad,
                 Aciklama = NormalizeUserText(model.DevirNotu),
                 DurumNotu = NormalizeUserText(model.CihazDurumNotu),
                 Tarih = now
@@ -741,7 +792,15 @@ namespace PersonelTakipSistemi.Services
                 .Select(x => x.Yazilim.Ad)
                 .ToListAsync();
 
-            return new YazilimLisanslarimViewModel { Yazilimlar = yazilimlar };
+            return new YazilimLisanslarimViewModel
+            {
+                Lisanslar = yazilimlar.Select(x => new YazilimLisanslarimItemViewModel
+                {
+                    YazilimAdi = DecodeLegacyEntityText(x),
+                    LisansSuresiTuru = "-",
+                    OnayDurumu = "Onaylandı"
+                }).ToList()
+            };
         }
 
         public async Task<bool> IsCoordinatorAsync(int personelId)
@@ -774,7 +833,7 @@ namespace PersonelTakipSistemi.Services
                     Model = x.Model,
                     Ozellikler = x.Ozellikler,
                     SeriNo = x.SeriNo,
-                    SahipAdSoyad = x.SahipPersonel.Ad + " " + x.SahipPersonel.Soyad,
+                    SahipAdSoyad = x.SahipPersonel != null ? x.SahipPersonel.Ad + " " + x.SahipPersonel.Soyad : "Sahipsiz",
                     KoordinatorlukAd = x.Koordinatorluk.Ad,
                     IlkKayitTarihi = x.IlkKayitTarihi,
                     AktifSahiplikBaslangicTarihi = x.AktifSahiplikBaslangicTarihi,
@@ -811,7 +870,17 @@ namespace PersonelTakipSistemi.Services
         private IQueryable<Cihaz> ApplyDeviceFilters(IQueryable<Cihaz> query, CihazListeFilterViewModel filter)
         {
             if (filter.KoordinatorlukId.HasValue) query = query.Where(x => x.KoordinatorlukId == filter.KoordinatorlukId.Value);
-            if (filter.PersonelId.HasValue) query = query.Where(x => x.SahipPersonelId == filter.PersonelId.Value);
+            if (filter.PersonelId.HasValue)
+            {
+                if (filter.PersonelId.Value == -1)
+                {
+                    query = query.Where(x => x.SahipPersonelId == null);
+                }
+                else
+                {
+                    query = query.Where(x => x.SahipPersonelId == filter.PersonelId.Value);
+                }
+            }
             if (filter.CihazTuruId.HasValue) query = query.Where(x => x.CihazTuruId == filter.CihazTuruId.Value);
             if (filter.CihazMarkaId.HasValue) query = query.Where(x => x.CihazMarkaId == filter.CihazMarkaId.Value);
             if (!string.IsNullOrWhiteSpace(filter.ModelAra)) query = query.Where(x => x.Model.ToLower().Contains(filter.ModelAra.Trim().ToLower()));
@@ -837,7 +906,7 @@ namespace PersonelTakipSistemi.Services
             return query;
         }
 
-        private async Task<int> ResolveKoordinatorlukIdAsync(int ownerId, int currentPersonelId, bool isCoordinator)
+        private async Task<int> ResolveKoordinatorlukIdAsync(int ownerId, int currentPersonelId, bool isCoordinator, bool isAdmin)
         {
             var ownerKoordinatorlukleri = await _context.PersonelKoordinatorlukler.AsNoTracking()
                 .Where(x => x.PersonelId == ownerId)
@@ -849,7 +918,7 @@ namespace PersonelTakipSistemi.Services
                 throw new InvalidOperationException("Seçilen personelin bağlı olduğu koordinatörlük bulunamadı.");
             }
 
-            if (!isCoordinator)
+            if (isAdmin || !isCoordinator)
             {
                 return ownerKoordinatorlukleri.First();
             }
@@ -893,28 +962,22 @@ namespace PersonelTakipSistemi.Services
                 .ToListAsync();
         }
 
-        private Task<List<LookupItemVm>> GetAssignablePersonnelByKoordinatorlukAsync(int koordinatorlukId, int excludeId)
+        private Task<List<LookupItemVm>> GetAssignablePersonnelByKoordinatorlukAsync(int koordinatorlukId, int? excludeId)
         {
             return _context.Personeller.AsNoTracking()
-                .Where(x => x.AktifMi && x.PersonelId != excludeId && x.PersonelKoordinatorlukler.Any(pk => pk.KoordinatorlukId == koordinatorlukId))
+                .Where(x => x.AktifMi && (!excludeId.HasValue || x.PersonelId != excludeId.Value) && x.PersonelKoordinatorlukler.Any(pk => pk.KoordinatorlukId == koordinatorlukId))
                 .OrderBy(x => x.Ad).ThenBy(x => x.Soyad)
                 .Select(x => new LookupItemVm { Id = x.PersonelId, Ad = x.Ad + " " + x.Soyad })
                 .ToListAsync();
         }
 
-        private async Task<List<int>> GetCoordinatorScopeIdsAsync(int personelId)
+        private Task<List<int>> GetCoordinatorScopeIdsAsync(int personelId)
         {
-            var roleBasedIds = await _context.PersonelKurumsalRolAtamalari.AsNoTracking()
+            return _context.PersonelKurumsalRolAtamalari.AsNoTracking()
                 .Where(x => x.PersonelId == personelId && x.KoordinatorlukId.HasValue && (x.KurumsalRolId == 3 || x.KurumsalRolId == 5))
                 .Select(x => x.KoordinatorlukId!.Value)
+                .Distinct()
                 .ToListAsync();
-
-            var memberIds = await _context.PersonelKoordinatorlukler.AsNoTracking()
-                .Where(x => x.PersonelId == personelId)
-                .Select(x => x.KoordinatorlukId)
-                .ToListAsync();
-
-            return roleBasedIds.Concat(memberIds).Distinct().ToList();
         }
 
         private async Task<bool> IsAdminAsync(int personelId)
@@ -936,6 +999,16 @@ namespace PersonelTakipSistemi.Services
             }
         }
 
+        private async Task EnsureActivePersonelAsync(int personelId, string errorMessage)
+        {
+            var aktifMi = await _context.Personeller.AsNoTracking()
+                .AnyAsync(x => x.PersonelId == personelId && x.AktifMi);
+
+            if (!aktifMi)
+            {
+                throw new InvalidOperationException(errorMessage);
+            }
+        }
         private static string ResolveTypeName(Cihaz cihaz)
         {
             return DecodeLegacyEntityText(string.IsNullOrWhiteSpace(cihaz.DigerCihazTuruAd) ? cihaz.CihazTuru.Ad : cihaz.DigerCihazTuruAd);
@@ -971,5 +1044,44 @@ namespace PersonelTakipSistemi.Services
 
             return WebUtility.HtmlDecode(value);
         }
+
+        private static string ResolvePersonDisplayName(Personel? personel, string? snapshotName, string fallback)
+        {
+            if (personel != null)
+            {
+                return $"{personel.Ad} {personel.Soyad}";
+            }
+
+            if (!string.IsNullOrWhiteSpace(snapshotName))
+            {
+                return snapshotName;
+            }
+
+            return fallback;
+        }
+
+        private static bool ShouldRenderStrikethrough(Personel? personel, string? snapshotName)
+        {
+            if (personel != null)
+            {
+                return !personel.AktifMi;
+            }
+
+            return !string.IsNullOrWhiteSpace(snapshotName);
+        }
+
+        private async Task<string?> GetPersonelAdSoyadAsync(int? personelId)
+        {
+            if (!personelId.HasValue || personelId.Value <= 0)
+            {
+                return null;
+            }
+
+            return await _context.Personeller.AsNoTracking()
+                .Where(x => x.PersonelId == personelId.Value)
+                .Select(x => x.Ad + " " + x.Soyad)
+                .FirstOrDefaultAsync();
+        }
     }
 }
+

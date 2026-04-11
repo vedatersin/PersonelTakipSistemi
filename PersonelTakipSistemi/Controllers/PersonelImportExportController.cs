@@ -6,6 +6,7 @@ namespace PersonelTakipSistemi.Controllers
     public partial class PersonelController
     {
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> ImportExcel(IFormFile file)
         {
@@ -24,8 +25,8 @@ namespace PersonelTakipSistemi.Controllers
             if (errors.Any())
             {
                 // Partial success or total failure
-                return Json(new 
-                { 
+                return Json(new
+                {
                     success = personeller.Count > 0, // True if some succeeded, false if all failed
                     partial = personeller.Count > 0,
                     message = personeller.Count > 0 ? $"{personeller.Count} personel eklendi. Ancak bazi satirlarda hatalar mevcut:" : "Hiçbir personel eklenemedi. Lütfen hatalari kontrol edin:",
@@ -34,8 +35,9 @@ namespace PersonelTakipSistemi.Controllers
                 });
             }
 
-            return Json(new { 
-                success = true, 
+            return Json(new
+            {
+                success = true,
                 message = $"{personeller.Count} personel basariyla eklendi.",
                 importedIds = personeller.Select(p => p.PersonelId).ToList()
             });
@@ -47,7 +49,6 @@ namespace PersonelTakipSistemi.Controllers
             var content = await _excelService.GeneratePersonelTemplateAsync();
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "PersonelYuklemeSablonu.xlsx");
         }
-
-
     }
 }
+

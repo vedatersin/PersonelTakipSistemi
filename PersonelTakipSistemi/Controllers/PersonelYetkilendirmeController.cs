@@ -13,10 +13,15 @@ namespace PersonelTakipSistemi.Controllers
         private int CurrentUserId => int.Parse(User.FindFirst("PersonelId")?.Value ?? "0");
 
         [HttpGet]
-        [Authorize(Roles = "Admin,Yönetici")]
+        [Authorize]
         public async Task<IActionResult> Yetkilendirme()
         {
             int currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            if (!await CanAccessYetkilendirmeAsync(currentUserId))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+
             var serviceModel = await _personelAuthorizationService.BuildAuthorizationIndexAsync(
                 currentUserId,
                 User.IsInRole("Admin"),
@@ -26,10 +31,15 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin,Yönetici")]
+        [Authorize]
         public async Task<IActionResult> GetYetkilendirmeData(int id)
         {
             int currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            if (!await CanAccessYetkilendirmeAsync(currentUserId))
+            {
+                return Forbid();
+            }
+
             var serviceModel = await _personelAuthorizationService.BuildAuthorizationDetailAsync(id, currentUserId, User.IsInRole("Admin"));
             if (serviceModel == null)
             {
@@ -81,6 +91,22 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             return Ok();
+        }
+
+        private async Task<bool> CanAccessYetkilendirmeAsync(int currentUserId)
+        {
+            if (User.IsInRole("Admin") || User.IsInRole("Yönetici") || User.IsInRole("Editör"))
+            {
+                return true;
+            }
+
+            if (currentUserId <= 0)
+            {
+                return false;
+            }
+
+            return await _context.PersonelKurumsalRolAtamalari.AsNoTracking()
+                .AnyAsync(a => a.PersonelId == currentUserId && (a.KurumsalRolId == 3 || a.KurumsalRolId == 5));
         }
 
         [HttpPost]
@@ -227,6 +253,10 @@ namespace PersonelTakipSistemi.Controllers
                         }
                     }
 
+                    var oncekiKoordinatorlukIds = personel.PersonelKoordinatorlukler
+                        .Select(pk => pk.KoordinatorlukId)
+                        .ToHashSet();
+
                     var koordsToRemove = personel.PersonelKoordinatorlukler.Where(pk => !dto.KoordinatorlukIds.Contains(pk.KoordinatorlukId)).ToList();
                     _context.PersonelKoordinatorlukler.RemoveRange(koordsToRemove);
                     foreach (var kid in dto.KoordinatorlukIds)
@@ -234,6 +264,27 @@ namespace PersonelTakipSistemi.Controllers
                         if (!personel.PersonelKoordinatorlukler.Any(pk => pk.KoordinatorlukId == kid))
                         {
                             _context.PersonelKoordinatorlukler.Add(new PersonelKoordinatorluk { PersonelId = personel.PersonelId, KoordinatorlukId = kid });
+                        }
+                    }
+
+                    var guncelKoordinatorlukIds = dto.KoordinatorlukIds
+                        .Distinct()
+                        .ToList();
+                    var yeniKoordinatorlukId = guncelKoordinatorlukIds
+                        .FirstOrDefault(kid => !oncekiKoordinatorlukIds.Contains(kid));
+                    if (yeniKoordinatorlukId > 0)
+                    {
+                        var personelCihazlari = await _context.Cihazlar
+                            .Where(c => c.SahipPersonelId == personel.PersonelId)
+                            .ToListAsync();
+
+                        foreach (var cihaz in personelCihazlari)
+                        {
+                            if (!guncelKoordinatorlukIds.Contains(cihaz.KoordinatorlukId))
+                            {
+                                cihaz.KoordinatorlukId = yeniKoordinatorlukId;
+                                cihaz.UpdatedAt = DateTime.Now;
+                            }
                         }
                     }
 
