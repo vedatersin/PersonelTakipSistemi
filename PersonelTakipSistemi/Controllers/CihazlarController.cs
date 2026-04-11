@@ -387,21 +387,21 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> YazilimLisansYonetimi()
         {
             var currentPersonelId = GetCurrentPersonelId();
             var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
-            var coordinatorMi = await _cihazService.IsCoordinatorAsync(currentPersonelId);
-            var kullaniciYonetebilirMi = lisansYonetebilirMi || coordinatorMi;
-            if (!kullaniciYonetebilirMi)
+            if (!lisansYonetebilirMi)
             {
                 return RedirectToAction(nameof(BenimCihazlarim));
             }
 
-            return View(await _yazilimLisansService.GetYonetimPageAsync(currentPersonelId, lisansYonetebilirMi, kullaniciYonetebilirMi));
+            return View(await _yazilimLisansService.GetYonetimPageAsync(currentPersonelId, lisansYonetebilirMi, lisansYonetebilirMi));
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> YazilimLisansEkle([Bind(Prefix = "YeniLisans")] YazilimLisansFormViewModel model)
         {
@@ -422,6 +422,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> YazilimLisansGuncelle([Bind(Prefix = "DuzenleFormu")] YazilimLisansFormViewModel model, bool returnToYonetim = false)
         {
@@ -447,6 +448,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> YazilimLisansSil(int lisansId)
         {
@@ -467,31 +469,30 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> YazilimLisansDetay(int id)
         {
             var currentPersonelId = GetCurrentPersonelId();
             var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
-            var coordinatorMi = await _cihazService.IsCoordinatorAsync(currentPersonelId);
-            var kullaniciYonetebilirMi = lisansYonetebilirMi || coordinatorMi;
-            if (!kullaniciYonetebilirMi)
+            if (!lisansYonetebilirMi)
             {
                 return RedirectToAction(nameof(BenimCihazlarim));
             }
 
-            var model = await _yazilimLisansService.GetDetayPageAsync(id, currentPersonelId, lisansYonetebilirMi, kullaniciYonetebilirMi);
+            var model = await _yazilimLisansService.GetDetayPageAsync(id, currentPersonelId, lisansYonetebilirMi, lisansYonetebilirMi);
             return model == null ? NotFound() : View(model);
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> YazilimLisansKullaniciEkle(YazilimLisansKullaniciFormViewModel model)
         {
             var currentPersonelId = GetCurrentPersonelId();
             var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
-            var kullaniciYonetebilirMi = lisansYonetebilirMi || await _cihazService.IsCoordinatorAsync(currentPersonelId);
             try
             {
-                await _yazilimLisansService.AddKullaniciAsync(model, currentPersonelId, kullaniciYonetebilirMi);
+                await _yazilimLisansService.AddKullaniciAsync(model, currentPersonelId, lisansYonetebilirMi);
                 await _logService.LogAsync("Yazılım Lisans Kullanıcı Ekleme", $"Lisansa kullanıcı eklendi. LisansId: {model.YazilimLisansId}, PersonelId: {model.PersonelId}");
                 TempData["SuccessMessage"] = "Lisans kullanıcısı eklendi.";
             }
@@ -504,15 +505,15 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> YazilimLisansKullaniciGuncelle(YazilimLisansKullaniciFormViewModel model)
         {
             var currentPersonelId = GetCurrentPersonelId();
             var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
-            var kullaniciYonetebilirMi = lisansYonetebilirMi || await _cihazService.IsCoordinatorAsync(currentPersonelId);
             try
             {
-                await _yazilimLisansService.UpdateKullaniciAsync(model, currentPersonelId, kullaniciYonetebilirMi);
+                await _yazilimLisansService.UpdateKullaniciAsync(model, currentPersonelId, lisansYonetebilirMi);
                 await _logService.LogAsync("Yazılım Lisans Kullanıcı Güncelleme", $"Lisans kullanıcı kaydı güncellendi. LisansKullaniciId: {model.YazilimLisansKullaniciId}");
                 TempData["SuccessMessage"] = "Lisans kullanıcı bilgileri güncellendi.";
             }
@@ -525,15 +526,15 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> YazilimLisansKullaniciSil(int lisansKullaniciId, int lisansId)
         {
             var currentPersonelId = GetCurrentPersonelId();
             var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
-            var kullaniciYonetebilirMi = lisansYonetebilirMi || await _cihazService.IsCoordinatorAsync(currentPersonelId);
             try
             {
-                await _yazilimLisansService.DeleteKullaniciAsync(lisansKullaniciId, lisansId, currentPersonelId, kullaniciYonetebilirMi);
+                await _yazilimLisansService.DeleteKullaniciAsync(lisansKullaniciId, lisansId, currentPersonelId, lisansYonetebilirMi);
                 await _logService.LogAsync("Yazılım Lisans Kullanıcı Silme", $"Lisans kullanıcı kaydı silindi. LisansKullaniciId: {lisansKullaniciId}");
                 TempData["SuccessMessage"] = "Lisans kullanıcısı silindi.";
             }
@@ -565,15 +566,15 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> YazilimLisansKullaniciOnayKarar(YazilimLisansKullaniciKararFormViewModel model)
         {
             var currentPersonelId = GetCurrentPersonelId();
             var lisansYonetebilirMi = User.IsInRole("Admin") || User.IsInRole("Yönetici");
-            var kullaniciYonetebilirMi = lisansYonetebilirMi || await _cihazService.IsCoordinatorAsync(currentPersonelId);
             try
             {
-                await _yazilimLisansService.YoneticiOnayKarariVerAsync(model, currentPersonelId, kullaniciYonetebilirMi);
+                await _yazilimLisansService.YoneticiOnayKarariVerAsync(model, currentPersonelId, lisansYonetebilirMi);
                 await _logService.LogAsync("Yazılım Lisans Kullanıcı Onay Kararı", $"Lisans kullanıcı kaydı için onay kararı verildi. LisansKullaniciId: {model.YazilimLisansKullaniciId}, Onayla: {model.Onayla}");
                 TempData["SuccessMessage"] = model.Onayla
                     ? "Lisans kullanıcı kaydı onaylandı."

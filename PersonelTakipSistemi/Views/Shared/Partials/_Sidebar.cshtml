@@ -166,9 +166,7 @@
             || string.Equals(currentController, "BildirimModulu", StringComparison.OrdinalIgnoreCase)
             || (isPersonelController && string.Equals(currentAction, "Yetkilendirme", StringComparison.OrdinalIgnoreCase))
             || (string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase)
-                && (string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(currentAction, "YazilimLisansYonetimi", StringComparison.OrdinalIgnoreCase)
-                    || string.Equals(currentAction, "YazilimLisansDetay", StringComparison.OrdinalIgnoreCase)));
+                && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase));
 
         <li class="menu-item @(isKoordinatorlukModuleOpen ? "active open" : "")">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -195,11 +193,6 @@
                 <a asp-controller="Cihazlar" asp-action="Liste" class="menu-link">
                     <div class="text-truncate">Cihaz Yönetimi</div>
                 </a>
-            </li>
-            <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && (string.Equals(currentAction, "YazilimLisansYonetimi", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "YazilimLisansDetay", StringComparison.OrdinalIgnoreCase)) ? "active" : "")">
-              <a asp-controller="Cihazlar" asp-action="YazilimLisansYonetimi" class="menu-link">
-                <div class="text-truncate">Yazılım Lisansları Yönetimi</div>
-              </a>
             </li>
           </ul>
         </li>

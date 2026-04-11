@@ -17,7 +17,6 @@ namespace PersonelTakipSistemi.Services
 
         public async Task<YazilimLisansYonetimPageViewModel> GetYonetimPageAsync(int currentPersonelId, bool lisansYonetebilirMi, bool kullaniciYonetebilirMi)
         {
-            var scopeIds = await GetCoordinatorScopeIdsAsync(currentPersonelId);
             var baseList = await _context.YazilimLisanslar.AsNoTracking()
                 .Include(x => x.Yazilim)
                 .Include(x => x.Kullanicilar)
@@ -27,7 +26,6 @@ namespace PersonelTakipSistemi.Services
                 .ToListAsync();
 
             var lisanslar = baseList
-                .Where(x => lisansYonetebilirMi || x.Kullanicilar.Any(k => IsInCoordinatorScope(k.Personel, scopeIds)))
                 .Select(x => new YazilimLisansListeItemViewModel
                 {
                     YazilimLisansId = x.YazilimLisansId,
@@ -47,7 +45,7 @@ namespace PersonelTakipSistemi.Services
             {
                 LisansYonetebilirMi = lisansYonetebilirMi,
                 KullaniciYonetebilirMi = kullaniciYonetebilirMi,
-                KoordinatorMu = !lisansYonetebilirMi && kullaniciYonetebilirMi,
+                KoordinatorMu = false,
                 Yazilimlar = lisansYonetebilirMi
                     ? await _context.Yazilimlar.AsNoTracking()
                         .OrderBy(x => x.Ad)
@@ -73,9 +71,7 @@ namespace PersonelTakipSistemi.Services
                 return null;
             }
 
-            var scopeIds = await GetCoordinatorScopeIdsAsync(currentPersonelId);
             var kullanicilar = lisans.Kullanicilar
-                .Where(x => lisansYonetebilirMi || IsInCoordinatorScope(x.Personel, scopeIds))
                 .Select(x => new YazilimLisansKullaniciItemViewModel
                 {
                     YazilimLisansKullaniciId = x.YazilimLisansKullaniciId,
@@ -91,11 +87,6 @@ namespace PersonelTakipSistemi.Services
                 })
                 .OrderBy(x => x.LisansSahibiAdSoyad)
                 .ToList();
-
-            if (!lisansYonetebilirMi && !kullanicilar.Any())
-            {
-                return null;
-            }
 
             return new YazilimLisansDetayPageViewModel
             {
@@ -236,8 +227,6 @@ namespace PersonelTakipSistemi.Services
                 throw new InvalidOperationException("Secilen personel bulunamadi veya aktif degil.");
             }
 
-            await EnsureCoordinatorCanManagePersonelAsync(currentPersonelId, personel);
-
             var mevcut = await _context.YazilimLisansKullanicilar.AnyAsync(x => x.YazilimLisansId == model.YazilimLisansId && x.PersonelId == model.PersonelId);
             if (mevcut)
             {
@@ -277,8 +266,6 @@ namespace PersonelTakipSistemi.Services
                 throw new InvalidOperationException("Lisans kullanici kaydi bulunamadi.");
             }
 
-            await EnsureCoordinatorCanManagePersonelAsync(currentPersonelId, entity.Personel);
-
             entity.KullaniciAdi = NormalizeNullableText(model.KullaniciAdi);
             entity.Eposta = NormalizeNullableText(model.Eposta);
             entity.UpdatedAt = DateTime.Now;
@@ -297,8 +284,6 @@ namespace PersonelTakipSistemi.Services
             {
                 throw new InvalidOperationException("Lisans kullanici kaydi bulunamadi.");
             }
-
-            await EnsureCoordinatorCanManagePersonelAsync(currentPersonelId, entity.Personel);
 
             _context.YazilimLisansKullanicilar.Remove(entity);
             await _context.SaveChangesAsync();
@@ -360,8 +345,6 @@ namespace PersonelTakipSistemi.Services
                 throw new InvalidOperationException("Lisans kullanici kaydi bulunamadi.");
             }
 
-            await EnsureCoordinatorCanManagePersonelAsync(currentPersonelId, entity.Personel);
-
             if (entity.OnayDurumu != LisansKullaniciOnayDurumu.OnayBekleniyor)
             {
                 throw new InvalidOperationException("Bu kayit icin yonetici onay islemi su anda yapilamaz.");
@@ -411,56 +394,11 @@ namespace PersonelTakipSistemi.Services
 
         private async Task<List<LookupItemVm>> GetAssignablePersonnelAsync(int currentPersonelId, bool lisansYonetebilirMi)
         {
-            if (lisansYonetebilirMi)
-            {
-                return await _context.Personeller.AsNoTracking()
-                    .Where(x => x.AktifMi)
-                    .OrderBy(x => x.Ad).ThenBy(x => x.Soyad)
-                    .Select(x => new LookupItemVm { Id = x.PersonelId, Ad = x.Ad + " " + x.Soyad })
-                    .ToListAsync();
-            }
-
-            var scopeIds = await GetCoordinatorScopeIdsAsync(currentPersonelId);
             return await _context.Personeller.AsNoTracking()
-                .Where(x => x.AktifMi && x.PersonelKoordinatorlukler.Any(pk => scopeIds.Contains(pk.KoordinatorlukId)))
+                .Where(x => x.AktifMi)
                 .OrderBy(x => x.Ad).ThenBy(x => x.Soyad)
                 .Select(x => new LookupItemVm { Id = x.PersonelId, Ad = x.Ad + " " + x.Soyad })
                 .ToListAsync();
-        }
-
-        private async Task EnsureCoordinatorCanManagePersonelAsync(int currentPersonelId, Personel personel)
-        {
-            var isMaster = await IsMasterManagerAsync(currentPersonelId);
-            if (isMaster)
-            {
-                return;
-            }
-
-            var scopeIds = await GetCoordinatorScopeIdsAsync(currentPersonelId);
-            if (!scopeIds.Any() || !IsInCoordinatorScope(personel, scopeIds))
-            {
-                throw new InvalidOperationException("Bu personel icin islem yapma yetkiniz yok.");
-            }
-        }
-
-        private static bool IsInCoordinatorScope(Personel personel, IReadOnlyCollection<int> scopeIds)
-        {
-            return personel.PersonelKoordinatorlukler.Any(pk => scopeIds.Contains(pk.KoordinatorlukId));
-        }
-
-        private async Task<List<int>> GetCoordinatorScopeIdsAsync(int personelId)
-        {
-            return await _context.PersonelKurumsalRolAtamalari.AsNoTracking()
-                .Where(x => x.PersonelId == personelId && x.KoordinatorlukId.HasValue && (x.KurumsalRolId == 3 || x.KurumsalRolId == 5))
-                .Select(x => x.KoordinatorlukId!.Value)
-                .Distinct()
-                .ToListAsync();
-        }
-
-        private async Task<bool> IsMasterManagerAsync(int personelId)
-        {
-            return await _context.Personeller.AsNoTracking()
-                .AnyAsync(x => x.PersonelId == personelId && (x.SistemRolId == 1 || x.SistemRolId == 2));
         }
 
         private static void EnsureMasterManagePermission(bool lisansYonetebilirMi)
