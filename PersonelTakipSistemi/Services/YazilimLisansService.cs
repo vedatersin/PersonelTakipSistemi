@@ -17,29 +17,29 @@ namespace PersonelTakipSistemi.Services
 
         public async Task<YazilimLisansYonetimPageViewModel> GetYonetimPageAsync(int currentPersonelId, bool lisansYonetebilirMi, bool kullaniciYonetebilirMi)
         {
-            var baseList = await _context.YazilimLisanslar.AsNoTracking()
-                .Include(x => x.Yazilim)
-                .Include(x => x.Kullanicilar)
-                    .ThenInclude(x => x.Personel)
-                        .ThenInclude(x => x.PersonelKoordinatorlukler)
+            var lisanslar = await _context.YazilimLisanslar.AsNoTracking()
                 .OrderByDescending(x => x.CreatedAt)
-                .ToListAsync();
-
-            var lisanslar = baseList
                 .Select(x => new YazilimLisansListeItemViewModel
                 {
                     YazilimLisansId = x.YazilimLisansId,
                     YazilimId = x.YazilimId,
-                    YazilimAdi = DecodeText(x.Yazilim.Ad) ?? string.Empty,
+                    YazilimAdi = x.Yazilim.Ad,
                     LisansSuresiTuru = GetLisansSuresiTuruText(x.LisansSuresiTuru),
                     BaslangicTarihi = x.BaslangicTarihi,
                     BitisTarihi = x.BitisTarihi,
-                    HesapBasiOrtakKullanimBilgisi = DecodeText(x.HesapBasiOrtakKullanimBilgisi),
-                    KullanimAmaci = DecodeText(x.KullanimAmaci),
+                    HesapBasiOrtakKullanimBilgisi = x.HesapBasiOrtakKullanimBilgisi,
+                    KullanimAmaci = x.KullanimAmaci,
                     KullanilanLisansAdedi = x.Kullanicilar.Count(),
                     ToplamLisansAdedi = x.MaksimumLisansHesapAdedi
                 })
-                .ToList();
+                .ToListAsync();
+
+            foreach (var lisans in lisanslar)
+            {
+                lisans.YazilimAdi = DecodeText(lisans.YazilimAdi) ?? string.Empty;
+                lisans.HesapBasiOrtakKullanimBilgisi = DecodeText(lisans.HesapBasiOrtakKullanimBilgisi);
+                lisans.KullanimAmaci = DecodeText(lisans.KullanimAmaci);
+            }
 
             return new YazilimLisansYonetimPageViewModel
             {
