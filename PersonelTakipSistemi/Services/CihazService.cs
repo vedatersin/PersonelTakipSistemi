@@ -412,11 +412,6 @@ namespace PersonelTakipSistemi.Services
 
         public async Task UpdateDeviceAsync(CihazCreateViewModel model, int currentPersonelId, bool canManage)
         {
-            if (!canManage)
-            {
-                throw new InvalidOperationException("Bu cihazı düzenleme yetkiniz bulunmuyor.");
-            }
-
             if (!model.CihazId.HasValue || model.CihazId <= 0)
             {
                 throw new InvalidOperationException("Güncellenecek cihaz bulunamadı.");
@@ -428,6 +423,11 @@ namespace PersonelTakipSistemi.Services
             if (entity == null)
             {
                 throw new InvalidOperationException("Cihaz bulunamadı.");
+            }
+
+            if (!canManage && entity.SahipPersonelId != currentPersonelId)
+            {
+                throw new InvalidOperationException("Bu cihazı düzenleme yetkiniz bulunmuyor.");
             }
 
             var cihazTuru = await _context.CihazTurleri.FirstOrDefaultAsync(x => x.CihazTuruId == model.CihazTuruId);
@@ -464,9 +464,79 @@ namespace PersonelTakipSistemi.Services
             await _context.SaveChangesAsync();
         }
 
+        public async Task QuickUpdateDeviceAsync(CihazHizliDuzenleViewModel model, int currentPersonelId, bool isAdmin)
+        {
+            if (!isAdmin)
+            {
+                throw new InvalidOperationException("Bu işlem için admin yetkisi gereklidir.");
+            }
+
+            var entity = await _context.Cihazlar.FirstOrDefaultAsync(x => x.CihazId == model.CihazId);
+            if (entity == null)
+            {
+                throw new InvalidOperationException("Cihaz bulunamadı.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Model) || string.IsNullOrWhiteSpace(model.Ozellikler) || string.IsNullOrWhiteSpace(model.SeriNo))
+            {
+                throw new InvalidOperationException("Model, özellikler ve seri no alanları zorunludur.");
+            }
+
+            var cihazTuru = await _context.CihazTurleri.FirstOrDefaultAsync(x => x.CihazTuruId == model.CihazTuruId && x.IsActive);
+            var marka = await _context.CihazMarkalari.FirstOrDefaultAsync(x => x.CihazMarkaId == model.CihazMarkaId && x.IsActive);
+            if (cihazTuru == null || marka == null)
+            {
+                throw new InvalidOperationException("Seçilen cihaz türü veya marka geçersiz.");
+            }
+
+            if (marka.CihazMarkaId != DigerMarkaId && marka.CihazTuruId != cihazTuru.CihazTuruId)
+            {
+                throw new InvalidOperationException("Seçilen marka, seçilen cihaz türüne bağlı değil.");
+            }
+
+            if (cihazTuru.CihazTuruId == DigerCihazTuruId && string.IsNullOrWhiteSpace(model.DigerCihazTuruAd))
+            {
+                throw new InvalidOperationException("Diğer cihaz türü seçildiğinde cihaz türü adı girilmelidir.");
+            }
+
+            if (marka.CihazMarkaId == DigerMarkaId && string.IsNullOrWhiteSpace(model.DigerMarkaAd))
+            {
+                throw new InvalidOperationException("Diğer marka seçildiğinde marka adı girilmelidir.");
+            }
+
+            entity.CihazTuruId = cihazTuru.CihazTuruId;
+            entity.CihazMarkaId = marka.CihazMarkaId;
+            entity.DigerCihazTuruAd = cihazTuru.CihazTuruId == DigerCihazTuruId ? NormalizeNullableUserText(model.DigerCihazTuruAd) : null;
+            entity.DigerMarkaAd = marka.CihazMarkaId == DigerMarkaId ? NormalizeNullableUserText(model.DigerMarkaAd) : null;
+            entity.Model = NormalizeUserText(model.Model);
+            entity.Ozellikler = NormalizeUserText(model.Ozellikler);
+            entity.SeriNo = NormalizeUserText(model.SeriNo);
+            entity.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteDeviceAsync(int cihazId, int currentPersonelId, bool isAdmin)
+        {
+            if (!isAdmin)
+            {
+                throw new InvalidOperationException("Bu işlem için admin yetkisi gereklidir.");
+            }
+
+            var entity = await _context.Cihazlar.FirstOrDefaultAsync(x => x.CihazId == cihazId);
+            if (entity == null)
+            {
+                throw new InvalidOperationException("Cihaz bulunamadı.");
+            }
+
+            _context.Cihazlar.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
         public async Task ApproveDeviceAsync(int cihazId, int currentPersonelId)
         {
-            var scopeIds = await GetCoordinatorScopeIdsAsync(currentPersonelId);
+            var isAdmin = await IsAdminAsync(currentPersonelId);
+            var scopeIds = isAdmin ? new List<int>() : await GetCoordinatorScopeIdsAsync(currentPersonelId);
             var cihaz = await _context.Cihazlar.FirstOrDefaultAsync(x => x.CihazId == cihazId);
 
             if (cihaz == null)
@@ -474,7 +544,7 @@ namespace PersonelTakipSistemi.Services
                 throw new InvalidOperationException("Cihaz bulunamadı.");
             }
 
-            if (!scopeIds.Contains(cihaz.KoordinatorlukId))
+            if (!isAdmin && !scopeIds.Contains(cihaz.KoordinatorlukId))
             {
                 throw new InvalidOperationException("Bu cihazı onaylama yetkiniz yok.");
             }
@@ -551,9 +621,10 @@ namespace PersonelTakipSistemi.Services
                 GosterilecekKayitTarihi = canManage || ilkSahipMi ? cihaz.IlkKayitTarihi : cihaz.AktifSahiplikBaslangicTarihi,
                 KayitTarihiBasligi = canManage || ilkSahipMi ? "İlk Kayıt Tarihi" : "Devralma Tarihi",
                 OnayDurumu = cihaz.OnayDurumu,
+                OnayYetkisiVarMi = canManage && cihaz.OnayDurumu == CihazOnayDurumu.Beklemede,
                 HareketlerGorunsunMu = canManage,
                 DevirYetkisiVarMi = canManage && cihaz.OnayDurumu == CihazOnayDurumu.Onaylandi,
-                DuzenlemeYetkisiVarMi = canManage,
+                DuzenlemeYetkisiVarMi = canManage || cihaz.SahipPersonelId == currentPersonelId,
                 CihazTurleri = await _context.CihazTurleri.AsNoTracking().Where(x => x.IsActive).OrderBy(x => x.Ad == DigerSecenekAdi ? 1 : 0).ThenBy(x => x.Ad).Select(x => new LookupItemVm { Id = x.CihazTuruId, Ad = x.Ad }).ToListAsync(),
                 Markalar = await GetBrandsByTypeAsync(cihaz.CihazTuruId),
                 DuzenleFormu = new CihazCreateViewModel
@@ -694,6 +765,10 @@ namespace PersonelTakipSistemi.Services
                 .Select(x => new CihazListeItemViewModel
                 {
                     CihazId = x.CihazId,
+                    CihazTuruId = x.CihazTuruId,
+                    CihazMarkaId = x.CihazMarkaId,
+                    DigerCihazTuruAd = x.DigerCihazTuruAd,
+                    DigerMarkaAd = x.DigerMarkaAd,
                     CihazTuru = x.DigerCihazTuruAd ?? x.CihazTuru.Ad,
                     Marka = x.DigerMarkaAd ?? x.CihazMarka.Ad,
                     Model = x.Model,
@@ -711,6 +786,8 @@ namespace PersonelTakipSistemi.Services
             {
                 item.CihazTuru = DecodeLegacyEntityText(item.CihazTuru);
                 item.Marka = DecodeLegacyEntityText(item.Marka);
+                item.DigerCihazTuruAd = DecodeLegacyEntityText(item.DigerCihazTuruAd);
+                item.DigerMarkaAd = DecodeLegacyEntityText(item.DigerMarkaAd);
                 item.Model = DecodeLegacyEntityText(item.Model);
                 item.Ozellikler = DecodeLegacyEntityText(item.Ozellikler);
                 item.SeriNo = DecodeLegacyEntityText(item.SeriNo);

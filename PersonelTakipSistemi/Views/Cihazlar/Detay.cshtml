@@ -1,11 +1,12 @@
 ﻿@model PersonelTakipSistemi.ViewModels.CihazDetayViewModel
 @{
     ViewData["Title"] = "Cihaz Detayı";
+    var returnAction = (string?)ViewBag.ReturnAction ?? "BenimCihazlarim";
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="mb-3">
-        <a asp-action="BenimCihazlarim" class="btn btn-label-secondary"><i class="bx bx-arrow-back me-1"></i> Cihazlarıma Dön</a>
+        <a asp-action="@returnAction" class="btn btn-label-secondary"><i class="bx bx-arrow-back me-1"></i> Geri Dön</a>
     </div>
 
     @if (TempData["SuccessMessage"] != null)
@@ -18,11 +19,20 @@
     }
 
     <div class="row">
-        <div class="col-lg-8 mb-4">
+        <div class="col-lg-12 mb-4">
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">@Model.CihazTuru - @Model.Marka</h5>
                     <div class="d-flex gap-2">
+                        @if (Model.OnayYetkisiVarMi)
+                        {
+                            <form asp-action="OnaylaDetay" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="cihazId" value="@Model.CihazId" />
+                                <input type="hidden" name="returnAction" value="@returnAction" />
+                                <button type="submit" class="btn btn-warning">Onayla</button>
+                            </form>
+                        }
                         @if (Model.DuzenlemeYetkisiVarMi)
                         {
                             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#duzenleModal">Cihazı Düzenle</button>
@@ -94,52 +104,67 @@
             <div class="modal-content">
                 <form asp-action="Guncelle" method="post">
                     @Html.AntiForgeryToken()
-                    <input asp-for="DuzenleFormu.CihazId" type="hidden" />
+                    <input type="hidden" name="CihazId" value="@Model.DuzenleFormu.CihazId" />
+                    <input type="hidden" name="returnAction" value="@returnAction" />
                     <div class="modal-header">
                         <h5 class="modal-title">Cihazı Düzenle / Normalize Et</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-12">
                                 <label class="form-label">Cihaz Türü</label>
-                                <select asp-for="DuzenleFormu.CihazTuruId" class="form-select" id="duzenleCihazTuru">
+                                <select name="CihazTuruId" class="form-select searchable-select" id="duzenleCihazTuru">
                                     <option value="">Seçiniz</option>
                                     @foreach (var item in Model.CihazTurleri)
                                     {
-                                        <option value="@item.Id">@item.Ad</option>
+                                        if (item.Id == Model.DuzenleFormu.CihazTuruId)
+                                        {
+                                            <option value="@item.Id" selected>@item.Ad</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.Id">@item.Ad</option>
+                                        }
                                     }
                                 </select>
                             </div>
-                            <div class="col-md-6 @(Model.DuzenleFormu.CihazTuruId == 999 ? "" : "d-none")" id="duzenleDigerTurWrap">
+                            <div class="col-12 @(Model.DuzenleFormu.CihazTuruId == 999 ? "" : "d-none")" id="duzenleDigerTurWrap">
                                 <label class="form-label">Diğer Cihaz Türü</label>
-                                <input asp-for="DuzenleFormu.DigerCihazTuruAd" class="form-control" />
+                                <input name="DigerCihazTuruAd" value="@Model.DuzenleFormu.DigerCihazTuruAd" class="form-control" />
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-12">
                                 <label class="form-label">Marka</label>
-                                <select asp-for="DuzenleFormu.CihazMarkaId" class="form-select" id="duzenleMarka">
+                                <select name="CihazMarkaId" class="form-select searchable-select" id="duzenleMarka">
                                     <option value="">Seçiniz</option>
                                     @foreach (var item in Model.Markalar)
                                     {
-                                        <option value="@item.Id">@item.Ad</option>
+                                        if (item.Id == Model.DuzenleFormu.CihazMarkaId)
+                                        {
+                                            <option value="@item.Id" selected>@item.Ad</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@item.Id">@item.Ad</option>
+                                        }
                                     }
                                 </select>
                             </div>
-                            <div class="col-md-6 @(Model.DuzenleFormu.CihazMarkaId == 99999 ? "" : "d-none")" id="duzenleDigerMarkaWrap">
+                            <div class="col-12 @(Model.DuzenleFormu.CihazMarkaId == 99999 ? "" : "d-none")" id="duzenleDigerMarkaWrap">
                                 <label class="form-label">Diğer Marka</label>
-                                <input asp-for="DuzenleFormu.DigerMarkaAd" class="form-control" />
+                                <input name="DigerMarkaAd" value="@Model.DuzenleFormu.DigerMarkaAd" class="form-control" />
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12">
                                 <label class="form-label">Model</label>
-                                <input asp-for="DuzenleFormu.Model" class="form-control" />
+                                <input name="Model" value="@Model.DuzenleFormu.Model" class="form-control" />
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12">
                                 <label class="form-label">Özellikler</label>
-                                <input asp-for="DuzenleFormu.Ozellikler" class="form-control" />
+                                <input name="Ozellikler" value="@Model.DuzenleFormu.Ozellikler" class="form-control" />
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12">
                                 <label class="form-label">Seri No</label>
-                                <input asp-for="DuzenleFormu.SeriNo" class="form-control" />
+                                <input name="SeriNo" value="@Model.DuzenleFormu.SeriNo" class="form-control" />
                             </div>
                             <div class="col-12">
                                 <div class="alert alert-info mb-0">Bu düzenleme hareket geçmişine yazılmaz; sistem logunda görünür.</div>
@@ -163,7 +188,8 @@
             <div class="modal-content">
                 <form asp-action="Devret" method="post">
                     @Html.AntiForgeryToken()
-                    <input asp-for="DevirFormu.CihazId" type="hidden" />
+                    <input type="hidden" name="CihazId" value="@Model.DevirFormu.CihazId" />
+                    <input type="hidden" name="returnAction" value="@returnAction" />
                     <div class="modal-header">
                         <h5 class="modal-title">Cihazı Devret</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -175,7 +201,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Devredilecek Personel</label>
-                            <select asp-for="DevirFormu.YeniSahipPersonelId" class="form-select">
+                            <select name="YeniSahipPersonelId" class="form-select searchable-select" id="devirYeniSahipPersonelId">
                                 <option value="">Seçiniz</option>
                                 @foreach (var item in Model.DevredilebilirPersoneller)
                                 {
@@ -185,11 +211,11 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Devir Notu</label>
-                            <textarea asp-for="DevirFormu.DevirNotu" class="form-control" rows="3"></textarea>
+                            <textarea name="DevirNotu" class="form-control" rows="3">@Model.DevirFormu.DevirNotu</textarea>
                         </div>
                         <div>
                             <label class="form-label">Cihaz Notu</label>
-                            <textarea asp-for="DevirFormu.CihazDurumNotu" class="form-control" rows="3"></textarea>
+                            <textarea name="CihazDurumNotu" class="form-control" rows="3">@Model.DevirFormu.CihazDurumNotu</textarea>
                         </div>
                     </div>
                     <div class="modal-footer">
@@ -204,6 +230,23 @@
 
 @section Scripts {
     <script>
+        function initDetailSearchableSelects() {
+            if (typeof window.jQuery === 'undefined' || typeof window.jQuery.fn.select2 === 'undefined') return;
+            const $ = window.jQuery;
+            $('.searchable-select').each(function () {
+                const $el = $(this);
+                if ($el.hasClass('select2-hidden-accessible')) return;
+                const modalParent = $el.closest('.modal');
+                $el.select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    placeholder: 'Seçiniz',
+                    allowClear: true,
+                    dropdownParent: modalParent.length ? modalParent : undefined
+                });
+            });
+        }
+
         async function loadBrandsForEdit(typeId, selectedBrandId) {
             const brandSelect = document.getElementById('duzenleMarka');
             if (!brandSelect) return;
@@ -221,6 +264,9 @@
                 }
                 brandSelect.appendChild(option);
             });
+            if (typeof window.jQuery !== 'undefined') {
+                window.jQuery(brandSelect).trigger('change');
+            }
             toggleOtherEditFields();
         }
 
@@ -236,6 +282,12 @@
         });
 
         document.getElementById('duzenleMarka')?.addEventListener('change', toggleOtherEditFields);
+        if (typeof window.jQuery !== 'undefined') {
+            window.jQuery('#duzenleCihazTuru').on('select2:select select2:clear', async function () {
+                await loadBrandsForEdit(this.value, null);
+            });
+            window.jQuery('#duzenleMarka').on('select2:select select2:clear', toggleOtherEditFields);
+        }
 
         document.querySelectorAll('.history-toggle').forEach(button => {
             button.addEventListener('click', function () {
@@ -249,6 +301,11 @@
             });
         });
 
+        initDetailSearchableSelects();
         loadBrandsForEdit(document.getElementById('duzenleCihazTuru')?.value, document.getElementById('duzenleMarka')?.value);
+        document.getElementById('duzenleModal')?.addEventListener('shown.bs.modal', function () {
+            toggleOtherEditFields();
+        });
     </script>
 }
+

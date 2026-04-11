@@ -20,6 +20,7 @@
     {
         <div class="alert alert-danger">@TempData["ErrorMessage"]</div>
     }
+    <form id="ajaxAntiForgeryForm" class="d-none">@Html.AntiForgeryToken()</form>
 
     <div class="card mb-4">
         <div class="card-body">
@@ -119,14 +120,17 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>T&uuml;r</th>
+                        <th class="col-device-type">Cihaz T&uuml;r&uuml;</th>
                         <th>Marka</th>
                         <th>Model</th>
                         <th>&Ouml;zellikler</th>
-                        <th>Sahip</th>
+                        <th class="col-owner">Cihaz Sahibi</th>
                         <th>Koordinat&ouml;rl&uuml;k</th>
-                        <th>Koordinat&ouml;r Onay&#305;</th>
-                        <th></th>
+                        <th class="col-onay">Koordinat&ouml;r Onay&#305;</th>
+                        @if (Model.AdminPaneliMi || Model.OnayYetkisiVarMi)
+                        {
+                            <th class="col-islemler">İşlemler</th>
+                        }
                     </tr>
                 </thead>
                 <tbody>
@@ -134,35 +138,57 @@
                     {
                         @foreach (var item in Model.Cihazlar)
                         {
-                            <tr id="cihaz-row-@item.CihazId">
+                            <tr id="cihaz-row-@item.CihazId" class="cihaz-row-clickable" data-detail-url="@Url.Action("Detay", new { id = item.CihazId, returnAction = (Model.PersonelGorunumuMu ? "BenimCihazlarim" : "Liste") })">
                                 <td>@item.CihazTuru</td>
                                 <td>@item.Marka</td>
                                 <td>@item.Model</td>
                                 <td>@item.Ozellikler</td>
-                                <td>@item.SahipAdSoyad</td>
+                                <td class="col-owner">@item.SahipAdSoyad</td>
                                 <td>@item.KoordinatorlukAd</td>
-                                <td>
-                                    <span class="badge @(item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Onaylandi ? "bg-label-success" : "bg-label-warning")">
+                                <td class="col-onay">
+                                    <span id="onay-badge-@item.CihazId" class="badge @(item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Onaylandi ? "bg-label-success" : "bg-label-warning")">
                                         @(item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Onaylandi ? "Onayland\u0131" : "Onay Bekliyor")
                                     </span>
                                 </td>
-                                <td class="text-nowrap">
-                                    <a asp-action="Detay" asp-route-id="@item.CihazId" class="btn btn-sm btn-label-primary">Detay</a>
-                                    @if (Model.OnayYetkisiVarMi && item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Beklemede)
-                                    {
-                                        <form asp-action="Onayla" method="post" class="d-inline">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="cihazId" value="@item.CihazId" />
-                                            <button type="submit" class="btn btn-sm btn-success">Onayla</button>
-                                        </form>
-                                    }
-                                </td>
+                                @if (Model.AdminPaneliMi || Model.OnayYetkisiVarMi)
+                                {
+                                    <td class="text-nowrap row-actions col-islemler">
+                                        @if (Model.OnayYetkisiVarMi && item.OnayDurumu == PersonelTakipSistemi.Models.CihazOnayDurumu.Beklemede)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-success js-onayla-btn" data-cihaz-id="@item.CihazId">Onayla</button>
+                                        }
+                                        @if (Model.AdminPaneliMi)
+                                        {
+                                            <button type="button"
+                                                    class="btn btn-sm btn-primary js-hizli-duzenle-btn action-icon-btn"
+                                                    title="Düzenle"
+                                                    aria-label="Düzenle"
+                                                    data-cihaz-id="@item.CihazId"
+                                                    data-cihaz-turu-id="@item.CihazTuruId"
+                                                    data-cihaz-marka-id="@item.CihazMarkaId"
+                                                    data-diger-cihaz-turu="@item.DigerCihazTuruAd"
+                                                    data-diger-marka="@item.DigerMarkaAd"
+                                                    data-model="@item.Model"
+                                                    data-ozellikler="@item.Ozellikler"
+                                                    data-serino="@item.SeriNo">
+                                                <i class="bx bx-edit-alt"></i>
+                                            </button>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-danger js-sil-btn action-icon-btn"
+                                                    title="Sil"
+                                                    aria-label="Sil"
+                                                    data-cihaz-id="@item.CihazId">
+                                                <i class="bx bx-trash"></i>
+                                            </button>
+                                        }
+                                    </td>
+                                }
                             </tr>
                         }
                     }
                     else
                     {
-                        <tr><td colspan="8" class="text-center text-muted py-4">Cihaz kayd&#305; bulunamad&#305;.</td></tr>
+                        <tr><td colspan="@(Model.AdminPaneliMi || Model.OnayYetkisiVarMi ? 8 : 7)" class="text-center text-muted py-4">Cihaz kayd&#305; bulunamad&#305;.</td></tr>
                     }
                 </tbody>
             </table>
@@ -186,7 +212,7 @@
                         <div class="row g-3">
                             @if (Model.EklemeIcinPersoneller.Any() && !Model.PersonelGorunumuMu)
                             {
-                                <div class="col-md-6">
+                                <div class="col-12">
                                     <label class="form-label">Cihaz Sahibi</label>
                                     <select asp-for="YeniCihaz.SahipPersonelId" class="form-select searchable-select">
                                         <option value="">Se&ccedil;iniz</option>
@@ -197,7 +223,7 @@
                                     </select>
                                 </div>
                             }
-                            <div class="col-md-6">
+                            <div class="col-12">
                                 <label class="form-label">Cihaz T&uuml;r&uuml;</label>
                                 <select asp-for="YeniCihaz.CihazTuruId" class="form-select searchable-select" id="eklemeCihazTuru">
                                     <option value="">Se&ccedil;iniz</option>
@@ -207,29 +233,29 @@
                                     }
                                 </select>
                             </div>
-                            <div class="col-md-6 d-none" id="digerTurWrap">
+                            <div class="col-12 d-none diger-vurgu-hedef" id="digerTurWrap">
                                 <label class="form-label">Di&#287;er Cihaz T&uuml;r&uuml;</label>
                                 <input asp-for="YeniCihaz.DigerCihazTuruAd" class="form-control" />
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-12">
                                 <label class="form-label">Marka</label>
                                 <select asp-for="YeniCihaz.CihazMarkaId" class="form-select searchable-select" id="eklemeMarka">
                                     <option value="">&Ouml;nce cihaz t&uuml;r&uuml; se&ccedil;iniz</option>
                                 </select>
                             </div>
-                            <div class="col-md-6 d-none" id="digerMarkaWrap">
+                            <div class="col-12 d-none diger-vurgu-hedef" id="digerMarkaWrap">
                                 <label class="form-label">Di&#287;er Marka</label>
                                 <input asp-for="YeniCihaz.DigerMarkaAd" class="form-control" />
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12">
                                 <label class="form-label">Model</label>
                                 <input asp-for="YeniCihaz.Model" class="form-control" />
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12">
                                 <label class="form-label">&Ouml;zellikler</label>
                                 <input asp-for="YeniCihaz.Ozellikler" class="form-control" />
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-12">
                                 <label class="form-label">Seri No</label>
                                 <input asp-for="YeniCihaz.SeriNo" class="form-control" />
                             </div>
@@ -238,6 +264,65 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">&#304;ptal</button>
                         <button type="submit" class="btn btn-primary">@Html.Raw(Model.PersonelGorunumuMu ? "Onaya G&ouml;nder" : "G&ouml;nder")</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@if (Model.AdminPaneliMi)
+{
+    <div class="modal fade" id="hizliDuzenleModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form id="hizliDuzenleForm">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Cihazı Hızlı Düzenle</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="hizliDuzenleCihazId" />
+                        <div class="mb-3">
+                            <label class="form-label">Cihaz Türü</label>
+                            <select class="form-select searchable-select" id="hizliDuzenleCihazTuruId" required>
+                                <option value="">Seçiniz</option>
+                                @foreach (var tur in Model.CihazTurleri)
+                                {
+                                    <option value="@tur.Id">@tur.Ad</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none diger-vurgu-hedef" id="hizliDigerTurWrap">
+                            <label class="form-label">Diğer Cihaz Türü</label>
+                            <input type="text" class="form-control" id="hizliDuzenleDigerCihazTuruAd" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Marka</label>
+                            <select class="form-select searchable-select" id="hizliDuzenleCihazMarkaId" required>
+                                <option value="">Seçiniz</option>
+                            </select>
+                        </div>
+                        <div class="mb-3 d-none diger-vurgu-hedef" id="hizliDigerMarkaWrap">
+                            <label class="form-label">Diğer Marka</label>
+                            <input type="text" class="form-control" id="hizliDuzenleDigerMarkaAd" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Model</label>
+                            <input type="text" class="form-control" id="hizliDuzenleModel" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Özellikler</label>
+                            <input type="text" class="form-control" id="hizliDuzenleOzellikler" required />
+                        </div>
+                        <div>
+                            <label class="form-label">Seri No</label>
+                            <input type="text" class="form-control" id="hizliDuzenleSeriNo" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
+                        <button type="submit" class="btn btn-primary">Kaydet</button>
                     </div>
                 </form>
             </div>
@@ -321,6 +406,67 @@
         .highlight-new {
             animation: highlightBlue 3s ease-out;
         }
+
+        .cihaz-row-clickable {
+            cursor: pointer;
+        }
+
+        .cihaz-row-clickable:hover > td {
+            background: #f8f9fb;
+        }
+
+        .row-actions {
+            min-width: 138px;
+        }
+
+        .col-device-type {
+            min-width: 150px;
+            width: 14%;
+        }
+
+        .col-owner {
+            min-width: 180px;
+            width: 20%;
+        }
+
+        .col-onay {
+            width: 135px;
+            white-space: nowrap;
+        }
+
+        .col-islemler {
+            width: 145px;
+            white-space: nowrap;
+        }
+
+        .action-icon-btn i {
+            font-size: 1.5em;
+            color: #fff;
+            vertical-align: middle;
+        }
+
+        .diger-vurgu-hedef {
+            position: relative;
+            z-index: 2;
+        }
+
+        @@keyframes digerPulseBlue {
+            0% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.45); background: rgba(13, 110, 253, 0.06); }
+            100% { box-shadow: 0 0 0 12px rgba(13, 110, 253, 0); background: transparent; }
+        }
+
+        .diger-vurgu-hedef.diger-vurgu-aktif {
+            border-radius: 10px;
+            animation: digerPulseBlue 2s ease-out;
+        }
+
+        .modal .select2-container--open {
+            z-index: 2000;
+        }
+
+        .modal .select2-dropdown {
+            z-index: 2001;
+        }
     </style>
 }
 
@@ -331,6 +477,8 @@
         const yasSliderHiddenInput = document.getElementById('yasSliderDegeri');
         const yasSliderAktifEtiket = document.getElementById('kayitYasiAktifEtiket');
         const cihazEkleModalElement = document.getElementById('cihazEkleModal');
+        const hizliDuzenleModalElement = document.getElementById('hizliDuzenleModal');
+        const antiforgeryToken = document.querySelector('#ajaxAntiForgeryForm input[name="__RequestVerificationToken"]')?.value || '';
 
         const yasSliderEtiketleri = [
             '1 y\u0131ldan az',
@@ -395,18 +543,24 @@
                     return;
                 }
 
-                const inCihazEkleModal = cihazEkleModalElement && cihazEkleModalElement.contains(this);
+                const modalParent = $el.closest('.modal');
                 $el.select2({
                     theme: 'bootstrap-5',
                     width: '100%',
                     placeholder: 'Se\u00e7iniz',
                     allowClear: true,
-                    dropdownParent: inCihazEkleModal ? $(cihazEkleModalElement) : undefined
+                    dropdownParent: modalParent.length ? modalParent : undefined
                 });
             });
         }
 
         initSearchableSelects();
+
+        function getCsrfHeaders() {
+            return antiforgeryToken
+                ? { 'RequestVerificationToken': antiforgeryToken, 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' }
+                : { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' };
+        }
 
         function getBrandDefaultOptionLabel(brandSelectId) {
             return brandSelectId === 'filterMarka' ? 'T\u00fcm\u00fc' : 'Se\u00e7iniz';
@@ -480,11 +634,34 @@
             }
         }
 
+        function flashDigerWrap(wrapId) {
+            const el = document.getElementById(wrapId);
+            if (!el) return;
+            el.classList.remove('diger-vurgu-aktif');
+            void el.offsetWidth;
+            el.classList.add('diger-vurgu-aktif');
+            setTimeout(() => el.classList.remove('diger-vurgu-aktif'), 2000);
+        }
+
         function toggleOtherFields(typeSelectId, brandSelectId, typeWrapId, brandWrapId) {
-            const typeText = document.getElementById(typeSelectId)?.selectedOptions[0]?.text || '';
-            const brandText = document.getElementById(brandSelectId)?.selectedOptions[0]?.text || '';
-            document.getElementById(typeWrapId)?.classList.toggle('d-none', typeText !== 'Di\u011fer');
-            document.getElementById(brandWrapId)?.classList.toggle('d-none', brandText !== 'Di\u011fer');
+            const typeValue = document.getElementById(typeSelectId)?.value || '';
+            const brandValue = document.getElementById(brandSelectId)?.value || '';
+
+            const typeWrap = document.getElementById(typeWrapId);
+            const brandWrap = document.getElementById(brandWrapId);
+
+            const typeVisible = typeValue === '999';
+            const brandVisible = brandValue === '99999';
+
+            typeWrap?.classList.toggle('d-none', !typeVisible);
+            brandWrap?.classList.toggle('d-none', !brandVisible);
+
+            if (typeVisible) {
+                flashDigerWrap(typeWrapId);
+            }
+            if (brandVisible) {
+                flashDigerWrap(brandWrapId);
+            }
         }
 
         const onFilterTypeChanged = async () => {
@@ -509,6 +686,11 @@
         document.getElementById('eklemeMarka')?.addEventListener('change', function () {
             toggleOtherFields('eklemeCihazTuru', 'eklemeMarka', 'digerTurWrap', 'digerMarkaWrap');
         });
+        if (typeof window.jQuery !== 'undefined') {
+            window.jQuery('#eklemeMarka').on('select2:select select2:clear', function () {
+                toggleOtherFields('eklemeCihazTuru', 'eklemeMarka', 'digerTurWrap', 'digerMarkaWrap');
+            });
+        }
 
         if (Number(yeniCihazId) > 0) {
             const yeniSatir = document.getElementById(`cihaz-row-${yeniCihazId}`);
@@ -538,6 +720,185 @@
 
                 await loadDeviceTypesIntoModal();
                 await loadBrands('eklemeCihazTuru', 'eklemeMarka');
+            });
+        }
+
+        document.querySelectorAll('.cihaz-row-clickable').forEach(row => {
+            row.addEventListener('click', function (evt) {
+                if (evt.target.closest('button, a, form, .row-actions')) {
+                    return;
+                }
+
+                const detailUrl = row.getAttribute('data-detail-url');
+                if (detailUrl) {
+                    window.location.href = detailUrl;
+                }
+            });
+        });
+
+        document.querySelectorAll('.js-onayla-btn').forEach(btn => {
+            btn.addEventListener('click', async function () {
+                const cihazId = btn.getAttribute('data-cihaz-id');
+                if (!cihazId) return;
+
+                try {
+                    const res = await fetch('/Cihazlar/OnaylaHizli', {
+                        method: 'POST',
+                        headers: getCsrfHeaders(),
+                        body: `cihazId=${encodeURIComponent(cihazId)}`
+                    });
+                    if (!res.ok) return;
+
+                    const badge = document.getElementById(`onay-badge-${cihazId}`);
+                    if (badge) {
+                        badge.classList.remove('bg-label-warning');
+                        badge.classList.add('bg-label-success');
+                        badge.textContent = 'Onaylandı';
+                    }
+                    btn.remove();
+                } catch {
+                }
+            });
+        });
+
+        if (hizliDuzenleModalElement) {
+            const hizliDuzenleModal = new bootstrap.Modal(hizliDuzenleModalElement);
+            const form = document.getElementById('hizliDuzenleForm');
+            const cihazIdInput = document.getElementById('hizliDuzenleCihazId');
+            const cihazTuruSelect = document.getElementById('hizliDuzenleCihazTuruId');
+            const markaSelect = document.getElementById('hizliDuzenleCihazMarkaId');
+            const digerTurInput = document.getElementById('hizliDuzenleDigerCihazTuruAd');
+            const digerMarkaInput = document.getElementById('hizliDuzenleDigerMarkaAd');
+            const modelInput = document.getElementById('hizliDuzenleModel');
+            const ozelliklerInput = document.getElementById('hizliDuzenleOzellikler');
+            const seriNoInput = document.getElementById('hizliDuzenleSeriNo');
+
+            const onHizliTypeChanged = async () => {
+                await loadBrands('hizliDuzenleCihazTuruId', 'hizliDuzenleCihazMarkaId');
+                toggleOtherFields('hizliDuzenleCihazTuruId', 'hizliDuzenleCihazMarkaId', 'hizliDigerTurWrap', 'hizliDigerMarkaWrap');
+            };
+
+            cihazTuruSelect?.addEventListener('change', onHizliTypeChanged);
+            markaSelect?.addEventListener('change', function () {
+                toggleOtherFields('hizliDuzenleCihazTuruId', 'hizliDuzenleCihazMarkaId', 'hizliDigerTurWrap', 'hizliDigerMarkaWrap');
+            });
+
+            if (typeof window.jQuery !== 'undefined') {
+                window.jQuery('#hizliDuzenleCihazTuruId').on('select2:select select2:clear', onHizliTypeChanged);
+                window.jQuery('#hizliDuzenleCihazMarkaId').on('select2:select select2:clear', function () {
+                    toggleOtherFields('hizliDuzenleCihazTuruId', 'hizliDuzenleCihazMarkaId', 'hizliDigerTurWrap', 'hizliDigerMarkaWrap');
+                });
+            }
+
+            document.querySelectorAll('.js-hizli-duzenle-btn').forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    cihazIdInput.value = btn.getAttribute('data-cihaz-id') || '';
+                    const cihazTuruId = btn.getAttribute('data-cihaz-turu-id') || '';
+                    const cihazMarkaId = btn.getAttribute('data-cihaz-marka-id') || '';
+                    const digerCihazTuruAd = btn.getAttribute('data-diger-cihaz-turu') || '';
+                    const digerMarkaAd = btn.getAttribute('data-diger-marka') || '';
+
+                    if (cihazTuruSelect) {
+                        cihazTuruSelect.value = cihazTuruId;
+                        refreshSelect2(cihazTuruSelect);
+                    }
+                    await loadBrands('hizliDuzenleCihazTuruId', 'hizliDuzenleCihazMarkaId');
+                    if (markaSelect) {
+                        const markaSecilebilir = Array.from(markaSelect.options).some(o => o.value === cihazMarkaId);
+                        markaSelect.value = markaSecilebilir ? cihazMarkaId : '';
+                        refreshSelect2(markaSelect);
+                    }
+
+                    if (digerTurInput) {
+                        digerTurInput.value = digerCihazTuruAd;
+                    }
+                    if (digerMarkaInput) {
+                        digerMarkaInput.value = digerMarkaAd;
+                    }
+
+                    toggleOtherFields('hizliDuzenleCihazTuruId', 'hizliDuzenleCihazMarkaId', 'hizliDigerTurWrap', 'hizliDigerMarkaWrap');
+                    modelInput.value = btn.getAttribute('data-model') || '';
+                    ozelliklerInput.value = btn.getAttribute('data-ozellikler') || '';
+                    seriNoInput.value = btn.getAttribute('data-serino') || '';
+                    hizliDuzenleModal.show();
+                });
+            });
+
+            form?.addEventListener('submit', async function (evt) {
+                evt.preventDefault();
+                const cihazId = cihazIdInput.value;
+                if (!cihazId) return;
+
+                const body = `CihazId=${encodeURIComponent(cihazId)}`
+                    + `&CihazTuruId=${encodeURIComponent(cihazTuruSelect?.value || '')}`
+                    + `&CihazMarkaId=${encodeURIComponent(markaSelect?.value || '')}`
+                    + `&DigerCihazTuruAd=${encodeURIComponent(digerTurInput?.value || '')}`
+                    + `&DigerMarkaAd=${encodeURIComponent(digerMarkaInput?.value || '')}`
+                    + `&Model=${encodeURIComponent(modelInput.value)}`
+                    + `&Ozellikler=${encodeURIComponent(ozelliklerInput.value)}`
+                    + `&SeriNo=${encodeURIComponent(seriNoInput.value)}`;
+                try {
+                    const res = await fetch('/Cihazlar/HizliGuncelle', {
+                        method: 'POST',
+                        headers: getCsrfHeaders(),
+                        body
+                    });
+                    if (!res.ok) return;
+
+                    const row = document.getElementById(`cihaz-row-${cihazId}`);
+                    if (row) {
+                        const cells = row.querySelectorAll('td');
+                        if (cells.length >= 4) {
+                            const turText = (cihazTuruSelect?.value === '999'
+                                ? (digerTurInput?.value || '')
+                                : (cihazTuruSelect?.selectedOptions?.[0]?.textContent || '')).trim();
+                            const markaText = (markaSelect?.value === '99999'
+                                ? (digerMarkaInput?.value || '')
+                                : (markaSelect?.selectedOptions?.[0]?.textContent || '')).trim();
+                            cells[0].textContent = turText;
+                            cells[1].textContent = markaText;
+                            cells[2].textContent = modelInput.value;
+                            cells[3].textContent = ozelliklerInput.value;
+                        }
+
+                        const duzenleBtn = row.querySelector('.js-hizli-duzenle-btn');
+                        if (duzenleBtn) {
+                            duzenleBtn.setAttribute('data-cihaz-turu-id', cihazTuruSelect?.value || '');
+                            duzenleBtn.setAttribute('data-cihaz-marka-id', markaSelect?.value || '');
+                            duzenleBtn.setAttribute('data-diger-cihaz-turu', digerTurInput?.value || '');
+                            duzenleBtn.setAttribute('data-diger-marka', digerMarkaInput?.value || '');
+                            duzenleBtn.setAttribute('data-model', modelInput.value || '');
+                            duzenleBtn.setAttribute('data-ozellikler', ozelliklerInput.value || '');
+                            duzenleBtn.setAttribute('data-serino', seriNoInput.value || '');
+                        }
+
+                        row.classList.add('highlight-new');
+                        setTimeout(() => row.classList.remove('highlight-new'), 3000);
+                    }
+
+                    hizliDuzenleModal.hide();
+                } catch {
+                }
+            });
+
+            document.querySelectorAll('.js-sil-btn').forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    const cihazId = btn.getAttribute('data-cihaz-id');
+                    if (!cihazId || !confirm('Bu cihaz kaydını silmek istediğinize emin misiniz?')) return;
+
+                    try {
+                        const res = await fetch('/Cihazlar/Sil', {
+                            method: 'POST',
+                            headers: getCsrfHeaders(),
+                            body: `cihazId=${encodeURIComponent(cihazId)}`
+                        });
+                        if (!res.ok) return;
+
+                        const row = document.getElementById(`cihaz-row-${cihazId}`);
+                        row?.remove();
+                    } catch {
+                    }
+                });
             });
         }
     </script>

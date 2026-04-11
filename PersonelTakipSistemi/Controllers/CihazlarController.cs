@@ -223,7 +223,7 @@ namespace PersonelTakipSistemi.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Guncelle(CihazCreateViewModel form)
+        public async Task<IActionResult> Guncelle(CihazCreateViewModel form, string? returnAction = null)
         {
             var canManage = User.IsInRole("Admin") || await _cihazService.IsCoordinatorAsync(GetCurrentPersonelId());
 
@@ -238,7 +238,41 @@ namespace PersonelTakipSistemi.Controllers
                 TempData["ErrorMessage"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Detay), new { id = form.CihazId });
+            return RedirectToAction(nameof(Detay), new { id = form.CihazId, returnAction });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> HizliGuncelle(CihazHizliDuzenleViewModel form)
+        {
+            try
+            {
+                await _cihazService.QuickUpdateDeviceAsync(form, GetCurrentPersonelId(), User.IsInRole("Admin"));
+                await _logService.LogAsync("Cihaz Hızlı Güncelleme", $"Cihaz hızlı güncellendi. CihazId: {form.CihazId}");
+                return Json(new { success = true, message = "Cihaz güncellendi." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Sil(int cihazId)
+        {
+            try
+            {
+                await _cihazService.DeleteDeviceAsync(cihazId, GetCurrentPersonelId(), User.IsInRole("Admin"));
+                await _logService.LogAsync("Cihaz Silme", $"Cihaz silindi. CihazId: {cihazId}");
+                return Json(new { success = true, message = "Cihaz silindi." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
         }
 
         [HttpPost]
@@ -259,17 +293,56 @@ namespace PersonelTakipSistemi.Controllers
             return RedirectToAction(nameof(Liste), new { SadeceOnayBekleyenler = true });
         }
 
-        [HttpGet]
-        public async Task<IActionResult> Detay(int id)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> OnaylaDetay(int cihazId, string? returnAction = null)
         {
-            var canManage = User.IsInRole("Admin") || await _cihazService.IsCoordinatorAsync(GetCurrentPersonelId());
-            var model = await _cihazService.GetDetailAsync(id, GetCurrentPersonelId(), canManage);
+            try
+            {
+                await _cihazService.ApproveDeviceAsync(cihazId, GetCurrentPersonelId());
+                await _logService.LogAsync("Cihaz Onayı", $"Cihaz onaylandı. CihazId: {cihazId}");
+                TempData["SuccessMessage"] = "Cihaz onaylandı.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Detay), new { id = cihazId, returnAction });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> OnaylaHizli(int cihazId)
+        {
+            try
+            {
+                await _cihazService.ApproveDeviceAsync(cihazId, GetCurrentPersonelId());
+                await _logService.LogAsync("Cihaz Onayı", $"Cihaz onaylandı. CihazId: {cihazId}");
+                return Json(new { success = true, message = "Cihaz onaylandı." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Detay(int id, string? returnAction = null)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var canManage = User.IsInRole("Admin") || await _cihazService.IsCoordinatorAsync(currentPersonelId);
+            var model = await _cihazService.GetDetailAsync(id, currentPersonelId, canManage);
+            var safeReturnAction = string.Equals(returnAction, nameof(Liste), StringComparison.OrdinalIgnoreCase)
+                ? nameof(Liste)
+                : nameof(BenimCihazlarim);
+            ViewBag.ReturnAction = safeReturnAction;
             return model == null ? NotFound() : View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Devret(CihazTransferFormModel model)
+        public async Task<IActionResult> Devret(CihazTransferFormModel model, string? returnAction = null)
         {
             var canManage = User.IsInRole("Admin") || await _cihazService.IsCoordinatorAsync(GetCurrentPersonelId());
 
@@ -284,7 +357,7 @@ namespace PersonelTakipSistemi.Controllers
                 TempData["ErrorMessage"] = ex.Message;
             }
 
-            return RedirectToAction(nameof(Detay), new { id = model.CihazId });
+            return RedirectToAction(nameof(Detay), new { id = model.CihazId, returnAction });
         }
 
         [HttpGet]

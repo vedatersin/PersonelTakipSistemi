@@ -87,6 +87,10 @@ namespace PersonelTakipSistemi.ViewModels
     public class CihazListeItemViewModel
     {
         public int CihazId { get; set; }
+        public int CihazTuruId { get; set; }
+        public int CihazMarkaId { get; set; }
+        public string? DigerCihazTuruAd { get; set; }
+        public string? DigerMarkaAd { get; set; }
         public string CihazTuru { get; set; } = string.Empty;
         public string Marka { get; set; } = string.Empty;
         public string Model { get; set; } = string.Empty;
@@ -134,6 +138,7 @@ namespace PersonelTakipSistemi.ViewModels
         public DateTime GosterilecekKayitTarihi { get; set; }
         public DateTime IlkKayitTarihi { get; set; }
         public CihazOnayDurumu OnayDurumu { get; set; }
+        public bool OnayYetkisiVarMi { get; set; }
         public bool HareketlerGorunsunMu { get; set; }
         public bool DevirYetkisiVarMi { get; set; }
         public bool DuzenlemeYetkisiVarMi { get; set; }
@@ -151,6 +156,18 @@ namespace PersonelTakipSistemi.ViewModels
         public int YeniSahipPersonelId { get; set; }
         public string DevirNotu { get; set; } = string.Empty;
         public string CihazDurumNotu { get; set; } = string.Empty;
+    }
+
+    public class CihazHizliDuzenleViewModel
+    {
+        public int CihazId { get; set; }
+        public int CihazTuruId { get; set; }
+        public int CihazMarkaId { get; set; }
+        public string? DigerCihazTuruAd { get; set; }
+        public string? DigerMarkaAd { get; set; }
+        public string Model { get; set; } = string.Empty;
+        public string Ozellikler { get; set; } = string.Empty;
+        public string SeriNo { get; set; } = string.Empty;
     }
 
     public class CihazHareketItemViewModel
