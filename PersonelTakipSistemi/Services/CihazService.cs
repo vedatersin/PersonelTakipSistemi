@@ -38,6 +38,12 @@ namespace PersonelTakipSistemi.Services
                     CihazTuruId = x.CihazTuruId,
                     Ad = x.Ad,
                     SistemSecenegiMi = x.SistemSecenegiMi
+                }).ToList(),
+                YazilimTanimlari = summary.Yazilimlar.Select(x => new YazilimTanimi
+                {
+                    YazilimId = x.YazilimId,
+                    Ad = x.Ad,
+                    SistemSecenegiMi = x.SistemSecenegiMi
                 }).ToList()
             };
         }
@@ -76,11 +82,24 @@ namespace PersonelTakipSistemi.Services
                     .ToListAsync()
                 : new List<CihazMarkaListItemViewModel>();
 
+            var softwareDefinitions = await _context.YazilimTanimlari.AsNoTracking()
+                .Select(x => new YazilimTanimListItemViewModel
+                {
+                    YazilimId = x.YazilimId,
+                    Ad = x.Ad,
+                    SistemSecenegiMi = x.SistemSecenegiMi,
+                    BagliEnvanterSayisi = _context.YazilimKayitlari.Count(y => y.YazilimId == x.YazilimId)
+                })
+                .OrderBy(x => x.SistemSecenegiMi ? 1 : 0)
+                .ThenBy(x => x.Ad)
+                .ToListAsync();
+
             return new CihazTanimResponseViewModel
             {
                 SeciliCihazTuruId = activeTypeId,
                 CihazTurleri = types,
-                Markalar = brands
+                Markalar = brands,
+                Yazilimlar = softwareDefinitions
             };
         }
 
@@ -258,6 +277,83 @@ namespace PersonelTakipSistemi.Services
             }
 
             _context.CihazMarkalari.Remove(entity);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task AddSoftwareDefinitionAsync(YazilimTanimFormModel model)
+        {
+            if (string.IsNullOrWhiteSpace(model.Ad))
+            {
+                throw new InvalidOperationException("Yazılım adı zorunludur.");
+            }
+
+            var name = NormalizeUserText(model.Ad);
+            if (await _context.YazilimTanimlari.AnyAsync(x => x.Ad == name))
+            {
+                throw new InvalidOperationException("Bu yazılım zaten tanımlı.");
+            }
+
+            _context.YazilimTanimlari.Add(new YazilimTanimi
+            {
+                Ad = name
+            });
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateSoftwareDefinitionAsync(YazilimTanimFormModel model)
+        {
+            if (!model.YazilimId.HasValue || model.YazilimId <= 0)
+            {
+                throw new InvalidOperationException("Güncellenecek yazılım bulunamadı.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Ad))
+            {
+                throw new InvalidOperationException("Yazılım adı zorunludur.");
+            }
+
+            var entity = await _context.YazilimTanimlari.FirstOrDefaultAsync(x => x.YazilimId == model.YazilimId.Value);
+            if (entity == null)
+            {
+                throw new InvalidOperationException("Yazılım bulunamadı.");
+            }
+
+            if (entity.SistemSecenegiMi)
+            {
+                throw new InvalidOperationException("Diğer yazılım tanımı düzenlenemez.");
+            }
+
+            var name = NormalizeUserText(model.Ad);
+            if (await _context.YazilimTanimlari.AnyAsync(x => x.YazilimId != entity.YazilimId && x.Ad == name))
+            {
+                throw new InvalidOperationException("Bu yazılım adı zaten kullanımda.");
+            }
+
+            entity.Ad = name;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteSoftwareDefinitionAsync(int yazilimId, bool onaylandi)
+        {
+            var entity = await _context.YazilimTanimlari.FirstOrDefaultAsync(x => x.YazilimId == yazilimId);
+            if (entity == null)
+            {
+                throw new InvalidOperationException("Yazılım bulunamadı.");
+            }
+
+            if (entity.SistemSecenegiMi)
+            {
+                throw new InvalidOperationException("Diğer yazılım tanımı silinemez.");
+            }
+
+            var envanterSayisi = await _context.YazilimKayitlari.CountAsync(x => x.YazilimId == yazilimId);
+
+            if (envanterSayisi > 0)
+            {
+                throw new InvalidOperationException($"Bu yazılım tanımına bağlı {envanterSayisi} envanter kaydı var. Önce ilgili yazılım kayıtlarını güncellemelisiniz.");
+            }
+
+            _context.YazilimTanimlari.Remove(entity);
             await _context.SaveChangesAsync();
         }
 

@@ -12,6 +12,9 @@ namespace PersonelTakipSistemi.Services
         Task AddBrandAsync(CihazMarkaFormModel model);
         Task UpdateBrandAsync(CihazMarkaFormModel model);
         Task DeleteBrandAsync(int cihazMarkaId, bool onaylandi);
+        Task AddSoftwareDefinitionAsync(YazilimTanimFormModel model);
+        Task UpdateSoftwareDefinitionAsync(YazilimTanimFormModel model);
+        Task DeleteSoftwareDefinitionAsync(int yazilimId, bool onaylandi);
         Task<List<LookupItemVm>> GetActiveDeviceTypesAsync();
         Task<List<LookupItemVm>> GetBrandsByTypeAsync(int cihazTuruId);
         Task<CihazListePageViewModel> GetMyDevicesAsync(int currentPersonelId, CihazListeFilterViewModel filter);

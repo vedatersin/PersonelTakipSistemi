@@ -59,6 +59,10 @@ namespace PersonelTakipSistemi.Models
         public ICollection<Cihaz> OlusturduguCihazKayitlari { get; set; } = new List<Cihaz>();
         public ICollection<Cihaz> OnayladigiCihazlar { get; set; } = new List<Cihaz>();
         public ICollection<CihazHareketi> YaptigiCihazHareketleri { get; set; } = new List<CihazHareketi>();
+        public ICollection<YazilimKaydi> SahipOlduguYazilimlar { get; set; } = new List<YazilimKaydi>();
+        public ICollection<YazilimKaydi> OlusturduguYazilimKayitlari { get; set; } = new List<YazilimKaydi>();
+        public ICollection<YazilimKaydi> OnayladigiYazilimlar { get; set; } = new List<YazilimKaydi>();
+        public ICollection<YazilimHareketi> YaptigiYazilimHareketleri { get; set; } = new List<YazilimHareketi>();
         
         // Template Info
         public bool AddedViaTemplate { get; set; }

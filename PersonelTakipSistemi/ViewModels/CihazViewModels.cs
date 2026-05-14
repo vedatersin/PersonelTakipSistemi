@@ -7,8 +7,10 @@ namespace PersonelTakipSistemi.ViewModels
         public int? SeciliCihazTuruId { get; set; }
         public List<CihazTuru> CihazTurleri { get; set; } = new();
         public List<CihazMarka> Markalar { get; set; } = new();
+        public List<YazilimTanimi> YazilimTanimlari { get; set; } = new();
         public CihazTuruFormModel YeniCihazTuru { get; set; } = new();
         public CihazMarkaFormModel YeniMarka { get; set; } = new();
+        public YazilimTanimFormModel YeniYazilim { get; set; } = new();
     }
 
     public class CihazTanimResponseViewModel
@@ -16,6 +18,7 @@ namespace PersonelTakipSistemi.ViewModels
         public int? SeciliCihazTuruId { get; set; }
         public List<CihazTuruListItemViewModel> CihazTurleri { get; set; } = new();
         public List<CihazMarkaListItemViewModel> Markalar { get; set; } = new();
+        public List<YazilimTanimListItemViewModel> Yazilimlar { get; set; } = new();
     }
 
     public class CihazTuruListItemViewModel
@@ -51,11 +54,27 @@ namespace PersonelTakipSistemi.ViewModels
         public string Ad { get; set; } = string.Empty;
     }
 
+    public class YazilimTanimFormModel
+    {
+        public int? YazilimId { get; set; }
+        public string Ad { get; set; } = string.Empty;
+    }
+
     public class CihazTanimSilModel
     {
         public int Id { get; set; }
         public bool Onaylandi { get; set; }
         public int? SeciliCihazTuruId { get; set; }
+    }
+
+    public class YazilimTanimListItemViewModel
+    {
+        public int YazilimId { get; set; }
+        public string Ad { get; set; } = string.Empty;
+        public bool SistemSecenegiMi { get; set; }
+        public int BagliEnvanterSayisi { get; set; }
+        public int BagliLisansSayisi { get; set; }
+        public int BagliPersonelSayisi { get; set; }
     }
 
     public class CihazCreateViewModel
@@ -172,6 +191,144 @@ namespace PersonelTakipSistemi.ViewModels
     }
 
     public class CihazHareketItemViewModel
+    {
+        public DateTime Tarih { get; set; }
+        public string HareketTuru { get; set; } = string.Empty;
+        public string IslemYapan { get; set; } = string.Empty;
+        public bool IslemYapanCizili { get; set; }
+        public string? OncekiSahip { get; set; }
+        public bool OncekiSahipCizili { get; set; }
+        public string? YeniSahip { get; set; }
+        public bool YeniSahipCizili { get; set; }
+        public string? Aciklama { get; set; }
+        public string? DurumNotu { get; set; }
+    }
+
+    public class YazilimCreateViewModel
+    {
+        public int? YazilimKaydiId { get; set; }
+        public int? YazilimId { get; set; }
+        public string? DigerYazilimAd { get; set; }
+        public string Surum { get; set; } = string.Empty;
+        public string Ozellikler { get; set; } = string.Empty;
+        public string LisansAnahtari { get; set; } = string.Empty;
+        public PersonelTakipSistemi.Models.LisansSuresiTuru LisansSuresiTuru { get; set; } = PersonelTakipSistemi.Models.LisansSuresiTuru.Suresiz;
+        public DateTime? BaslangicTarihi { get; set; }
+        public DateTime? BitisTarihi { get; set; }
+        public string? KullaniciAdi { get; set; }
+        public string? Eposta { get; set; }
+        public int? SahipPersonelId { get; set; }
+    }
+
+    public class YazilimListeFilterViewModel
+    {
+        public int? KoordinatorlukId { get; set; }
+        public int? PersonelId { get; set; }
+        public int? YazilimId { get; set; }
+        public string? SurumAra { get; set; }
+        public string? OzellikAra { get; set; }
+        public string? LisansAnahtariAra { get; set; }
+        public int YasSliderDegeri { get; set; } = -1;
+        public bool SadeceOnayBekleyenler { get; set; }
+    }
+
+    public class YazilimListeItemViewModel
+    {
+        public int YazilimKaydiId { get; set; }
+        public int YazilimId { get; set; }
+        public string? DigerYazilimAd { get; set; }
+        public string YazilimAdi { get; set; } = string.Empty;
+        public string Surum { get; set; } = string.Empty;
+        public string Ozellikler { get; set; } = string.Empty;
+        public string LisansAnahtari { get; set; } = string.Empty;
+        public string LisansSuresiTuru { get; set; } = string.Empty;
+        public PersonelTakipSistemi.Models.LisansSuresiTuru LisansSuresiTuruValue { get; set; }
+        public DateTime? BaslangicTarihi { get; set; }
+        public DateTime? BitisTarihi { get; set; }
+        public string? KullaniciAdi { get; set; }
+        public string? Eposta { get; set; }
+        public string SahipAdSoyad { get; set; } = string.Empty;
+        public string KoordinatorlukAd { get; set; } = string.Empty;
+        public DateTime IlkKayitTarihi { get; set; }
+        public DateTime AktifSahiplikBaslangicTarihi { get; set; }
+        public bool KoordinatorTarafindanEklendi { get; set; }
+        public YazilimOnayDurumu OnayDurumu { get; set; }
+    }
+
+    public class YazilimListePageViewModel
+    {
+        public string Baslik { get; set; } = string.Empty;
+        public bool KoordinatorPaneliMi { get; set; }
+        public bool AdminPaneliMi { get; set; }
+        public bool PersonelGorunumuMu { get; set; }
+        public bool YazilimEklemeYetkisiVarMi { get; set; }
+        public bool OnayYetkisiVarMi { get; set; }
+        public int DigerYazilimId { get; set; } = 18;
+        public YazilimListeFilterViewModel Filter { get; set; } = new();
+        public YazilimCreateViewModel YeniYazilim { get; set; } = new();
+        public List<YazilimListeItemViewModel> Yazilimlar { get; set; } = new();
+        public List<LookupItemVm> YazilimTanimlari { get; set; } = new();
+        public List<LookupItemVm> Koordinatorlukler { get; set; } = new();
+        public List<LookupItemVm> Personeller { get; set; } = new();
+        public List<LookupItemVm> EklemeIcinYazilimlar { get; set; } = new();
+        public List<LookupItemVm> EklemeIcinPersoneller { get; set; } = new();
+    }
+
+    public class YazilimDetayViewModel
+    {
+        public int YazilimKaydiId { get; set; }
+        public string YazilimAdi { get; set; } = string.Empty;
+        public string Surum { get; set; } = string.Empty;
+        public string Ozellikler { get; set; } = string.Empty;
+        public string LisansAnahtari { get; set; } = string.Empty;
+        public string LisansSuresiTuru { get; set; } = string.Empty;
+        public DateTime? BaslangicTarihi { get; set; }
+        public DateTime? BitisTarihi { get; set; }
+        public string? KullaniciAdi { get; set; }
+        public string? Eposta { get; set; }
+        public string SahipAdSoyad { get; set; } = string.Empty;
+        public string KoordinatorlukAd { get; set; } = string.Empty;
+        public string KayitTarihiBasligi { get; set; } = string.Empty;
+        public DateTime GosterilecekKayitTarihi { get; set; }
+        public DateTime IlkKayitTarihi { get; set; }
+        public YazilimOnayDurumu OnayDurumu { get; set; }
+        public bool OnayYetkisiVarMi { get; set; }
+        public bool HareketlerGorunsunMu { get; set; }
+        public bool DevirYetkisiVarMi { get; set; }
+        public bool DuzenlemeYetkisiVarMi { get; set; }
+        public bool DuzenlemeOnayGerekliMi { get; set; }
+        public int DigerYazilimId { get; set; } = 18;
+        public List<LookupItemVm> YazilimTanimlari { get; set; } = new();
+        public YazilimCreateViewModel DuzenleFormu { get; set; } = new();
+        public List<LookupItemVm> DevredilebilirPersoneller { get; set; } = new();
+        public YazilimTransferFormModel DevirFormu { get; set; } = new();
+        public List<YazilimHareketItemViewModel> Hareketler { get; set; } = new();
+    }
+
+    public class YazilimTransferFormModel
+    {
+        public int YazilimKaydiId { get; set; }
+        public int YeniSahipPersonelId { get; set; }
+        public string DevirNotu { get; set; } = string.Empty;
+        public string YazilimDurumNotu { get; set; } = string.Empty;
+    }
+
+    public class YazilimHizliDuzenleViewModel
+    {
+        public int YazilimKaydiId { get; set; }
+        public int YazilimId { get; set; }
+        public string? DigerYazilimAd { get; set; }
+        public string Surum { get; set; } = string.Empty;
+        public string Ozellikler { get; set; } = string.Empty;
+        public string LisansAnahtari { get; set; } = string.Empty;
+        public PersonelTakipSistemi.Models.LisansSuresiTuru LisansSuresiTuru { get; set; } = PersonelTakipSistemi.Models.LisansSuresiTuru.Suresiz;
+        public DateTime? BaslangicTarihi { get; set; }
+        public DateTime? BitisTarihi { get; set; }
+        public string? KullaniciAdi { get; set; }
+        public string? Eposta { get; set; }
+    }
+
+    public class YazilimHareketItemViewModel
     {
         public DateTime Tarih { get; set; }
         public string HareketTuru { get; set; } = string.Empty;

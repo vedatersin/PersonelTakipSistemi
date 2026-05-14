@@ -1,0 +1,170 @@
+﻿{
+  "ExcelPath": "C:\\Users\\vedat\\Downloads\\personel_listesi.xlsx",
+  "ExcelRowCount": 631,
+  "MatchedPersonnelCount": 631,
+  "UnmatchedPersonnelCount": 0,
+  "CreatedCentralCoordinatorCount": 4,
+  "EnabledCentralTasraFlagCount": 0,
+  "CreatedProvincialCoordinatorCount": 42,
+  "CreatedCommissionCount": 218,
+  "AssignedPersonnelCount": 631,
+  "UnmatchedCities": [],
+  "UnmatchedPersonnel": [],
+  "BranchMappings": [
+    {
+      "Branch": "ALMANCA",
+      "CoordinatorName": "Almanca Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "BEDEN E\u011E\u0130T\u0130M\u0130",
+      "CoordinatorName": "Beden E\u011Fitimi Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "created:0,19"
+    },
+    {
+      "Branch": "B\u0130LG\u0130SAYAR VE \u00D6\u011ERET\u0130M TEKNOLOJ\u0130LER\u0130",
+      "CoordinatorName": "B\u00D6TE Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "B\u0130L\u0130\u015E\u0130M TEKNOLOJ\u0130LER\u0130",
+      "CoordinatorName": "B\u00D6TE Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "\u00C7OCUK GEL\u0130\u015E\u0130M\u0130 VE E\u011E\u0130T\u0130M\u0130",
+      "CoordinatorName": "\u0130lkokul Hayat Bilgisi Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "D\u0130N K\u00DCLT\u00DCR\u00DC VE AHL\u00C2K B\u0130LG\u0130S\u0130",
+      "CoordinatorName": "Sosyal Bilgiler Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "ELEKTR\u0130K-ELEKTRON\u0130K TEKNOLOJ\u0130S\u0130 / ELEKTRON\u0130K",
+      "CoordinatorName": "Elektrik-Elektronik Teknolojisi / Elektronik Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "created:0,13"
+    },
+    {
+      "Branch": "FELSEFE",
+      "CoordinatorName": "Sosyal Bilgiler Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "FEN B\u0130L\u0130MLER\u0130",
+      "CoordinatorName": "Fen Bilimleri Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "FRANSIZCA",
+      "CoordinatorName": "Frans\u0131zca Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "created:0,29"
+    },
+    {
+      "Branch": "G\u00D6RSEL SANATLAR",
+      "CoordinatorName": "G\u00F6rsel Tasar\u0131m Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "GRAF\u0130K VE FOTO\u011ERAF / FOTO\u011ERAF",
+      "CoordinatorName": "G\u00F6rsel Tasar\u0131m Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "GRAF\u0130K VE FOTO\u011ERAF / GRAF\u0130K",
+      "CoordinatorName": "G\u00F6rsel Tasar\u0131m Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "\u0130LK\u00D6\u011ERET\u0130M MATEMAT\u0130K",
+      "CoordinatorName": "\u0130lkokul Matematik Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "\u0130NG\u0130L\u0130ZCE",
+      "CoordinatorName": "\u0130ngilizce Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "MATEMAT\u0130K",
+      "CoordinatorName": "Ortaokul Matematik Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "M\u00DCZ\u0130K",
+      "CoordinatorName": "M\u00FCzik Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "M\u00DCZ\u0130K / BA\u011ELAMA",
+      "CoordinatorName": "M\u00FCzik Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "M\u00DCZ\u0130K / BATI M\u00DCZ\u0130\u011E\u0130 \u00C7ALGI TOPLULUKLARI",
+      "CoordinatorName": "M\u00FCzik Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "M\u00DCZ\u0130K / T\u00DCRK SANAT M\u00DCZ\u0130\u011E\u0130 TEOR\u0130 VE UYGULAMASI",
+      "CoordinatorName": "M\u00FCzik Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "M\u00DCZ\u0130K / UT",
+      "CoordinatorName": "M\u00FCzik Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "OKUL \u00D6NCES\u0130",
+      "CoordinatorName": "\u0130lkokul Hayat Bilgisi Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "\u00D6ZEL E\u011E\u0130T\u0130M",
+      "CoordinatorName": "Uzmanlar Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-created"
+    },
+    {
+      "Branch": "RADYO-TELEV\u0130ZYON",
+      "CoordinatorName": "Mebi Dijital Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "REHBERL\u0130K",
+      "CoordinatorName": "Uzmanlar Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "SINIF \u00D6\u011ERETMENL\u0130\u011E\u0130",
+      "CoordinatorName": "\u0130lkokul Hayat Bilgisi Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "SOSYAL B\u0130LG\u0130LER",
+      "CoordinatorName": "Sosyal Bilgiler Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "TEKNOLOJ\u0130 VE TASARIM",
+      "CoordinatorName": "G\u00F6rsel Tasar\u0131m Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "T\u00DCRK D\u0130L\u0130 VE EDEB\u0130YATI",
+      "CoordinatorName": "Dil \u0130nceleme Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "T\u00DCRK\u00C7E",
+      "CoordinatorName": "Ortaokul T\u00FCrk\u00E7e Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    },
+    {
+      "Branch": "YA\u015EAYAN D\u0130LLER VE LEH\u00C7ELER (K\u00DCRT\u00C7E / KURMAN\u00C7\u0130)",
+      "CoordinatorName": "Dil \u0130nceleme Birim Koordinat\u00F6rl\u00FC\u011F\u00FC",
+      "Decision": "manual-existing"
+    }
+  ]
+}

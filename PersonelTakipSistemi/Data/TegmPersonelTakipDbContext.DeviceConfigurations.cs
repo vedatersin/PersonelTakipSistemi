@@ -119,6 +119,46 @@ namespace PersonelTakipSistemi.Data
                 entity.HasOne(e => e.IslemYapanPersonel).WithMany(p => p.YaptigiCihazHareketleri).HasForeignKey(e => e.IslemYapanPersonelId).OnDelete(DeleteBehavior.SetNull);
             });
 
+            modelBuilder.Entity<YazilimKaydi>(entity =>
+            {
+                entity.ToTable("YazilimKayitlari");
+                entity.HasKey(e => e.YazilimKaydiId);
+                entity.Property(e => e.Surum).IsRequired().HasMaxLength(150);
+                entity.Property(e => e.Ozellikler).IsRequired().HasMaxLength(500);
+                entity.Property(e => e.LisansAnahtari).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.DigerYazilimAd).HasMaxLength(150);
+                entity.Property(e => e.KullaniciAdi).HasMaxLength(200);
+                entity.Property(e => e.Eposta).HasMaxLength(250);
+                entity.Property(e => e.LisansSuresiTuru).HasConversion<int>();
+                entity.Property(e => e.OnayDurumu).HasConversion<int>();
+                entity.HasIndex(e => e.LisansAnahtari);
+                entity.HasIndex(e => new { e.KoordinatorlukId, e.OnayDurumu });
+
+                entity.HasOne(e => e.Yazilim).WithMany(y => y.YazilimKayitlari).HasForeignKey(e => e.YazilimId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.SahipPersonel).WithMany(p => p.SahipOlduguYazilimlar).HasForeignKey(e => e.SahipPersonelId).OnDelete(DeleteBehavior.SetNull);
+                entity.HasOne(e => e.OlusturanPersonel).WithMany(p => p.OlusturduguYazilimKayitlari).HasForeignKey(e => e.OlusturanPersonelId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.OnaylayanPersonel).WithMany(p => p.OnayladigiYazilimlar).HasForeignKey(e => e.OnaylayanPersonelId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.Koordinatorluk).WithMany(k => k.Yazilimlar).HasForeignKey(e => e.KoordinatorlukId).OnDelete(DeleteBehavior.Restrict);
+            });
+
+            modelBuilder.Entity<YazilimHareketi>(entity =>
+            {
+                entity.ToTable("YazilimHareketleri");
+                entity.HasKey(e => e.YazilimHareketiId);
+                entity.Property(e => e.HareketTuru).HasConversion<int>();
+                entity.Property(e => e.Aciklama).HasMaxLength(500);
+                entity.Property(e => e.DurumNotu).HasMaxLength(500);
+                entity.Property(e => e.IslemYapanAdSoyad).HasMaxLength(200);
+                entity.Property(e => e.OncekiSahipAdSoyad).HasMaxLength(200);
+                entity.Property(e => e.YeniSahipAdSoyad).HasMaxLength(200);
+                entity.HasIndex(e => new { e.YazilimKaydiId, e.Tarih });
+
+                entity.HasOne(e => e.YazilimKaydi).WithMany(y => y.Hareketler).HasForeignKey(e => e.YazilimKaydiId).OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.OncekiSahipPersonel).WithMany().HasForeignKey(e => e.OncekiSahipPersonelId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.YeniSahipPersonel).WithMany().HasForeignKey(e => e.YeniSahipPersonelId).OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(e => e.IslemYapanPersonel).WithMany(p => p.YaptigiYazilimHareketleri).HasForeignKey(e => e.IslemYapanPersonelId).OnDelete(DeleteBehavior.SetNull);
+            });
+
             modelBuilder.Entity<YazilimLisans>(entity =>
             {
                 entity.ToTable("YazilimLisanslar");

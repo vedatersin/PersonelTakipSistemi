@@ -10,12 +10,14 @@ namespace PersonelTakipSistemi.Controllers
     public class CihazlarController : Controller
     {
         private readonly ICihazService _cihazService;
+        private readonly IYazilimEnvanterService _yazilimEnvanterService;
         private readonly IYazilimLisansService _yazilimLisansService;
         private readonly ILogService _logService;
 
-        public CihazlarController(ICihazService cihazService, IYazilimLisansService yazilimLisansService, ILogService logService)
+        public CihazlarController(ICihazService cihazService, IYazilimEnvanterService yazilimEnvanterService, IYazilimLisansService yazilimLisansService, ILogService logService)
         {
             _cihazService = cihazService;
+            _yazilimEnvanterService = yazilimEnvanterService;
             _yazilimLisansService = yazilimLisansService;
             _logService = logService;
         }
@@ -157,6 +159,72 @@ namespace PersonelTakipSistemi.Controllers
                 {
                     success = true,
                     message = "Marka silindi.",
+                    data = await _cihazService.GetDefinitionsDataAsync(model.SeciliCihazTuruId)
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimTanimiEkle(YazilimTanimFormModel model, int? seciliCihazTuruId = null)
+        {
+            try
+            {
+                await _cihazService.AddSoftwareDefinitionAsync(model);
+                await _logService.LogAsync("Yazılım Tanımı Ekleme", $"Yeni yazılım tanımı eklendi: {model.Ad}");
+                return Json(new
+                {
+                    success = true,
+                    message = "Yazılım tanımı eklendi.",
+                    data = await _cihazService.GetDefinitionsDataAsync(seciliCihazTuruId)
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimTanimiGuncelle(YazilimTanimFormModel model, int? seciliCihazTuruId = null)
+        {
+            try
+            {
+                await _cihazService.UpdateSoftwareDefinitionAsync(model);
+                await _logService.LogAsync("Yazılım Tanımı Güncelleme", $"Yazılım tanımı güncellendi: {model.Ad}", detay: $"YazilimId: {model.YazilimId}");
+                return Json(new
+                {
+                    success = true,
+                    message = "Yazılım tanımı güncellendi.",
+                    data = await _cihazService.GetDefinitionsDataAsync(seciliCihazTuruId)
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimTanimiSil(CihazTanimSilModel model)
+        {
+            try
+            {
+                await _cihazService.DeleteSoftwareDefinitionAsync(model.Id, model.Onaylandi);
+                await _logService.LogAsync("Yazılım Tanımı Silme", $"Yazılım tanımı silindi. Id: {model.Id}");
+                return Json(new
+                {
+                    success = true,
+                    message = "Yazılım tanımı silindi.",
                     data = await _cihazService.GetDefinitionsDataAsync(model.SeciliCihazTuruId)
                 });
             }
@@ -387,6 +455,219 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
+        public async Task<IActionResult> GetYazilimTanimlari()
+        {
+            var yazilimlar = await _yazilimEnvanterService.GetActiveSoftwareDefinitionsAsync();
+            return Json(yazilimlar.Select(x => new { id = x.Id, ad = x.Ad }));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> BenimYazilimlarim([FromQuery] YazilimListeFilterViewModel filter)
+        {
+            return View("YazilimListe", await _yazilimEnvanterService.GetMySoftwareAsync(GetCurrentPersonelId(), filter));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Yazilimlar([FromQuery] YazilimListeFilterViewModel filter)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var isAdmin = User.IsInRole("Admin");
+            var isCoordinator = await _yazilimEnvanterService.IsCoordinatorAsync(currentPersonelId);
+
+            if (!isAdmin && !isCoordinator)
+            {
+                return RedirectToAction(nameof(BenimYazilimlarim));
+            }
+
+            return View("YazilimListe", await _yazilimEnvanterService.GetManagedSoftwareAsync(currentPersonelId, isAdmin, filter));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimEkle(YazilimListePageViewModel pageModel, string returnAction = "BenimYazilimlarim")
+        {
+            var safeReturnAction = NormalizeYazilimReturnAction(returnAction);
+            var currentPersonelId = GetCurrentPersonelId();
+            var coordinatorCreate = safeReturnAction == nameof(Yazilimlar) && (User.IsInRole("Admin") || await _yazilimEnvanterService.IsCoordinatorAsync(currentPersonelId));
+
+            try
+            {
+                var yazilimKaydiId = await _yazilimEnvanterService.CreateSoftwareAsync(pageModel.YeniYazilim, currentPersonelId, coordinatorCreate);
+                await _logService.LogAsync("Yazılım Ekleme", $"Yeni yazılım kaydı oluşturuldu. YazilimKaydiId: {yazilimKaydiId}");
+                TempData["NewYazilimKaydiId"] = yazilimKaydiId;
+                TempData["SuccessMessage"] = coordinatorCreate ? "Yazılım kaydı oluşturuldu." : "Yazılım kaydı oluşturuldu ve onaya gönderildi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(safeReturnAction);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimGuncelle(YazilimCreateViewModel form, string? returnAction = null)
+        {
+            var safeReturnAction = NormalizeYazilimReturnAction(returnAction);
+            var canManage = User.IsInRole("Admin") || await _yazilimEnvanterService.IsCoordinatorAsync(GetCurrentPersonelId());
+
+            try
+            {
+                var onayaGonderildi = await _yazilimEnvanterService.UpdateSoftwareAsync(form, GetCurrentPersonelId(), canManage);
+                await _logService.LogAsync("Yazılım Güncelleme", $"Yazılım kaydı güncellendi. YazilimKaydiId: {form.YazilimKaydiId}", detay: $"YazilimId: {form.YazilimId}, Sürüm: {form.Surum}");
+                TempData["SuccessMessage"] = onayaGonderildi
+                    ? "Yazılım düzenlemesi kaydedildi ve onaya gönderildi."
+                    : "Yazılım kaydı güncellendi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(YazilimDetay), new { id = form.YazilimKaydiId, returnAction = safeReturnAction });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimHizliGuncelle(YazilimHizliDuzenleViewModel form)
+        {
+            try
+            {
+                await _yazilimEnvanterService.QuickUpdateSoftwareAsync(form, GetCurrentPersonelId(), User.IsInRole("Admin"));
+                await _logService.LogAsync("Yazılım Hızlı Güncelleme", $"Yazılım hızlı güncellendi. YazilimKaydiId: {form.YazilimKaydiId}");
+                return Json(new { success = true, message = "Yazılım güncellendi." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimSil(int yazilimKaydiId)
+        {
+            try
+            {
+                await _yazilimEnvanterService.DeleteSoftwareAsync(yazilimKaydiId, GetCurrentPersonelId(), User.IsInRole("Admin"));
+                await _logService.LogAsync("Yazılım Silme", $"Yazılım silindi. YazilimKaydiId: {yazilimKaydiId}");
+                return Json(new { success = true, message = "Yazılım silindi." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimSilDetay(int yazilimKaydiId, string? returnAction = null)
+        {
+            var safeReturnAction = NormalizeYazilimReturnAction(returnAction);
+            try
+            {
+                await _yazilimEnvanterService.DeleteSoftwareAsync(yazilimKaydiId, GetCurrentPersonelId(), true);
+                await _logService.LogAsync("Yazılım Silme", $"Yazılım silindi. YazilimKaydiId: {yazilimKaydiId}");
+                TempData["SuccessMessage"] = "Yazılım silindi.";
+                return RedirectToAction(safeReturnAction);
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+                return RedirectToAction(nameof(YazilimDetay), new { id = yazilimKaydiId, returnAction = safeReturnAction });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimOnayla(int yazilimKaydiId)
+        {
+            try
+            {
+                await _yazilimEnvanterService.ApproveSoftwareAsync(yazilimKaydiId, GetCurrentPersonelId());
+                await _logService.LogAsync("Yazılım Onayı", $"Yazılım onaylandı. YazilimKaydiId: {yazilimKaydiId}");
+                TempData["SuccessMessage"] = "Yazılım onaylandı.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(Yazilimlar), new { SadeceOnayBekleyenler = true });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimOnaylaDetay(int yazilimKaydiId, string? returnAction = null)
+        {
+            var safeReturnAction = NormalizeYazilimReturnAction(returnAction);
+            try
+            {
+                await _yazilimEnvanterService.ApproveSoftwareAsync(yazilimKaydiId, GetCurrentPersonelId());
+                await _logService.LogAsync("Yazılım Onayı", $"Yazılım onaylandı. YazilimKaydiId: {yazilimKaydiId}");
+                TempData["SuccessMessage"] = "Yazılım onaylandı.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(YazilimDetay), new { id = yazilimKaydiId, returnAction = safeReturnAction });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimOnaylaHizli(int yazilimKaydiId)
+        {
+            try
+            {
+                await _yazilimEnvanterService.ApproveSoftwareAsync(yazilimKaydiId, GetCurrentPersonelId());
+                await _logService.LogAsync("Yazılım Onayı", $"Yazılım onaylandı. YazilimKaydiId: {yazilimKaydiId}");
+                return Json(new { success = true, message = "Yazılım onaylandı." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> YazilimDetay(int id, string? returnAction = null)
+        {
+            var currentPersonelId = GetCurrentPersonelId();
+            var canManage = User.IsInRole("Admin") || await _yazilimEnvanterService.IsCoordinatorAsync(currentPersonelId);
+            var model = await _yazilimEnvanterService.GetDetailAsync(id, currentPersonelId, canManage);
+            var safeReturnAction = NormalizeYazilimReturnAction(returnAction);
+            ViewBag.ReturnAction = safeReturnAction;
+            return model == null ? NotFound() : View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> YazilimDevret(YazilimTransferFormModel model, string? returnAction = null)
+        {
+            var safeReturnAction = NormalizeYazilimReturnAction(returnAction);
+            var canManage = User.IsInRole("Admin") || await _yazilimEnvanterService.IsCoordinatorAsync(GetCurrentPersonelId());
+
+            try
+            {
+                await _yazilimEnvanterService.TransferSoftwareAsync(model, GetCurrentPersonelId(), canManage);
+                await _logService.LogAsync("Yazılım Devri", $"Yazılım devredildi. YazilimKaydiId: {model.YazilimKaydiId}", detay: model.DevirNotu);
+                TempData["SuccessMessage"] = "Yazılım başarıyla devredildi.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction(nameof(YazilimDetay), new { id = model.YazilimKaydiId, returnAction = safeReturnAction });
+        }
+
+        [HttpGet]
         [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> YazilimLisansYonetimi()
         {
@@ -605,6 +886,13 @@ namespace PersonelTakipSistemi.Controllers
             return string.Equals(returnAction, nameof(Liste), StringComparison.OrdinalIgnoreCase)
                 ? nameof(Liste)
                 : nameof(BenimCihazlarim);
+        }
+
+        private static string NormalizeYazilimReturnAction(string? returnAction)
+        {
+            return string.Equals(returnAction, nameof(Yazilimlar), StringComparison.OrdinalIgnoreCase)
+                ? nameof(Yazilimlar)
+                : nameof(BenimYazilimlarim);
         }
     }
 }

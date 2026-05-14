@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 
 namespace PersonelTakipSistemi.Models
 {
@@ -8,6 +9,15 @@ namespace PersonelTakipSistemi.Models
         public int YazilimId { get; set; }
         public string Ad { get; set; } = null!;
         public ICollection<PersonelYazilim> PersonelYazilimlar { get; set; } = new List<PersonelYazilim>();
+    }
+
+    public class YazilimTanimi
+    {
+        public int YazilimId { get; set; }
+        public string Ad { get; set; } = null!;
+        public bool SistemSecenegiMi { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public ICollection<YazilimKaydi> YazilimKayitlari { get; set; } = new List<YazilimKaydi>();
     }
 
     public class Uzmanlik

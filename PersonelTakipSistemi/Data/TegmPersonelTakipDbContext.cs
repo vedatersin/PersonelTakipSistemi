@@ -11,6 +11,7 @@ namespace PersonelTakipSistemi.Data
 
         public DbSet<Personel> Personeller { get; set; }
         public DbSet<Yazilim> Yazilimlar { get; set; }
+        public DbSet<YazilimTanimi> YazilimTanimlari { get; set; }
         public DbSet<Uzmanlik> Uzmanliklar { get; set; }
         public DbSet<GorevTuru> GorevTurleri { get; set; }
         public DbSet<IsNiteligi> IsNitelikleri { get; set; }
@@ -52,6 +53,8 @@ namespace PersonelTakipSistemi.Data
         public DbSet<CihazMarka> CihazMarkalari { get; set; }
         public DbSet<Cihaz> Cihazlar { get; set; }
         public DbSet<CihazHareketi> CihazHareketleri { get; set; }
+        public DbSet<YazilimKaydi> YazilimKayitlari { get; set; }
+        public DbSet<YazilimHareketi> YazilimHareketleri { get; set; }
         public DbSet<YazilimLisans> YazilimLisanslar { get; set; }
         public DbSet<YazilimLisansKullanici> YazilimLisansKullanicilar { get; set; }
 

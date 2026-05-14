@@ -34,6 +34,7 @@ builder.Services.AddScoped<PersonelTakipSistemi.Services.IPersonelAssignmentServ
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IPersonelMaintenanceService, PersonelTakipSistemi.Services.PersonelMaintenanceService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IGorevWorkflowService, PersonelTakipSistemi.Services.GorevWorkflowService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.ICihazService, PersonelTakipSistemi.Services.CihazService>();
+builder.Services.AddScoped<PersonelTakipSistemi.Services.IYazilimEnvanterService, PersonelTakipSistemi.Services.YazilimEnvanterService>();
 builder.Services.AddScoped<PersonelTakipSistemi.Services.IYazilimLisansService, PersonelTakipSistemi.Services.YazilimLisansService>();
 
 builder.Services.AddHostedService<PersonelTakipSistemi.Services.NotificationBackgroundService>();

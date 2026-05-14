@@ -45,9 +45,33 @@
 
         string? currentAction = ViewContext.RouteData.Values["Action"]?.ToString();
         string? currentController = ViewContext.RouteData.Values["Controller"]?.ToString();
+        string? currentReturnAction = Context.Request.Query["returnAction"].ToString();
         bool isIdPresent = ViewContext.RouteData.Values.ContainsKey("id") || Context.Request.Query.ContainsKey("id");
 
-         // Personel Modülü Logic (Controller Check Added)
+        bool isDefinitionsPage = string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase)
+            && string.Equals(currentAction, "Tanimlar", StringComparison.OrdinalIgnoreCase);
+        bool isManagedDevicePage = string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase)
+            && (string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase)
+                || (string.Equals(currentAction, "Detay", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(currentReturnAction, "Liste", StringComparison.OrdinalIgnoreCase)));
+        bool isManagedSoftwarePage = string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase)
+            && (string.Equals(currentAction, "Yazilimlar", StringComparison.OrdinalIgnoreCase)
+                || (string.Equals(currentAction, "YazilimDetay", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(currentReturnAction, "Yazilimlar", StringComparison.OrdinalIgnoreCase)));
+        bool isMyDevicePage = string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase)
+            && (string.Equals(currentAction, "BenimCihazlarim", StringComparison.OrdinalIgnoreCase)
+                || (string.Equals(currentAction, "Detay", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(currentReturnAction, "BenimCihazlarim", StringComparison.OrdinalIgnoreCase)));
+        bool isMySoftwarePage = string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase)
+            && (string.Equals(currentAction, "BenimYazilimlarim", StringComparison.OrdinalIgnoreCase)
+                || (string.Equals(currentAction, "YazilimDetay", StringComparison.OrdinalIgnoreCase)
+                    && string.Equals(currentReturnAction, "BenimYazilimlarim", StringComparison.OrdinalIgnoreCase)));
+        bool isLegacySoftwareLicensePage = string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase)
+            && (string.Equals(currentAction, "YazilimLisansYonetimi", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(currentAction, "YazilimLisansDetay", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(currentAction, "YazilimLisanslarim", StringComparison.OrdinalIgnoreCase));
+
+        // Personel Modülü Logic (Controller Check Added)
         bool isPersonelController = string.Equals(currentController, "Personel", StringComparison.OrdinalIgnoreCase);
 
         bool isYeniActive = isPersonelController && (string.Equals(currentAction, "Yeni", StringComparison.OrdinalIgnoreCase) || 
@@ -63,11 +87,10 @@
                                     string.Equals(currentAction, "BenimDetay", StringComparison.OrdinalIgnoreCase) || 
                                     (string.Equals(currentAction, "Detay", StringComparison.OrdinalIgnoreCase) && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr) ||
                                     (string.Equals(currentAction, "Ekle", StringComparison.OrdinalIgnoreCase) && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr)
-                                ))
-                                || (string.Equals(currentController, "Bildirimler", StringComparison.OrdinalIgnoreCase))
-                                || (string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) &&
-                                    (string.Equals(currentAction, "BenimCihazlarim", StringComparison.OrdinalIgnoreCase) ||
-                                     string.Equals(currentAction, "YazilimLisanslarim", StringComparison.OrdinalIgnoreCase)));
+                                 ))
+                                 || (string.Equals(currentController, "Bildirimler", StringComparison.OrdinalIgnoreCase))
+                                 || isMyDevicePage
+                                 || isMySoftwarePage;
         
         string openClass = isProfileActive ? "open" : ""; 
     }
@@ -165,8 +188,8 @@
                     || string.Equals(currentAction, "KomisyonDetay", StringComparison.OrdinalIgnoreCase)))
             || string.Equals(currentController, "BildirimModulu", StringComparison.OrdinalIgnoreCase)
             || (isPersonelController && string.Equals(currentAction, "Yetkilendirme", StringComparison.OrdinalIgnoreCase))
-            || (string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase)
-                && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase));
+            || isManagedDevicePage
+            || isManagedSoftwarePage;
 
         <li class="menu-item @(isKoordinatorlukModuleOpen ? "active open" : "")">
           <a href="javascript:void(0);" class="menu-link menu-toggle">
@@ -189,9 +212,14 @@
                 <div class="text-truncate">Bildirim Yönetimi</div>
               </a>
             </li>
-            <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+            <li class="menu-item @(isManagedDevicePage ? "active" : "")">
                 <a asp-controller="Cihazlar" asp-action="Liste" class="menu-link">
                     <div class="text-truncate">Cihaz Yönetimi</div>
+                </a>
+            </li>
+            <li class="menu-item @(isManagedSoftwarePage ? "active" : "")">
+                <a asp-controller="Cihazlar" asp-action="Yazilimlar" class="menu-link">
+                    <div class="text-truncate">Yazılım Yönetimi</div>
                 </a>
             </li>
           </ul>
@@ -304,25 +332,25 @@
     <!-- Profilim & Bildirimler (Tüm Kullanıcılar İçin - En Altta) -->
     @if (userRole == "Admin" || userRole == "Yönetici")
     {
-        <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && (string.Equals(currentAction, "Tanimlar", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "YazilimLisansYonetimi", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "YazilimLisansDetay", StringComparison.OrdinalIgnoreCase)) ? "active open" : "")">
+        <li class="menu-item @((isDefinitionsPage || isManagedDevicePage || isManagedSoftwarePage || isLegacySoftwareLicensePage) ? "active open" : "")">
              <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons bx bx-devices"></i>
-                <div class="text-truncate">Yazılım Lisansları ve Cihazlar</div>
+                <div class="text-truncate">Yazılımlar ve Cihazlar</div>
               </a>
               <ul class="menu-sub">
-                <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "Tanimlar", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                <li class="menu-item @(isDefinitionsPage ? "active" : "")">
                     <a asp-controller="Cihazlar" asp-action="Tanimlar" class="menu-link">
-                        <div class="text-truncate">Cihaz Tanımları</div>
+                        <div class="text-truncate">Tanımlar</div>
                     </a>
                 </li>
-                <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "Liste", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+                <li class="menu-item @(isManagedDevicePage ? "active" : "")">
                     <a asp-controller="Cihazlar" asp-action="Liste" class="menu-link">
                         <div class="text-truncate">Cihazlar</div>
                     </a>
                 </li>
-                <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && (string.Equals(currentAction, "YazilimLisansYonetimi", StringComparison.OrdinalIgnoreCase) || string.Equals(currentAction, "YazilimLisansDetay", StringComparison.OrdinalIgnoreCase)) ? "active" : "")">
-                    <a asp-controller="Cihazlar" asp-action="YazilimLisansYonetimi" class="menu-link">
-                        <div class="text-truncate">Yazılım Lisansları</div>
+                <li class="menu-item @(isManagedSoftwarePage ? "active" : "")">
+                    <a asp-controller="Cihazlar" asp-action="Yazilimlar" class="menu-link">
+                        <div class="text-truncate">Yazılımlar</div>
                     </a>
                 </li>
               </ul>
@@ -360,14 +388,14 @@
                     <div class="text-truncate" data-i18n="Bildirimlerim">Bildirimlerim</div>
                 </a>
             </li>
-            <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "BenimCihazlarim", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
+            <li class="menu-item @(isMyDevicePage ? "active" : "")">
                 <a asp-controller="Cihazlar" asp-action="BenimCihazlarim" class="menu-link">
                     <div class="text-truncate">Cihazlarım</div>
                 </a>
             </li>
-            <li class="menu-item @(string.Equals(currentController, "Cihazlar", StringComparison.OrdinalIgnoreCase) && string.Equals(currentAction, "YazilimLisanslarim", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-                <a asp-controller="Cihazlar" asp-action="YazilimLisanslarim" class="menu-link">
-                    <div class="text-truncate">Yazılım Lisanslarım</div>
+            <li class="menu-item @(isMySoftwarePage ? "active" : "")">
+                <a asp-controller="Cihazlar" asp-action="BenimYazilimlarim" class="menu-link">
+                    <div class="text-truncate">Yazılımlarım</div>
                 </a>
             </li>
           </ul>

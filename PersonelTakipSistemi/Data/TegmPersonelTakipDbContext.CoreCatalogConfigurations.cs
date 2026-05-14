@@ -10,6 +10,7 @@ namespace PersonelTakipSistemi.Data
         {
             modelBuilder.Entity<Personel>().ToTable("Personeller");
             modelBuilder.Entity<Yazilim>().ToTable("Yazilimlar");
+            modelBuilder.Entity<YazilimTanimi>().ToTable("YazilimTanimlari");
             modelBuilder.Entity<Uzmanlik>().ToTable("Uzmanliklar");
             modelBuilder.Entity<GorevTuru>().ToTable("GorevTurleri");
             modelBuilder.Entity<IsNiteligi>().ToTable("IsNitelikleri");
@@ -119,6 +120,13 @@ namespace PersonelTakipSistemi.Data
                 entity.Property(e => e.Ad).IsRequired();
                 entity.HasIndex(e => e.Ad).IsUnique();
                 entity.HasData(CatalogSeedData.GetYazilimSeed());
+            });
+
+            modelBuilder.Entity<YazilimTanimi>(entity =>
+            {
+                entity.HasKey(e => e.YazilimId);
+                entity.Property(e => e.Ad).IsRequired().HasMaxLength(150);
+                entity.HasIndex(e => e.Ad).IsUnique();
             });
 
             modelBuilder.Entity<Uzmanlik>(entity => {

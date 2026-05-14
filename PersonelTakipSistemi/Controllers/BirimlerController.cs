@@ -885,10 +885,15 @@ namespace PersonelTakipSistemi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> BirimListele()
         {
-            // Varsayılan ID'ler: Programlar Daire (9), Merkez Teşkilat (1), Fen Birimi (4)
-            int defaultDaireId = 9;
-            int defaultTeskilatId = 1;
-            int? defaultKoordId = null; // Açılışta belirli bir koordinatörlük seçili gelmesin
+            var defaultKoordinatorluk = await _context.Koordinatorlukler
+                .Include(k => k.Teskilat)
+                .Where(k => k.IsActive && k.Ad == "Beden Eğitimi Birim Koordinatörlüğü")
+                .FirstOrDefaultAsync();
+
+            // Varsayılan ID'ler: Programlar Daire (9), Merkez Teşkilat (1), Beden Eğitimi Birimi
+            int defaultDaireId = defaultKoordinatorluk?.Teskilat?.DaireBaskanligiId ?? 9;
+            int defaultTeskilatId = defaultKoordinatorluk?.TeskilatId ?? 1;
+            int? defaultKoordId = defaultKoordinatorluk?.KoordinatorlukId;
 
             // Sadece birimi olan Daire Başkanlıklarını getir
             var activeDaireIds = await _context.Teskilatlar
@@ -917,16 +922,21 @@ namespace PersonelTakipSistemi.Controllers
                         Selected = t.TeskilatId == defaultTeskilatId
                     })
                     .ToListAsync(),
+                KoordinatorlukList = await GetKoordinatorlukSelectListAsync(defaultTeskilatId, defaultKoordId),
+                KomisyonList = defaultKoordId.HasValue
+                    ? await GetKomisyonSelectListAsync(defaultKoordId.Value)
+                    : new List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>(),
                 DefaultDaireBaskanligiId = defaultDaireId,
                 DefaultTeskilatId = defaultTeskilatId,
                 DefaultKoordinatorlukId = defaultKoordId
             };
 
-            // Varsayılan kartları yükle (Teşkilatın koordinatörlüklerini göster)
-            model.Kartlar = await GetKartlarByTeskilat(defaultTeskilatId);
+            // Varsayılan kartları yükle
+            model.Kartlar = defaultKoordId.HasValue
+                ? await GetKartlarByKoordinatorlukAsync(defaultKoordId.Value)
+                : await GetKartlarByTeskilat(defaultTeskilatId);
 
-            // Harita için: Açılışta Merkez seçili olduğu için sadece Ankara (ID: 6) mavi olsun
-            var highlightIlIds = new List<int> { 6 };
+            var highlightIlIds = await GetActiveIlIdsAsync(defaultTeskilatId, defaultKoordId);
 
             model.Iller = await _context.Iller
                 .Select(il => new HaritaIlItem
@@ -938,6 +948,40 @@ namespace PersonelTakipSistemi.Controllers
                 .ToListAsync();
 
             return View(model);
+        }
+
+        private async Task<List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>> GetKoordinatorlukSelectListAsync(int teskilatId, int? selectedKoordinatorlukId)
+        {
+            return await _context.Koordinatorlukler
+                .Where(x => x.TeskilatId == teskilatId && x.IsActive)
+                .OrderBy(x => x.Ad)
+                .Select(x => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = x.KoordinatorlukId.ToString(),
+                    Text = x.Ad,
+                    Selected = selectedKoordinatorlukId.HasValue && x.KoordinatorlukId == selectedKoordinatorlukId.Value
+                })
+                .ToListAsync();
+        }
+
+        private async Task<List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>> GetKomisyonSelectListAsync(int koordinatorlukId)
+        {
+            var data = await _context.Komisyonlar
+                .Include(x => x.Koordinatorluk).ThenInclude(k => k.Il)
+                .Include(x => x.BagliMerkezKoordinatorluk)
+                .Where(x => (x.KoordinatorlukId == koordinatorlukId || x.BagliMerkezKoordinatorlukId == koordinatorlukId) && x.IsActive)
+                .ToListAsync();
+
+            return data
+                .Select(x => new Microsoft.AspNetCore.Mvc.Rendering.SelectListItem
+                {
+                    Value = x.KomisyonId.ToString(),
+                    Text = x.BagliMerkezKoordinatorlukId == koordinatorlukId && x.Koordinatorluk?.Il != null
+                        ? $"{x.Koordinatorluk.Il.Ad} Komisyonu"
+                        : x.Ad
+                })
+                .OrderBy(x => x.Text)
+                .ToList();
         }
 
         private async Task<List<BirimKartItem>> GetKartlarByTeskilat(int teskilatId)
@@ -990,6 +1034,80 @@ namespace PersonelTakipSistemi.Controllers
             return kartlar.OrderBy(x => x.Ad).ToList();
         }
 
+        private async Task<List<BirimKartItem>> GetKartlarByKoordinatorlukAsync(int koordinatorlukId, int? ilId = null)
+        {
+            var query = _context.Komisyonlar
+                .Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
+                .Include(k => k.PersonelKomisyonlar)
+                .Where(k => (k.KoordinatorlukId == koordinatorlukId || k.BagliMerkezKoordinatorlukId == koordinatorlukId) && k.IsActive);
+
+            if (ilId.HasValue)
+            {
+                query = query.Where(k => k.Koordinatorluk != null && k.Koordinatorluk.IlId == ilId.Value);
+            }
+
+            return await query
+                .Select(k => new BirimKartItem
+                {
+                    Id = k.KomisyonId,
+                    Ad = k.Ad,
+                    Tur = "Komisyon",
+                    PersonelSayisi = k.PersonelKomisyonlar.Count,
+                    GorevSayisi = _context.GorevAtamaKomisyonlar.Count(g => g.KomisyonId == k.KomisyonId),
+                    IlId = k.Koordinatorluk != null ? k.Koordinatorluk.IlId : null,
+                    IlAdi = (k.Koordinatorluk != null && k.Koordinatorluk.Il != null) ? k.Koordinatorluk.Il.Ad : null,
+                    ParentId = k.KoordinatorlukId
+                })
+                .OrderBy(k => k.Ad)
+                .ToListAsync();
+        }
+
+        private async Task<List<int>> GetActiveIlIdsAsync(int teskilatId, int? koordinatorlukId)
+        {
+            List<int> ilIds = new List<int>();
+
+            if (koordinatorlukId.HasValue)
+            {
+                var koord = await _context.Koordinatorlukler
+                    .Include(k => k.Teskilat)
+                    .FirstOrDefaultAsync(k => k.KoordinatorlukId == koordinatorlukId);
+
+                if (koord != null)
+                {
+                    string tur = (koord.Teskilat?.BagliMerkezTeskilatId != null) ? "Taşra" : (koord.Teskilat?.Tur ?? "Merkez");
+
+                    if (tur == "Merkez")
+                    {
+                        ilIds = await _context.Komisyonlar
+                            .Where(k => k.IsActive && k.BagliMerkezKoordinatorlukId == koordinatorlukId)
+                            .Select(k => k.Koordinatorluk.IlId)
+                            .Where(id => id != null)
+                            .Select(id => id!.Value)
+                            .Distinct()
+                            .ToListAsync();
+                    }
+                    else if (koord.IlId.HasValue)
+                    {
+                        ilIds.Add(koord.IlId.Value);
+                    }
+                }
+            }
+            else if (teskilatId == 1)
+            {
+                ilIds.Add(6);
+            }
+            else
+            {
+                ilIds = await _context.Koordinatorlukler
+                    .Where(k => k.TeskilatId == teskilatId && k.IsActive && k.IlId != null)
+                    .Select(k => k.IlId!.Value)
+                    .Distinct()
+                    .ToListAsync();
+            }
+
+            return ilIds;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetBirimKartlari(int? teskilatId, int? koordinatorlukId, int? ilId)
         {
@@ -998,23 +1116,7 @@ namespace PersonelTakipSistemi.Controllers
             if (koordinatorlukId.HasValue)
             {
                 // Koordinatörlük seçilmiş → altındaki komisyonları göster
-                kartlar = await _context.Komisyonlar
-                    .Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
-                    .Include(k => k.PersonelKomisyonlar)
-                    .Where(k => (k.KoordinatorlukId == koordinatorlukId.Value || k.BagliMerkezKoordinatorlukId == koordinatorlukId.Value) && k.IsActive)
-                    .Select(k => new BirimKartItem
-                    {
-                        Id = k.KomisyonId,
-                        Ad = k.Ad,
-                        Tur = "Komisyon",
-                        PersonelSayisi = k.PersonelKomisyonlar.Count,
-                        GorevSayisi = _context.GorevAtamaKomisyonlar.Count(g => g.KomisyonId == k.KomisyonId),
-                        IlId = k.Koordinatorluk != null ? k.Koordinatorluk.IlId : null,
-                        IlAdi = (k.Koordinatorluk != null && k.Koordinatorluk.Il != null) ? k.Koordinatorluk.Il.Ad : null,
-                        ParentId = k.KoordinatorlukId
-                    })
-                    .OrderBy(k => k.Ad)
-                    .ToListAsync();
+                kartlar = await GetKartlarByKoordinatorlukAsync(koordinatorlukId.Value, ilId);
             }
             else if (teskilatId.HasValue)
             {
@@ -1061,48 +1163,7 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetIllerDurumu(int teskilatId, int? koordinatorlukId)
         {
-            List<int> ilIds = new List<int>();
-            
-            if (koordinatorlukId.HasValue)
-            {
-                var koord = await _context.Koordinatorlukler
-                    .Include(k => k.Teskilat)
-                    .FirstOrDefaultAsync(k => k.KoordinatorlukId == koordinatorlukId);
-
-                if (koord != null)
-                {
-                    string tur = (koord.Teskilat?.BagliMerkezTeskilatId != null) ? "Taşra" : (koord.Teskilat?.Tur ?? "Merkez");
-
-                    if (tur == "Merkez")
-                    {
-                        // Merkez Birimi seçiliyse: Bu birime bağlı komisyonların bulunduğu illeri getir
-                        ilIds = await _context.Komisyonlar
-                            .Where(k => k.IsActive && k.BagliMerkezKoordinatorlukId == koordinatorlukId)
-                            .Select(k => k.Koordinatorluk.IlId)
-                            .Where(id => id != null)
-                            .Select(id => id!.Value)
-                            .Distinct()
-                            .ToListAsync();
-                    }
-                    else
-                    {
-                        // Taşra (İl Koordinatörlüğü) seçiliyse sadece o ili getir.
-                        if (koord.IlId.HasValue)
-                            ilIds.Add(koord.IlId.Value);
-                    }
-                }
-            }
-            else
-            {
-                // Teşkilat seçiliyse (Örn: Taşra): O teşkilata bağlı koordinatörlüklerin illerini getir
-                ilIds = await _context.Koordinatorlukler
-                    .Where(k => k.TeskilatId == teskilatId && k.IsActive && k.IlId != null)
-                    .Select(k => k.IlId!.Value)
-                    .Distinct()
-                    .ToListAsync();
-            }
-
-            return Ok(ilIds);
+            return Ok(await GetActiveIlIdsAsync(teskilatId, koordinatorlukId));
         }
 
         [HttpGet]

@@ -63,6 +63,8 @@ namespace PersonelTakipSistemi.ViewModels
         // Filtre dropdown'ları
         public List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> DaireList { get; set; } = new();
         public List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> TeskilatList { get; set; } = new();
+        public List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> KoordinatorlukList { get; set; } = new();
+        public List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem> KomisyonList { get; set; } = new();
         
         // Varsayılan seçimler
         public int? DefaultDaireBaskanligiId { get; set; }

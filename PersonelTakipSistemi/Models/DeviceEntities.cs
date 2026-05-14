@@ -30,6 +30,19 @@ namespace PersonelTakipSistemi.Models
         Onaylandi = 3
     }
 
+    public enum YazilimOnayDurumu
+    {
+        Beklemede = 1,
+        Onaylandi = 2
+    }
+
+    public enum YazilimHareketTuru
+    {
+        Kayit = 1,
+        Onay = 2,
+        Devir = 3
+    }
+
     public class CihazTuru
     {
         [Key]
@@ -149,6 +162,122 @@ namespace PersonelTakipSistemi.Models
         public Cihaz Cihaz { get; set; } = null!;
 
         public CihazHareketTuru HareketTuru { get; set; }
+
+        public int? OncekiSahipPersonelId { get; set; }
+
+        [ForeignKey(nameof(OncekiSahipPersonelId))]
+        public Personel? OncekiSahipPersonel { get; set; }
+
+        public int? YeniSahipPersonelId { get; set; }
+
+        [ForeignKey(nameof(YeniSahipPersonelId))]
+        public Personel? YeniSahipPersonel { get; set; }
+
+        public int? IslemYapanPersonelId { get; set; }
+
+        [ForeignKey(nameof(IslemYapanPersonelId))]
+        public Personel? IslemYapanPersonel { get; set; }
+
+        [StringLength(200)]
+        public string? IslemYapanAdSoyad { get; set; }
+
+        [StringLength(200)]
+        public string? OncekiSahipAdSoyad { get; set; }
+
+        [StringLength(200)]
+        public string? YeniSahipAdSoyad { get; set; }
+
+        [StringLength(500)]
+        public string? Aciklama { get; set; }
+
+        [StringLength(500)]
+        public string? DurumNotu { get; set; }
+
+        public DateTime Tarih { get; set; } = DateTime.Now;
+    }
+
+    public class YazilimKaydi
+    {
+        [Key]
+        public int YazilimKaydiId { get; set; }
+
+        public int YazilimId { get; set; }
+
+        [ForeignKey(nameof(YazilimId))]
+        public YazilimTanimi Yazilim { get; set; } = null!;
+
+        [StringLength(150)]
+        public string? DigerYazilimAd { get; set; }
+
+        [Required]
+        [StringLength(150)]
+        public string Surum { get; set; } = null!;
+
+        [Required]
+        [StringLength(500)]
+        public string Ozellikler { get; set; } = null!;
+
+        [Required]
+        [StringLength(200)]
+        public string LisansAnahtari { get; set; } = null!;
+
+        public LisansSuresiTuru LisansSuresiTuru { get; set; } = LisansSuresiTuru.Suresiz;
+
+        public DateTime? BaslangicTarihi { get; set; }
+        public DateTime? BitisTarihi { get; set; }
+
+        [StringLength(200)]
+        public string? KullaniciAdi { get; set; }
+
+        [StringLength(250)]
+        public string? Eposta { get; set; }
+
+        public int? SahipPersonelId { get; set; }
+
+        [ForeignKey(nameof(SahipPersonelId))]
+        public Personel? SahipPersonel { get; set; }
+
+        public int KoordinatorlukId { get; set; }
+
+        [ForeignKey(nameof(KoordinatorlukId))]
+        public Koordinatorluk Koordinatorluk { get; set; } = null!;
+
+        public DateTime IlkKayitTarihi { get; set; } = DateTime.Now;
+        public DateTime AktifSahiplikBaslangicTarihi { get; set; } = DateTime.Now;
+        public DateTime? SonDevirTarihi { get; set; }
+
+        public YazilimOnayDurumu OnayDurumu { get; set; } = YazilimOnayDurumu.Beklemede;
+
+        public int? OnaylayanPersonelId { get; set; }
+
+        [ForeignKey(nameof(OnaylayanPersonelId))]
+        public Personel? OnaylayanPersonel { get; set; }
+
+        public DateTime? OnayTarihi { get; set; }
+
+        public int? OlusturanPersonelId { get; set; }
+
+        [ForeignKey(nameof(OlusturanPersonelId))]
+        public Personel? OlusturanPersonel { get; set; }
+
+        public bool KoordinatorTarafindanEklendi { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public DateTime? UpdatedAt { get; set; }
+
+        public ICollection<YazilimHareketi> Hareketler { get; set; } = new List<YazilimHareketi>();
+    }
+
+    public class YazilimHareketi
+    {
+        [Key]
+        public int YazilimHareketiId { get; set; }
+
+        public int YazilimKaydiId { get; set; }
+
+        [ForeignKey(nameof(YazilimKaydiId))]
+        public YazilimKaydi YazilimKaydi { get; set; } = null!;
+
+        public YazilimHareketTuru HareketTuru { get; set; }
 
         public int? OncekiSahipPersonelId { get; set; }
 

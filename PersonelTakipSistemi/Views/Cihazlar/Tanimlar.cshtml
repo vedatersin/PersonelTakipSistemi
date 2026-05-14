@@ -1,7 +1,7 @@
-﻿@model PersonelTakipSistemi.ViewModels.CihazTanimlariViewModel
+@model PersonelTakipSistemi.ViewModels.CihazTanimlariViewModel
 @using System.Text.Json
 @{
-    ViewData["Title"] = "Cihaz Tanımları";
+    ViewData["Title"] = "Tanımlar";
     var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
     var initialData = new PersonelTakipSistemi.ViewModels.CihazTanimResponseViewModel
     {
@@ -22,17 +22,23 @@
             Ad = x.Ad,
             SistemSecenegiMi = x.SistemSecenegiMi,
             BagliCihazSayisi = x.Cihazlar?.Count ?? 0
+        }).ToList(),
+        Yazilimlar = Model.YazilimTanimlari.Select(x => new PersonelTakipSistemi.ViewModels.YazilimTanimListItemViewModel
+        {
+            YazilimId = x.YazilimId,
+            Ad = x.Ad,
+            SistemSecenegiMi = x.SistemSecenegiMi
         }).ToList()
     };
 }
 
 <div class="container-xxl flex-grow-1 container-p-y">
-    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Yazılım Lisansları ve Cihazlar /</span> Cihaz Tanımları</h4>
+    <h4 class="fw-bold py-3 mb-4"><span class="text-muted fw-light">Yazılımlar ve Cihazlar /</span> Tanımlar</h4>
     @Html.AntiForgeryToken()
     <div id="pageAlert"></div>
 
-    <div class="row">
-        <div class="col-lg-6 mb-4">
+    <div class="row g-4">
+        <div class="col-xl-4 col-lg-6">
             <div class="card h-100 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center bg-success text-white">
                     <h5 class="mb-0 text-white">Cihaz Türleri</h5>
@@ -41,13 +47,24 @@
                 <div class="list-group list-group-flush" id="deviceTypeList"></div>
             </div>
         </div>
-        <div class="col-lg-6 mb-4">
+
+        <div class="col-xl-4 col-lg-6">
             <div class="card h-100 shadow-sm">
                 <div class="card-header d-flex justify-content-between align-items-center bg-info text-white">
                     <h5 class="mb-0 text-white">Markalar</h5>
                     <button class="btn btn-sm btn-light" type="button" onclick="openBrandModal()">+ Ekle</button>
                 </div>
                 <div class="list-group list-group-flush" id="brandList"></div>
+            </div>
+        </div>
+
+        <div class="col-xl-4 col-lg-12">
+            <div class="card h-100 shadow-sm">
+                <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+                    <h5 class="mb-0 text-white">Yazılım Tanımları</h5>
+                    <button class="btn btn-sm btn-light" type="button" onclick="openSoftwareModal()">+ Ekle</button>
+                </div>
+                <div class="list-group list-group-flush" id="softwareList"></div>
             </div>
         </div>
     </div>
@@ -114,6 +131,32 @@
     </div>
 </div>
 
+<div class="modal fade" id="yazilimModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="softwareForm">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="softwareModalTitle">Yazılım Tanımı Ekle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="softwareId" name="YazilimId" />
+                    <input type="hidden" id="softwareInventoryCount" />
+                    <div class="mb-2">
+                        <label class="form-label">Yazılım Adı</label>
+                        <input id="softwareName" name="Ad" class="form-control" />
+                    </div>
+                    <div id="softwareWarning" class="alert alert-warning d-none mb-0"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <style>
     .definition-item.active {
         background: rgba(105, 108, 255, 0.14);
@@ -140,6 +183,7 @@
         const antiForgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').value;
         const typeModal = new bootstrap.Modal(document.getElementById('cihazTuruModal'));
         const brandModal = new bootstrap.Modal(document.getElementById('markaModal'));
+        const softwareModal = new bootstrap.Modal(document.getElementById('yazilimModal'));
         let state = @Html.Raw(JsonSerializer.Serialize(initialData, jsonOptions));
 
         function showAlert(message, type = 'success') {
@@ -149,6 +193,7 @@
         function render() {
             renderTypeList();
             renderBrandList();
+            renderSoftwareList();
             populateTypeOptions();
         }
 
@@ -206,6 +251,31 @@
             `).join('');
         }
 
+        function renderSoftwareList() {
+            const container = document.getElementById('softwareList');
+            if (!state.yazilimlar?.length) {
+                container.innerHTML = '<div class="list-group-item text-muted">Yazılım tanımı bulunamadı.</div>';
+                return;
+            }
+
+            container.innerHTML = state.yazilimlar.map(item => `
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start gap-3">
+                        <div class="flex-grow-1">
+                            <div class="definition-title">${escapeHtml(item.ad)}</div>
+                            <div class="definition-subtitle text-muted">${escapeHtml(getSoftwareUsageText(item))}</div>
+                        </div>
+                        <div class="text-nowrap">
+                            ${canManageDefinition(item) ? `
+                            <button class="btn btn-sm btn-icon btn-outline-secondary me-1" type="button" onclick='openSoftwareModal(${JSON.stringify(item)})' title="Düzenle"><i class="bx bx-pencil"></i></button>
+                            <button class="btn btn-sm btn-icon btn-outline-danger" type="button" onclick='deleteSoftware(${JSON.stringify(item)})' title="Sil"><i class="bx bx-trash"></i></button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
         function populateTypeOptions() {
             const select = document.getElementById('brandTypeId');
             select.innerHTML = '<option value="">Seçiniz</option>' + state.cihazTurleri.map(item =>
@@ -248,13 +318,23 @@
             brandModal.show();
         }
 
+        function openSoftwareModal(item = null) {
+            document.getElementById('softwareForm').reset();
+            document.getElementById('softwareId').value = item?.yazilimId || '';
+            document.getElementById('softwareName').value = item?.ad || '';
+            document.getElementById('softwareInventoryCount').value = item?.bagliEnvanterSayisi || 0;
+            document.getElementById('softwareModalTitle').textContent = item ? 'Yazılım Tanımını Düzenle' : 'Yazılım Tanımı Ekle';
+            updateSoftwareWarning();
+            softwareModal.show();
+        }
+
         function updateBrandWarning() {
             const warning = document.getElementById('brandWarning');
             const originalTypeId = document.getElementById('brandOriginalTypeId').value;
             const currentTypeId = document.getElementById('brandTypeId').value;
             const originalName = document.getElementById('brandOriginalName').value;
             const currentName = document.getElementById('brandName').value.trim();
-            const deviceCount = parseInt(document.getElementById('brandDeviceCount').value || '0');
+            const deviceCount = parseInt(document.getElementById('brandDeviceCount').value || '0', 10);
 
             let message = '';
             if (deviceCount > 0 && originalTypeId && currentTypeId && originalTypeId !== currentTypeId) {
@@ -265,6 +345,20 @@
 
             warning.textContent = message;
             warning.classList.toggle('d-none', !message);
+        }
+
+        function updateSoftwareWarning() {
+            const warning = document.getElementById('softwareWarning');
+            const inventoryCount = parseInt(document.getElementById('softwareInventoryCount').value || '0', 10);
+
+            if (inventoryCount <= 0) {
+                warning.classList.add('d-none');
+                warning.textContent = '';
+                return;
+            }
+
+            warning.textContent = `Bu yazılım tanımına bağlı ${inventoryCount} envanter kaydı var. Adı değişirse yazılım envanteri ekranlarında yeni ad görünür.`;
+            warning.classList.remove('d-none');
         }
 
         async function deleteType(item) {
@@ -291,6 +385,18 @@
             await postForm('@Url.Action("MarkaSil")', { id: item.cihazMarkaId, onaylandi: true, seciliCihazTuruId: state.seciliCihazTuruId });
         }
 
+        async function deleteSoftware(item) {
+            if ((item.bagliEnvanterSayisi || 0) > 0) {
+                showAlert(`"${item.ad}" tanımına bağlı ${item.bagliEnvanterSayisi || 0} envanter kaydı olduğu için silinemez.`, 'warning');
+                return;
+            }
+
+            const confirmed = confirm(`"${item.ad}" yazılım tanımını silmek istiyor musunuz?`);
+            if (!confirmed) return;
+
+            await postForm('@Url.Action("YazilimTanimiSil")', { id: item.yazilimId, onaylandi: true, seciliCihazTuruId: state.seciliCihazTuruId });
+        }
+
         document.getElementById('deviceTypeForm').addEventListener('submit', async function (event) {
             event.preventDefault();
             const id = document.getElementById('deviceTypeId').value;
@@ -308,7 +414,7 @@
             const id = document.getElementById('brandId').value;
             const originalTypeId = document.getElementById('brandOriginalTypeId').value;
             const currentTypeId = document.getElementById('brandTypeId').value;
-            const deviceCount = parseInt(document.getElementById('brandDeviceCount').value || '0');
+            const deviceCount = parseInt(document.getElementById('brandDeviceCount').value || '0', 10);
 
             if (id && deviceCount > 0 && originalTypeId && originalTypeId !== currentTypeId) {
                 showAlert(`Bu markaya bağlı ${deviceCount} cihaz var. Önce cihaz kayıtlarını güncellemeden markayı başka cihaz türüne taşıyamazsınız.`, 'warning');
@@ -322,6 +428,18 @@
                 Ad: document.getElementById('brandName').value
             });
             if (result) brandModal.hide();
+        });
+
+        document.getElementById('softwareForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+            const id = document.getElementById('softwareId').value;
+            const actionUrl = id ? '@Url.Action("YazilimTanimiGuncelle")' : '@Url.Action("YazilimTanimiEkle")';
+            const result = await postForm(actionUrl, {
+                YazilimId: id,
+                Ad: document.getElementById('softwareName').value,
+                seciliCihazTuruId: state.seciliCihazTuruId
+            });
+            if (result) softwareModal.hide();
         });
 
         document.getElementById('brandTypeId').addEventListener('change', updateBrandWarning);
@@ -362,8 +480,18 @@
             return {
                 seciliCihazTuruId: payload.seciliCihazTuruId,
                 cihazTurleri: payload.cihazTurleri || [],
-                markalar: payload.markalar || []
+                markalar: payload.markalar || [],
+                yazilimlar: payload.yazilimlar || []
             };
+        }
+
+        function getSoftwareUsageText(item) {
+            const parts = [];
+
+            if ((item.bagliEnvanterSayisi || 0) > 0) {
+                parts.push(`${item.bagliEnvanterSayisi} envanter`);
+            }
+            return parts.length ? `Bağlı envanter: ${parts.join(', ')}` : 'Bağlı envanter kaydı yok';
         }
 
         function escapeHtml(value) {

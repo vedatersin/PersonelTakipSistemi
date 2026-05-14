@@ -1,55 +1,67 @@
-﻿@model PersonelTakipSistemi.ViewModels.BirimListeleViewModel
+@model PersonelTakipSistemi.ViewModels.BirimListeleViewModel
 @{
     ViewData["Title"] = "Birimleri Listele";
+    var initialShowsKomisyon = Model.DefaultKoordinatorlukId.HasValue;
+    var initialTitle = initialShowsKomisyon ? "Komisyonlar" : "Koordinatörlükler";
+    var initialIcon = initialShowsKomisyon ? "bx bxs-group me-2 text-primary" : "bx bxs-grid-alt me-2 text-primary";
 }
 
 <style>
-    /* Harita Stilleri */
     .turkey-map-container {
         position: relative;
         width: 100%;
         max-width: 900px;
         margin: 0 auto;
     }
+
     #svg-turkiye-haritasi {
         width: 100%;
         height: auto;
     }
+
     #svg-turkiye-haritasi path {
-        fill: #bdc3c7; /* Varsayılan Gri */
+        fill: #bdc3c7;
         stroke: #fff;
         stroke-width: 0.5;
         transition: fill 0.3s ease, transform 0.2s ease;
-        cursor: pointer;
+        cursor: default;
     }
-    #svg-turkiye-haritasi path:hover {
+
+    #svg-turkiye-haritasi path.map-clickable:hover {
         opacity: 0.8;
         transform: scale(1.01);
         transform-origin: center;
     }
 
-    /* Harita Renk Kodları */
+    #svg-turkiye-haritasi path.map-disabled:hover {
+        opacity: 1;
+        transform: none;
+    }
+
     .map-active-merkez {
-        fill: #3498db !important; /* Mavi */
+        fill: #3498db !important;
     }
+
     .map-active-tasra {
-        fill: #e74c3c !important; /* Kırmızı */
+        fill: #e74c3c !important;
     }
+
     .no-organization {
-        fill: #ecf0f1 !important; /* Çok Açık Gri */
+        fill: #ecf0f1 !important;
     }
+
     .selected-il-merkez {
-        fill: #2980b9 !important; /* Koyu Mavi */
-        stroke: #2c3e50 !important;
-        stroke-width: 2px !important;
-    }
-    .selected-il-tasra {
-        fill: #c0392b !important; /* Koyu Kırmızı */
+        fill: #2980b9 !important;
         stroke: #2c3e50 !important;
         stroke-width: 2px !important;
     }
 
-    /* Tooltip */
+    .selected-il-tasra {
+        fill: #c0392b !important;
+        stroke: #2c3e50 !important;
+        stroke-width: 2px !important;
+    }
+
     .map-tooltip {
         position: absolute;
         background: rgba(44, 62, 80, 0.9);
@@ -64,9 +76,6 @@
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     }
 
-
-
-    /* Birim Kartları */
     .birim-card {
         border: none;
         border-radius: 12px;
@@ -76,14 +85,17 @@
         background: #fff;
         border: 1px solid rgba(0,0,0,0.03);
     }
+
     .birim-card:hover {
         transform: translateY(-8px);
         box-shadow: 0 12px 30px rgba(0,0,0,0.12);
         border-color: #3498db;
     }
+
     .birim-card .card-body {
         padding: 1.5rem;
     }
+
     .birim-card .birim-ad {
         font-weight: 700;
         font-size: 1rem;
@@ -91,6 +103,7 @@
         margin-bottom: 0.6rem;
         line-height: 1.3;
     }
+
     .birim-card .birim-il {
         font-size: 0.8rem;
         color: #7f8c8d;
@@ -99,6 +112,7 @@
         align-items: center;
         gap: 4px;
     }
+
     .birim-card .stats-row {
         display: flex;
         justify-content: flex-start;
@@ -106,16 +120,19 @@
         padding-top: 1rem;
         border-top: 1px solid #f0f0f0;
     }
+
     .birim-card .stat-item {
         display: flex;
         flex-direction: column;
         align-items: flex-start;
     }
+
     .birim-card .stat-value {
         font-weight: 800;
         font-size: 1.2rem;
         color: #2c3e50;
     }
+
     .birim-card .stat-label {
         font-size: 0.65rem;
         text-transform: uppercase;
@@ -123,7 +140,6 @@
         color: #95a5a6;
     }
 
-    /* Filter Bar */
     .birim-filter-bar {
         background: #fff;
         padding: 1.25rem;
@@ -133,7 +149,6 @@
         border: 1px solid rgba(0,0,0,0.02);
     }
 
-    /* Lejant */
     .map-legend {
         display: flex;
         gap: 2rem;
@@ -143,6 +158,7 @@
         background: rgba(255,255,255,0.5);
         border-radius: 10px;
     }
+
     .map-legend span {
         display: flex;
         align-items: center;
@@ -151,6 +167,7 @@
         font-weight: 600;
         color: #444;
     }
+
     .legend-box {
         width: 14px;
         height: 14px;
@@ -158,7 +175,6 @@
     }
 </style>
 
-<!-- Breadcrumb -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="mb-1 text-primary fw-bold">Birim Haritası ve Listesi</h4>
@@ -172,13 +188,13 @@
     </nav>
 </div>
 
-<!-- Cascading Filtreler -->
 <div class="birim-filter-bar row g-3">
     <div class="col-md-3">
         <label class="form-label small fw-bold text-muted">Daire Başkanlığı</label>
         <select id="filterDaire" class="form-select border-light-subtle shadow-sm">
             <option value="">Tümü</option>
-            @foreach (var d in Model.DaireList) {
+            @foreach (var d in Model.DaireList)
+            {
                 <option value="@d.Value" selected="@(d.Value == Model.DefaultDaireBaskanligiId?.ToString() ? "selected" : null)">@d.Text</option>
             }
         </select>
@@ -197,21 +213,27 @@
         <label class="form-label small fw-bold text-muted">Koordinatörlük</label>
         <select id="filterKoordinatorluk" class="form-select border-light-subtle shadow-sm">
             <option value="">Seçiniz</option>
+            @foreach (var k in Model.KoordinatorlukList)
+            {
+                <option value="@k.Value" selected="@(k.Selected ? "selected" : null)">@k.Text</option>
+            }
         </select>
     </div>
     <div class="col-md-3">
         <label class="form-label small fw-bold text-muted">Komisyon</label>
         <select id="filterKomisyon" class="form-select border-light-subtle shadow-sm">
             <option value="">Seçiniz</option>
+            @foreach (var k in Model.KomisyonList)
+            {
+                <option value="@k.Value" selected="@(k.Selected ? "selected" : null)">@k.Text</option>
+            }
         </select>
     </div>
 </div>
 
-<!-- Türkiye Haritası -->
 <div class="card border-0 shadow-sm mb-5" style="border-radius: 15px; overflow: hidden;">
     <div class="card-body p-4">
         <div class="turkey-map-container" id="mapContainer">
-
             <div class="map-tooltip" id="mapTooltip"></div>
             <partial name="_TurkeyMap" />
         </div>
@@ -226,10 +248,10 @@
 <div class="row align-items-center mb-4">
     <div class="col">
         <div class="d-flex align-items-center gap-3">
-            <button id="btnGeriDon" class="btn btn-outline-secondary btn-sm d-none" onclick="geriDon()">
+            <button id="btnGeriDon" class="btn btn-outline-secondary btn-sm @(initialShowsKomisyon ? string.Empty : "d-none")" onclick="geriDon()">
                 <i class="bx bx-left-arrow-alt me-1"></i> Geri Dön
             </button>
-            <h5 id="kartBaslik" class="mb-0 fw-bold"><i class="bx bxs-grid-alt me-2 text-primary"></i>Koordinatörlükler</h5>
+            <h5 id="kartBaslik" class="mb-0 fw-bold"><i class="@initialIcon"></i>@initialTitle</h5>
         </div>
     </div>
     <div class="col-auto">
@@ -266,44 +288,40 @@
 
 @section Scripts {
     <script>
-        let selectedIlId = null; // Başlangıçta hiçbir il seçili olmasın (Ankara mavi görünecek ama seçili efekti olmayacak)
+        let selectedIlId = null;
         let currentTeskilatId = @(Model.DefaultTeskilatId ?? 0);
         let defaultKoordId = @(Model.DefaultKoordinatorlukId ?? 0);
-        let activeIlIds = []; // Haritada vurgulanacak iller
+        let activeIlIds = [];
         let illerData = @Html.Raw(Json.Serialize(Model.Iller));
 
         $(document).ready(function() {
             initMapInteractions();
-            
+
             if (currentTeskilatId) {
-                // Başlangıçta harita durumunu yükle (Fen Birimi için)
-                updateMapStatus(currentTeskilatId, defaultKoordId);
-                fillKoordinatorlukler(currentTeskilatId, defaultKoordId);
+                const initialKoordId = parseNullableInt($('#filterKoordinatorluk').val()) || defaultKoordId || null;
+                updateMapStatus(currentTeskilatId, initialKoordId);
             }
         });
+
+        function parseNullableInt(value) {
+            const parsed = parseInt(value, 10);
+            return Number.isNaN(parsed) ? null : parsed;
+        }
+
+        function isIlInteractive(ilId) {
+            return activeIlIds.includes(ilId);
+        }
 
         function initMapInteractions() {
             const $paths = $('#mapContainer svg path');
             const $tooltip = $('#mapTooltip');
 
-            $paths.on('mouseenter', function(e) {
-                const ilId = parseInt($(this).parent().attr('data-plakakodu') || $(this).attr('data-plakakodu'));
+            $paths.on('mouseenter', function() {
                 const ilAd = $(this).parent().attr('data-iladi') || $(this).attr('data-iladi');
-                
-                // Merkez seçiliyken alt birim seçilmemişse Ankara dışındakilerde tooltip gösterme
-                const koordId = $('#filterKoordinatorluk').val();
-                let showTooltip = true;
-                if (currentTeskilatId == 1) {
-                    if (!koordId) {
-                        if (ilId !== 6) {
-                            showTooltip = false;
-                        }
-                    }
-                }
-                if (!showTooltip) {
+                if (!ilAd) {
                     return;
                 }
-                
+
                 $tooltip.text(ilAd).show();
             });
 
@@ -320,99 +338,97 @@
             });
 
             $paths.on('click', function() {
-                const ilId = parseInt($(this).parent().attr('data-plakakodu') || $(this).attr('data-plakakodu'));
+                const ilId = parseNullableInt($(this).parent().attr('data-plakakodu') || $(this).attr('data-plakakodu'));
                 const ilAd = $(this).parent().attr('data-iladi') || $(this).attr('data-iladi');
-                onIlClick(ilId, ilAd);
+
+                if (ilId !== null) {
+                    onIlClick(ilId, ilAd);
+                }
             });
         }
 
         function updateMapStatus(tesId, koordId = null) {
+            if (!tesId) {
+                activeIlIds = [];
+                applyMapColors();
+                return;
+            }
+
             if (tesId == 1 && !koordId) {
-                // Merkez seçili ama alt birim yoksa SADECE Ankara'yı vurgula
                 activeIlIds = [6];
                 applyMapColors();
-            } else {
-                $.get('/Birimler/GetIllerDurumu', { teskilatId: tesId, koordinatorlukId: koordId }, function(data) {
-                    activeIlIds = data;
-                    applyMapColors();
-                });
+                return;
             }
+
+            $.get('/Birimler/GetIllerDurumu', { teskilatId: tesId, koordinatorlukId: koordId }, function(data) {
+                activeIlIds = data;
+                applyMapColors();
+            });
         }
 
         function applyMapColors() {
             const $paths = $('#mapContainer svg path');
-            const isMerkez = (currentTeskilatId == 1);
-            const isTasra = (currentTeskilatId == 2);
-            const koordId = $('#filterKoordinatorluk').val();
-            
+            const isMerkez = currentTeskilatId == 1;
+            const isTasra = currentTeskilatId == 2;
+
             $paths.each(function() {
-                const plakaStr = $(this).parent().attr('data-plakakodu') || $(this).attr('data-plakakodu');
-                const plaka = parseInt(plakaStr);
+                const plaka = parseNullableInt($(this).parent().attr('data-plakakodu') || $(this).attr('data-plakakodu'));
+                if (plaka === null) {
+                    return;
+                }
+
                 const isActive = activeIlIds.includes(plaka);
-                let isAnkaraOnly = false;
-                if (currentTeskilatId == 1) {
-                    if (!koordId) {
-                        if (plaka == 6) {
-                            isAnkaraOnly = true;
-                        }
+
+                $(this).removeClass('map-active-merkez map-active-tasra no-organization selected-il-merkez selected-il-tasra map-clickable map-disabled');
+
+                if (isActive) {
+                    if (isMerkez) {
+                        $(this).addClass('map-active-merkez');
+                    } else if (isTasra) {
+                        $(this).addClass('map-active-tasra');
                     }
-                }
-                
-                $(this).removeClass('map-active-merkez map-active-tasra no-organization selected-il-merkez selected-il-tasra');
-                $(this).css('cursor', 'pointer');
 
-                if (isActive || isAnkaraOnly) {
-                    if (isMerkez) $(this).addClass('map-active-merkez');
-                    else if (isTasra) $(this).addClass('map-active-tasra');
+                    $(this).addClass('map-clickable');
                 } else {
-                    $(this).addClass('no-organization');
+                    $(this).addClass('no-organization map-disabled');
                 }
 
-                // Tıklanabilirlik kontrolü (Merkez-Ankara tıklanabilir, diğerleri pasif)
-                if (currentTeskilatId == 1 && !koordId) {
-                    if (plaka == 6) $(this).css('cursor', 'pointer');
-                    else $(this).css('cursor', 'default');
-                }
-
-                if (selectedIlId === plaka) {
-                    if (isMerkez) $(this).addClass('selected-il-merkez');
-                    else if (isTasra) $(this).addClass('selected-il-tasra');
+                if (selectedIlId === plaka && isActive) {
+                    if (isMerkez) {
+                        $(this).addClass('selected-il-merkez');
+                    } else if (isTasra) {
+                        $(this).addClass('selected-il-tasra');
+                    }
                 }
             });
         }
 
         function onIlClick(ilId, ilAd) {
-            const koordId = $('#filterKoordinatorluk').val();
-
-            // Merkez modunda alt birim seçilmemişse sadece Ankara tıklanabilir
-            if (currentTeskilatId == 1) {
-                if (!koordId) {
-                    if (ilId === 6) {
-                        selectedIlId = (selectedIlId === 6) ? null : 6;
-                        applyMapColors();
-                        
-                        // Sadece Ankara tıklandığında kaydır (filtreleme yapmadan)
-                        if (selectedIlId === 6) {
-                            $('html, body').animate({
-                                scrollTop: $("#kartBaslik").offset().top - 100
-                            }, 500);
-                        }
-                    }
-                    return;
-                }
+            if (!isIlInteractive(ilId)) {
+                return;
             }
 
-            // Taşra modu veya Merkez alt birim seçiliyse normal filtrelemeli tıklama
-            if (currentTeskilatId == 1 || currentTeskilatId == 2) {
-                if (selectedIlId === ilId) {
-                    selectedIlId = null;
-                } else {
-                    selectedIlId = ilId;
+            const koordId = parseNullableInt($('#filterKoordinatorluk').val());
+
+            if (currentTeskilatId == 1 && !koordId) {
+                if (ilId === 6) {
+                    selectedIlId = selectedIlId === 6 ? null : 6;
+                    applyMapColors();
+
+                    if (selectedIlId === 6) {
+                        $('html, body').animate({
+                            scrollTop: $("#kartBaslik").offset().top - 100
+                        }, 500);
+                    }
                 }
+                return;
+            }
+
+            if (currentTeskilatId == 1 || currentTeskilatId == 2) {
+                selectedIlId = selectedIlId === ilId ? null : ilId;
                 applyMapColors();
                 loadKartlar();
-                
-                // Kartlara doğru yumuşak kaydırma (Komisyonların oraya)
+
                 const scrollTarget = $("#kartBaslik").length ? $("#kartBaslik") : $("#kartContainer");
                 $('html, body').animate({
                     scrollTop: scrollTarget.offset().top - 100
@@ -420,12 +436,11 @@
             }
         }
 
-        // Cascading Filtreler
         $('#filterDaire').change(function() {
             const daireId = $(this).val();
             const $tes = $('#filterTeskilat');
             $tes.empty().append('<option value="">Teşkilat Seçiniz</option>');
-            
+
             if (daireId) {
                 $.get('/Birimler/GetTeskilatlar?daireId=' + daireId, function(data) {
                     data.forEach(t => $tes.append(new Option(t.ad, t.teskilatId)));
@@ -437,14 +452,12 @@
         });
 
         $('#filterTeskilat').change(function() {
-            const tesId = $(this).val();
-            currentTeskilatId = tesId;
+            const tesId = parseNullableInt($(this).val());
+            currentTeskilatId = tesId || 0;
             selectedIlId = null;
-            
-            // Harita durumunu güncelle (Taşra ise tüm coordinatörlük illeri, Merkez ise boş beklet)
-            updateMapStatus(tesId);
-            
-            fillKoordinatorlukler(tesId);
+
+            updateMapStatus(currentTeskilatId);
+            fillKoordinatorlukler(currentTeskilatId);
             loadKartlar();
         });
 
@@ -458,25 +471,25 @@
                 $.get('/Birimler/GetKoordinatorlukler?teskilatId=' + tesId, function(data) {
                     data.forEach(x => {
                         const opt = new Option(x.ad, x.koordinatorlukId);
-                        if (selectedKId && x.koordinatorlukId == selectedKId) opt.selected = true;
+                        if (selectedKId && x.koordinatorlukId == selectedKId) {
+                            opt.selected = true;
+                        }
                         $koord.append(opt);
                     });
-                    if (selectedKId) $koord.trigger('change');
+
+                    if (selectedKId) {
+                        $koord.trigger('change');
+                    }
                 });
             }
         }
 
         $('#filterKoordinatorluk').change(function() {
-            const koordId = $(this).val();
+            const koordId = parseNullableInt($(this).val());
             const $kom = $('#filterKomisyon');
             $kom.empty().append('<option value="">Seçiniz</option>').prop('disabled', !koordId);
 
-            // Alt birim seçilince haritadaki özel il seçimini kaldır
-            if (koordId) {
-                selectedIlId = null;
-            }
-
-            // Harita renklerini bu koordinatörlüğe göre güncelle
+            selectedIlId = null;
             updateMapStatus(currentTeskilatId, koordId);
 
             if (koordId) {
@@ -484,6 +497,7 @@
                     data.forEach(x => $kom.append(new Option(x.ad, x.komisyonId)));
                 });
             }
+
             loadKartlar();
         });
 
@@ -495,14 +509,20 @@
         });
 
         function loadKartlar() {
-            const tesId = $('#filterTeskilat').val();
-            const koordId = $('#filterKoordinatorluk').val();
-            
+            const tesId = parseNullableInt($('#filterTeskilat').val());
+            const koordId = parseNullableInt($('#filterKoordinatorluk').val());
+
             let url = '/Birimler/GetBirimKartlari?';
-            if (koordId) url += 'koordinatorlukId=' + koordId;
-            else if (tesId) {
+            if (koordId) {
+                url += 'koordinatorlukId=' + koordId;
+                if (selectedIlId) {
+                    url += '&ilId=' + selectedIlId;
+                }
+            } else if (tesId) {
                 url += 'teskilatId=' + tesId;
-                if (selectedIlId) url += '&ilId=' + selectedIlId;
+                if (selectedIlId) {
+                    url += '&ilId=' + selectedIlId;
+                }
             }
 
             $.get(url, function(data) {
@@ -522,8 +542,7 @@
             }
 
             $('#kartSayisi').text(kartlar.length + ' birim');
-            
-            // Başlık ve Geri Dön Butonu güncelleme mantığı
+
             if (kartlar[0].tur === 'Komisyon') {
                 $('#kartBaslik').html('<i class="bx bxs-group me-2 text-primary"></i>Komisyonlar');
                 $('#btnGeriDon').removeClass('d-none');
@@ -534,12 +553,9 @@
 
             kartlar.forEach(k => {
                 let displayedTitle = k.ad;
-                
-                // Başlık özelleştirme
+
                 if (currentTeskilatId == 1 && k.tur === 'Komisyon' && k.ilAdi) {
                     displayedTitle = `${k.ilAdi} ${k.ad}`;
-                } else if (currentTeskilatId == 2 && k.tur === 'Komisyon') {
-                    displayedTitle = k.ad;
                 }
 
                 const ilBadge = k.ilAdi ? `<div class="birim-il"><i class="bx bx-map-pin"></i> ${k.ilAdi}</div>` : '';
@@ -580,4 +596,3 @@
         }
     </script>
 }
-
