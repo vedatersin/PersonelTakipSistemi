@@ -726,7 +726,7 @@ namespace PersonelTakipSistemi.Controllers
                                 aliciId: personel.PersonelId,
                                 gonderenId: null, // System
                                 baslik: "Hosgeldiniz!",
-                                aciklama: "Temel Egitim Genel Müdürlügü Personel Takip Sistemine Hosgeldiniz!",
+                                aciklama: "Temel Egitim Genel Müdürlügü Komisyon İzleme Sistemine Hosgeldiniz!",
                                 tip: "Sistem"
                             );
 

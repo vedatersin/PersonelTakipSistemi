@@ -33,11 +33,11 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public async Task<IActionResult> Login()
         {
             if (User.Identity!.IsAuthenticated)
             {
-                return RedirectToAction("BenimDetay", "Personel");
+                return await RedirectToLandingPageAsync();
             }
 
             return View();
@@ -125,7 +125,7 @@ namespace PersonelTakipSistemi.Controllers
 
             await _logService.LogAsync("Giris", "Kullanıcı sisteme giriş yaptı.", personel.PersonelId);
 
-            return RedirectToAction("BenimDetay", "Personel");
+            return await RedirectToLandingPageAsync();
         }
 
         [HttpPost]
@@ -188,6 +188,46 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             return new string(tc.Where(char.IsDigit).ToArray());
+        }
+
+        private async Task<IActionResult> RedirectToLandingPageAsync()
+        {
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("BirimListele", "Birimler");
+            }
+
+            var personelIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(personelIdStr, out var personelId))
+            {
+                return RedirectToAction("BenimDetay", "Personel");
+            }
+
+            var coordinatorRoleIds = new[] { 3, 4, 5, 14 };
+
+            var coordinatorAssignment = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Where(x => x.PersonelId == personelId && x.KoordinatorlukId.HasValue && coordinatorRoleIds.Contains(x.KurumsalRolId))
+                .OrderBy(x => x.KoordinatorlukId)
+                .FirstOrDefaultAsync();
+
+            if (coordinatorAssignment != null)
+            {
+                return RedirectToAction("KordinatorlukYonetimi", "BirimYonetimi");
+            }
+
+            var chairAssignment = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Where(x => x.PersonelId == personelId && x.KurumsalRolId == 2 && x.KomisyonId.HasValue)
+                .OrderBy(x => x.KomisyonId)
+                .FirstOrDefaultAsync();
+
+            if (chairAssignment?.KomisyonId is int komisyonId)
+            {
+                return RedirectToAction("KomisyonYonetimi", "BirimYonetimi", new { id = komisyonId });
+            }
+
+            return RedirectToAction("BenimDetay", "Personel");
         }
 
         private static string BuildFailKey(string tc, string ip) => $"auth:fail:{tc}:{ip}";

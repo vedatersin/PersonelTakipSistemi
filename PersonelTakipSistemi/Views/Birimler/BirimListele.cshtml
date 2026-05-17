@@ -19,44 +19,55 @@
         height: auto;
     }
 
-    #svg-turkiye-haritasi path {
-        fill: #bdc3c7;
-        stroke: #fff;
-        stroke-width: 0.5;
-        transition: fill 0.3s ease, transform 0.2s ease;
-        cursor: default;
-    }
-
-    #svg-turkiye-haritasi path.map-clickable:hover {
-        opacity: 0.8;
-        transform: scale(1.01);
+    #svg-turkiye-haritasi g[data-plakakodu] {
+        transition: transform 0.2s ease;
+        transform-box: fill-box;
         transform-origin: center;
     }
 
-    #svg-turkiye-haritasi path.map-disabled:hover {
-        opacity: 1;
-        transform: none;
+    #svg-turkiye-haritasi g[data-plakakodu] path {
+        fill: #c5cdd3;
+        stroke: #fff;
+        stroke-width: 0.5;
+        transition: fill 0.3s ease;
+        cursor: default;
     }
 
-    .map-active-merkez {
+    #svg-turkiye-haritasi g[data-plakakodu].map-clickable path {
+        cursor: pointer;
+    }
+
+    #svg-turkiye-haritasi g[data-plakakodu].map-disabled path {
+        cursor: default;
+    }
+
+    #svg-turkiye-haritasi g[data-plakakodu].map-hover {
+        transform: scale(1.01);
+    }
+
+    #svg-turkiye-haritasi g[data-plakakodu].map-hover path {
+        opacity: 0.8;
+    }
+
+    .map-active-merkez path {
         fill: #3498db !important;
     }
 
-    .map-active-tasra {
+    .map-active-tasra path {
         fill: #e74c3c !important;
     }
 
-    .no-organization {
-        fill: #ecf0f1 !important;
+    .no-organization path {
+        fill: #c5cdd3 !important;
     }
 
-    .selected-il-merkez {
+    .selected-il-merkez path {
         fill: #2980b9 !important;
         stroke: #2c3e50 !important;
         stroke-width: 2px !important;
     }
 
-    .selected-il-tasra {
+    .selected-il-tasra path {
         fill: #c0392b !important;
         stroke: #2c3e50 !important;
         stroke-width: 2px !important;
@@ -240,7 +251,7 @@
         <div class="map-legend">
             <span><div class="legend-box" style="background:#e74c3c;"></div> İl Koordinatörlükleri (Taşra)</span>
             <span><div class="legend-box" style="background:#3498db;"></div> Merkez Birim Komisyonları</span>
-            <span><div class="legend-box" style="background:#bdc3c7;"></div> Birim/Komisyon Yok</span>
+            <span><div class="legend-box" style="background:#c5cdd3;"></div> Birim/Komisyon Yok</span>
         </div>
     </div>
 </div>
@@ -293,6 +304,7 @@
         let defaultKoordId = @(Model.DefaultKoordinatorlukId ?? 0);
         let activeIlIds = [];
         let illerData = @Html.Raw(Json.Serialize(Model.Iller));
+        let lastRenderedKartlar = @Html.Raw(Json.Serialize(Model.Kartlar));
 
         $(document).ready(function() {
             initMapInteractions();
@@ -313,19 +325,21 @@
         }
 
         function initMapInteractions() {
-            const $paths = $('#mapContainer svg path');
+            const $cities = $('#mapContainer svg g[data-plakakodu]');
             const $tooltip = $('#mapTooltip');
 
-            $paths.on('mouseenter', function() {
-                const ilAd = $(this).parent().attr('data-iladi') || $(this).attr('data-iladi');
+            $cities.on('mouseenter', function() {
+                const ilId = parseNullableInt($(this).attr('data-plakakodu'));
+                const ilAd = getCityName(ilId, $(this).attr('data-iladi'));
                 if (!ilAd) {
                     return;
                 }
 
+                $(this).addClass('map-hover');
                 $tooltip.text(ilAd).show();
             });
 
-            $paths.on('mousemove', function(e) {
+            $cities.on('mousemove', function(e) {
                 const rect = document.getElementById('mapContainer').getBoundingClientRect();
                 $tooltip.css({
                     left: (e.clientX - rect.left + 15) + 'px',
@@ -333,18 +347,28 @@
                 });
             });
 
-            $paths.on('mouseleave', function() {
+            $cities.on('mouseleave', function() {
+                $(this).removeClass('map-hover');
                 $tooltip.hide();
             });
 
-            $paths.on('click', function() {
-                const ilId = parseNullableInt($(this).parent().attr('data-plakakodu') || $(this).attr('data-plakakodu'));
-                const ilAd = $(this).parent().attr('data-iladi') || $(this).attr('data-iladi');
+            $cities.on('click', function() {
+                const ilId = parseNullableInt($(this).attr('data-plakakodu'));
+                const ilAd = getCityName(ilId, $(this).attr('data-iladi'));
 
                 if (ilId !== null) {
                     onIlClick(ilId, ilAd);
                 }
             });
+        }
+
+        function getCityName(ilId, fallbackName = '') {
+            if (ilId === null) {
+                return fallbackName || '';
+            }
+
+            const il = illerData.find(x => x.ilId === ilId);
+            return il?.ad || fallbackName || '';
         }
 
         function updateMapStatus(tesId, koordId = null) {
@@ -367,12 +391,12 @@
         }
 
         function applyMapColors() {
-            const $paths = $('#mapContainer svg path');
+            const $cities = $('#mapContainer svg g[data-plakakodu]');
             const isMerkez = currentTeskilatId == 1;
             const isTasra = currentTeskilatId == 2;
 
-            $paths.each(function() {
-                const plaka = parseNullableInt($(this).parent().attr('data-plakakodu') || $(this).attr('data-plakakodu'));
+            $cities.each(function() {
+                const plaka = parseNullableInt($(this).attr('data-plakakodu'));
                 if (plaka === null) {
                     return;
                 }
@@ -424,15 +448,42 @@
                 return;
             }
 
+            if (currentTeskilatId == 1 && koordId) {
+                const nextSelectedIlId = selectedIlId === ilId ? null : ilId;
+
+                if (nextSelectedIlId === null) {
+                    selectedIlId = null;
+                    applyMapColors();
+                    loadKartlar();
+                    return;
+                }
+
+                const currentCommission = findSingleCommissionForIl(ilId);
+                if (currentCommission) {
+                    window.location.href = '/Birimler/KomisyonDetay/' + currentCommission.id;
+                    return;
+                }
+
+                $.get('/Birimler/GetBirimKartlari', { koordinatorlukId: koordId, ilId: ilId }, function(data) {
+                    if (data && data.length === 1 && data[0].tur === 'Komisyon') {
+                        window.location.href = '/Birimler/KomisyonDetay/' + data[0].id;
+                        return;
+                    }
+
+                    selectedIlId = nextSelectedIlId;
+                    applyMapColors();
+                    lastRenderedKartlar = data || [];
+                    renderKartlar(lastRenderedKartlar);
+                    scrollToKartlar();
+                });
+                return;
+            }
+
             if (currentTeskilatId == 1 || currentTeskilatId == 2) {
                 selectedIlId = selectedIlId === ilId ? null : ilId;
                 applyMapColors();
                 loadKartlar();
-
-                const scrollTarget = $("#kartBaslik").length ? $("#kartBaslik") : $("#kartContainer");
-                $('html, body').animate({
-                    scrollTop: scrollTarget.offset().top - 100
-                }, 500);
+                scrollToKartlar();
             }
         }
 
@@ -526,7 +577,8 @@
             }
 
             $.get(url, function(data) {
-                renderKartlar(data);
+                lastRenderedKartlar = data || [];
+                renderKartlar(lastRenderedKartlar);
             });
         }
 
@@ -589,6 +641,22 @@
             } else if (tur === 'Koordinatorluk') {
                 $('#filterKoordinatorluk').val(id).trigger('change');
             }
+        }
+
+        function findSingleCommissionForIl(ilId) {
+            if (!Array.isArray(lastRenderedKartlar)) {
+                return null;
+            }
+
+            const matches = lastRenderedKartlar.filter(k => k && k.tur === 'Komisyon' && k.ilId === ilId);
+            return matches.length === 1 ? matches[0] : null;
+        }
+
+        function scrollToKartlar() {
+            const scrollTarget = $("#kartBaslik").length ? $("#kartBaslik") : $("#kartContainer");
+            $('html, body').animate({
+                scrollTop: scrollTarget.offset().top - 100
+            }, 500);
         }
 
         function geriDon() {

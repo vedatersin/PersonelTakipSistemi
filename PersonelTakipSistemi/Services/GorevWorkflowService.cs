@@ -387,11 +387,37 @@ namespace PersonelTakipSistemi.Services
 
         public async Task<List<Gorev>> GetUserTasksAsync(int userId)
         {
+            var coordinatorRoleIds = new[] { 3, 4, 5, 14 };
+
+            var coordinatorIds = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Where(x => x.PersonelId == userId && x.KoordinatorlukId.HasValue && coordinatorRoleIds.Contains(x.KurumsalRolId))
+                .Select(x => x.KoordinatorlukId!.Value)
+                .ToListAsync();
+
+            var commissionIds = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Where(x => x.PersonelId == userId && x.KurumsalRolId == 2 && x.KomisyonId.HasValue)
+                .Select(x => x.KomisyonId!.Value)
+                .ToListAsync();
+
             return await _context.Gorevler
                 .Include(g => g.IsNiteligi)
                 .Include(g => g.GorevDurum)
                 .Include(g => g.GorevAtamaPersoneller).ThenInclude(ap => ap.GorevTuru)
-                .Where(g => g.IsActive && g.GorevAtamaPersoneller.Any(p => p.PersonelId == userId))
+                .Include(g => g.GorevAtamaKoordinatorlukler).ThenInclude(ak => ak.GorevTuru)
+                .Include(g => g.GorevAtamaKomisyonlar).ThenInclude(ak => ak.GorevTuru)
+                .Where(g => g.IsActive && (
+                    g.GorevAtamaPersoneller.Any(p => p.PersonelId == userId) ||
+                    (coordinatorIds.Count > 0 && (
+                        g.GorevAtamaKoordinatorlukler.Any(k => coordinatorIds.Contains(k.KoordinatorlukId)) ||
+                        g.GorevAtamaKomisyonlar.Any(k =>
+                            (k.Komisyon.KoordinatorlukId != 0 && coordinatorIds.Contains(k.Komisyon.KoordinatorlukId)) ||
+                            (k.Komisyon.BagliMerkezKoordinatorlukId.HasValue && coordinatorIds.Contains(k.Komisyon.BagliMerkezKoordinatorlukId.Value))
+                        )
+                    )) ||
+                    (commissionIds.Count > 0 && g.GorevAtamaKomisyonlar.Any(k => commissionIds.Contains(k.KomisyonId)))
+                ))
                 .OrderByDescending(g => g.BaslangicTarihi)
                 .AsNoTracking()
                 .ToListAsync();

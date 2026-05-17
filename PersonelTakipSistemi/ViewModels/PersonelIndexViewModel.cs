@@ -32,6 +32,8 @@ namespace PersonelTakipSistemi.ViewModels
         public List<int>? SeciliUzmanlikIdleri { get; set; }
         public List<int>? SeciliGorevTuruIdleri { get; set; }
         public List<int>? SeciliIsNiteligiIdleri { get; set; }
+        public string? SortBy { get; set; }
+        public string? SortDirection { get; set; }
 
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;

@@ -1,0 +1,388 @@
+﻿{
+  "ExcelPath": "C:\\Users\\vedat\\Downloads\\g\u00F6revler.xlsx",
+  "ExcelRowCount": 173,
+  "MatchedPersonnelCount": 155,
+  "UnmatchedPersonnelCount": 18,
+  "UnmatchedCoordinatorCount": 19,
+  "CreatedCentralCoordinatorCount": 1,
+  "CreatedProvincialCoordinatorCount": 0,
+  "CreatedCommissionCount": 9,
+  "UpdatedPersonnelAssignmentCount": 115,
+  "CreatedTaskCount": 136,
+  "SkippedDuplicateCount": 0,
+  "UnparsedEndDateCount": 42,
+  "UnmatchedPersonnel": [
+    {
+      "Sheet": "BURSA",
+      "Ad": "Faruk",
+      "Soyad": "Aky\u00FCz",
+      "Il": "Bursa",
+      "RoleText": "",
+      "BranchOrHint": "SINIF",
+      "TaskName": "TYMM Fen Bilimleri 4",
+      "EndDateText": "01/09/2026"
+    },
+    {
+      "Sheet": "KIRIKKALE",
+      "Ad": "Ali",
+      "Soyad": "\u00C7and\u0131rl\u0131",
+      "Il": "K\u0131r\u0131kkale",
+      "RoleText": "",
+      "BranchOrHint": "Matematik",
+      "TaskName": "Matematik \u00C7al\u0131\u015Fma Kitab\u0131 Deneme Sorular\u0131 Haz\u0131rlama",
+      "EndDateText": "15/05/2026"
+    },
+    {
+      "Sheet": "KIRIKKALE",
+      "Ad": "Asl\u0131",
+      "Soyad": "Kandemir",
+      "Il": "K\u0131r\u0131kkale",
+      "RoleText": "",
+      "BranchOrHint": "Sosyal Bilgiler",
+      "TaskName": "Sosyal Bilgiler 6 \u00C7al\u0131\u015Fma Kitab\u0131",
+      "EndDateText": "15/05/2026"
+    },
+    {
+      "Sheet": "KIRIKKALE",
+      "Ad": "Davut",
+      "Soyad": "Kayaba\u015F\u0131",
+      "Il": "K\u0131r\u0131kkale",
+      "RoleText": "",
+      "BranchOrHint": "T\u00FCrk\u00E7e",
+      "TaskName": "M\u00FCmtaz \u015Eahsiyetler 2 adet hikaye yaz\u0131m\u0131",
+      "EndDateText": "Jun-26"
+    },
+    {
+      "Sheet": "KIRIKKALE",
+      "Ad": "Emel",
+      "Soyad": "Erol",
+      "Il": "K\u0131r\u0131kkale",
+      "RoleText": "",
+      "BranchOrHint": "T\u00FCrk\u00E7e",
+      "TaskName": "\u015Eehrimiz K\u0131r\u0131kkale se\u00E7meli ders kitab\u0131 g\u00FCncellemesi",
+      "EndDateText": "Jul-26"
+    },
+    {
+      "Sheet": "KIRIKKALE",
+      "Ad": "Erdin\u00E7",
+      "Soyad": "Emerce",
+      "Il": "K\u0131r\u0131kkale",
+      "RoleText": "",
+      "BranchOrHint": "M\u00FCzik",
+      "TaskName": "M\u00FCzik Okullar\u0131 T\u00FCrk M\u00FCzi\u011Fi Teori ve Uygulamas\u0131 3",
+      "EndDateText": "31/03/2026"
+    },
+    {
+      "Sheet": "KIRIKKALE",
+      "Ad": "Esra",
+      "Soyad": "Balka\u015F Ya\u015Far",
+      "Il": "K\u0131r\u0131kkale",
+      "RoleText": "",
+      "BranchOrHint": "M\u00FCzik",
+      "TaskName": "M\u00FCzik Okullar\u0131 T\u00FCrk M\u00FCzi\u011Fi Teori ve Uygulamas\u0131 4",
+      "EndDateText": "Aral\u0131\u0131k 2026"
+    },
+    {
+      "Sheet": "KOCAEL\u0130",
+      "Ad": "Cankat",
+      "Soyad": "Da\u011F\u0131stanl\u0131",
+      "Il": "Kocaeli",
+      "RoleText": "",
+      "BranchOrHint": "M\u00FCzik",
+      "TaskName": "M\u00FCzik Okullar\u0131 M\u00FCziksel \u0130\u015Fitme Okuma ve Yazma 8",
+      "EndDateText": "Aral\u0131\u0131k 2026"
+    },
+    {
+      "Sheet": "KONYA",
+      "Ad": "Asl\u0131",
+      "Soyad": "\u00D6zaslan",
+      "Il": "Konya",
+      "RoleText": "",
+      "BranchOrHint": "SOSYAL B\u0130LG\u0130LER",
+      "TaskName": "Se\u00E7meli Ders Program\u002B\u00D6KK: Temel Ya\u015Fam Becerileri",
+      "EndDateText": "31/03/2026"
+    },
+    {
+      "Sheet": "KONYA",
+      "Ad": "Bahar",
+      "Soyad": "\u00D6zt\u00FCrk",
+      "Il": "Konya",
+      "RoleText": "",
+      "BranchOrHint": "T\u00DCRK\u00C7E",
+      "TaskName": "T\u00FCrk\u00E7e \u00C7al\u0131\u015Fma Kitab\u0131 6",
+      "EndDateText": "10/05/2026"
+    },
+    {
+      "Sheet": "KONYA",
+      "Ad": "Ercan",
+      "Soyad": "Yand\u0131mo\u011Flu",
+      "Il": "Konya",
+      "RoleText": "",
+      "BranchOrHint": "T\u00DCRK\u00C7E",
+      "TaskName": "T\u00FCrk\u00E7e Dersi \u00DCst D\u00FCzey Beceri Temelli Soru Yaz\u0131m\u0131 \u2013 \u00D6\u011Frenme \u00C7\u0131kt\u0131s\u0131 Bazl\u0131 Soru Yaz\u0131m\u0131",
+      "EndDateText": ""
+    },
+    {
+      "Sheet": "KONYA",
+      "Ad": "Hasan",
+      "Soyad": "Dedeo\u011Flu",
+      "Il": "Konya",
+      "RoleText": "",
+      "BranchOrHint": "FEN B\u0130L\u0130MLER\u0130",
+      "TaskName": "TYMM FEN B\u0130L\u0130MLER 5. S\u0131n\u0131f \u00C7al\u0131\u015Fma Kitab\u0131",
+      "EndDateText": "17/05/2026"
+    },
+    {
+      "Sheet": "MALATYA",
+      "Ad": "\u00C7i\u011Fdem",
+      "Soyad": "\u00D6zer Yal\u00E7\u0131n",
+      "Il": "Malatya",
+      "RoleText": "",
+      "BranchOrHint": "Matematik",
+      "TaskName": "Matematik 6 \u00C7al\u0131\u015Fma Kitab\u0131",
+      "EndDateText": "15/05/2026"
+    },
+    {
+      "Sheet": "MALATYA",
+      "Ad": "Ekrem",
+      "Soyad": "Kaplan",
+      "Il": "Malatya",
+      "RoleText": "Komisyondan ayr\u0131ld\u0131.",
+      "BranchOrHint": "Sosyal Bilgiler",
+      "TaskName": "\u0130HVD 4. S\u0131n\u0131f Ders Kitab\u0131",
+      "EndDateText": ""
+    },
+    {
+      "Sheet": "N\u0130\u011EDE",
+      "Ad": "\u0130lker",
+      "Soyad": "T\u00FCt\u00FCn\u00FCdo\u011Fru",
+      "Il": "Ni\u011Fde",
+      "RoleText": "G\u00F6rsel-Dizgi",
+      "BranchOrHint": "T\u00DCRK\u00C7E",
+      "TaskName": "Se\u00E7meli Ders Kitab\u0131 yaz\u0131m\u0131 dizgi g\u00F6rsel (Yazarl\u0131k ve Yazma Becerileri 1)",
+      "EndDateText": "31/03/2026"
+    },
+    {
+      "Sheet": "N\u0130\u011EDE",
+      "Ad": "\u00D6mer",
+      "Soyad": "Ad\u0131yaman",
+      "Il": "Ni\u011Fde",
+      "RoleText": "Dil Uzman\u0131",
+      "BranchOrHint": "T\u00DCRK\u00C7E",
+      "TaskName": "Se\u00E7meli Ders Kitab\u0131 yaz\u0131m\u0131 dizgi g\u00F6rsel (Masal ve Destanlar\u0131m\u0131z 2)",
+      "EndDateText": "31/03/2026"
+    },
+    {
+      "Sheet": "SAMSUN",
+      "Ad": "Sevilay",
+      "Soyad": "Biryan",
+      "Il": "Samsun",
+      "RoleText": "",
+      "BranchOrHint": "Fen Bilimleri",
+      "TaskName": "TYMM Se\u00E7meli Ders Afet Bilinci Ders Kitab\u0131",
+      "EndDateText": "31/03/2026"
+    },
+    {
+      "Sheet": "SPOR OKULLARI",
+      "Ad": "E\u015Fref",
+      "Soyad": "Ba\u015Fk\u0131ran",
+      "Il": "Antalya (Komisyon D\u0131\u015F\u0131)",
+      "RoleText": "ANTALYA",
+      "BranchOrHint": "",
+      "TaskName": "10",
+      "EndDateText": "Spor Ortaokullar\u0131 \u00C7ocuklarda Atletik Performans Uygulamalar\u0131 7. s\u0131n\u0131f Farkl\u0131la\u015Ft\u0131rma Etkinlik Kitab\u0131"
+    }
+  ],
+  "UnmatchedCoordinatorRows": [
+    {
+      "Sheet": "ADANA",
+      "Ad": "Ayfer",
+      "Soyad": "Canbolat",
+      "Il": "Adana",
+      "RoleText": "",
+      "BranchOrHint": "",
+      "TaskName": "Se\u00E7meli Ders Program\u002BDers kitab\u0131: \u00C7evre E\u011Fitimi ve \u0130klim De\u011Fi\u015Fikli\u011Fi",
+      "EndDateText": "31/03/2026"
+    },
+    {
+      "Sheet": "ADANA",
+      "Ad": "Emre",
+      "Soyad": "Y\u0131ld\u0131ra",
+      "Il": "Adana",
+      "RoleText": "",
+      "BranchOrHint": "",
+      "TaskName": "TYMM Hayat Bilgisi 3 \u00C7al\u0131\u015Fma Kitab\u0131",
+      "EndDateText": "30/06/2026"
+    },
+    {
+      "Sheet": "ADANA",
+      "Ad": "Eren",
+      "Soyad": "On\u011Fun",
+      "Il": "Adana",
+      "RoleText": "",
+      "BranchOrHint": "",
+      "TaskName": "TYMM Fen Bilimleri 7 \u00C7al\u0131\u015Fma Kitab\u0131",
+      "EndDateText": "15/05/2026"
+    },
+    {
+      "Sheet": "BURSA",
+      "Ad": "G\u00FCl\u00E7en",
+      "Soyad": "Y\u0131lmaz D\u00FCzg\u00FCn",
+      "Il": "Bursa",
+      "RoleText": "",
+      "BranchOrHint": "",
+      "TaskName": "TYMM Fen Bilimleri 3 \u00C7al\u0131\u015Fma Kitab\u0131",
+      "EndDateText": "31/03/2026"
+    },
+    {
+      "Sheet": "GAZ\u0130ANTEP",
+      "Ad": "Ba\u015Fak",
+      "Soyad": "Akar",
+      "Il": "Gaziantep",
+      "RoleText": "\u00D6L\u00C7ME VE DE\u011EERLEND\u0130RME UZMANI",
+      "BranchOrHint": "",
+      "TaskName": "Arada 1 Tatil Dergisi yaz\u0131m\u0131",
+      "EndDateText": "01/03/2026"
+    },
+    {
+      "Sheet": "GAZ\u0130ANTEP",
+      "Ad": "Mehmet",
+      "Soyad": "Ta\u015Fdemir",
+      "Il": "Gaziantep",
+      "RoleText": "\u00C7\u0130ZER (\u00C7izim-Procreate)",
+      "BranchOrHint": "",
+      "TaskName": "Spor Ortaokullar\u0131 \u201COyun ve Taktiksel Fark\u0131ndal\u0131k 7. S\u0131n\u0131f\u201D Kitab\u0131 Mizanpaj\u0131",
+      "EndDateText": ""
+    },
+    {
+      "Sheet": "GAZ\u0130ANTEP",
+      "Ad": "Metin",
+      "Soyad": "\u00C7elik",
+      "Il": "Gaziantep",
+      "RoleText": "G\u00D6RSEL TASARIMCI (ChatGPT G\u00F6rsel Olu\u015Fturma)",
+      "BranchOrHint": "",
+      "TaskName": "\u201C\u00D6\u011Fretmen Yazar, \u00C7ocuk \u00C7i\u00E7ek A\u00E7ar\u201D Projesinden 5 \u00D6yk\u00FC Kitab\u0131 Tasar\u0131m\u0131",
+      "EndDateText": ""
+    },
+    {
+      "Sheet": "KOCAEL\u0130",
+      "Ad": "Aydemir",
+      "Soyad": "Kele\u015F",
+      "Il": "Kocaeli",
+      "RoleText": "",
+      "BranchOrHint": "",
+      "TaskName": "TYMM Hayat Bilgisi 1 \u00C7al\u0131\u015Fma Kitab\u0131",
+      "EndDateText": "30/06/2026"
+    },
+    {
+      "Sheet": "MERS\u0130N",
+      "Ad": "Muhammet Fatih",
+      "Soyad": "Emre",
+      "Il": "Mersin",
+      "RoleText": "",
+      "BranchOrHint": "",
+      "TaskName": "TYMM Hayat Bilgisi 2 \u00C7al\u0131\u015Fma Kitab\u0131",
+      "EndDateText": "30/06/2026"
+    },
+    {
+      "Sheet": "SPOR OKULLARI",
+      "Ad": "Erhan",
+      "Soyad": "Ay",
+      "Il": "Antalya",
+      "RoleText": "ANTALYA",
+      "BranchOrHint": "",
+      "TaskName": "1",
+      "EndDateText": "Beden E\u011Fitimi ve Oyun (1-4) Farkl\u0131la\u015Ft\u0131rma Etkinlik Kitab\u0131"
+    },
+    {
+      "Sheet": "SPOR OKULLARI",
+      "Ad": "Cuma",
+      "Soyad": "\u015Ea\u015Ft\u0131m",
+      "Il": "Antalya",
+      "RoleText": "ANTALYA",
+      "BranchOrHint": "",
+      "TaskName": "2",
+      "EndDateText": "Beden E\u011Fitimi ve Spor (5-8) Farkl\u0131la\u015Ft\u0131rma Etkinlik Kitab\u0131"
+    },
+    {
+      "Sheet": "SPOR OKULLARI",
+      "Ad": "G\u00FClseren",
+      "Soyad": "Karata\u015F",
+      "Il": "Antalya",
+      "RoleText": "ANTALYA",
+      "BranchOrHint": "",
+      "TaskName": "3",
+      "EndDateText": "Spor Ortaokullar\u0131 Beden E\u011Fitimi ve Sporun Temelleri 7. S\u0131n\u0131f Ders Kitab\u0131"
+    },
+    {
+      "Sheet": "SPOR OKULLARI",
+      "Ad": "\u00DCmran",
+      "Soyad": "Ert\u00FCrk",
+      "Il": "Antalya",
+      "RoleText": "ANTALYA",
+      "BranchOrHint": "",
+      "TaskName": "4",
+      "EndDateText": "Spor Ortaokullar\u0131 Beden E\u011Fitimi ve Sporun Temelleri 5. s\u0131n\u0131f Farkl\u0131la\u015Ft\u0131rma Etkinlik Kitab\u0131"
+    },
+    {
+      "Sheet": "SPOR OKULLARI",
+      "Ad": "Osman Yasin",
+      "Soyad": "K\u00FC\u00E7\u00FCkball\u0131",
+      "Il": "Antalya",
+      "RoleText": "ANTALYA",
+      "BranchOrHint": "",
+      "TaskName": "5",
+      "EndDateText": "Spor Ortaokullar\u0131 Beden E\u011Fitimi ve Sporun Temelleri 6. s\u0131n\u0131f Farkl\u0131la\u015Ft\u0131rma Etkinlik Kitab\u0131"
+    },
+    {
+      "Sheet": "SPOR OKULLARI",
+      "Ad": "Vahide",
+      "Soyad": "K\u00FC\u00E7\u00FCkball\u0131",
+      "Il": "Antalya",
+      "RoleText": "ANTALYA",
+      "BranchOrHint": "",
+      "TaskName": "6",
+      "EndDateText": "Spor Ortaokullar\u0131 Beden E\u011Fitimi ve Sporun Temelleri 7. s\u0131n\u0131f Farkl\u0131la\u015Ft\u0131rma Etkinlik Kitab\u0131"
+    },
+    {
+      "Sheet": "SPOR OKULLARI",
+      "Ad": "Ali",
+      "Soyad": "Ka\u015Ftan",
+      "Il": "Antalya",
+      "RoleText": "ANTALYA",
+      "BranchOrHint": "",
+      "TaskName": "7",
+      "EndDateText": "Spor Ortaokullar\u0131 \u00C7ocuklarda Atletik Performans Uygulamalar\u0131 7. s\u0131n\u0131f \u00D6\u011Fretmen K\u0131lavuz Kitab\u0131"
+    },
+    {
+      "Sheet": "SPOR OKULLARI",
+      "Ad": "Hafize",
+      "Soyad": "A\u00E7ar Ka\u015Ftan",
+      "Il": "Antalya",
+      "RoleText": "ANTALYA",
+      "BranchOrHint": "",
+      "TaskName": "8",
+      "EndDateText": "Spor Ortaokullar\u0131 \u00C7ocuklarda Atletik Performans Uygulamalar\u0131 5. s\u0131n\u0131f Farkl\u0131la\u015Ft\u0131rma Etkinlik Kitab\u0131"
+    },
+    {
+      "Sheet": "SPOR OKULLARI",
+      "Ad": "Hatice",
+      "Soyad": "Y\u0131ld\u0131r\u0131m I\u015F\u0131k",
+      "Il": "Antalya",
+      "RoleText": "ANTALYA",
+      "BranchOrHint": "",
+      "TaskName": "9",
+      "EndDateText": "Spor Ortaokullar\u0131 \u00C7ocuklarda Atletik Performans Uygulamalar\u0131 6. s\u0131n\u0131f Farkl\u0131la\u015Ft\u0131rma Etkinlik Kitab\u0131"
+    },
+    {
+      "Sheet": "SPOR OKULLARI",
+      "Ad": "Fatih",
+      "Soyad": "G\u00FCng\u00F6r",
+      "Il": "",
+      "RoleText": "",
+      "BranchOrHint": "",
+      "TaskName": "11",
+      "EndDateText": "Spor Ortaokullar\u0131 Oyun ve Taktiksel Fark\u0131ndal\u0131k 7. s\u0131n\u0131f \u00D6\u011Fretmen K\u0131lavuz Kitab\u0131"
+    }
+  ]
+}

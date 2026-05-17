@@ -25,10 +25,12 @@ namespace PersonelTakipSistemi.Controllers
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId)) return RedirectToAction("Login", "Account");
 
-            // Coordinator roles: 3 (İl), 5 (Merkez)
+            var coordinatorRoleIds = new[] { 3, 4, 5, 14 };
+
+            // Coordinator roles: İl / Genel / Bakanlık / Merkez Birim
             var coordinatingRoles = await _context.PersonelKurumsalRolAtamalari
                 .Include(a => a.Koordinatorluk!).ThenInclude(k => k.Il)
-                .Where(a => a.PersonelId == userId && (a.KurumsalRolId == 3 || a.KurumsalRolId == 5))
+                .Where(a => a.PersonelId == userId && coordinatorRoleIds.Contains(a.KurumsalRolId))
                 .ToListAsync();
 
             if (!coordinatingRoles.Any()) return Forbid();
@@ -59,29 +61,33 @@ namespace PersonelTakipSistemi.Controllers
             {
                 komisyonQuery = _context.Komisyonlar
                     .Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
-                    .Where(k => k.BagliMerkezKoordinatorlukId == koordId);
+                    .Where(k => k.BagliMerkezKoordinatorlukId == koordId && k.IsActive && k.PersonelKomisyonlar.Any());
             }
             else
             {
                 komisyonQuery = _context.Komisyonlar
                     .Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
-                    .Where(k => k.KoordinatorlukId == koordId);
+                    .Where(k => k.KoordinatorlukId == koordId && k.IsActive && k.PersonelKomisyonlar.Any());
             }
 
             var komisyonlar = await komisyonQuery.ToListAsync();
 
-            model.Komisyonlar = komisyonlar.Select(k => new BirimKartItem
+            model.Komisyonlar = new List<BirimKartItem>();
+            foreach (var k in komisyonlar)
             {
-                Id = k.KomisyonId,
-                Ad = k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null 
-                    ? $"{k.Koordinatorluk.Il.Ad} {k.Ad}" 
-                    : k.Ad,
-                Tur = "Komisyon",
-                IlId = k.Koordinatorluk?.IlId,
-                IlAdi = k.Koordinatorluk?.Il?.Ad,
-                PersonelSayisi = _context.PersonelKomisyonlar.Count(pk => pk.KomisyonId == k.KomisyonId),
-                GorevSayisi = _context.GorevAtamaKomisyonlar.Count(gk => gk.KomisyonId == k.KomisyonId)
-            }).ToList();
+                model.Komisyonlar.Add(new BirimKartItem
+                {
+                    Id = k.KomisyonId,
+                    Ad = k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null
+                        ? $"{k.Koordinatorluk.Il.Ad} {k.Ad}"
+                        : k.Ad,
+                    Tur = "Komisyon",
+                    IlId = k.Koordinatorluk?.IlId,
+                    IlAdi = k.Koordinatorluk?.Il?.Ad,
+                    PersonelSayisi = await _context.PersonelKomisyonlar.CountAsync(pk => pk.KomisyonId == k.KomisyonId),
+                    GorevSayisi = await GetKomisyonGorevleriQuery(k.KomisyonId).CountAsync()
+                });
+            }
 
             // 2. Harita Verisi
             List<int> highlightIlIds = new List<int>();
@@ -209,19 +215,16 @@ namespace PersonelTakipSistemi.Controllers
                 .OrderBy(p => p.AdSoyad)
                 .ToListAsync();
 
-            var gorevler = await _context.GorevAtamaKomisyonlar
-                .Include(ga => ga.Gorev).ThenInclude(g => g.GorevDurum)
-                .Include(ga => ga.Gorev).ThenInclude(g => g.IsNiteligi)
-                .Where(ga => ga.KomisyonId == id)
-                .Select(ga => new KomisyonGorevItem
+            var gorevler = await GetKomisyonGorevleriQuery(id)
+                .Select(g => new KomisyonGorevItem
                 {
-                    GorevId = ga.Gorev.GorevId,
-                    Baslik = ga.Gorev.Ad,
-                    Durum = ga.Gorev.GorevDurum != null ? ga.Gorev.GorevDurum.Ad : "Bilinmiyor",
-                    DurumRenk = ga.Gorev.GorevDurum != null ? ga.Gorev.GorevDurum.Renk : "#6c757d",
-                    Kategori = ga.Gorev.IsNiteligi != null ? ga.Gorev.IsNiteligi.Ad : null,
-                    BaslangicTarihi = ga.Gorev.BaslangicTarihi,
-                    BitisTarihi = ga.Gorev.BitisTarihi
+                    GorevId = g.GorevId,
+                    Baslik = g.Ad,
+                    Durum = g.GorevDurum != null ? g.GorevDurum.Ad : "Bilinmiyor",
+                    DurumRenk = g.GorevDurum != null ? g.GorevDurum.Renk : "#6c757d",
+                    Kategori = g.IsNiteligi != null ? g.IsNiteligi.Ad : null,
+                    BaslangicTarihi = g.BaslangicTarihi,
+                    BitisTarihi = g.BitisTarihi
                 })
                 .OrderByDescending(g => g.BaslangicTarihi)
                 .ToListAsync();
@@ -265,8 +268,10 @@ namespace PersonelTakipSistemi.Controllers
 
         private async Task<List<int>> GetCoordinatorScopeIdsAsync(int personelId)
         {
+            var coordinatorRoleIds = new[] { 3, 4, 5, 14 };
+
             var roleBasedIds = await _context.PersonelKurumsalRolAtamalari.AsNoTracking()
-                .Where(x => x.PersonelId == personelId && x.KoordinatorlukId.HasValue && (x.KurumsalRolId == 3 || x.KurumsalRolId == 5))
+                .Where(x => x.PersonelId == personelId && x.KoordinatorlukId.HasValue && coordinatorRoleIds.Contains(x.KurumsalRolId))
                 .Select(x => x.KoordinatorlukId!.Value)
                 .ToListAsync();
 
@@ -276,6 +281,20 @@ namespace PersonelTakipSistemi.Controllers
                 .ToListAsync();
 
             return roleBasedIds.Concat(memberIds).Distinct().ToList();
+        }
+
+        private IQueryable<Gorev> GetKomisyonGorevleriQuery(int komisyonId)
+        {
+            var komisyonPersonelIds = _context.PersonelKomisyonlar
+                .Where(pk => pk.KomisyonId == komisyonId)
+                .Select(pk => pk.PersonelId);
+
+            return _context.Gorevler
+                .Include(g => g.GorevDurum)
+                .Include(g => g.IsNiteligi)
+                .Where(g => g.IsActive &&
+                    (g.GorevAtamaKomisyonlar.Any(ga => ga.KomisyonId == komisyonId) ||
+                     g.GorevAtamaPersoneller.Any(gp => komisyonPersonelIds.Contains(gp.PersonelId))));
         }
     }
 }

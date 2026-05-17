@@ -19,20 +19,29 @@
         width: 100%;
         height: auto;
     }
-    #svg-turkiye-haritasi path { 
-        fill: #bdc3c7; 
-        stroke: #fff; 
-        stroke-width: 0.5; 
-        transition: all 0.3s; 
-        cursor: pointer; 
-    }
-    #svg-turkiye-haritasi path:hover {
-        opacity: 0.8;
-        transform: scale(1.01);
+    #svg-turkiye-haritasi g[data-plakakodu] {
+        transition: transform 0.2s ease;
+        transform-box: fill-box;
         transform-origin: center;
     }
-    .map-active { fill: #e74c3c !important; }
-    .map-selected { fill: #3498db !important; stroke: #2c3e50 !important; stroke-width: 2px !important; }
+    #svg-turkiye-haritasi g[data-plakakodu] path {
+        fill: #c5cdd3;
+        stroke: #fff;
+        stroke-width: 0.5;
+        transition: fill 0.3s ease;
+        cursor: default;
+    }
+    #svg-turkiye-haritasi g[data-plakakodu].map-clickable path {
+        cursor: pointer;
+    }
+    #svg-turkiye-haritasi g[data-plakakodu].map-hover {
+        transform: scale(1.01);
+    }
+    #svg-turkiye-haritasi g[data-plakakodu].map-hover path {
+        opacity: 0.8;
+    }
+    .map-active path { fill: #e74c3c !important; }
+    .map-selected path { fill: #3498db !important; stroke: #2c3e50 !important; stroke-width: 2px !important; }
 
     /* Tooltip */
     .map-tooltip {
@@ -280,42 +289,42 @@
                 if (hasOrg) {
                     let plaka = ilId.toString().padStart(2, '0');
                     if (isMerkez) {
-                        $(`g[data-plakakodu="${plaka}"] path`).addClass('map-active'); // Merkezde varsa iller kırmızı
+                        $(`g[data-plakakodu="${plaka}"]`).addClass('map-active map-clickable');
                     } else {
-                        // Merkez değilse taşradır, doğrudan mavi (seçili il) gösterilsin.
-                        // Komisyon kartının rengiyle uyumlu olsun.
-                        $('#svg-turkiye-haritasi path').removeClass('map-selected');
-                        $(`g[data-plakakodu="${plaka}"] path`).addClass('map-selected');
+                        $('#svg-turkiye-haritasi g[data-plakakodu]').removeClass('map-selected');
+                        $(`g[data-plakakodu="${plaka}"]`).addClass('map-selected map-clickable');
                     }
                 }
             });
         });
 
         function initMapInteractions() {
-            const paths = document.querySelectorAll('#svg-turkiye-haritasi path, #svg-turkiye-haritasi g');
+            const cities = document.querySelectorAll('#svg-turkiye-haritasi g[data-plakakodu]');
             const tooltip = document.getElementById('map-tooltip');
 
-            paths.forEach(path => {
-                path.addEventListener('mouseenter', function (e) {
-                    const ilAd = this.getAttribute('data-iladi') || this.parentNode.getAttribute('data-iladi');
+            cities.forEach(city => {
+                city.addEventListener('mouseenter', function () {
+                    const ilAd = this.getAttribute('data-iladi');
                     if (ilAd) {
+                        this.classList.add('map-hover');
                         tooltip.textContent = ilAd;
                         tooltip.style.opacity = 1;
                     }
                 });
 
-                path.addEventListener('mousemove', function (e) {
+                city.addEventListener('mousemove', function (e) {
                     tooltip.style.left = (e.clientX + 15) + 'px';
                     tooltip.style.top = (e.clientY + 15) + 'px';
                 });
 
-                path.addEventListener('mouseleave', function () {
+                city.addEventListener('mouseleave', function () {
+                    this.classList.remove('map-hover');
                     tooltip.style.opacity = 0;
                 });
 
-                path.addEventListener('click', function () {
-                    const ilIdAttr = this.getAttribute('data-plakakodu') || this.parentNode.getAttribute('data-plakakodu');
-                    const ilAd = this.getAttribute('data-iladi') || this.parentNode.getAttribute('data-iladi');
+                city.addEventListener('click', function () {
+                    const ilIdAttr = this.getAttribute('data-plakakodu');
+                    const ilAd = this.getAttribute('data-iladi');
                     if (ilIdAttr) {
                         const numericIlId = parseInt(ilIdAttr, 10);
                         onIlClick({ plaka: numericIlId, ad: ilAd });
@@ -334,9 +343,9 @@
             if (!hasOrg) return;
 
             // Görsel seçim
-            $('#svg-turkiye-haritasi path').removeClass('map-selected');
+            $('#svg-turkiye-haritasi g[data-plakakodu]').removeClass('map-selected');
             let plakaStr = clickedIlId.toString().padStart(2, '0');
-            $(`g[data-plakakodu="${plakaStr}"] path`).addClass('map-selected');
+            $(`g[data-plakakodu="${plakaStr}"]`).addClass('map-selected');
 
             // Komisyon kartlarını filtrele ve kaydır
             filterAndScroll(clickedIlId);
@@ -372,7 +381,7 @@
         }
 
         function resetMap() {
-            $('#svg-turkiye-haritasi path').removeClass('map-selected');
+            $('#svg-turkiye-haritasi g[data-plakakodu]').removeClass('map-selected map-hover');
             $('.komisyon-kart-wrapper').find('.birim-card').removeClass('highlight-blue');
         }
     </script>

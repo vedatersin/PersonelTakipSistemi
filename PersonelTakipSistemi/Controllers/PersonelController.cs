@@ -48,11 +48,39 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        public IActionResult BenimDetay()
+        public async Task<IActionResult> BenimDetay()
         {
             var personelIdClaim = User.Claims.FirstOrDefault(c => c.Type == "PersonelId");
             if (personelIdClaim != null && int.TryParse(personelIdClaim.Value, out int personelId))
             {
+                if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("BirimListele", "Birimler");
+                }
+
+                var coordinatorRoleIds = new[] { 3, 4, 5, 14 };
+
+                var hasCoordinatorRole = await _context.PersonelKurumsalRolAtamalari
+                    .AsNoTracking()
+                    .AnyAsync(x => x.PersonelId == personelId && x.KoordinatorlukId.HasValue && coordinatorRoleIds.Contains(x.KurumsalRolId));
+
+                if (hasCoordinatorRole)
+                {
+                    return RedirectToAction("KordinatorlukYonetimi", "BirimYonetimi");
+                }
+
+                var chairAssignment = await _context.PersonelKurumsalRolAtamalari
+                    .AsNoTracking()
+                    .Where(x => x.PersonelId == personelId && x.KurumsalRolId == 2 && x.KomisyonId.HasValue)
+                    .OrderBy(x => x.KomisyonId)
+                    .Select(x => x.KomisyonId)
+                    .FirstOrDefaultAsync();
+
+                if (chairAssignment.HasValue && chairAssignment.Value > 0)
+                {
+                    return RedirectToAction("KomisyonYonetimi", "BirimYonetimi", new { id = chairAssignment.Value });
+                }
+
                 return RedirectToAction("Detay", new { id = personelId });
             }
             return RedirectToAction("Index"); // Should not happen if authorized
@@ -76,8 +104,7 @@ namespace PersonelTakipSistemi.Controllers
             // 1. Filtreleme
             if (!string.IsNullOrEmpty(filter.SearchName))
             {
-                var term = filter.SearchName.ToLower();
-                query = query.Where(p => p.Ad.ToLower().Contains(term) || p.Soyad.ToLower().Contains(term));
+                query = ApplySearchFilter(query, filter.SearchName);
             }
 
             if (!string.IsNullOrEmpty(filter.TcKimlikNo))
@@ -150,7 +177,7 @@ namespace PersonelTakipSistemi.Controllers
             // 2. Sayfalama Hazirligi
             var totalItems = await query.CountAsync();
 
-            var ordered = query.OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt);
+            var ordered = ApplySorting(query, filter);
             if (showAll)
             {
                 filter.Page = 1;
@@ -223,8 +250,7 @@ namespace PersonelTakipSistemi.Controllers
             // Same filtering logic as Index
             if (!string.IsNullOrEmpty(filter.SearchName))
             {
-                var term = filter.SearchName.ToLower();
-                query = query.Where(p => p.Ad.ToLower().Contains(term) || p.Soyad.ToLower().Contains(term));
+                query = ApplySearchFilter(query, filter.SearchName);
             }
 
             if (!string.IsNullOrEmpty(filter.TcKimlikNo))
@@ -273,8 +299,7 @@ namespace PersonelTakipSistemi.Controllers
                 query = query.Where(p => p.PersonelIsNitelikleri.Any(pi => filter.SeciliIsNiteligiIdleri.Contains(pi.IsNiteligiId)));
             }
 
-            var rows = await query
-                .OrderBy(p => p.Ad).ThenBy(p => p.Soyad)
+            var rows = await ApplySorting(query, filter)
                 .Select(p => new
                 {
                     Ad = p.Ad,
@@ -330,6 +355,50 @@ namespace PersonelTakipSistemi.Controllers
             var content = await package.GetAsByteArrayAsync();
             var fileName = $"Personel_Filtreli_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
             return File(content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        private IQueryable<Personel> ApplySearchFilter(IQueryable<Personel> query, string rawSearchTerm)
+        {
+            var normalizedTerm = string.Join(" ", rawSearchTerm
+                .Trim()
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries));
+
+            if (string.IsNullOrWhiteSpace(normalizedTerm))
+            {
+                return query;
+            }
+
+            var likePattern = $"%{normalizedTerm}%";
+            return query.Where(p =>
+                EF.Functions.Like(
+                    EF.Functions.Collate((p.Ad + " " + p.Soyad), "Turkish_CI_AI"),
+                    likePattern));
+        }
+
+        private IQueryable<Personel> ApplySorting(IQueryable<Personel> query, PersonelIndexFilterViewModel filter)
+        {
+            var sortBy = filter.SortBy?.Trim();
+            var isDescending = string.Equals(filter.SortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+
+            return sortBy switch
+            {
+                "AdSoyad" => isDescending
+                    ? query.OrderByDescending(p => p.Ad).ThenByDescending(p => p.Soyad)
+                    : query.OrderBy(p => p.Ad).ThenBy(p => p.Soyad),
+                "GorevliIl" => isDescending
+                    ? query.OrderByDescending(p => p.GorevliIl.Ad).ThenByDescending(p => p.Ad).ThenByDescending(p => p.Soyad)
+                    : query.OrderBy(p => p.GorevliIl.Ad).ThenBy(p => p.Ad).ThenBy(p => p.Soyad),
+                "KadroYeri" => isDescending
+                    ? query.OrderByDescending(p => p.KadroIl != null ? p.KadroIl.Ad : string.Empty)
+                        .ThenByDescending(p => p.KadroIlce != null ? p.KadroIlce.Ad : string.Empty)
+                        .ThenByDescending(p => p.Ad)
+                        .ThenByDescending(p => p.Soyad)
+                    : query.OrderBy(p => p.KadroIl != null ? p.KadroIl.Ad : string.Empty)
+                        .ThenBy(p => p.KadroIlce != null ? p.KadroIlce.Ad : string.Empty)
+                        .ThenBy(p => p.Ad)
+                        .ThenBy(p => p.Soyad),
+                _ => query.OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
+            };
         }
 
         [HttpGet]

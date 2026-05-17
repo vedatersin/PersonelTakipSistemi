@@ -964,12 +964,18 @@ namespace PersonelTakipSistemi.Controllers
                 .ToListAsync();
         }
 
+        private IQueryable<Komisyon> GetVisibleKomisyonlarQuery()
+        {
+            return _context.Komisyonlar
+                .Where(k => k.IsActive && k.PersonelKomisyonlar.Any());
+        }
+
         private async Task<List<Microsoft.AspNetCore.Mvc.Rendering.SelectListItem>> GetKomisyonSelectListAsync(int koordinatorlukId)
         {
-            var data = await _context.Komisyonlar
+            var data = await GetVisibleKomisyonlarQuery()
                 .Include(x => x.Koordinatorluk).ThenInclude(k => k.Il)
                 .Include(x => x.BagliMerkezKoordinatorluk)
-                .Where(x => (x.KoordinatorlukId == koordinatorlukId || x.BagliMerkezKoordinatorlukId == koordinatorlukId) && x.IsActive)
+                .Where(x => x.KoordinatorlukId == koordinatorlukId || x.BagliMerkezKoordinatorlukId == koordinatorlukId)
                 .ToListAsync();
 
             return data
@@ -997,12 +1003,16 @@ namespace PersonelTakipSistemi.Controllers
 
             foreach (var k in koordinatorlukler)
             {
+                var aktifKomisyonlar = k.Komisyonlar
+                    .Where(kom => kom.IsActive && kom.PersonelKomisyonlar.Any())
+                    .ToList();
+
                 // Kümülatif Personel Sayısı: Koordinatörlüğün kendi personeli + bağlı tüm komisyonlarındaki personeller
                 int totalPersonel = k.PersonelKoordinatorlukler.Count;
-                totalPersonel += k.Komisyonlar.Sum(kom => kom.PersonelKomisyonlar.Count);
+                totalPersonel += aktifKomisyonlar.Sum(kom => kom.PersonelKomisyonlar.Count);
 
                 // Kümülatif Görev Sayısı: Koordinatörlüğe atanan görevler + bağlı tüm komisyonlarına atanan görevler
-                var komisyonIds = k.Komisyonlar.Select(kom => kom.KomisyonId).ToList();
+                var komisyonIds = aktifKomisyonlar.Select(kom => kom.KomisyonId).ToList();
                 int totalGorev = await _context.GorevAtamaKoordinatorlukler.CountAsync(g => g.KoordinatorlukId == k.KoordinatorlukId);
                 totalGorev += await _context.GorevAtamaKomisyonlar.CountAsync(g => komisyonIds.Contains(g.KomisyonId));
 
@@ -1011,7 +1021,7 @@ namespace PersonelTakipSistemi.Controllers
                 {
                     var tasraKomisyonlari = await _context.Komisyonlar
                         .Include(tk => tk.PersonelKomisyonlar)
-                        .Where(tk => tk.BagliMerkezKoordinatorlukId == k.KoordinatorlukId && tk.IsActive)
+                        .Where(tk => tk.BagliMerkezKoordinatorlukId == k.KoordinatorlukId && tk.IsActive && tk.PersonelKomisyonlar.Any())
                         .ToListAsync();
                     
                     totalPersonel += tasraKomisyonlari.Sum(tk => tk.PersonelKomisyonlar.Count);
@@ -1036,30 +1046,37 @@ namespace PersonelTakipSistemi.Controllers
 
         private async Task<List<BirimKartItem>> GetKartlarByKoordinatorlukAsync(int koordinatorlukId, int? ilId = null)
         {
-            var query = _context.Komisyonlar
+            var query = GetVisibleKomisyonlarQuery()
                 .Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
                 .Include(k => k.PersonelKomisyonlar)
-                .Where(k => (k.KoordinatorlukId == koordinatorlukId || k.BagliMerkezKoordinatorlukId == koordinatorlukId) && k.IsActive);
+                .Where(k => k.KoordinatorlukId == koordinatorlukId || k.BagliMerkezKoordinatorlukId == koordinatorlukId);
 
             if (ilId.HasValue)
             {
                 query = query.Where(k => k.Koordinatorluk != null && k.Koordinatorluk.IlId == ilId.Value);
             }
 
-            return await query
-                .Select(k => new BirimKartItem
+            var komisyonlar = await query
+                .OrderBy(k => k.Ad)
+                .ToListAsync();
+
+            var kartlar = new List<BirimKartItem>();
+            foreach (var k in komisyonlar)
+            {
+                kartlar.Add(new BirimKartItem
                 {
                     Id = k.KomisyonId,
                     Ad = k.Ad,
                     Tur = "Komisyon",
                     PersonelSayisi = k.PersonelKomisyonlar.Count,
-                    GorevSayisi = _context.GorevAtamaKomisyonlar.Count(g => g.KomisyonId == k.KomisyonId),
-                    IlId = k.Koordinatorluk != null ? k.Koordinatorluk.IlId : null,
-                    IlAdi = (k.Koordinatorluk != null && k.Koordinatorluk.Il != null) ? k.Koordinatorluk.Il.Ad : null,
+                    GorevSayisi = await GetKomisyonGorevleriQuery(k.KomisyonId).CountAsync(),
+                    IlId = k.Koordinatorluk?.IlId,
+                    IlAdi = k.Koordinatorluk?.Il?.Ad,
                     ParentId = k.KoordinatorlukId
-                })
-                .OrderBy(k => k.Ad)
-                .ToListAsync();
+                });
+            }
+
+            return kartlar;
         }
 
         private async Task<List<int>> GetActiveIlIdsAsync(int teskilatId, int? koordinatorlukId)
@@ -1079,7 +1096,7 @@ namespace PersonelTakipSistemi.Controllers
                     if (tur == "Merkez")
                     {
                         ilIds = await _context.Komisyonlar
-                            .Where(k => k.IsActive && k.BagliMerkezKoordinatorlukId == koordinatorlukId)
+                            .Where(k => k.IsActive && k.BagliMerkezKoordinatorlukId == koordinatorlukId && k.PersonelKomisyonlar.Any())
                             .Select(k => k.Koordinatorluk.IlId)
                             .Where(id => id != null)
                             .Select(id => id!.Value)
@@ -1128,23 +1145,28 @@ namespace PersonelTakipSistemi.Controllers
                         .Select(k => k.KoordinatorlukId)
                         .ToListAsync();
 
-                    kartlar = await _context.Komisyonlar
+                    var ilKomisyonlari = await GetVisibleKomisyonlarQuery()
                         .Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
                         .Include(k => k.PersonelKomisyonlar)
-                        .Where(k => koordIds.Contains(k.KoordinatorlukId) && k.IsActive)
-                        .Select(k => new BirimKartItem
+                        .Where(k => koordIds.Contains(k.KoordinatorlukId))
+                        .OrderBy(k => k.Ad)
+                        .ToListAsync();
+
+                    kartlar = new List<BirimKartItem>();
+                    foreach (var k in ilKomisyonlari)
+                    {
+                        kartlar.Add(new BirimKartItem
                         {
                             Id = k.KomisyonId,
                             Ad = k.Ad,
                             Tur = "Komisyon",
                             PersonelSayisi = k.PersonelKomisyonlar.Count,
-                            GorevSayisi = _context.GorevAtamaKomisyonlar.Count(g => g.KomisyonId == k.KomisyonId),
-                            IlId = k.Koordinatorluk != null ? k.Koordinatorluk.IlId : null,
-                            IlAdi = (k.Koordinatorluk != null && k.Koordinatorluk.Il != null) ? k.Koordinatorluk.Il.Ad : null,
+                            GorevSayisi = await GetKomisyonGorevleriQuery(k.KomisyonId).CountAsync(),
+                            IlId = k.Koordinatorluk?.IlId,
+                            IlAdi = k.Koordinatorluk?.Il?.Ad,
                             ParentId = k.KoordinatorlukId
-                        })
-                        .OrderBy(k => k.Ad)
-                        .ToListAsync();
+                        });
+                    }
                 }
                 else
                 {
@@ -1169,7 +1191,7 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> KomisyonDetay(int id)
         {
-            var komisyon = await _context.Komisyonlar
+            var komisyon = await GetVisibleKomisyonlarQuery()
                 .Include(k => k.Koordinatorluk).ThenInclude(k => k.Teskilat)
                 .Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
                 .FirstOrDefaultAsync(k => k.KomisyonId == id);
@@ -1205,19 +1227,16 @@ namespace PersonelTakipSistemi.Controllers
                 .ToListAsync();
 
             // Görevler
-            var gorevler = await _context.GorevAtamaKomisyonlar
-                .Include(ga => ga.Gorev).ThenInclude(g => g.GorevDurum)
-                .Include(ga => ga.Gorev).ThenInclude(g => g.IsNiteligi)
-                .Where(ga => ga.KomisyonId == id)
-                .Select(ga => new KomisyonGorevItem
+            var gorevler = await GetKomisyonGorevleriQuery(id)
+                .Select(g => new KomisyonGorevItem
                 {
-                    GorevId = ga.Gorev.GorevId,
-                    Baslik = ga.Gorev.Ad,
-                    Durum = ga.Gorev.GorevDurum != null ? ga.Gorev.GorevDurum.Ad : "Bilinmiyor",
-                    DurumRenk = ga.Gorev.GorevDurum != null ? ga.Gorev.GorevDurum.Renk : "#6c757d",
-                    Kategori = ga.Gorev.IsNiteligi != null ? ga.Gorev.IsNiteligi.Ad : null,
-                    BaslangicTarihi = ga.Gorev.BaslangicTarihi,
-                    BitisTarihi = ga.Gorev.BitisTarihi
+                    GorevId = g.GorevId,
+                    Baslik = g.Ad,
+                    Durum = g.GorevDurum != null ? g.GorevDurum.Ad : "Bilinmiyor",
+                    DurumRenk = g.GorevDurum != null ? g.GorevDurum.Renk : "#6c757d",
+                    Kategori = g.IsNiteligi != null ? g.IsNiteligi.Ad : null,
+                    BaslangicTarihi = g.BaslangicTarihi,
+                    BitisTarihi = g.BitisTarihi
                 })
                 .OrderByDescending(g => g.BaslangicTarihi)
                 .ToListAsync();
@@ -1284,10 +1303,10 @@ namespace PersonelTakipSistemi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetKomisyonlar(int koordinatorlukId)
         {
-            var data = await _context.Komisyonlar
+            var data = await GetVisibleKomisyonlarQuery()
                 .Include(x => x.Koordinatorluk).ThenInclude(k => k.Il)
                 .Include(x => x.BagliMerkezKoordinatorluk)
-                .Where(x => (x.KoordinatorlukId == koordinatorlukId || x.BagliMerkezKoordinatorlukId == koordinatorlukId) && x.IsActive)
+                .Where(x => x.KoordinatorlukId == koordinatorlukId || x.BagliMerkezKoordinatorlukId == koordinatorlukId)
                 .ToListAsync();
 
             var result = data.Select(x => new { 
@@ -1313,6 +1332,20 @@ namespace PersonelTakipSistemi.Controllers
                 .Select(t => new { t.TeskilatId, t.Ad })
                 .ToListAsync();
             return Json(data);
+        }
+
+        private IQueryable<Gorev> GetKomisyonGorevleriQuery(int komisyonId)
+        {
+            var komisyonPersonelIds = _context.PersonelKomisyonlar
+                .Where(pk => pk.KomisyonId == komisyonId)
+                .Select(pk => pk.PersonelId);
+
+            return _context.Gorevler
+                .Include(g => g.GorevDurum)
+                .Include(g => g.IsNiteligi)
+                .Where(g => g.IsActive &&
+                    (g.GorevAtamaKomisyonlar.Any(ga => ga.KomisyonId == komisyonId) ||
+                     g.GorevAtamaPersoneller.Any(gp => komisyonPersonelIds.Contains(gp.PersonelId))));
         }
     }
 }

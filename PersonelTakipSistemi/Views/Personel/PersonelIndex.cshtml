@@ -1,6 +1,19 @@
 ﻿@model PersonelTakipSistemi.ViewModels.PersonelIndexViewModel
 @{
     ViewData["Title"] = "Personel Listesi";
+
+    string GetSortIconClass(string sortBy)
+    {
+        var isActive = string.Equals(Model.Filter.SortBy, sortBy, StringComparison.OrdinalIgnoreCase);
+        if (!isActive)
+        {
+            return "bx bx-sort-alt-2 text-muted";
+        }
+
+        return string.Equals(Model.Filter.SortDirection, "desc", StringComparison.OrdinalIgnoreCase)
+            ? "bx bx-sort-down"
+            : "bx bx-sort-up";
+    }
 }
 
 @section Styles {
@@ -38,6 +51,21 @@
       }
       
       tr { cursor: pointer; }
+
+      .table-sort-btn {
+          display: inline-flex;
+          align-items: center;
+          gap: 0.35rem;
+          border: 0;
+          background: transparent;
+          padding: 0;
+          font: inherit;
+          color: inherit;
+      }
+
+      .table-sort-btn i {
+          font-size: 1rem;
+      }
   </style>
 }
 
@@ -257,6 +285,8 @@
 
             <input type="hidden" name="Filter.Page" value="1" id="pageInput" />
             <input type="hidden" name="Filter.PageSize" value="@Model.Filter.PageSize" />
+            <input type="hidden" name="Filter.SortBy" value="@Model.Filter.SortBy" id="sortByInput" />
+            <input type="hidden" name="Filter.SortDirection" value="@Model.Filter.SortDirection" id="sortDirectionInput" />
             <input type="hidden" name="showAll" value="@(Model.ShowAll ? "true" : "false")" id="showAllInput" />
         </form>
     </div>
@@ -274,13 +304,28 @@
                         </th>
                     }
                     <th>Foto</th>
-                    <th>Ad Soyad</th>
+                    <th>
+                        <button type="button" class="table-sort-btn" onclick="applySort('AdSoyad'); event.stopPropagation();">
+                            <span>Ad Soyad</span>
+                            <i class="@GetSortIconClass("AdSoyad")"></i>
+                        </button>
+                    </th>
                     <th>Kullanılan Yazılımlar</th>
                     <th>Uzmanlık</th>
                     <th>Görev Türü</th>
                     <th>İş Niteliği</th> 
-                    <th>Görevli İl</th>
-                    <th>Kadro Yeri</th>
+                    <th>
+                        <button type="button" class="table-sort-btn" onclick="applySort('GorevliIl'); event.stopPropagation();">
+                            <span>Görevli İl</span>
+                            <i class="@GetSortIconClass("GorevliIl")"></i>
+                        </button>
+                    </th>
+                    <th>
+                        <button type="button" class="table-sort-btn" onclick="applySort('KadroYeri'); event.stopPropagation();">
+                            <span>Kadro Yeri</span>
+                            <i class="@GetSortIconClass("KadroYeri")"></i>
+                        </button>
+                    </th>
                     <th>Durum</th>
                 </tr>
             </thead>
@@ -730,6 +775,23 @@
         }
 
         window.open('/Personel/ExportExcel?' + params.toString(), '_blank');
+    }
+
+    function applySort(sortBy) {
+        const sortByInput = document.getElementById('sortByInput');
+        const sortDirectionInput = document.getElementById('sortDirectionInput');
+        const pageInput = document.getElementById('pageInput');
+
+        if (sortByInput.value === sortBy) {
+            sortDirectionInput.value = sortDirectionInput.value === 'desc' ? 'asc' : 'desc';
+        } else {
+            sortByInput.value = sortBy;
+            sortDirectionInput.value = 'asc';
+        }
+
+        pageInput.value = 1;
+        document.getElementById('showAllInput').value = 'false';
+        document.getElementById('filterForm').submit();
     }
     
     function toggleContainer(element) {
