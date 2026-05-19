@@ -13,6 +13,8 @@
     
     // ViewBag.Personeller is List<SelectListItem>
     var personeller = ViewBag.Personeller as List<SelectListItem>;
+    var detailReturnUrl = Context.Request.Path + Context.Request.QueryString;
+    const string detailReturnLabel = "Görev Listesine Dön";
 }
 
 @section Styles {
@@ -43,6 +45,111 @@
             justify-content: center;
             margin: 0 2px;
             font-size: 1.15rem; /* 15% larger icons approximation */
+        }
+
+        .gorev-table-card .table-responsive {
+            overflow-x: hidden;
+        }
+
+        .gorev-list-table {
+            table-layout: fixed;
+            width: 100%;
+        }
+
+        .gorev-list-table th,
+        .gorev-list-table td {
+            white-space: normal;
+            vertical-align: middle;
+            padding: .55rem .6rem;
+        }
+
+        .gorev-list-table th {
+            text-transform: none;
+            letter-spacing: 0;
+        }
+
+        .gorev-select-col { width: 4%; }
+        .gorev-category-col { width: 7%; }
+        .gorev-title-col { width: 33%; }
+        .gorev-assignment-col { width: 23%; }
+        .gorev-date-col { width: 9%; }
+        .gorev-status-col { width: 10.5%; }
+        .gorev-actions-col { width: 13.5%; }
+
+        .task-title-link,
+        .task-summary {
+            display: block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: left;
+        }
+
+        .task-title-expanded {
+            line-height: 1.35;
+            white-space: normal;
+            text-align: left;
+        }
+
+        .gorev-title-cell {
+            text-align: left !important;
+        }
+
+        .gorev-title-cell .d-flex {
+            justify-content: flex-start;
+        }
+
+        .assignment-badge {
+            display: inline-block;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            vertical-align: middle;
+            padding: .28rem .42rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .72rem;
+            line-height: 1.2;
+            min-width: 106px;
+            text-align: center;
+            white-space: nowrap;
+            padding: .3rem .62rem;
+            box-sizing: border-box;
+        }
+
+        .gorev-status-cell {
+            text-align: center;
+            padding-left: .85rem !important;
+            padding-right: .85rem !important;
+        }
+
+        .assignment-preview,
+        .assignment-extra {
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: .25rem;
+            min-width: 0;
+        }
+
+        .assignment-preview .assignment-badge,
+        .assignment-extra .assignment-badge {
+            min-width: 0;
+        }
+
+        .action-button-group {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: nowrap;
+            gap: 3px;
+            white-space: nowrap;
         }
     </style>
 }
@@ -193,49 +300,75 @@
         }
 
         <!-- TABLE CARD -->
-        <div class="card">
-            <div class="table-responsive text-nowrap">
-                <table class="table table-hover">
+        <div class="card gorev-table-card">
+            <div class="table-responsive">
+                <table class="table table-hover gorev-list-table">
+                    <colgroup>
+                        <col class="gorev-select-col" />
+                        <col class="gorev-category-col" />
+                        <col class="gorev-title-col" />
+                        <col class="gorev-assignment-col" />
+                        <col class="gorev-date-col" />
+                        <col class="gorev-status-col" />
+                        <col class="gorev-actions-col" />
+                    </colgroup>
                     <thead>
                         <tr>
                             <th>
                                 <input type="checkbox" class="form-check-input" id="selectAll">
                             </th>
-                            <th>Görev</th>
-                            <th>Is Niteligi</th>
-                            <th>Atanan Kişi / Birimler</th>
-                            <th>Başlangıç</th>
-                            <th>Bitiş</th>
-                            <th>Durum</th>
-                            <th class="text-end">İşlemler</th>
+                            <th>İŞ NİTELİĞİ</th>
+                            <th>GÖREV</th>
+                            <th>ATANAN KİŞİ / BİRİMLER</th>
+                            <th>BİTİŞ TARİHİ</th>
+                            <th>DURUM</th>
+                            <th class="text-end">İŞLEMLER</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var item in Model)
                         {
+                            var titleLimit = 64;
+                            var hasLongTitle = !string.IsNullOrEmpty(item.Ad) && item.Ad.Length > titleLimit;
+                            var shortTitle = hasLongTitle ? item.Ad.Substring(0, titleLimit).TrimEnd() + "..." : item.Ad;
+
                             <tr class="cursor-pointer" id="row-@item.GorevId" onclick="goToTaskDetail(@item.GorevId)">
                                 <td onclick="event.stopPropagation()">
                                     <input type="checkbox" class="form-check-input select-item" value="@item.GorevId" onchange="updateBulkActionState(event)">
                                 </td>
                                 <td>
-                                    <!-- Link to Detail with stopPropagation -->
-                                    <a href="/Gorevler/Detay/@item.GorevId" onclick="event.stopPropagation()" class="fw-bold text-body">@item.Ad</a><br/>
-                                    <small class="text-muted">@item.Aciklama</small>
-                                </td>
-                                <td>
-                                    <span class="badge bg-label-info">
+                                    <span class="badge bg-label-info assignment-badge is-niteligi-badge">
                                         @item.IsNiteligi?.Ad
                                     </span>
+                                </td>
+                                <td class="gorev-title-cell">
+                                    <!-- Link to Detail with stopPropagation -->
+                                    @if (hasLongTitle)
+                                    {
+                                        <div class="d-flex align-items-center gap-1">
+                                            <a href="@Url.Action("Detay", "Gorevler", new { id = item.GorevId, returnUrl = detailReturnUrl, returnLabel = detailReturnLabel })" onclick="event.stopPropagation()" class="fw-bold text-body task-title-link">@shortTitle</a>
+                                            <span class="badge bg-primary cursor-pointer show-more-btn flex-shrink-0" onclick="event.stopPropagation(); toggleContainer(this)">...</span>
+                                        </div>
+                                        <div class="d-none mt-1 extended-container">
+                                            <a href="@Url.Action("Detay", "Gorevler", new { id = item.GorevId, returnUrl = detailReturnUrl, returnLabel = detailReturnLabel })" onclick="event.stopPropagation()" class="fw-bold text-body task-title-expanded">@item.Ad</a>
+                                            <span class="badge bg-secondary cursor-pointer ms-1" onclick="event.stopPropagation(); toggleContainer(this)">X</span>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("Detay", "Gorevler", new { id = item.GorevId, returnUrl = detailReturnUrl, returnLabel = detailReturnLabel })" onclick="event.stopPropagation()" class="fw-bold text-body task-title-link">@item.Ad</a>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(item.Aciklama))
+                                    {
+                                        <small class="text-muted task-summary">@item.Aciklama</small>
+                                    }
                                 </td>
                                 
                                 <!-- ATANAN COLUMN WITH TOGGLE LOGIC -->
                                 <td>
                                     @{
                                         var allAssignments = new List<string>();
-                                        if (item.GorevAtamaTeskilatlar != null) allAssignments.AddRange(item.GorevAtamaTeskilatlar.Select(x => $"<i class='bx bxs-building'></i> {x.Teskilat.Ad}"));
-                                        if (item.GorevAtamaKoordinatorlukler != null) allAssignments.AddRange(item.GorevAtamaKoordinatorlukler.Select(x => $"<i class='bx bxs-business'></i> {x.Koordinatorluk.Ad}"));
-                                        
-                                         if (item.GorevAtamaKomisyonlar != null) {
+                                        if (item.GorevAtamaKomisyonlar != null) {
                                             allAssignments.AddRange(item.GorevAtamaKomisyonlar.Select(x => {
                                                 var displayText = x.Komisyon.Ad;
                                                 if (x.Komisyon.BagliMerkezKoordinatorlukId != null && x.Komisyon.Koordinatorluk != null) {
@@ -245,36 +378,38 @@
                                                 }
                                                 return $"<i class='bx bxs-group'></i> {displayText}";
                                             }));
-                                         }
+                                        }
 
+                                        if (item.GorevAtamaKoordinatorlukler != null) allAssignments.AddRange(item.GorevAtamaKoordinatorlukler.Select(x => $"<i class='bx bxs-business'></i> {x.Koordinatorluk.Ad}"));
+                                        if (item.GorevAtamaTeskilatlar != null) allAssignments.AddRange(item.GorevAtamaTeskilatlar.Select(x => $"<i class='bx bxs-building'></i> {x.Teskilat.Ad}"));
                                         if (item.GorevAtamaPersoneller != null) allAssignments.AddRange(item.GorevAtamaPersoneller.Select(x => $"<i class='bx bxs-user'></i> {x.Personel.Ad} {x.Personel.Soyad}"));
                                     }
 
                                     @if (allAssignments.Any())
                                     {
-                                        var visibleCount = 2; // Show top 2
+                                        var visibleCount = Math.Min(item.GorevAtamaKomisyonlar?.Any() == true ? Math.Min(item.GorevAtamaKomisyonlar.Count, 2) : 1, allAssignments.Count);
                                         if (allAssignments.Count <= visibleCount)
                                         {
-                                            <div class="d-flex flex-wrap gap-1">
+                                            <div class="assignment-preview">
                                                 @foreach (var assign in allAssignments)
                                                 {
-                                                    <span class="badge bg-label-secondary">@Html.Raw(assign)</span>
+                                                    <span class="badge bg-label-secondary assignment-badge">@Html.Raw(assign)</span>
                                                 }
                                             </div>
                                         }
                                         else
                                         {
-                                            <div class="d-flex flex-wrap gap-1">
+                                            <div class="assignment-preview">
                                                 @for (int i = 0; i < visibleCount; i++)
                                                 {
-                                                     <span class="badge bg-label-secondary">@Html.Raw(allAssignments[i])</span>
+                                                     <span class="badge bg-label-secondary assignment-badge">@Html.Raw(allAssignments[i])</span>
                                                 }
                                                 <span class="badge bg-primary cursor-pointer show-more-btn" onclick="event.stopPropagation(); toggleContainer(this)">...</span>
                                             </div>
-                                            <div class="d-none mt-1 extended-container d-flex flex-wrap gap-1">
+                                            <div class="d-none mt-1 extended-container assignment-extra">
                                                 @for (int i = visibleCount; i < allAssignments.Count; i++)
                                                 {
-                                                     <span class="badge bg-label-secondary">@Html.Raw(allAssignments[i])</span>
+                                                     <span class="badge bg-label-secondary assignment-badge">@Html.Raw(allAssignments[i])</span>
                                                 }
                                                 <span class="badge bg-secondary cursor-pointer" onclick="event.stopPropagation(); toggleContainer(this)">X</span>
                                             </div>
@@ -286,18 +421,14 @@
                                     }
                                 </td>
 
-                                <td>
-                                    <span>@item.BaslangicTarihi.ToString("dd.MM.yyyy")</span>
-                                </td>
-
-                                <td>
+                                <td class="gorev-status-cell">
                                     @if (item.BitisTarihi.HasValue)
                                     {
-                                        <span class="text-danger">@item.BitisTarihi.Value.ToString("dd.MM.yyyy")</span>
+                                        <div class="text-danger gorev-bitis-date">@item.BitisTarihi.Value.ToString("dd.MM.yyyy")</div>
                                     }
                                     else
                                     {
-                                        <span class="text-muted">-</span>
+                                        <div class="text-muted gorev-bitis-date">-</div>
                                     }
                                 </td>
 
@@ -306,7 +437,7 @@
                                         string badgeClass = item.GorevDurum?.RenkSinifi ?? "bg-secondary";
                                         string statusText = item.GorevDurum?.Ad ?? "Bilinmiyor";
                                     }
-                                    <span class="badge" style="background-color: @(item.GorevDurum?.Renk ?? "#8592a3"); color: white;">@statusText</span>
+                                    <span class="badge status-badge" style="background-color: @(item.GorevDurum?.Renk ?? "#8592a3"); color: white;">@statusText</span>
                                     @if(!string.IsNullOrEmpty(item.DurumAciklamasi)) {
                                         <div class="mt-1">
                                             <i class="bx bx-info-circle text-muted" style="font-size: 0.8rem;"></i>
@@ -317,22 +448,24 @@
                                     }
                                 </td>
                                  <td class="text-end">
-                                    <button class="btn btn-info btn-action-circle text-white" data-bs-toggle="tooltip" title="Durum Geçmişi & Güncelle" onclick="event.stopPropagation(); openStatusDrawer(@item.GorevId, @item.GorevDurumId)">
-                                        <i class="bx bx-flag"></i>
-                                    </button>
+                                    <div class="action-button-group">
+                                        <button class="btn btn-info btn-action-circle text-white" data-bs-toggle="tooltip" title="Durum Geçmişi & Güncelle" onclick="event.stopPropagation(); openStatusDrawer(@item.GorevId, @item.GorevDurumId)">
+                                            <i class="bx bx-flag"></i>
+                                        </button>
 
-                                    @if(User.IsInRole("Admin") || item.CreatedByPersonelId == currentUserId)
-                                    {
-                                        <button class="btn btn-warning btn-action-circle text-white" data-bs-toggle="tooltip" title="Yetkilendir" onclick="event.stopPropagation(); openAssignmentDrawer(@item.GorevId, '@item.Ad')">
-                                            <i class="bx bx-user-plus"></i>
-                                        </button>
-                                        <a href="/Gorevler/Duzenle/@item.GorevId" class="btn btn-primary btn-action-circle" data-bs-toggle="tooltip" title="Düzenle" onclick="event.stopPropagation()">
-                                            <i class="bx bx-edit"></i>
-                                        </a>
-                                        <button class="btn btn-danger btn-action-circle" data-bs-toggle="tooltip" title="Sil" onclick="event.stopPropagation(); deleteTask(@item.GorevId)">
-                                            <i class="bx bx-trash"></i>
-                                        </button>
-                                    }
+                                        @if(User.IsInRole("Admin") || item.CreatedByPersonelId == currentUserId)
+                                        {
+                                            <button class="btn btn-warning btn-action-circle text-white" data-bs-toggle="tooltip" title="Yetkilendir" onclick="event.stopPropagation(); openAssignmentDrawer(@item.GorevId, '@item.Ad')">
+                                                <i class="bx bx-user-plus"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-primary btn-action-circle" data-bs-toggle="tooltip" title="Düzenle" onclick="event.stopPropagation(); openQuickEditDrawer(@item.GorevId)">
+                                                <i class="bx bx-edit"></i>
+                                            </button>
+                                            <button class="btn btn-danger btn-action-circle" data-bs-toggle="tooltip" title="Sil" onclick="event.stopPropagation(); deleteTask(@item.GorevId)">
+                                                <i class="bx bx-trash"></i>
+                                            </button>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -395,6 +528,56 @@
              }
         </div>
     </div>
+</div>
+
+<!-- QUICK EDIT DRAWER (Offcanvas) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="quickEditDrawer" aria-labelledby="quickEditDrawerLabel" style="width: 540px;">
+  <div class="offcanvas-header border-bottom">
+    <h5 id="quickEditDrawerLabel" class="offcanvas-title">Görevi Düzenle</h5>
+    <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+  </div>
+  <div class="offcanvas-body">
+      <input type="hidden" id="quickEditGorevId" />
+      <div class="mb-3">
+          <label for="quickEditAd" class="form-label">Görev Adı *</label>
+          <input type="text" id="quickEditAd" class="form-control" maxlength="200" />
+      </div>
+      <div class="mb-3">
+          <label for="quickEditAciklama" class="form-label">Görev Tanımı/Açıklama</label>
+          <textarea id="quickEditAciklama" class="form-control" rows="3"></textarea>
+      </div>
+      <div class="mb-3">
+          <label for="quickEditIsNiteligiId" class="form-label">İş Niteliği *</label>
+          <select id="quickEditIsNiteligiId" class="form-select">
+              <option value="">Seçiniz...</option>
+              @if (isNitelikleri != null)
+              {
+                  foreach (var nitelik in isNitelikleri)
+                  {
+                      <option value="@nitelik.IsNiteligiId">@nitelik.Ad</option>
+                  }
+              }
+          </select>
+      </div>
+      <div class="row g-3">
+          <div class="col-md-6">
+              <label for="quickEditBaslangicTarihi" class="form-label">Başlangıç Tarihi *</label>
+              <input type="date" id="quickEditBaslangicTarihi" class="form-control" />
+          </div>
+          <div class="col-md-6">
+              <label for="quickEditBitisTarihi" class="form-label">Bitiş Tarihi</label>
+              <input type="date" id="quickEditBitisTarihi" class="form-control" />
+          </div>
+      </div>
+      <div class="form-check form-switch mt-3">
+          <input class="form-check-input" type="checkbox" id="quickEditIsActive" />
+          <label class="form-check-label" for="quickEditIsActive">Kayıt aktif mi?</label>
+      </div>
+  </div>
+  <div class="offcanvas-footer p-3 border-top d-flex gap-2 bg-light">
+      <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="offcanvas">Kapat</button>
+      <button type="button" class="btn btn-primary w-50" id="quickEditSaveBtn" onclick="saveQuickEdit()">Kaydet</button>
+  </div>
 </div>
 
 <!-- ASSIGNMENT DRAWER (Offcanvas) -->
@@ -551,7 +734,9 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         function goToTaskDetail(id) {
-            window.location.href = '/Gorevler/Detay/' + id;
+            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            const returnLabel = encodeURIComponent('Görev Listesine Dön');
+            window.location.href = '/Gorevler/Detay/' + id + '?returnUrl=' + returnUrl + '&returnLabel=' + returnLabel;
         }
 
         $(document).ready(function() {
@@ -770,8 +955,107 @@
         // Drawer Utils
         var offcanvasElement = document.getElementById('assignmentDrawer');
         var offcanvas = new bootstrap.Offcanvas(offcanvasElement);
+        var quickEditDrawer = new bootstrap.Offcanvas(document.getElementById('quickEditDrawer'));
         var currentTaskId = 0;
         var localAssignments = [];
+
+        function truncateTaskTitle(title) {
+            if (!title) return '';
+            return title.length > 64 ? title.substring(0, 64).trimEnd() + '...' : title;
+        }
+
+        function openQuickEditDrawer(id) {
+            $('#quickEditGorevId').val(id);
+            $('#quickEditAd').val('');
+            $('#quickEditAciklama').val('');
+            $('#quickEditIsNiteligiId').val('');
+            $('#quickEditBaslangicTarihi').val('');
+            $('#quickEditBitisTarihi').val('');
+            $('#quickEditIsActive').prop('checked', true);
+            $('#quickEditSaveBtn').prop('disabled', true);
+
+            $.get('/Gorevler/GetQuickEditData/' + id, function(resp) {
+                if (!resp.success) {
+                    Swal.fire('Uyarı', resp.message || 'Görev bilgisi alınamadı.', 'warning');
+                    return;
+                }
+
+                $('#quickEditGorevId').val(resp.gorevId);
+                $('#quickEditAd').val(resp.ad);
+                $('#quickEditAciklama').val(resp.aciklama || '');
+                $('#quickEditIsNiteligiId').val(resp.isNiteligiId);
+                $('#quickEditBaslangicTarihi').val(resp.baslangicTarihi);
+                $('#quickEditBitisTarihi').val(resp.bitisTarihi || '');
+                $('#quickEditIsActive').prop('checked', resp.isActive);
+                $('#quickEditSaveBtn').prop('disabled', false);
+                quickEditDrawer.show();
+            }).fail(function() {
+                Swal.fire('Hata', 'Görev bilgisi alınırken hata oluştu.', 'error');
+            });
+        }
+
+        function saveQuickEdit() {
+            var id = parseInt($('#quickEditGorevId').val());
+            var payload = {
+                GorevId: id,
+                Ad: $('#quickEditAd').val(),
+                Aciklama: $('#quickEditAciklama').val(),
+                IsNiteligiId: parseInt($('#quickEditIsNiteligiId').val()),
+                BaslangicTarihi: $('#quickEditBaslangicTarihi').val(),
+                BitisTarihi: $('#quickEditBitisTarihi').val() || null,
+                IsActive: $('#quickEditIsActive').is(':checked')
+            };
+
+            if (!payload.Ad || !payload.IsNiteligiId || !payload.BaslangicTarihi) {
+                Swal.fire('Eksik Bilgi', 'Görev adı, iş niteliği ve başlangıç tarihi zorunludur.', 'warning');
+                return;
+            }
+
+            var $btn = $('#quickEditSaveBtn');
+            if ($btn.prop('disabled')) return;
+            $btn.prop('disabled', true);
+
+            $.ajax({
+                url: '/Gorevler/QuickUpdate',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify(payload),
+                success: function(resp) {
+                    if (!resp.success) {
+                        Swal.fire('Uyarı', resp.message || 'Görev güncellenemedi.', 'warning');
+                        return;
+                    }
+
+                    var $row = $('#row-' + resp.gorevId);
+                    var displayTitle = truncateTaskTitle(resp.ad);
+                    $row.find('.task-title-link').first().text(displayTitle);
+                    $row.find('.task-title-expanded').text(resp.ad);
+                    $row.find('.task-summary').text(resp.aciklama || '');
+                    $row.find('.is-niteligi-badge').text(resp.isNiteligiAd || '-');
+
+                    var $date = $row.find('.gorev-bitis-date');
+                    $date.text(resp.bitisTarihi);
+                    $date.toggleClass('text-danger', !!resp.bitisVarMi);
+                    $date.toggleClass('text-muted', !resp.bitisVarMi);
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Güncellendi',
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 1800
+                    });
+                    quickEditDrawer.hide();
+                },
+                error: function() {
+                    Swal.fire('Hata', 'Sunucu hatası.', 'error');
+                },
+                complete: function() {
+                    $btn.prop('disabled', false);
+                }
+            });
+        }
 
         function openAssignmentDrawer(id, name) {
             currentTaskId = id;
@@ -1084,23 +1368,16 @@
                         // Update Main Table Row Badge Dynamically
                         // We need the status text and class. 
                         // Quickest way: Find option text in select
-                        var statusText = $('#drawerStatusSelect option:selected').text();
-                        // We don't have the class in select usually, but let's assume standard or fetch it.
-                        // Actually, GetStatusHistory returns the latest color! 
-                        // So loadStatusHistory will eventually get it. 
-                        // But loadStatusHistory is async. 
-                        // Let's rely on reload or just simple update.
-                        
-                        // Simple update:
-                        // Find the row badge
-                        var badge = $('#row-' + id).find('.badge');
+                        var statusText = res.statusText || $('#drawerStatusSelect option:selected').text();
+                        var badge = $('#row-' + id).find('.status-badge');
                         if(badge.length > 0) {
-                            badge.removeClass().addClass('badge bg-label-secondary'); // Default
-                            // We define colors in View logic, not here generally. 
-                            // But we can guess or leave it. 
                             badge.text(statusText);
-                            // To get color, we'd need to map IDs to classes in JS.
-                            // Or, we can reload page on drawer close.
+                            if (res.statusColor) {
+                                badge.css({
+                                    'background-color': res.statusColor,
+                                    'color': 'white'
+                                });
+                            }
                         }
                         
                         Swal.fire({

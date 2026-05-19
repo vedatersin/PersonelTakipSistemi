@@ -48,39 +48,11 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> BenimDetay()
+        public IActionResult BenimDetay()
         {
             var personelIdClaim = User.Claims.FirstOrDefault(c => c.Type == "PersonelId");
             if (personelIdClaim != null && int.TryParse(personelIdClaim.Value, out int personelId))
             {
-                if (User.IsInRole("Admin"))
-                {
-                    return RedirectToAction("BirimListele", "Birimler");
-                }
-
-                var coordinatorRoleIds = new[] { 3, 4, 5, 14 };
-
-                var hasCoordinatorRole = await _context.PersonelKurumsalRolAtamalari
-                    .AsNoTracking()
-                    .AnyAsync(x => x.PersonelId == personelId && x.KoordinatorlukId.HasValue && coordinatorRoleIds.Contains(x.KurumsalRolId));
-
-                if (hasCoordinatorRole)
-                {
-                    return RedirectToAction("KordinatorlukYonetimi", "BirimYonetimi");
-                }
-
-                var chairAssignment = await _context.PersonelKurumsalRolAtamalari
-                    .AsNoTracking()
-                    .Where(x => x.PersonelId == personelId && x.KurumsalRolId == 2 && x.KomisyonId.HasValue)
-                    .OrderBy(x => x.KomisyonId)
-                    .Select(x => x.KomisyonId)
-                    .FirstOrDefaultAsync();
-
-                if (chairAssignment.HasValue && chairAssignment.Value > 0)
-                {
-                    return RedirectToAction("KomisyonYonetimi", "BirimYonetimi", new { id = chairAssignment.Value });
-                }
-
                 return RedirectToAction("Detay", new { id = personelId });
             }
             return RedirectToAction("Index"); // Should not happen if authorized
@@ -402,7 +374,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Detay(int id)
+        public async Task<IActionResult> Detay(int id, string? returnUrl = null, string? returnLabel = null)
         {
             // Security Check
             // Admin/Yönetici: All Access
@@ -588,6 +560,13 @@ namespace PersonelTakipSistemi.Controllers
                     ColorClass = "danger"
                 });
             }
+
+            ViewBag.ReturnUrl = !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl)
+                ? returnUrl
+                : Url.Action("Index", "Personel");
+            ViewBag.ReturnLabel = !string.IsNullOrWhiteSpace(returnLabel)
+                ? returnLabel
+                : "Personel Listesine Dön";
 
             return View(model);
         }

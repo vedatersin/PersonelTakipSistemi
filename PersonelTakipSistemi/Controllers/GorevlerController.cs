@@ -17,6 +17,8 @@ namespace PersonelTakipSistemi.Controllers
     [ReadOnlyForHighLevelRoles]
     public class GorevlerController : Controller
     {
+        private static readonly int[] HighLevelRoleIds = [7, 8, 9, 10];
+
         private readonly TegmPersonelTakipDbContext _context;
         private readonly Services.ILogService _logService;
         private readonly Services.IGorevWorkflowService _gorevWorkflowService;
@@ -333,6 +335,88 @@ namespace PersonelTakipSistemi.Controllers
             return View("Yeni", model);
         }
 
+        [HttpGet]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
+        public async Task<IActionResult> GetQuickEditData(int id)
+        {
+            var task = await _context.Gorevler
+                .AsNoTracking()
+                .Include(x => x.IsNiteligi)
+                .FirstOrDefaultAsync(x => x.GorevId == id);
+
+            if (task == null) return NotFound();
+            if (!CanEditTask(task.CreatedByPersonelId))
+            {
+                return Json(new { success = false, message = "Sadece kendi oluşturduğunuz görevleri düzenleyebilirsiniz." });
+            }
+
+            return Json(new
+            {
+                success = true,
+                gorevId = task.GorevId,
+                ad = task.Ad,
+                aciklama = task.Aciklama,
+                isNiteligiId = task.IsNiteligiId,
+                baslangicTarihi = task.BaslangicTarihi.ToString("yyyy-MM-dd"),
+                bitisTarihi = task.BitisTarihi?.ToString("yyyy-MM-dd"),
+                isActive = task.IsActive
+            });
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin,Yönetici,Editör")]
+        public async Task<IActionResult> QuickUpdate([FromBody] GorevQuickEditViewModel model)
+        {
+            if (model == null || model.GorevId == 0) return BadRequest();
+            if (string.IsNullOrWhiteSpace(model.Ad))
+            {
+                return Json(new { success = false, message = "Görev adı zorunludur." });
+            }
+
+            var existing = await _context.Gorevler
+                .Include(x => x.IsNiteligi)
+                .FirstOrDefaultAsync(x => x.GorevId == model.GorevId);
+
+            if (existing == null) return NotFound();
+            if (!CanEditTask(existing.CreatedByPersonelId))
+            {
+                return Json(new { success = false, message = "Sadece kendi oluşturduğunuz görevleri düzenleyebilirsiniz." });
+            }
+
+            var isNiteligiExists = await _context.IsNitelikleri.AnyAsync(x => x.IsNiteligiId == model.IsNiteligiId);
+            if (!isNiteligiExists)
+            {
+                return Json(new { success = false, message = "Geçerli bir iş niteliği seçiniz." });
+            }
+
+            existing.Ad = model.Ad.Trim();
+            existing.Aciklama = string.IsNullOrWhiteSpace(model.Aciklama) ? null : model.Aciklama.Trim();
+            existing.IsNiteligiId = model.IsNiteligiId;
+            existing.BaslangicTarihi = model.BaslangicTarihi;
+            existing.BitisTarihi = model.BitisTarihi;
+            existing.IsActive = model.IsActive;
+            existing.UpdatedAt = DateTime.Now;
+
+            await _context.SaveChangesAsync();
+            await _logService.LogAsync("Görev Güncelleme", $"Görev hızlı düzenleme ile güncellendi: {existing.Ad}", null, null);
+
+            var isNiteligiAd = await _context.IsNitelikleri
+                .Where(x => x.IsNiteligiId == existing.IsNiteligiId)
+                .Select(x => x.Ad)
+                .FirstOrDefaultAsync();
+
+            return Json(new
+            {
+                success = true,
+                gorevId = existing.GorevId,
+                ad = existing.Ad,
+                aciklama = existing.Aciklama,
+                isNiteligiAd,
+                bitisTarihi = existing.BitisTarihi?.ToString("dd.MM.yyyy") ?? "-",
+                bitisVarMi = existing.BitisTarihi.HasValue
+            });
+        }
+
         [HttpPost]
         [Authorize(Roles = "Admin,Yönetici,Editör")]
         public async Task<IActionResult> Sil(int id)
@@ -397,6 +481,79 @@ namespace PersonelTakipSistemi.Controllers
             ViewBag.IsNitelikleri = new SelectList(await _context.IsNitelikleri.OrderBy(x => x.Ad).ToListAsync(), "IsNiteligiId", "Ad");
             ViewBag.GorevDurumlari = new SelectList(await _context.Set<GorevDurum>().OrderBy(x => x.Sira).ToListAsync(), "GorevDurumId", "Ad");
         }
+
+        private async Task PopulateAssignmentDropdowns()
+        {
+            ViewBag.Teskilatlar = await _context.Teskilatlar.OrderBy(x => x.Ad).ToListAsync();
+            ViewBag.Koordinatorlukler = await _context.Koordinatorlukler.OrderBy(x => x.Ad).ToListAsync();
+
+            var komisyonlar = await _context.Komisyonlar
+                .Include(k => k.Koordinatorluk).ThenInclude(koord => koord.Il)
+                .Include(k => k.BagliMerkezKoordinatorluk)
+                .OrderBy(x => x.Ad)
+                .ToListAsync();
+
+            ViewBag.Komisyonlar = komisyonlar
+                .Select(k =>
+                {
+                    var displayText = k.Ad;
+                    if (k.BagliMerkezKoordinatorlukId != null && k.Koordinatorluk?.Il != null && k.BagliMerkezKoordinatorluk != null)
+                    {
+                        var ilAd = k.Koordinatorluk.Il.Ad;
+                        var merkezBirimAd = k.BagliMerkezKoordinatorluk.Ad.Replace(" Birim Koordinatörlüğü", "");
+                        displayText = $"{ilAd} {merkezBirimAd} Komisyonu";
+                    }
+
+                    return new SelectListItem
+                    {
+                        Value = k.KomisyonId.ToString(),
+                        Text = displayText
+                    };
+                })
+                .OrderBy(x => x.Text)
+                .ToList();
+
+            ViewBag.Personeller = await _context.Personeller
+                .Where(p => !p.PersonelKurumsalRolAtamalari.Any(r => HighLevelRoleIds.Contains(r.KurumsalRolId)))
+                .OrderBy(x => x.Ad)
+                .ThenBy(x => x.Soyad)
+                .Select(x => new SelectListItem
+                {
+                    Value = x.PersonelId.ToString(),
+                    Text = x.Ad + " " + x.Soyad + (!x.AktifMi ? " (Pasif)" : ""),
+                    Disabled = !x.AktifMi
+                })
+                .ToListAsync();
+
+            ViewBag.GorevRolleri = await _context.GorevTurleri
+                .AsNoTracking()
+                .OrderBy(x => x.Ad)
+                .Select(x => new SelectListItem { Value = x.GorevTuruId.ToString(), Text = x.Ad })
+                .ToListAsync();
+        }
+
+        private async Task<bool> CurrentUserCanUpdateStatusAsync(int personelId)
+        {
+            if (User.IsInRole("Admin"))
+            {
+                return true;
+            }
+
+            return await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .AnyAsync(r => r.PersonelId == personelId && HighLevelRoleIds.Contains(r.KurumsalRolId));
+        }
+
+        private bool CanEditTask(int? createdByPersonelId)
+        {
+            if (User.IsInRole("Admin"))
+            {
+                return true;
+            }
+
+            var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(currentUserIdStr, out int currentUserId) && createdByPersonelId == currentUserId;
+        }
         // ==============================================================
         // 5. ATAMA / YETKİLENDİRME (AJAX)
         // ==============================================================
@@ -449,13 +606,37 @@ namespace PersonelTakipSistemi.Controllers
             var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             if(!int.TryParse(userIdStr, out int currentUserId)) return Unauthorized();
 
-            var result = await _gorevWorkflowService.UpdateStatusAsync(model, currentUserId, User.IsInRole("Yönetici"));
+            if (!await CurrentUserCanUpdateStatusAsync(currentUserId))
+            {
+                return Ok(new { success = false, message = "Yetki Hatası: Durum güncellemesi sadece üst yetkili kurumsal rollere aittir." });
+            }
+
+            var result = await _gorevWorkflowService.UpdateStatusAsync(model, currentUserId, false);
             if (result.HttpStatusCode == 404)
             {
                 return NotFound();
             }
 
-            return Ok(new { success = result.Success, message = result.Message });
+            if (!result.Success)
+            {
+                return Ok(new { success = false, message = result.Message });
+            }
+
+            var durum = await _context.GorevDurumlari
+                .AsNoTracking()
+                .Where(x => x.GorevDurumId == model.DurumId)
+                .Select(x => new { x.GorevDurumId, x.Ad, x.Renk })
+                .FirstOrDefaultAsync();
+
+            return Ok(new
+            {
+                success = true,
+                message = result.Message,
+                statusId = durum?.GorevDurumId,
+                statusText = durum?.Ad,
+                statusColor = durum?.Renk,
+                note = model.Aciklama
+            });
         }
 
         [HttpGet]
@@ -504,7 +685,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Detay(int id)
+        public async Task<IActionResult> Detay(int id, string? returnUrl, string? returnLabel)
         {
             var task = await _gorevWorkflowService.GetDetailAsync(id);
 
@@ -515,6 +696,21 @@ namespace PersonelTakipSistemi.Controllers
 
             // Populate Status Dropdown for Modal
             ViewBag.GorevDurumlari = await _context.GorevDurumlari.OrderBy(x => x.Sira).ToListAsync();
+            await PopulateAssignmentDropdowns();
+
+            var currentUserId = 0;
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            int.TryParse(userIdStr, out currentUserId);
+            var isHighLevelReadOnly = ViewBag.IsHighLevelReadOnly == true;
+
+            ViewBag.CanUpdateGorevStatus = currentUserId > 0 && await CurrentUserCanUpdateStatusAsync(currentUserId);
+            ViewBag.CanEditAssignments = !isHighLevelReadOnly && (User.IsInRole("Admin") || task.CreatedByPersonelId == currentUserId);
+            ViewBag.ReturnUrl = !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl)
+                ? returnUrl
+                : Url.Action(nameof(Gorevlerim), "Gorevler");
+            ViewBag.ReturnLabel = string.IsNullOrWhiteSpace(returnLabel)
+                ? "Geri"
+                : returnLabel;
 
             return View(task);
         }

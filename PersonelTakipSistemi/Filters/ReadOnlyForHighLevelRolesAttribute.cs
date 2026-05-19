@@ -38,6 +38,15 @@ namespace PersonelTakipSistemi.Filters
                             }
                             else if (method == "POST" || method == "PUT" || method == "DELETE")
                             {
+                                var actionName = context.RouteData.Values["action"]?.ToString();
+                                var controllerName = context.RouteData.Values["controller"]?.ToString();
+                                if (string.Equals(controllerName, "Gorevler", System.StringComparison.OrdinalIgnoreCase) &&
+                                    string.Equals(actionName, "UpdateStatus", System.StringComparison.OrdinalIgnoreCase))
+                                {
+                                    await next();
+                                    return;
+                                }
+
                                 // Block modification requests
                                 bool isAjax = context.HttpContext.Request.Headers["X-Requested-With"] == "XMLHttpRequest";
                                 if (isAjax)

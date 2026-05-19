@@ -6,6 +6,8 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     int.TryParse(User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)?.Value, out var currentUserId);
+    var returnUrl = Url.Action("Gorevlerim", "Gorevler");
+    const string returnLabel = "Görevlerim'e Dön";
 }
 
 <div class="card">
@@ -75,7 +77,7 @@
                                 </div>
                             </td>
                             <td class="text-end">
-                                <a asp-action="Detay" asp-route-id="@item.GorevId" class="btn btn-sm btn-primary">
+                                <a asp-action="Detay" asp-route-id="@item.GorevId" asp-route-returnUrl="@returnUrl" asp-route-returnLabel="@returnLabel" class="btn btn-sm btn-primary">
                                     <i class="bx bx-show me-1"></i> Görüntüle
                                 </a>
                             </td>

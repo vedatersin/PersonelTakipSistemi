@@ -91,10 +91,33 @@ namespace PersonelTakipSistemi.ViewModels
         public bool HasOrganization { get; set; } // Koordinatörlüğü var mı
     }
 
+    public class BirimPersonelItem
+    {
+        public int PersonelId { get; set; }
+        public string AdSoyad { get; set; } = null!;
+        public string? FotografYolu { get; set; }
+        public string? GorevliIl { get; set; }
+        public string? KadroYeri { get; set; }
+        public List<string> Yazilimlar { get; set; } = new();
+        public List<string> Uzmanliklar { get; set; } = new();
+        public List<string> GorevTurleri { get; set; } = new();
+        public List<string> IsNitelikleri { get; set; } = new();
+        public List<string> GorevYerleri { get; set; } = new();
+    }
+
+    public class BirimHizliYetkilendirModel
+    {
+        public int PersonelId { get; set; }
+        public int? KoordinatorlukId { get; set; }
+        public int? KomisyonId { get; set; }
+        public int? CurrentKomisyonId { get; set; }
+    }
+
     // --- Komisyon Detay Sayfası ---
     public class KomisyonDetayViewModel
     {
         public int KomisyonId { get; set; }
+        public int? KoordinatorlukId { get; set; }
         public string KomisyonAd { get; set; } = null!;
         public string? KoordinatorlukAd { get; set; }
         public string? TeskilatAd { get; set; }
@@ -138,4 +161,5 @@ namespace PersonelTakipSistemi.ViewModels
         public DateTime? BaslangicTarihi { get; set; }
         public DateTime? BitisTarihi { get; set; }
     }
+
 }

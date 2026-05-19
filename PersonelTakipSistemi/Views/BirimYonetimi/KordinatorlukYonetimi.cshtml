@@ -1,6 +1,8 @@
 ﻿@model PersonelTakipSistemi.ViewModels.KordinatorlukYonetimiViewModel
 @{
     ViewData["Title"] = "Koordinatörlük Yönetimi — " + Model.KoordinatorlukAd;
+    var gorevReturnUrl = Context.Request.Path + Context.Request.QueryString;
+    const string gorevReturnLabel = "Koordinatörlük Yönetimine Dön";
 }
 
 <style>
@@ -255,7 +257,7 @@
                                     <td class="fw-bold">@g.Baslik</td>
                                     <td><span class="badge" style="background-color: @g.DurumRenk">@g.Durum</span></td>
                                     <td class="text-end">
-                                        <a href="/Gorevler/Detay/@g.GorevId" class="btn btn-sm btn-outline-warning text-dark">Detay</a>
+                                        <a href="@Url.Action("Detay", "Gorevler", new { id = g.GorevId, returnUrl = gorevReturnUrl, returnLabel = gorevReturnLabel })" class="btn btn-sm btn-outline-warning text-dark">Detay</a>
                                     </td>
                                 </tr>
                             }

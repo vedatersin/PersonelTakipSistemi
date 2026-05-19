@@ -184,11 +184,172 @@
         height: 14px;
         border-radius: 3px;
     }
+
+    .personel-table-card {
+        border: none;
+        border-radius: 8px;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.06);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .personel-table-card .table {
+        margin-bottom: 0;
+    }
+
+    .personel-table-card th {
+        background: #d9dcdf;
+        color: #3f4b59;
+        font-size: .75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0;
+        white-space: nowrap;
+    }
+
+    .personel-table-card td {
+        vertical-align: middle;
+        color: #657180;
+        font-size: .9rem;
+    }
+
+    .personel-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #696cff;
+        color: #fff;
+        font-weight: 700;
+        font-size: .75rem;
+    }
+
+    .personel-actions {
+        display: inline-flex;
+        gap: .5rem;
+        flex-wrap: nowrap;
+        white-space: nowrap;
+    }
+
+    .personel-action-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+    }
+
+    .personel-action-btn i {
+        font-size: 1.45rem;
+        line-height: 1;
+    }
+
+    .personel-row-highlight {
+        animation: personelHighlight 3s ease forwards;
+    }
+
+    @@keyframes personelHighlight {
+        0%, 70% { background: rgba(3, 169, 244, .18); }
+        100% { background: transparent; }
+    }
+
+    .personel-table-footer {
+        border-top: 1px solid #eef0f2;
+    }
+
+    .personel-yetki-panel .offcanvas-body {
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+    }
+
+    .yetki-personel-summary {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem .5rem .75rem;
+    }
+
+    .yetki-personel-logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #696cff;
+        background: #f0f1ff;
+        font-size: 1.7rem;
+    }
+
+    .yetki-list {
+        display: flex;
+        flex-direction: column;
+        gap: .65rem;
+        min-height: 58px;
+    }
+
+    .yetki-role-card {
+        border: 1px solid #696cff;
+        border-radius: 8px;
+        background: #f7f7ff;
+        padding: .75rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: .75rem;
+    }
+
+    .yetki-role-title {
+        font-weight: 700;
+        color: #566a7f;
+        line-height: 1.2;
+    }
+
+    .yetki-role-context {
+        color: #697a8d;
+        font-size: .78rem;
+        line-height: 1.35;
+        margin-top: .2rem;
+    }
+
+    .yetki-role-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        flex-shrink: 0;
+    }
+
+    .yetki-role-actions .btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .yetki-add-card {
+        border: 1px solid #eef0f2;
+        border-radius: 8px;
+        box-shadow: 0 4px 16px rgba(67, 89, 113, .08);
+        padding: 1rem;
+        background: #fff;
+    }
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-1 text-primary fw-bold">Birim Haritası ve Listesi</h4>
+        <button type="button" class="btn btn-outline-secondary btn-sm mb-2 d-none" id="pageBackButton" onclick="pageGeriDon()">
+            <i class="bx bx-left-arrow-alt me-1"></i>Geri Dön
+        </button>
+        <h4 class="mb-1 text-primary fw-bold" id="pageTitle">Birim Haritası ve Listesi</h4>
         <p class="text-muted small mb-0">Organizasyon yapısını harita ve filtreler üzerinden inceleyin</p>
     </div>
     <nav aria-label="breadcrumb">
@@ -256,6 +417,48 @@
     </div>
 </div>
 
+<div class="card personel-table-card" id="birimPersonelCard">
+    <div class="card-header d-flex justify-content-between align-items-center bg-white">
+        <h6 class="mb-0"><i class="bx bxs-user-detail me-2 text-primary"></i>Personeller</h6>
+        <button type="button" class="btn btn-sm btn-primary" onclick="topluEkleAc()">
+            <i class="bx bx-user-plus me-1"></i>Ekle
+        </button>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Foto</th>
+                    <th>Ad Soyad</th>
+                    <th>Kullanılan Yazılımlar</th>
+                    <th>Uzmanlık</th>
+                    <th>Görev Türü</th>
+                    <th>İş Niteliği</th>
+                    <th id="personelYerHeader1">Görevli İl</th>
+                    <th id="personelYerHeader2">Kadro Yeri</th>
+                    <th class="text-end">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody id="birimPersonelBody">
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-4">Personeller yükleniyor...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="card-footer bg-white personel-table-footer d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="text-muted small" id="personelKayitBilgi">0 kayıt</span>
+            <select class="form-select form-select-sm" id="personelPageSize" style="width: 82px;">
+                <option value="5">5</option>
+                <option value="10" selected>10</option>
+                <option value="20">20</option>
+            </select>
+        </div>
+        <ul class="pagination pagination-sm mb-0" id="personelPagination"></ul>
+    </div>
+</div>
+
 <div class="row align-items-center mb-4">
     <div class="col">
         <div class="d-flex align-items-center gap-3">
@@ -273,13 +476,18 @@
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="kartContainer">
     @foreach (var k in Model.Kartlar)
     {
+        var merkezKomisyonKarti = Model.DefaultTeskilatId == 1 && k.Tur == "Komisyon" && !string.IsNullOrEmpty(k.IlAdi);
+        var kartBaslik = merkezKomisyonKarti ? $"{k.IlAdi} Komisyonu" : k.Ad;
+        var altBilgi = merkezKomisyonKarti ? k.Ad.Replace(" Komisyonu", "") : k.IlAdi;
+        var altBilgiIkon = merkezKomisyonKarti ? "bx bx-category" : "bx bx-map-pin";
+
         <div class="col">
             <div class="card birim-card h-100" onclick="birimKartTiklandi('@k.Tur', @k.Id)">
                 <div class="card-body">
-                    <div class="birim-ad">@k.Ad</div>
-                    @if (!string.IsNullOrEmpty(k.IlAdi))
+                    <div class="birim-ad">@kartBaslik</div>
+                    @if (!string.IsNullOrEmpty(altBilgi))
                     {
-                        <div class="birim-il"><i class="bx bx-map-pin"></i> @k.IlAdi</div>
+                        <div class="birim-il"><i class="@altBilgiIkon"></i> @altBilgi</div>
                     }
                     <div class="stats-row">
                         <div class="stat-item">
@@ -297,6 +505,99 @@
     }
 </div>
 
+<div class="offcanvas offcanvas-end" tabindex="-1" id="topluPersonelEkleDrawer" aria-labelledby="topluPersonelEkleLabel" style="width: 560px;">
+    <div class="offcanvas-header border-bottom">
+        <h5 id="topluPersonelEkleLabel" class="offcanvas-title">Toplu Personel Ekle</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="mb-3 p-3 bg-light rounded">
+            <div class="small text-muted">Hedef Birim</div>
+            <div class="fw-bold" id="topluEkleHedef">-</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Personel Ara</label>
+            <input type="text" class="form-control" id="topluPersonelAra" placeholder="Ad, soyad veya il ile ara">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Personeller</label>
+            <select class="form-select" id="topluPersonelSelect" multiple size="12"></select>
+            <small class="text-muted">Ctrl veya Shift ile birden fazla personel seçebilirsiniz.</small>
+        </div>
+    </div>
+    <div class="offcanvas-footer p-3 border-top d-flex gap-2 bg-light">
+        <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="offcanvas">Kapat</button>
+        <button type="button" class="btn btn-primary w-50" id="topluEkleKaydetBtn" onclick="topluEkleKaydet()">Ekle</button>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end personel-yetki-panel" tabindex="-1" id="hizliYetkilendirmeDrawer" aria-labelledby="hizliYetkilendirmeLabel" style="width: 520px; max-width: 100vw;">
+    <div class="offcanvas-header border-bottom">
+        <h5 id="hizliYetkilendirmeLabel" class="offcanvas-title">Personel Yetkilendirme</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
+    </div>
+    <div class="offcanvas-body">
+        <input type="hidden" id="yetkiPersonelId" />
+        <input type="hidden" id="yetkiCurrentKomisyonId" />
+
+        <div class="yetki-personel-summary">
+            <div class="yetki-personel-logo">
+                <i class="bx bx-user-check"></i>
+            </div>
+            <div>
+                <div class="fw-semibold" id="yetkiPersonelAd"></div>
+                <div class="small text-muted" id="yetkiSistemRol">-</div>
+            </div>
+        </div>
+
+        <ul class="nav nav-tabs nav-fill mb-3" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" type="button">Kurumsal Atamalar</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link disabled" type="button" aria-disabled="true">Sistemsel Yetki</button>
+            </li>
+        </ul>
+
+        <div class="small fw-bold text-muted text-uppercase mb-2">Mevcut Yetkiler</div>
+        <div id="yetkiMevcutRoller" class="yetki-list mb-3">
+            <span class="text-muted">Yetkiler yükleniyor...</span>
+        </div>
+
+        <div class="yetki-add-card">
+            <div class="fw-semibold text-primary mb-3">
+                <i class="bx bx-plus-circle me-1"></i>Yeni Yetki Tanımla
+            </div>
+            <div class="mb-2">
+                <select class="form-select" id="yetkiTeskilat">
+                    <option value="">Teşkilat Seçiniz...</option>
+                </select>
+            </div>
+            <div class="mb-2">
+                <select class="form-select" id="yetkiKoordinatorluk" disabled>
+                    <option value="">Koordinatörlük Seçiniz...</option>
+                </select>
+            </div>
+            <div class="mb-2">
+                <select class="form-select" id="yetkiKomisyon" disabled>
+                    <option value="">Komisyon Seçiniz (İsteğe Bağlı)...</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <select class="form-select" id="yetkiRolSelect">
+                    <option value="">Rol Seçiniz...</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-primary w-100" id="yetkiRolEkleBtn" onclick="hizliRolEkle()">
+                <i class="bx bx-check me-1"></i>Yetki Ekle
+            </button>
+        </div>
+    </div>
+    <div class="offcanvas-footer p-3 border-top d-flex gap-2 bg-light">
+        <button type="button" class="btn btn-label-secondary w-100" data-bs-dismiss="offcanvas">Kapat</button>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         let selectedIlId = null;
@@ -305,19 +606,96 @@
         let activeIlIds = [];
         let illerData = @Html.Raw(Json.Serialize(Model.Iller));
         let lastRenderedKartlar = @Html.Raw(Json.Serialize(Model.Kartlar));
+        let currentPersonelScope = { type: 'Teskilat', id: currentTeskilatId || 0 };
+        let hizliYetkiDrawer = null;
+        let topluEkleDrawer = null;
+        let birimPersoneller = [];
+        let personelCurrentPage = 1;
+        let personelPageSize = 10;
+        let highlightPersonelIds = [];
+        let topluEkleSearchTimer = null;
 
         $(document).ready(function() {
+            hizliYetkiDrawer = new bootstrap.Offcanvas(document.getElementById('hizliYetkilendirmeDrawer'));
+            topluEkleDrawer = new bootstrap.Offcanvas(document.getElementById('topluPersonelEkleDrawer'));
             initMapInteractions();
 
             if (currentTeskilatId) {
                 const initialKoordId = parseNullableInt($('#filterKoordinatorluk').val()) || defaultKoordId || null;
                 updateMapStatus(currentTeskilatId, initialKoordId);
             }
+
+            loadPersoneller();
+
+            $('#personelPageSize').on('change', function() {
+                personelPageSize = parseInt($(this).val(), 10) || 10;
+                personelCurrentPage = 1;
+                renderPersoneller();
+            });
+
+            $('#topluPersonelAra').on('input', function() {
+                clearTimeout(topluEkleSearchTimer);
+                topluEkleSearchTimer = setTimeout(() => loadTopluPersonelOptions($(this).val()), 250);
+            });
         });
 
         function parseNullableInt(value) {
             const parsed = parseInt(value, 10);
             return Number.isNaN(parsed) ? null : parsed;
+        }
+
+        function escapeHtml(value) {
+            return (value || '').toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function formatList(values) {
+            return values && values.length ? escapeHtml(values.join(', ')) : '-';
+        }
+
+        function formatLimitedList(values) {
+            if (!values || !values.length) return '-';
+
+            const ordered = [...values].sort((a, b) => a.length - b.length || a.localeCompare(b, 'tr'));
+            const first = escapeHtml(ordered[0]);
+            if (ordered.length === 1) return first;
+
+            const rest = ordered.slice(1).map(x => `<span class="badge bg-label-secondary me-1">${escapeHtml(x)}</span>`).join('');
+            return `
+                <span class="limited-first">${first}</span>
+                <button type="button" class="badge bg-primary border-0 ms-1" onclick="toggleLimitedList(this)">...</button>
+                <span class="limited-more d-none">${rest}<button type="button" class="badge bg-secondary border-0 ms-1" onclick="toggleLimitedList(this)">X</button></span>
+            `;
+        }
+
+        function toggleLimitedList(button) {
+            event.stopPropagation();
+            const $button = $(button);
+            const $more = $button.siblings('.limited-more');
+            if ($more.length) {
+                $button.addClass('d-none');
+                $more.removeClass('d-none');
+                return;
+            }
+
+            const $container = $button.closest('.limited-more');
+            $container.addClass('d-none');
+            $container.siblings('button').removeClass('d-none');
+        }
+
+        function getCurrentScope() {
+            const komId = parseNullableInt($('#filterKomisyon').val());
+            const koordId = parseNullableInt($('#filterKoordinatorluk').val());
+            const tesId = parseNullableInt($('#filterTeskilat').val());
+
+            if (komId) return { type: 'Komisyon', id: komId };
+            if (koordId) return { type: 'Koordinatorluk', id: koordId };
+            if (tesId) return { type: 'Teskilat', id: tesId };
+            return { type: '', id: 0 };
         }
 
         function isIlInteractive(ilId) {
@@ -480,6 +858,25 @@
             }
 
             if (currentTeskilatId == 1 || currentTeskilatId == 2) {
+                if (currentTeskilatId == 2 && !koordId) {
+                    $.get('/Birimler/GetBirimKartlari', { teskilatId: currentTeskilatId, ilId: ilId }, function(data) {
+                        const koordinatorlukler = (data || []).filter(x => x.tur === 'Koordinatorluk');
+                        if (koordinatorlukler.length === 1) {
+                            selectedIlId = ilId;
+                            applyMapColors();
+                            selectKoordinatorluk(koordinatorlukler[0].id, koordinatorlukler[0].ad);
+                            return;
+                        }
+
+                        selectedIlId = selectedIlId === ilId ? null : ilId;
+                        applyMapColors();
+                        lastRenderedKartlar = koordinatorlukler;
+                        renderKartlar(lastRenderedKartlar);
+                        scrollToKartlar();
+                    });
+                    return;
+                }
+
                 selectedIlId = selectedIlId === ilId ? null : ilId;
                 applyMapColors();
                 loadKartlar();
@@ -510,6 +907,7 @@
             updateMapStatus(currentTeskilatId);
             fillKoordinatorlukler(currentTeskilatId);
             loadKartlar();
+            loadPersoneller();
         });
 
         function fillKoordinatorlukler(tesId, selectedKId = null) {
@@ -550,13 +948,11 @@
             }
 
             loadKartlar();
+            loadPersoneller();
         });
 
         $('#filterKomisyon').change(function() {
-            const komId = $(this).val();
-            if (komId) {
-                window.location.href = '/Birimler/KomisyonDetay/' + komId;
-            }
+            loadPersoneller();
         });
 
         function loadKartlar() {
@@ -582,6 +978,128 @@
             });
         }
 
+        function loadPersoneller() {
+            const scope = getCurrentScope();
+            currentPersonelScope = scope;
+            const canListPersonel = scope.type === 'Koordinatorluk' || scope.type === 'Komisyon';
+            const $body = $('#birimPersonelBody');
+            $body.html('<tr><td colspan="9" class="text-center text-muted py-4">Personeller yükleniyor...</td></tr>');
+            $('#personelKayitBilgi').text('0 kayıt');
+            $('#personelPagination').empty();
+
+            if (!scope.id || !canListPersonel) {
+                birimPersoneller = [];
+                $('#birimPersonelCard').addClass('d-none');
+                return;
+            }
+
+            $('#birimPersonelCard').removeClass('d-none');
+
+            let url = '/Birimler/GetBirimPersoneller?';
+            if (scope.type === 'Komisyon') url += 'komisyonId=' + scope.id;
+            else if (scope.type === 'Koordinatorluk') url += 'koordinatorlukId=' + scope.id;
+
+            $.get(url, function(data) {
+                birimPersoneller = data || [];
+                personelCurrentPage = 1;
+                renderPersoneller();
+            }).fail(function() {
+                birimPersoneller = [];
+                $body.html('<tr><td colspan="9" class="text-center text-danger py-4">Personeller yüklenemedi.</td></tr>');
+            });
+        }
+
+        function renderPersoneller() {
+            const personeller = birimPersoneller || [];
+            const scope = currentPersonelScope;
+            const $body = $('#birimPersonelBody');
+            const isKoordinatorlukList = scope.type === 'Koordinatorluk';
+            $body.empty();
+            $('#personelKayitBilgi').text(personeller.length + ' kayıt');
+            $('#personelYerHeader1').text(isKoordinatorlukList ? 'GÖREV YERİ' : 'GÖREVLİ İL');
+            $('#personelYerHeader2').text(isKoordinatorlukList ? '' : 'KADRO YERİ');
+
+            if (!personeller.length) {
+                $body.html('<tr><td colspan="9" class="text-center text-muted py-4">Bu birimde kayıtlı personel bulunmuyor.</td></tr>');
+                $('#personelPagination').empty();
+                return;
+            }
+
+            const totalPages = Math.max(1, Math.ceil(personeller.length / personelPageSize));
+            personelCurrentPage = Math.min(Math.max(1, personelCurrentPage), totalPages);
+            const startIndex = (personelCurrentPage - 1) * personelPageSize;
+            const pageItems = personeller.slice(startIndex, startIndex + personelPageSize);
+
+            pageItems.forEach(p => {
+                const names = (p.adSoyad || '').split(' ').filter(Boolean);
+                const initials = ((names[0] || '?')[0] || '?') + ((names[names.length - 1] || '')[0] || '');
+                const canRemove = scope.type !== 'Teskilat';
+                const rowClass = highlightPersonelIds.includes(p.personelId) ? 'personel-row-highlight' : '';
+                const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+                const personelUrl = `/Personel/Detay/${p.personelId}?returnUrl=${returnUrl}&returnLabel=${encodeURIComponent('Birim Listesine Dön')}`;
+                const removeButton = canRemove
+                    ? `<button type="button" class="btn btn-sm btn-danger personel-action-btn" title="Çıkar" data-bs-toggle="tooltip" onclick="birimdenCikar(${p.personelId})"><i class="bx bx-user-minus"></i></button>`
+                    : '';
+                const yerCells = isKoordinatorlukList
+                    ? `<td colspan="2">${formatLimitedList(p.gorevYerleri)}</td>`
+                    : `<td>${escapeHtml(p.gorevliIl || '-')}</td><td>${escapeHtml(p.kadroYeri || '-')}</td>`;
+
+                const html = `
+                    <tr class="${rowClass}" data-personel-id="${p.personelId}">
+                        <td><span class="personel-avatar">${escapeHtml(initials.toUpperCase())}</span></td>
+                        <td class="fw-semibold"><a class="text-dark" href="${personelUrl}">${escapeHtml(p.adSoyad)}</a></td>
+                        <td>${formatList(p.yazilimlar)}</td>
+                        <td>${formatList(p.uzmanliklar)}</td>
+                        <td>${formatList(p.gorevTurleri)}</td>
+                        <td>${formatList(p.isNitelikleri)}</td>
+                        ${yerCells}
+                        <td class="text-end">
+                            <div class="personel-actions justify-content-end">
+                                <button type="button" class="btn btn-sm btn-info personel-action-btn text-white" title="Yetkilendir" data-bs-toggle="tooltip" onclick="hizliYetkilendirAc(${p.personelId}, '${escapeHtml(p.adSoyad)}')"><i class="bx bx-user-check"></i></button>
+                                ${removeButton}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                $body.append(html);
+            });
+
+            document.querySelectorAll('#birimPersonelBody [data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+            renderPersonelPagination(totalPages);
+
+            if (highlightPersonelIds.length) {
+                setTimeout(() => {
+                    $('.personel-row-highlight').removeClass('personel-row-highlight');
+                    highlightPersonelIds = [];
+                }, 3000);
+            }
+        }
+
+        function renderPersonelPagination(totalPages) {
+            const $pagination = $('#personelPagination');
+            $pagination.empty();
+            if (totalPages <= 1) return;
+
+            const addPage = (label, page, disabled, active) => {
+                $pagination.append(`
+                    <li class="page-item ${disabled ? 'disabled' : ''} ${active ? 'active' : ''}">
+                        <button type="button" class="page-link" onclick="changePersonelPage(${page})">${label}</button>
+                    </li>
+                `);
+            };
+
+            addPage('&laquo;', Math.max(1, personelCurrentPage - 1), personelCurrentPage === 1, false);
+            for (let i = 1; i <= totalPages; i++) {
+                addPage(i, i, false, i === personelCurrentPage);
+            }
+            addPage('&raquo;', Math.min(totalPages, personelCurrentPage + 1), personelCurrentPage === totalPages, false);
+        }
+
+        function changePersonelPage(page) {
+            personelCurrentPage = page;
+            renderPersoneller();
+        }
+
         function renderKartlar(kartlar) {
             const $container = $('#kartContainer');
             $container.empty();
@@ -589,7 +1107,10 @@
             if (!kartlar || kartlar.length === 0) {
                 $container.html('<div class="col-12 no-data-msg text-center p-5"><i class="bx bx-info-circle fs-1 d-block mb-3 text-muted"></i>Bir birim bulunamadı.</div>');
                 $('#kartSayisi').text('0 birim');
+                $('#pageBackButton').addClass('d-none');
                 $('#btnGeriDon').addClass('d-none');
+                $('#pageBackButton').addClass('d-none');
+                $('#pageTitle').text('Birim Haritası ve Listesi');
                 return;
             }
 
@@ -597,6 +1118,7 @@
 
             if (kartlar[0].tur === 'Komisyon') {
                 $('#kartBaslik').html('<i class="bx bxs-group me-2 text-primary"></i>Komisyonlar');
+                $('#pageBackButton').removeClass('d-none');
                 $('#btnGeriDon').removeClass('d-none');
             } else {
                 $('#kartBaslik').html('<i class="bx bxs-grid-alt me-2 text-primary"></i>Koordinatörlükler');
@@ -605,12 +1127,16 @@
 
             kartlar.forEach(k => {
                 let displayedTitle = k.ad;
+                let secondaryText = k.ilAdi || '';
+                let secondaryIcon = 'bx bx-map-pin';
 
                 if (currentTeskilatId == 1 && k.tur === 'Komisyon' && k.ilAdi) {
-                    displayedTitle = `${k.ilAdi} ${k.ad}`;
+                    displayedTitle = `${k.ilAdi} Komisyonu`;
+                    secondaryText = (k.ad || '').replace(' Komisyonu', '');
+                    secondaryIcon = 'bx bx-category';
                 }
 
-                const ilBadge = k.ilAdi ? `<div class="birim-il"><i class="bx bx-map-pin"></i> ${k.ilAdi}</div>` : '';
+                const ilBadge = secondaryText ? `<div class="birim-il"><i class="${secondaryIcon}"></i> ${secondaryText}</div>` : '';
                 const html = `
                     <div class="col">
                         <div class="card birim-card h-100" onclick="birimKartTiklandi('${k.tur}', ${k.id})">
@@ -639,8 +1165,318 @@
             if (tur === 'Komisyon') {
                 window.location.href = '/Birimler/KomisyonDetay/' + id;
             } else if (tur === 'Koordinatorluk') {
-                $('#filterKoordinatorluk').val(id).trigger('change');
+                selectKoordinatorluk(id);
             }
+        }
+
+        function selectKoordinatorluk(id, ad) {
+            if ($('#filterKoordinatorluk option[value="' + id + '"]').length === 0 && ad) {
+                $('#filterKoordinatorluk').append(new Option(ad, id));
+            }
+
+            $('#filterKoordinatorluk').val(id).trigger('change');
+            setTimeout(() => {
+                const selectedText = $('#filterKoordinatorluk option:selected').text() || ad || 'Koordinatörlük';
+                $('#pageTitle').text(selectedText);
+                $('#pageBackButton').removeClass('d-none');
+                $('#kartBaslik').html('<i class="bx bxs-grid-alt me-2 text-primary"></i>' + escapeHtml(selectedText));
+                $('#btnGeriDon').removeClass('d-none');
+                $('html, body').animate({
+                    scrollTop: Math.max(0, $("#pageTitle").offset().top - 80)
+                }, 450);
+            }, 160);
+        }
+
+        function birimdenCikar(personelId) {
+            if (!currentPersonelScope.id || currentPersonelScope.type === 'Teskilat') {
+                return;
+            }
+
+            Swal.fire({
+                title: 'Personel çıkarılsın mı?',
+                text: currentPersonelScope.type === 'Komisyon'
+                    ? 'Personel komisyondan çıkarılır, koordinatörlük kaydı korunur.'
+                    : 'Personel koordinatörlükten çıkarılır, teşkilat kaydı korunur.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Çıkar',
+                cancelButtonText: 'İptal'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+
+                $.post('/Birimler/BirimPersonelCikar', {
+                    personelId: personelId,
+                    scopeType: currentPersonelScope.type,
+                    scopeId: currentPersonelScope.id
+                }).done(function() {
+                    loadPersoneller();
+                    loadKartlar();
+                    Swal.fire({ icon: 'success', title: 'Çıkarıldı', toast: true, position: 'top-end', timer: 1800, showConfirmButton: false });
+                }).fail(function(xhr) {
+                    Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'İşlem tamamlanamadı.', 'error');
+                });
+            });
+        }
+
+        function hizliYetkilendirAc(personelId, adSoyad) {
+            const currentKoordId = parseNullableInt($('#filterKoordinatorluk').val());
+            const currentKomId = parseNullableInt($('#filterKomisyon').val());
+
+            $('#yetkiPersonelId').val(personelId);
+            $('#yetkiCurrentKomisyonId').val(currentKomId || '');
+            $('#yetkiPersonelAd').text(adSoyad);
+            $('#yetkiSistemRol').text('-');
+            $('#yetkiMevcutRoller').html('<span class="text-muted">Yetkiler yükleniyor...</span>');
+            $('#yetkiRolSelect').empty().append('<option value="">Rol Seçiniz...</option>');
+            $('#yetkiTeskilat').empty().append('<option value="">Teşkilat Seçiniz...</option>');
+            $('#yetkiKoordinatorluk').empty().append('<option value="">Koordinatörlük Seçiniz...</option>').prop('disabled', true);
+            $('#yetkiKomisyon').empty().append('<option value="">Komisyon Seçiniz (İsteğe Bağlı)...</option>').prop('disabled', true);
+
+            $.get('/Birimler/GetBirimPersonelYetkiData', {
+                personelId: personelId,
+                koordinatorlukId: currentKoordId,
+                komisyonId: currentKomId
+            }, function(data) {
+                renderBirimYetkiData(data);
+                hizliYetkiDrawer.show();
+            }).fail(function(xhr) {
+                Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Yetki bilgileri yüklenemedi.', 'error');
+            });
+        }
+
+        $('#yetkiTeskilat').change(function() {
+            fillYetkiKoordinatorlukler(parseNullableInt($(this).val()), null, null);
+        });
+
+        $('#yetkiKoordinatorluk').change(function() {
+            fillYetkiKomisyonlar(parseNullableInt($(this).val()), null);
+        });
+
+        function renderBirimYetkiData(data) {
+            $('#yetkiPersonelAd').text(data.adSoyad || $('#yetkiPersonelAd').text());
+            $('#yetkiSistemRol').text(data.sistemRol || '-');
+            renderBirimRoller(data.roles || []);
+
+            const $rol = $('#yetkiRolSelect');
+            $rol.empty().append('<option value="">Rol Seçiniz...</option>');
+            (data.roleOptions || []).forEach(role => $rol.append(new Option(role.ad, role.id)));
+
+            const $tes = $('#yetkiTeskilat');
+            $tes.empty().append('<option value="">Teşkilat Seçiniz...</option>');
+            (data.teskilatOptions || []).forEach(t => {
+                const opt = new Option(t.ad, t.id);
+                if (data.selectedTeskilatId && t.id == data.selectedTeskilatId) {
+                    opt.selected = true;
+                }
+                $tes.append(opt);
+            });
+
+            fillYetkiKoordinatorlukler(data.selectedTeskilatId, data.selectedKoordinatorlukId, data.selectedKomisyonId);
+        }
+
+        function renderBirimRoller(roles) {
+            const $roles = $('#yetkiMevcutRoller');
+            $roles.empty();
+
+            if (!roles.length) {
+                $roles.html('<div class="text-muted small border rounded p-3">Bu personele tanımlı kurumsal yetki bulunmuyor.</div>');
+                return;
+            }
+
+            roles.forEach(role => {
+                $roles.append(`
+                    <div class="yetki-role-card">
+                        <div>
+                            <div class="yetki-role-title">${escapeHtml(role.rolAd)}</div>
+                            <div class="yetki-role-context">${escapeHtml(role.contextAd || 'Genel')}</div>
+                        </div>
+                        <div class="yetki-role-actions">
+                            <button type="button" class="btn btn-sm btn-label-secondary" title="Düzenle" disabled>
+                                <i class="bx bx-pencil"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-label-danger" title="Yetkiyi kaldır" onclick="hizliRolSil(${role.assignmentId})">
+                                <i class="bx bx-x"></i>
+                            </button>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        function fillYetkiKoordinatorlukler(teskilatId, selectedKoordId, selectedKomId) {
+            const $koord = $('#yetkiKoordinatorluk');
+            const $kom = $('#yetkiKomisyon');
+            $koord.empty().append('<option value="">Koordinatörlük Seçiniz...</option>').prop('disabled', !teskilatId);
+            $kom.empty().append('<option value="">Komisyon Seçiniz (İsteğe Bağlı)...</option>').prop('disabled', true);
+
+            if (!teskilatId) return;
+
+            $.get('/Birimler/GetKoordinatorlukler', { teskilatId }, function(data) {
+                data.forEach(x => {
+                    const opt = new Option(x.ad, x.koordinatorlukId);
+                    if (selectedKoordId && x.koordinatorlukId == selectedKoordId) {
+                        opt.selected = true;
+                    }
+                    $koord.append(opt);
+                });
+
+                if (selectedKoordId) {
+                    fillYetkiKomisyonlar(selectedKoordId, selectedKomId);
+                }
+            });
+        }
+
+        function fillYetkiKomisyonlar(koordId, selectedKomId) {
+            const $kom = $('#yetkiKomisyon');
+            $kom.empty().append('<option value="">Komisyon Seçiniz (İsteğe Bağlı)...</option>').prop('disabled', !koordId);
+            if (!koordId) return;
+
+            $.get('/Birimler/GetKomisyonlarForYetkilendirme', { koordinatorlukId: koordId }, function(data) {
+                data.forEach(x => {
+                    const opt = new Option(x.ad, x.komisyonId);
+                    if (selectedKomId && x.komisyonId == selectedKomId) {
+                        opt.selected = true;
+                    }
+                    $kom.append(opt);
+                });
+            });
+        }
+
+        function hizliRolEkle(force = false) {
+            const personelId = parseNullableInt($('#yetkiPersonelId').val());
+            const kurumsalRolId = parseNullableInt($('#yetkiRolSelect').val());
+            const komisyonId = parseNullableInt($('#yetkiKomisyon').val());
+            const koordinatorlukId = komisyonId ? null : parseNullableInt($('#yetkiKoordinatorluk').val());
+
+            if (!personelId || !kurumsalRolId) {
+                Swal.fire('Eksik Bilgi', 'Eklemek için rol seçiniz.', 'warning');
+                return;
+            }
+
+            if (!koordinatorlukId && !komisyonId) {
+                Swal.fire('Eksik Bilgi', 'Koordinatörlük veya komisyon seçiniz.', 'warning');
+                return;
+            }
+
+            $('#yetkiRolEkleBtn').prop('disabled', true);
+            $.post('/Birimler/BirimPersonelRolEkle', {
+                personelId,
+                kurumsalRolId,
+                koordinatorlukId,
+                komisyonId,
+                force
+            }).done(function(response) {
+                if (response && response.warning) {
+                    Swal.fire({
+                        title: 'Uyarı',
+                        text: response.warning,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Evet, Değiştir',
+                        cancelButtonText: 'İptal'
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            hizliRolEkle(true);
+                        }
+                    });
+                    return;
+                }
+
+                hizliYetkilendirAc(personelId, $('#yetkiPersonelAd').text());
+                loadPersoneller();
+                loadKartlar();
+                Swal.fire({ icon: 'success', title: 'Yetki eklendi', toast: true, position: 'top-end', timer: 1800, showConfirmButton: false });
+            }).fail(function(xhr) {
+                Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Yetki eklenemedi.', 'error');
+            }).always(function() {
+                $('#yetkiRolEkleBtn').prop('disabled', false);
+            });
+        }
+
+        function hizliRolSil(assignmentId) {
+            $.post('/Birimler/BirimPersonelRolSil', { assignmentId })
+                .done(function() {
+                    const personelId = parseNullableInt($('#yetkiPersonelId').val());
+                    hizliYetkilendirAc(personelId, $('#yetkiPersonelAd').text());
+                    loadPersoneller();
+                    loadKartlar();
+                    Swal.fire({ icon: 'success', title: 'Yetki kaldırıldı', toast: true, position: 'top-end', timer: 1600, showConfirmButton: false });
+                })
+                .fail(function(xhr) {
+                    Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Yetki kaldırılamadı.', 'error');
+                });
+        }
+
+        function topluEkleAc() {
+            const scope = getCurrentScope();
+            if (!scope.id || (scope.type !== 'Koordinatorluk' && scope.type !== 'Komisyon')) {
+                Swal.fire('Birim Seçiniz', 'Personel eklemek için önce koordinatörlük veya komisyon seçiniz.', 'warning');
+                return;
+            }
+
+            currentPersonelScope = scope;
+            const selectedText = scope.type === 'Komisyon'
+                ? $('#filterKomisyon option:selected').text()
+                : scope.type === 'Koordinatorluk'
+                    ? $('#filterKoordinatorluk option:selected').text()
+                    : $('#filterTeskilat option:selected').text();
+
+            $('#topluEkleHedef').text(selectedText || scope.type);
+            $('#topluPersonelAra').val('');
+            $('#topluPersonelSelect').empty().append('<option>Personeller yükleniyor...</option>');
+            loadTopluPersonelOptions('');
+            topluEkleDrawer.show();
+        }
+
+        function loadTopluPersonelOptions(query) {
+            $.get('/Birimler/GetTopluAtamaPersoneller', { q: query || '' }, function(data) {
+                const $select = $('#topluPersonelSelect');
+                $select.empty();
+                (data || []).forEach(p => {
+                    const label = p.adSoyad + (p.il ? ' - ' + p.il : '');
+                    $select.append(new Option(label, p.personelId));
+                });
+            }).fail(function() {
+                $('#topluPersonelSelect').empty().append('<option>Personeller yüklenemedi</option>');
+            });
+        }
+
+        function topluEkleKaydet() {
+            const selectedIds = ($('#topluPersonelSelect').val() || []).map(x => parseInt(x, 10)).filter(Boolean);
+            const selectedName = $('#topluPersonelSelect option:selected').first().text().split(' - ')[0] || '';
+            if (!selectedIds.length) {
+                Swal.fire('Personel Seçiniz', 'Eklemek için en az bir personel seçiniz.', 'warning');
+                return;
+            }
+
+            const scope = currentPersonelScope;
+            const payload = {
+                personelIds: selectedIds,
+                teskilatId: scope.type === 'Teskilat' ? scope.id : null,
+                koordinatorlukId: scope.type === 'Koordinatorluk' ? scope.id : (scope.type === 'Komisyon' ? parseNullableInt($('#filterKoordinatorluk').val()) : null),
+                komisyonId: scope.type === 'Komisyon' ? scope.id : null
+            };
+
+            $('#topluEkleKaydetBtn').prop('disabled', true);
+            $.ajax({
+                url: '/Birimler/YapTopluAtama',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify(payload)
+            }).done(function() {
+                highlightPersonelIds = selectedIds;
+                topluEkleDrawer.hide();
+                loadPersoneller();
+                loadKartlar();
+                if (selectedIds.length === 1) {
+                    setTimeout(() => hizliYetkilendirAc(selectedIds[0], selectedName), 350);
+                }
+                Swal.fire({ icon: 'success', title: 'Personel eklendi', toast: true, position: 'top-end', timer: 1800, showConfirmButton: false });
+            }).fail(function(xhr) {
+                Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Personel eklenemedi.', 'error');
+            }).always(function() {
+                $('#topluEkleKaydetBtn').prop('disabled', false);
+            });
         }
 
         function findSingleCommissionForIl(ilId) {
@@ -661,6 +1497,23 @@
 
         function geriDon() {
             $('#filterKoordinatorluk').val('').trigger('change');
+            $('#pageBackButton').addClass('d-none');
+            $('#pageTitle').text('Birim Haritası ve Listesi');
+        }
+
+        function pageGeriDon() {
+            if ($('#filterKoordinatorluk').val()) {
+                geriDon();
+                $('html, body').animate({ scrollTop: 0 }, 450);
+                return;
+            }
+
+            if (window.history.length > 1 && document.referrer && document.referrer !== window.location.href) {
+                window.history.back();
+                return;
+            }
+
+            geriDon();
         }
     </script>
 }

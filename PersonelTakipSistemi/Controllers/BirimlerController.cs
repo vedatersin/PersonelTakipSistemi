@@ -6,6 +6,7 @@ using PersonelTakipSistemi.Models;
 using PersonelTakipSistemi.ViewModels;
 using PersonelTakipSistemi.Services;
 using PersonelTakipSistemi.Filters;
+using System.Security.Claims;
 
 namespace PersonelTakipSistemi.Controllers
 {
@@ -14,13 +15,15 @@ namespace PersonelTakipSistemi.Controllers
     public class BirimlerController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;
+        private readonly IPersonelAssignmentService _personelAssignmentService;
 
         private readonly INotificationService _notificationService;
         private readonly Services.ILogService _logService;
 
-        public BirimlerController(TegmPersonelTakipDbContext context, INotificationService notificationService, Services.ILogService logService)
+        public BirimlerController(TegmPersonelTakipDbContext context, IPersonelAssignmentService personelAssignmentService, INotificationService notificationService, Services.ILogService logService)
         {
             _context = context;
+            _personelAssignmentService = personelAssignmentService;
             _notificationService = notificationService;
             _logService = logService;
         }
@@ -885,15 +888,15 @@ namespace PersonelTakipSistemi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> BirimListele()
         {
-            var defaultKoordinatorluk = await _context.Koordinatorlukler
-                .Include(k => k.Teskilat)
-                .Where(k => k.IsActive && k.Ad == "Beden Eğitimi Birim Koordinatörlüğü")
+            var defaultTeskilat = await _context.Teskilatlar
+                .Where(t => t.IsActive && t.Tur == "Taşra")
+                .OrderBy(t => t.TeskilatId)
                 .FirstOrDefaultAsync();
 
-            // Varsayılan ID'ler: Programlar Daire (9), Merkez Teşkilat (1), Beden Eğitimi Birimi
-            int defaultDaireId = defaultKoordinatorluk?.Teskilat?.DaireBaskanligiId ?? 9;
-            int defaultTeskilatId = defaultKoordinatorluk?.TeskilatId ?? 1;
-            int? defaultKoordId = defaultKoordinatorluk?.KoordinatorlukId;
+            // Varsayılan ID'ler: Programlar Daire (9), Taşra Teşkilatı
+            int defaultDaireId = defaultTeskilat?.DaireBaskanligiId ?? 9;
+            int defaultTeskilatId = defaultTeskilat?.TeskilatId ?? 2;
+            int? defaultKoordId = null;
 
             // Sadece birimi olan Daire Başkanlıklarını getir
             var activeDaireIds = await _context.Teskilatlar
@@ -990,13 +993,13 @@ namespace PersonelTakipSistemi.Controllers
                 .ToList();
         }
 
-        private async Task<List<BirimKartItem>> GetKartlarByTeskilat(int teskilatId)
+        private async Task<List<BirimKartItem>> GetKartlarByTeskilat(int teskilatId, int? ilId = null)
         {
             var koordinatorlukler = await _context.Koordinatorlukler
                 .Include(k => k.Il)
                 .Include(k => k.PersonelKoordinatorlukler)
                 .Include(k => k.Komisyonlar).ThenInclude(kom => kom.PersonelKomisyonlar)
-                .Where(k => k.TeskilatId == teskilatId && k.IsActive)
+                .Where(k => k.TeskilatId == teskilatId && k.IsActive && (!ilId.HasValue || k.IlId == ilId.Value))
                 .ToListAsync();
 
             var kartlar = new List<BirimKartItem>();
@@ -1007,9 +1010,7 @@ namespace PersonelTakipSistemi.Controllers
                     .Where(kom => kom.IsActive && kom.PersonelKomisyonlar.Any())
                     .ToList();
 
-                // Kümülatif Personel Sayısı: Koordinatörlüğün kendi personeli + bağlı tüm komisyonlarındaki personeller
-                int totalPersonel = k.PersonelKoordinatorlukler.Count;
-                totalPersonel += aktifKomisyonlar.Sum(kom => kom.PersonelKomisyonlar.Count);
+                var totalPersonelIds = k.PersonelKoordinatorlukler.Select(pk => pk.PersonelId).ToHashSet();
 
                 // Kümülatif Görev Sayısı: Koordinatörlüğe atanan görevler + bağlı tüm komisyonlarına atanan görevler
                 var komisyonIds = aktifKomisyonlar.Select(kom => kom.KomisyonId).ToList();
@@ -1024,7 +1025,11 @@ namespace PersonelTakipSistemi.Controllers
                         .Where(tk => tk.BagliMerkezKoordinatorlukId == k.KoordinatorlukId && tk.IsActive && tk.PersonelKomisyonlar.Any())
                         .ToListAsync();
                     
-                    totalPersonel += tasraKomisyonlari.Sum(tk => tk.PersonelKomisyonlar.Count);
+                    foreach (var personelId in tasraKomisyonlari.SelectMany(tk => tk.PersonelKomisyonlar).Select(pk => pk.PersonelId))
+                    {
+                        totalPersonelIds.Add(personelId);
+                    }
+
                     var tasraKomIds = tasraKomisyonlari.Select(tk => tk.KomisyonId).ToList();
                     totalGorev += await _context.GorevAtamaKomisyonlar.CountAsync(g => tasraKomIds.Contains(g.KomisyonId));
                 }
@@ -1034,7 +1039,7 @@ namespace PersonelTakipSistemi.Controllers
                     Id = k.KoordinatorlukId,
                     Ad = k.Ad,
                     Tur = "Koordinatorluk",
-                    PersonelSayisi = totalPersonel,
+                    PersonelSayisi = totalPersonelIds.Count,
                     GorevSayisi = totalGorev,
                     IlId = k.IlId,
                     IlAdi = k.Il != null ? k.Il.Ad : null
@@ -1139,34 +1144,8 @@ namespace PersonelTakipSistemi.Controllers
             {
                 if (ilId.HasValue)
                 {
-                    // İl seçilmiş → o ildeki koordinatörlüklerin komisyonlarını göster
-                    var koordIds = await _context.Koordinatorlukler
-                        .Where(k => k.TeskilatId == teskilatId.Value && k.IlId == ilId.Value && k.IsActive)
-                        .Select(k => k.KoordinatorlukId)
-                        .ToListAsync();
-
-                    var ilKomisyonlari = await GetVisibleKomisyonlarQuery()
-                        .Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
-                        .Include(k => k.PersonelKomisyonlar)
-                        .Where(k => koordIds.Contains(k.KoordinatorlukId))
-                        .OrderBy(k => k.Ad)
-                        .ToListAsync();
-
-                    kartlar = new List<BirimKartItem>();
-                    foreach (var k in ilKomisyonlari)
-                    {
-                        kartlar.Add(new BirimKartItem
-                        {
-                            Id = k.KomisyonId,
-                            Ad = k.Ad,
-                            Tur = "Komisyon",
-                            PersonelSayisi = k.PersonelKomisyonlar.Count,
-                            GorevSayisi = await GetKomisyonGorevleriQuery(k.KomisyonId).CountAsync(),
-                            IlId = k.Koordinatorluk?.IlId,
-                            IlAdi = k.Koordinatorluk?.Il?.Ad,
-                            ParentId = k.KoordinatorlukId
-                        });
-                    }
+                    // İl seçilmiş → o ildeki koordinatörlükleri göster
+                    kartlar = await GetKartlarByTeskilat(teskilatId.Value, ilId);
                 }
                 else
                 {
@@ -1257,6 +1236,7 @@ namespace PersonelTakipSistemi.Controllers
             var model = new KomisyonDetayViewModel
             {
                 KomisyonId = komisyon.KomisyonId,
+                KoordinatorlukId = komisyon.KoordinatorlukId,
                 KomisyonAd = komisyon.Ad,
                 KoordinatorlukAd = komisyon.Koordinatorluk?.Ad,
                 TeskilatAd = komisyon.Koordinatorluk?.Teskilat?.Ad,
@@ -1279,6 +1259,7 @@ namespace PersonelTakipSistemi.Controllers
 
             return View(model);
         }
+
         // ==============================================================
         // HELPER API
         // ==============================================================
@@ -1320,6 +1301,574 @@ namespace PersonelTakipSistemi.Controllers
 
             return Ok(result);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetKomisyonlarForYetkilendirme(int koordinatorlukId)
+        {
+            var data = await _context.Komisyonlar
+                .AsNoTracking()
+                .Include(x => x.Koordinatorluk).ThenInclude(k => k.Il)
+                .Include(x => x.BagliMerkezKoordinatorluk)
+                .Where(x => x.IsActive && (x.KoordinatorlukId == koordinatorlukId || x.BagliMerkezKoordinatorlukId == koordinatorlukId))
+                .ToListAsync();
+
+            var result = data.Select(x => new
+                {
+                    x.KomisyonId,
+                    Ad = x.BagliMerkezKoordinatorlukId == koordinatorlukId && x.Koordinatorluk?.Il != null
+                        ? $"{x.Koordinatorluk.Il.Ad} Komisyonu"
+                        : x.Ad
+                })
+                .OrderBy(x => x.Ad)
+                .ToList();
+
+            return Ok(result);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBirimPersoneller(int? teskilatId, int? koordinatorlukId, int? komisyonId)
+        {
+            IQueryable<Personel> query;
+
+            if (komisyonId.HasValue)
+            {
+                query = _context.Personeller
+                    .Where(p => p.PersonelKomisyonlar.Any(pk => pk.KomisyonId == komisyonId.Value));
+            }
+            else if (koordinatorlukId.HasValue)
+            {
+                query = _context.Personeller
+                    .Where(p => p.PersonelKoordinatorlukler.Any(pk => pk.KoordinatorlukId == koordinatorlukId.Value));
+            }
+            else if (teskilatId.HasValue)
+            {
+                query = _context.Personeller
+                    .Where(p => p.PersonelTeskilatlar.Any(pt => pt.TeskilatId == teskilatId.Value));
+            }
+            else
+            {
+                return Ok(new List<BirimPersonelItem>());
+            }
+
+            var personelEntities = await query
+                .AsNoTracking()
+                .Include(p => p.GorevliIl)
+                .Include(p => p.KadroIl)
+                .Include(p => p.KadroIlce)
+                .Include(p => p.PersonelYazilimlar).ThenInclude(py => py.Yazilim)
+                .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
+                .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
+                .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
+                .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk)
+                .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon)
+                .OrderBy(p => p.Ad)
+                .ThenBy(p => p.Soyad)
+                .ToListAsync();
+
+            var personeller = personelEntities.Select(p =>
+            {
+                var gorevYerleri = new List<string>();
+                if (koordinatorlukId.HasValue)
+                {
+                    gorevYerleri = p.PersonelKomisyonlar
+                        .Where(pk => pk.Komisyon.KoordinatorlukId == koordinatorlukId.Value)
+                        .Select(pk => pk.Komisyon.Ad)
+                        .Where(ad => !string.IsNullOrWhiteSpace(ad))
+                        .ToList();
+
+                    if (!gorevYerleri.Any())
+                    {
+                        gorevYerleri = p.PersonelKoordinatorlukler
+                            .Where(pk => pk.KoordinatorlukId == koordinatorlukId.Value)
+                            .Select(pk => pk.Koordinatorluk.Ad)
+                            .Where(ad => !string.IsNullOrWhiteSpace(ad))
+                            .ToList();
+                    }
+
+                    gorevYerleri = gorevYerleri
+                        .Distinct()
+                        .OrderBy(x => x.Length)
+                        .ThenBy(x => x)
+                        .ToList();
+                }
+
+                return new BirimPersonelItem
+                {
+                    PersonelId = p.PersonelId,
+                    AdSoyad = p.Ad + " " + p.Soyad,
+                    FotografYolu = p.FotografYolu,
+                    GorevliIl = p.GorevliIl != null ? p.GorevliIl.Ad : null,
+                    KadroYeri = p.KadroIl != null
+                        ? p.KadroIl.Ad + (p.KadroIlce != null ? " / " + p.KadroIlce.Ad : "")
+                        : null,
+                    Yazilimlar = p.PersonelYazilimlar.Select(y => y.Yazilim.Ad).ToList(),
+                    Uzmanliklar = p.PersonelUzmanliklar.Select(u => u.Uzmanlik.Ad).ToList(),
+                    GorevTurleri = p.PersonelGorevTurleri.Select(g => g.GorevTuru.Ad).ToList(),
+                    IsNitelikleri = p.PersonelIsNitelikleri.Select(n => n.IsNiteligi.Ad).ToList(),
+                    GorevYerleri = gorevYerleri
+                };
+            }).ToList();
+
+            return Ok(personeller);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTopluAtamaPersoneller(string? q)
+        {
+            var query = _context.Personeller
+                .AsNoTracking()
+                .Include(p => p.GorevliIl)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                query = query.Where(p =>
+                    (p.Ad + " " + p.Soyad).Contains(term) ||
+                    (p.GorevliIl != null && p.GorevliIl.Ad.Contains(term)));
+            }
+
+            var personeller = await query
+                .OrderBy(p => p.Ad)
+                .ThenBy(p => p.Soyad)
+                .Take(200)
+                .Select(p => new
+                {
+                    personelId = p.PersonelId,
+                    adSoyad = p.Ad + " " + p.Soyad,
+                    il = p.GorevliIl != null ? p.GorevliIl.Ad : null
+                })
+                .ToListAsync();
+
+            return Ok(personeller);
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> GetKomisyonDetayPersoneller(int komisyonId)
+        {
+            var komisyon = await GetAccessibleKomisyonAsync(komisyonId);
+            if (komisyon == null) return Forbid();
+
+            var personeller = await _context.PersonelKomisyonlar
+                .AsNoTracking()
+                .Where(pk => pk.KomisyonId == komisyonId)
+                .Select(pk => pk.Personel)
+                .Include(p => p.GorevliIl)
+                .Include(p => p.KadroIl)
+                .Include(p => p.KadroIlce)
+                .Include(p => p.PersonelYazilimlar).ThenInclude(py => py.Yazilim)
+                .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
+                .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
+                .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
+                .OrderBy(p => p.Ad)
+                .ThenBy(p => p.Soyad)
+                .Select(p => new
+                {
+                    personelId = p.PersonelId,
+                    adSoyad = p.Ad + " " + p.Soyad,
+                    fotografYolu = p.FotografYolu,
+                    gorevliIl = p.GorevliIl != null ? p.GorevliIl.Ad : null,
+                    kadroYeri = p.KadroIl != null
+                        ? p.KadroIl.Ad + (p.KadroIlce != null ? " / " + p.KadroIlce.Ad : "")
+                        : null,
+                    yazilimlar = p.PersonelYazilimlar.Select(y => y.Yazilim.Ad).ToList(),
+                    uzmanliklar = p.PersonelUzmanliklar.Select(u => u.Uzmanlik.Ad).ToList(),
+                    gorevTurleri = p.PersonelGorevTurleri.Select(g => g.GorevTuru.Ad).ToList(),
+                    isNitelikleri = p.PersonelIsNitelikleri.Select(n => n.IsNiteligi.Ad).ToList()
+                })
+                .ToListAsync();
+
+            return Ok(personeller);
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> GetKomisyonEklePersoneller(int komisyonId, string? q)
+        {
+            var komisyon = await GetAccessibleKomisyonAsync(komisyonId);
+            if (komisyon == null) return Forbid();
+
+            var existingIds = await _context.PersonelKomisyonlar
+                .Where(x => x.KomisyonId == komisyonId)
+                .Select(x => x.PersonelId)
+                .ToListAsync();
+
+            IQueryable<Personel> query = _context.Personeller
+                .AsNoTracking()
+                .Include(p => p.GorevliIl)
+                .Where(p => !existingIds.Contains(p.PersonelId));
+
+            if (!User.IsInRole("Admin"))
+            {
+                query = query.Where(p => p.PersonelKoordinatorlukler.Any(pk => pk.KoordinatorlukId == komisyon.KoordinatorlukId));
+            }
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var term = q.Trim();
+                query = query.Where(p =>
+                    (p.Ad + " " + p.Soyad).Contains(term) ||
+                    (p.GorevliIl != null && p.GorevliIl.Ad.Contains(term)));
+            }
+
+            var personeller = await query
+                .OrderBy(p => p.Ad)
+                .ThenBy(p => p.Soyad)
+                .Take(50)
+                .Select(p => new
+                {
+                    personelId = p.PersonelId,
+                    adSoyad = p.Ad + " " + p.Soyad,
+                    il = p.GorevliIl != null ? p.GorevliIl.Ad : null
+                })
+                .ToListAsync();
+
+            return Ok(personeller);
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        public async Task<IActionResult> GetKomisyonPersonelYetkiData(int personelId, int komisyonId)
+        {
+            var komisyon = await GetAccessibleKomisyonAsync(komisyonId);
+            if (komisyon == null) return Forbid();
+
+            var personel = await _context.Personeller
+                .AsNoTracking()
+                .Where(p => p.PersonelId == personelId)
+                .Select(p => new { adSoyad = p.Ad + " " + p.Soyad })
+                .FirstOrDefaultAsync();
+
+            if (personel == null) return NotFound();
+
+            var roles = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Include(x => x.KurumsalRol)
+                .Include(x => x.Koordinatorluk)
+                .Include(x => x.Komisyon)
+                .Where(x => x.PersonelId == personelId &&
+                    (x.KomisyonId == komisyonId || x.KoordinatorlukId == komisyon.KoordinatorlukId))
+                .OrderBy(x => x.KurumsalRol.Ad)
+                .Select(x => new
+                {
+                    assignmentId = x.Id,
+                    rolAd = x.KurumsalRol.Ad,
+                    contextAd = x.Komisyon != null ? x.Komisyon.Ad : (x.Koordinatorluk != null ? x.Koordinatorluk.Ad : "Genel"),
+                    koordinatorlukId = x.KoordinatorlukId,
+                    komisyonId = x.KomisyonId
+                })
+                .ToListAsync();
+
+            var roleOptions = await _context.KurumsalRoller
+                .AsNoTracking()
+                .OrderBy(x => x.Ad)
+                .Select(x => new { id = x.KurumsalRolId, ad = x.Ad })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                personelId,
+                personel.adSoyad,
+                komisyonId,
+                koordinatorlukId = komisyon.KoordinatorlukId,
+                roles,
+                roleOptions
+            });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetBirimPersonelYetkiData(int personelId, int? koordinatorlukId, int? komisyonId)
+        {
+            var personel = await _context.Personeller
+                .AsNoTracking()
+                .Include(p => p.SistemRol)
+                .Where(p => p.PersonelId == personelId)
+                .Select(p => new
+                {
+                    p.PersonelId,
+                    adSoyad = p.Ad + " " + p.Soyad,
+                    sistemRol = p.SistemRol != null ? p.SistemRol.Ad : "Kullanıcı"
+                })
+                .FirstOrDefaultAsync();
+
+            if (personel == null) return NotFound();
+
+            int? selectedKoordinatorlukId = koordinatorlukId;
+            int? selectedTeskilatId = null;
+
+            if (komisyonId.HasValue)
+            {
+                var komisyon = await _context.Komisyonlar
+                    .AsNoTracking()
+                    .Include(k => k.Koordinatorluk)
+                    .FirstOrDefaultAsync(k => k.KomisyonId == komisyonId.Value && k.IsActive);
+
+                if (komisyon == null) return BadRequest("Komisyon bulunamadı.");
+
+                selectedKoordinatorlukId = komisyon.KoordinatorlukId;
+                selectedTeskilatId = komisyon.Koordinatorluk.TeskilatId;
+            }
+
+            if (selectedKoordinatorlukId.HasValue && !selectedTeskilatId.HasValue)
+            {
+                selectedTeskilatId = await _context.Koordinatorlukler
+                    .AsNoTracking()
+                    .Where(k => k.KoordinatorlukId == selectedKoordinatorlukId.Value)
+                    .Select(k => (int?)k.TeskilatId)
+                    .FirstOrDefaultAsync();
+            }
+
+            var atamalar = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Include(x => x.KurumsalRol)
+                .Include(x => x.Teskilat)
+                .Include(x => x.Koordinatorluk).ThenInclude(k => k!.Teskilat)
+                .Include(x => x.Komisyon).ThenInclude(k => k!.Koordinatorluk).ThenInclude(k => k.Teskilat)
+                .Where(x => x.PersonelId == personelId)
+                .OrderBy(x => x.KurumsalRol.Ad)
+                .ThenBy(x => x.Id)
+                .ToListAsync();
+
+            var roles = atamalar.Select(x => new
+            {
+                assignmentId = x.Id,
+                rolAd = x.KurumsalRol.Ad,
+                contextAd = BuildKurumsalRolContextName(x),
+                teskilatId = x.TeskilatId ?? x.Koordinatorluk?.TeskilatId ?? x.Komisyon?.Koordinatorluk?.TeskilatId,
+                koordinatorlukId = x.KoordinatorlukId ?? x.Komisyon?.KoordinatorlukId,
+                komisyonId = x.KomisyonId
+            }).ToList();
+
+            var roleOptions = await _context.KurumsalRoller
+                .AsNoTracking()
+                .OrderBy(x => x.Ad)
+                .Select(x => new { id = x.KurumsalRolId, ad = x.Ad })
+                .ToListAsync();
+
+            var teskilatOptions = await _context.Teskilatlar
+                .AsNoTracking()
+                .Where(x => x.IsActive)
+                .OrderBy(x => x.Ad)
+                .Select(x => new { id = x.TeskilatId, ad = x.Ad })
+                .ToListAsync();
+
+            return Ok(new
+            {
+                personel.PersonelId,
+                personel.adSoyad,
+                personel.sistemRol,
+                selectedTeskilatId,
+                selectedKoordinatorlukId,
+                selectedKomisyonId = komisyonId,
+                roles,
+                roleOptions,
+                teskilatOptions
+            });
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> KomisyonDetayPersonelEkle(int personelId, int komisyonId)
+        {
+            var komisyon = await GetAccessibleKomisyonAsync(komisyonId);
+            if (komisyon == null) return Forbid();
+
+            var currentUserId = GetCurrentPersonelId();
+            var result = await _personelAssignmentService.AddKomisyonAsync(personelId, komisyonId, currentUserId);
+            return StatusCode(result.HttpStatusCode, new { success = result.Success, message = result.Message });
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> KomisyonDetayPersonelCikar(int personelId, int komisyonId)
+        {
+            var komisyon = await GetAccessibleKomisyonAsync(komisyonId);
+            if (komisyon == null) return Forbid();
+
+            var currentUserId = GetCurrentPersonelId();
+            var result = await _personelAssignmentService.RemoveKomisyonAsync(personelId, komisyonId, currentUserId);
+            return StatusCode(result.HttpStatusCode, new { success = result.Success, message = result.Message });
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> KomisyonDetayRolEkle(int personelId, int kurumsalRolId, int komisyonId, string scope, bool force = false)
+        {
+            var komisyon = await GetAccessibleKomisyonAsync(komisyonId);
+            if (komisyon == null) return Forbid();
+
+            var useKomisyon = string.Equals(scope, "Komisyon", StringComparison.OrdinalIgnoreCase);
+            var currentUserId = GetCurrentPersonelId();
+            var result = await _personelAssignmentService.AddKurumsalRolAsync(
+                personelId,
+                kurumsalRolId,
+                useKomisyon ? null : komisyon.KoordinatorlukId,
+                useKomisyon ? komisyonId : null,
+                force,
+                currentUserId);
+
+            return StatusCode(result.HttpStatusCode, new { success = result.Success, message = result.Message, warning = result.Warning });
+        }
+
+        [AllowAnonymous]
+        [HttpPost]
+        public async Task<IActionResult> KomisyonDetayRolSil(int assignmentId, int komisyonId)
+        {
+            var komisyon = await GetAccessibleKomisyonAsync(komisyonId);
+            if (komisyon == null) return Forbid();
+
+            var assignment = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == assignmentId &&
+                    (x.KomisyonId == komisyonId || x.KoordinatorlukId == komisyon.KoordinatorlukId));
+
+            if (assignment == null) return NotFound();
+
+            await _personelAssignmentService.RemoveKurumsalRolAsync(assignmentId, GetCurrentPersonelId());
+            return Ok(new { success = true });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BirimPersonelRolEkle(int personelId, int kurumsalRolId, int? koordinatorlukId, int? komisyonId, bool force = false)
+        {
+            var result = await _personelAssignmentService.AddKurumsalRolAsync(
+                personelId,
+                kurumsalRolId,
+                komisyonId.HasValue ? null : koordinatorlukId,
+                komisyonId,
+                force,
+                GetCurrentPersonelId());
+
+            return StatusCode(result.HttpStatusCode, new
+            {
+                success = result.Success,
+                message = result.Message,
+                warning = result.Warning
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BirimPersonelRolSil(int assignmentId)
+        {
+            await _personelAssignmentService.RemoveKurumsalRolAsync(assignmentId, GetCurrentPersonelId());
+            return Ok(new { success = true });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BirimPersonelCikar(int personelId, string scopeType, int scopeId)
+        {
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            PersonelAssignmentResult result;
+
+            if (string.Equals(scopeType, "Komisyon", StringComparison.OrdinalIgnoreCase))
+            {
+                result = await _personelAssignmentService.RemoveKomisyonAsync(personelId, scopeId, currentUserId);
+            }
+            else if (string.Equals(scopeType, "Koordinatorluk", StringComparison.OrdinalIgnoreCase))
+            {
+                result = await _personelAssignmentService.RemoveKoordinatorlukAsync(personelId, scopeId, currentUserId);
+            }
+            else
+            {
+                return BadRequest("Teşkilat listesinden personel çıkarılamaz.");
+            }
+
+            return StatusCode(result.HttpStatusCode, new { success = result.Success, message = result.Message });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> BirimPersonelHizliYetkilendir([FromBody] BirimHizliYetkilendirModel model)
+        {
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+
+            if (model.KomisyonId.HasValue)
+            {
+                if (model.CurrentKomisyonId.HasValue && model.CurrentKomisyonId.Value != model.KomisyonId.Value)
+                {
+                    await _personelAssignmentService.RemoveKomisyonAsync(model.PersonelId, model.CurrentKomisyonId.Value, currentUserId);
+                }
+
+                var result = await _personelAssignmentService.AddKomisyonAsync(model.PersonelId, model.KomisyonId.Value, currentUserId);
+                if (result.HttpStatusCode == 400 && result.Message.Contains("zaten", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Ok(new { success = true, message = result.Message });
+                }
+
+                return StatusCode(result.HttpStatusCode, new { success = result.Success, message = result.Message });
+            }
+
+            if (model.KoordinatorlukId.HasValue)
+            {
+                var result = await _personelAssignmentService.AddKoordinatorlukAsync(model.PersonelId, model.KoordinatorlukId.Value, currentUserId);
+                if (result.HttpStatusCode == 400 && result.Message.Contains("zaten", StringComparison.OrdinalIgnoreCase))
+                {
+                    return Ok(new { success = true, message = result.Message });
+                }
+
+                return StatusCode(result.HttpStatusCode, new { success = result.Success, message = result.Message });
+            }
+
+            return BadRequest("Koordinatörlük veya komisyon seçiniz.");
+        }
+
+        private int GetCurrentPersonelId()
+        {
+            return int.Parse(User.FindFirst("PersonelId")?.Value ?? User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+        }
+
+        private async Task<Komisyon?> GetAccessibleKomisyonAsync(int komisyonId)
+        {
+            var komisyon = await _context.Komisyonlar
+                .AsNoTracking()
+                .Include(k => k.Koordinatorluk)
+                .FirstOrDefaultAsync(k => k.KomisyonId == komisyonId && k.IsActive);
+
+            if (komisyon == null)
+            {
+                return null;
+            }
+
+            if (User.IsInRole("Admin") || User.IsInRole("Yönetici"))
+            {
+                return komisyon;
+            }
+
+            var currentUserId = GetCurrentPersonelId();
+            var coordinatorRoleIds = new[] { 3, 5, 14 };
+            var hasCoordinatorAccess = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .AnyAsync(x => x.PersonelId == currentUserId &&
+                    x.KoordinatorlukId.HasValue &&
+                    coordinatorRoleIds.Contains(x.KurumsalRolId) &&
+                    (x.KoordinatorlukId == komisyon.KoordinatorlukId ||
+                     (komisyon.BagliMerkezKoordinatorlukId.HasValue && x.KoordinatorlukId == komisyon.BagliMerkezKoordinatorlukId.Value)));
+
+            return hasCoordinatorAccess ? komisyon : null;
+        }
+
+        private static string BuildKurumsalRolContextName(PersonelKurumsalRolAtama atama)
+        {
+            var parts = new List<string>();
+
+            void AddPart(string? value)
+            {
+                if (!string.IsNullOrWhiteSpace(value) && !parts.Contains(value))
+                {
+                    parts.Add(value);
+                }
+            }
+
+            AddPart(atama.Teskilat?.Ad);
+            AddPart(atama.Koordinatorluk?.Teskilat?.Ad);
+            AddPart(atama.Koordinatorluk?.Ad);
+            AddPart(atama.Komisyon?.Koordinatorluk?.Teskilat?.Ad);
+            AddPart(atama.Komisyon?.Koordinatorluk?.Ad);
+            AddPart(atama.Komisyon?.Ad);
+
+            return parts.Count > 0 ? string.Join(" > ", parts) : "Genel";
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetTeskilatlar(int? daireId)
         {

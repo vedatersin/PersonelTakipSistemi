@@ -7,6 +7,8 @@
     var backController = coordinatorContext ? "BirimYonetimi" : "Birimler";
     var backAction = coordinatorContext ? "KordinatorlukYonetimi" : "BirimListele";
     var backLabel = coordinatorContext ? "Birim Yönetimi" : "Birimleri Listele";
+    var gorevReturnUrl = Url.Action("KomisyonDetay", "Birimler", new { id = Model.KomisyonId });
+    const string gorevReturnLabel = "Komisyon Detayına Dön";
 }
 
 <style>
@@ -17,8 +19,10 @@
         color: #fff;
         margin-bottom: 1.5rem;
     }
-    .detail-header h4 { margin: 0; font-weight: 700; }
+    .detail-header h4 { margin: 0; font-weight: 700; color: #fff; }
+    .detail-header h4 i { color: #fff; }
     .detail-header .breadcrumb-item a { color: rgba(255,255,255,0.7); }
+    .detail-header .breadcrumb-item span { color: rgba(255,255,255,0.78); }
     .detail-header .breadcrumb-item.active { color: #fff; }
     .detail-header .meta-info { font-size: 0.85rem; opacity: 0.85; margin-top: 0.5rem; }
 
@@ -41,6 +45,15 @@
     .extended-container { line-height: 2; margin-top: 5px; }
     .cursor-pointer { cursor: pointer; }
     .personel-table .badge { font-size: 0.7rem; padding: 0.4em 0.6em; }
+    .personel-actions { display: inline-flex; gap: .5rem; white-space: nowrap; }
+    .personel-action-btn { width: 44px; height: 44px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; padding: 0; border: 0; }
+    .personel-action-btn i { font-size: 1.45rem; line-height: 1; }
+    .personel-row-highlight { animation: personelHighlight 3s ease forwards; }
+    @@keyframes personelHighlight {
+        0%, 70% { background: rgba(3, 169, 244, .18); }
+        100% { background: transparent; }
+    }
+    .role-chip { display: inline-flex; align-items: center; gap: .4rem; margin: .2rem; }
 </style>
 
 <!-- Header + Breadcrumb -->
@@ -94,12 +107,12 @@
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="mb-0"><i class="bx bxs-user-detail me-2" style="color:#696cff;"></i>Personeller</h6>
-        <span class="badge bg-primary">@Model.Personeller.Count kişi</span>
+        <button type="button" class="btn btn-sm btn-primary" onclick="komisyonPersonelEkleAc()">
+            <i class="bx bx-user-plus me-1"></i>Ekle
+        </button>
     </div>
     <div class="card-body p-0">
-        @if (Model.Personeller.Any())
-        {
-            <div class="table-responsive">
+        <div class="table-responsive">
                 <table class="table table-hover personel-table mb-0">
                     <thead class="bg-light">
                         <tr>
@@ -111,12 +124,13 @@
                             <th>İŞ NİTELİĞİ</th>
                             <th>GÖREVLİ İL</th>
                             <th>KADRO YERİ</th>
+                            <th class="text-end">İŞLEMLER</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="komisyonPersonelBody">
                         @foreach (var p in Model.Personeller)
                         {
-                            <tr onclick="window.location.href='/Personel/Detay/@p.PersonelId'">
+                            <tr data-personel-id="@p.PersonelId">
                                 <td>
                                         @if (AvatarHelper.HasCustomPhoto(p.FotografYolu))
                                     {
@@ -193,16 +207,82 @@
                                         @if(!string.IsNullOrEmpty(p.KadroIlce)) { <small class="text-muted"> / @p.KadroIlce</small> }
                                     } else { <span class="text-muted">-</span> }
                                 </td>
+                                <td class="text-end">
+                                    <div class="personel-actions justify-content-end">
+                                        <button type="button" class="btn btn-sm btn-info personel-action-btn text-white" title="Yetkilendir" data-bs-toggle="tooltip" onclick="event.stopPropagation(); komisyonYetkilendirAc(@p.PersonelId, '@p.AdSoyad.Replace("'", "\\'")')">
+                                            <i class="bx bx-user-check"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-danger personel-action-btn" title="Komisyondan çıkar" data-bs-toggle="tooltip" onclick="event.stopPropagation(); komisyonPersonelCikar(@p.PersonelId)">
+                                            <i class="bx bx-user-minus"></i>
+                                        </button>
+                                    </div>
+                                </td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-        }
-        else
-        {
-            <div class="text-center text-muted py-4"><i class="bx bx-user-x fs-3 d-block mb-2"></i>Bu komisyona henüz personel atanmamış.</div>
-        }
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="komisyonPersonelEkleDrawer" aria-labelledby="komisyonPersonelEkleLabel" style="width: 560px;">
+    <div class="offcanvas-header border-bottom">
+        <h5 id="komisyonPersonelEkleLabel" class="offcanvas-title">Komisyona Personel Ekle</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="mb-3 p-3 bg-light rounded">
+            <div class="small text-muted">Hedef Komisyon</div>
+            <div class="fw-bold">@Model.KomisyonAd</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Personel Ara</label>
+            <input type="text" class="form-control" id="komisyonPersonelAra" placeholder="Ad, soyad veya il ile ara">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Personel</label>
+            <select class="form-select" id="komisyonPersonelSelect" size="10"></select>
+            <small class="text-muted">Admin tüm personelleri, koordinatörler kendi koordinatörlüğündeki personelleri görür.</small>
+        </div>
+    </div>
+    <div class="offcanvas-footer p-3 border-top d-flex gap-2 bg-light">
+        <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="offcanvas">Kapat</button>
+        <button type="button" class="btn btn-primary w-50" id="komisyonPersonelEkleBtn" onclick="komisyonPersonelEkle()">Ekle</button>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="komisyonYetkiDrawer" aria-labelledby="komisyonYetkiLabel" style="width: 620px;">
+    <div class="offcanvas-header border-bottom">
+        <h5 id="komisyonYetkiLabel" class="offcanvas-title">Yetkilendir</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
+    </div>
+    <div class="offcanvas-body">
+        <input type="hidden" id="yetkiPersonelId" />
+        <div class="mb-3 p-3 bg-light rounded">
+            <div class="small text-muted">Personel</div>
+            <div class="fw-bold" id="yetkiPersonelAd"></div>
+        </div>
+        <div class="mb-4">
+            <label class="form-label">Mevcut Yetkiler</label>
+            <div id="yetkiMevcutRoller" class="border rounded p-2 min-vh-0"></div>
+        </div>
+        <div class="row g-2">
+            <div class="col-md-7">
+                <label class="form-label">Yeni Yetki</label>
+                <select class="form-select" id="yetkiRolSelect"></select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">Kapsam</label>
+                <select class="form-select" id="yetkiScopeSelect">
+                    <option value="Komisyon">Bu komisyon</option>
+                    <option value="Koordinatorluk">Koordinatörlük</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="offcanvas-footer p-3 border-top d-flex gap-2 bg-light">
+        <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="offcanvas">Kapat</button>
+        <button type="button" class="btn btn-primary w-50" id="yetkiRolEkleBtn" onclick="komisyonRolEkle()">Yetki Ekle</button>
     </div>
 </div>
 
@@ -229,7 +309,7 @@
                     <tbody>
                         @foreach (var g in Model.Gorevler)
                         {
-                            <tr class="cursor-pointer" onclick="window.location.href='/GorevTanimlar/Detay/@g.GorevId'">
+                            <tr class="cursor-pointer" onclick="window.location.href='@Url.Action("Detay", "Gorevler", new { id = g.GorevId, returnUrl = gorevReturnUrl, returnLabel = gorevReturnLabel })'">
                                 <td class="fw-semibold">@g.Baslik</td>
                                 <td><span class="badge bg-label-info">@(g.Kategori ?? "—")</span></td>
                                 <td><span class="badge" style="background-color: @(g.DurumRenk ?? "#6c757d"); color: #fff;">@g.Durum</span></td>
@@ -285,6 +365,247 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        const komisyonId = @Model.KomisyonId;
+        const komisyonReturnUrl = encodeURIComponent('@gorevReturnUrl');
+        const komisyonReturnLabel = encodeURIComponent('Komisyon Detayına Dön');
+        let komisyonPersonelEkleDrawer = null;
+        let komisyonYetkiDrawer = null;
+        let komisyonPersonelSearchTimer = null;
+        let komisyonHighlightPersonelIds = [];
+
+        $(document).ready(function() {
+            komisyonPersonelEkleDrawer = new bootstrap.Offcanvas(document.getElementById('komisyonPersonelEkleDrawer'));
+            komisyonYetkiDrawer = new bootstrap.Offcanvas(document.getElementById('komisyonYetkiDrawer'));
+            initKomisyonTooltips();
+            loadKomisyonPersoneller();
+
+            $('#komisyonPersonelAra').on('input', function() {
+                clearTimeout(komisyonPersonelSearchTimer);
+                komisyonPersonelSearchTimer = setTimeout(() => loadKomisyonEklePersoneller($(this).val()), 250);
+            });
+        });
+
+        function escapeHtml(value) {
+            return (value || '').toString()
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function formatList(values) {
+            return values && values.length ? escapeHtml(values.join(', ')) : '<span class="text-muted">-</span>';
+        }
+
+        function initKomisyonTooltips() {
+            document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => new bootstrap.Tooltip(el));
+        }
+
+        function loadKomisyonPersoneller() {
+            $.get('/Birimler/GetKomisyonDetayPersoneller', { komisyonId }, function(data) {
+                renderKomisyonPersoneller(data || []);
+            });
+        }
+
+        function renderKomisyonPersoneller(personeller) {
+            const $body = $('#komisyonPersonelBody');
+            if (!$body.length) return;
+            $body.empty();
+
+            if (!personeller.length) {
+                $body.html('<tr><td colspan="9" class="text-center text-muted py-4"><i class="bx bx-user-x fs-3 d-block mb-2"></i>Bu komisyona henüz personel atanmamış.</td></tr>');
+                return;
+            }
+
+            personeller.forEach(p => {
+                const names = (p.adSoyad || '').split(' ').filter(Boolean);
+                const initials = ((names[0] || '?')[0] || '?') + ((names[names.length - 1] || '')[0] || '');
+                const rowClass = komisyonHighlightPersonelIds.includes(p.personelId) ? 'personel-row-highlight' : '';
+                const href = `/Personel/Detay/${p.personelId}?returnUrl=${komisyonReturnUrl}&returnLabel=${komisyonReturnLabel}`;
+                const avatar = p.fotografYolu
+                    ? `<img src="${escapeHtml(p.fotografYolu)}" alt="${escapeHtml(p.adSoyad)}">`
+                    : `<div class="avatar-circle">${escapeHtml(initials.toUpperCase())}</div>`;
+
+                $body.append(`
+                    <tr class="${rowClass}" data-personel-id="${p.personelId}">
+                        <td onclick="window.location.href='${href}'">${avatar}</td>
+                        <td onclick="window.location.href='${href}'"><span class="fw-bold">${escapeHtml(p.adSoyad)}</span></td>
+                        <td onclick="window.location.href='${href}'">${formatList(p.yazilimlar)}</td>
+                        <td onclick="window.location.href='${href}'">${formatList(p.uzmanliklar)}</td>
+                        <td onclick="window.location.href='${href}'">${formatList(p.gorevTurleri)}</td>
+                        <td onclick="window.location.href='${href}'">${formatList(p.isNitelikleri)}</td>
+                        <td onclick="window.location.href='${href}'">${escapeHtml(p.gorevliIl || '—')}</td>
+                        <td onclick="window.location.href='${href}'">${escapeHtml(p.kadroYeri || '-')}</td>
+                        <td class="text-end">
+                            <div class="personel-actions justify-content-end">
+                                <button type="button" class="btn btn-sm btn-info personel-action-btn text-white" title="Yetkilendir" data-bs-toggle="tooltip" onclick="komisyonYetkilendirAc(${p.personelId}, '${escapeHtml(p.adSoyad)}')">
+                                    <i class="bx bx-user-check"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger personel-action-btn" title="Komisyondan çıkar" data-bs-toggle="tooltip" onclick="komisyonPersonelCikar(${p.personelId})">
+                                    <i class="bx bx-user-minus"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            initKomisyonTooltips();
+
+            if (komisyonHighlightPersonelIds.length) {
+                setTimeout(() => {
+                    $('.personel-row-highlight').removeClass('personel-row-highlight');
+                    komisyonHighlightPersonelIds = [];
+                }, 3000);
+            }
+        }
+
+        function komisyonPersonelEkleAc() {
+            $('#komisyonPersonelAra').val('');
+            $('#komisyonPersonelSelect').empty().append('<option>Personeller yükleniyor...</option>');
+            loadKomisyonEklePersoneller('');
+            komisyonPersonelEkleDrawer.show();
+        }
+
+        function loadKomisyonEklePersoneller(query) {
+            $.get('/Birimler/GetKomisyonEklePersoneller', { komisyonId, q: query || '' }, function(data) {
+                const $select = $('#komisyonPersonelSelect');
+                $select.empty();
+                if (!data || !data.length) {
+                    $select.append('<option value="">Uygun personel bulunamadı</option>');
+                    return;
+                }
+
+                data.forEach(p => {
+                    const label = p.adSoyad + (p.il ? ' - ' + p.il : '');
+                    $select.append(new Option(label, p.personelId));
+                });
+            }).fail(function() {
+                $('#komisyonPersonelSelect').empty().append('<option value="">Personeller yüklenemedi</option>');
+            });
+        }
+
+        function komisyonPersonelEkle() {
+            const personelId = parseInt($('#komisyonPersonelSelect').val(), 10);
+            if (!personelId) {
+                Swal.fire('Personel Seçiniz', 'Eklemek için bir personel seçiniz.', 'warning');
+                return;
+            }
+
+            $('#komisyonPersonelEkleBtn').prop('disabled', true);
+            $.post('/Birimler/KomisyonDetayPersonelEkle', { personelId, komisyonId })
+                .done(function() {
+                    komisyonHighlightPersonelIds = [personelId];
+                    komisyonPersonelEkleDrawer.hide();
+                    loadKomisyonPersoneller();
+                    Swal.fire({ icon: 'success', title: 'Personel eklendi', toast: true, position: 'top-end', timer: 1800, showConfirmButton: false });
+                })
+                .fail(function(xhr) {
+                    Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Personel eklenemedi.', 'error');
+                })
+                .always(function() {
+                    $('#komisyonPersonelEkleBtn').prop('disabled', false);
+                });
+        }
+
+        function komisyonPersonelCikar(personelId) {
+            Swal.fire({
+                title: 'Personel komisyondan çıkarılsın mı?',
+                text: 'Kayıt koordinatörlükte kalır, sadece komisyondan çıkarılır.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Çıkar',
+                cancelButtonText: 'İptal'
+            }).then(result => {
+                if (!result.isConfirmed) return;
+
+                $.post('/Birimler/KomisyonDetayPersonelCikar', { personelId, komisyonId })
+                    .done(function() {
+                        loadKomisyonPersoneller();
+                        Swal.fire({ icon: 'success', title: 'Çıkarıldı', toast: true, position: 'top-end', timer: 1800, showConfirmButton: false });
+                    })
+                    .fail(function(xhr) {
+                        Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Personel çıkarılamadı.', 'error');
+                    });
+            });
+        }
+
+        function komisyonYetkilendirAc(personelId, adSoyad) {
+            $('#yetkiPersonelId').val(personelId);
+            $('#yetkiPersonelAd').text(adSoyad);
+            $('#yetkiMevcutRoller').html('<span class="text-muted">Yetkiler yükleniyor...</span>');
+            $('#yetkiRolSelect').empty();
+
+            $.get('/Birimler/GetKomisyonPersonelYetkiData', { personelId, komisyonId }, function(data) {
+                renderYetkiData(data);
+                komisyonYetkiDrawer.show();
+            }).fail(function(xhr) {
+                Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Yetki bilgileri yüklenemedi.', 'error');
+            });
+        }
+
+        function renderYetkiData(data) {
+            const $roles = $('#yetkiMevcutRoller');
+            $roles.empty();
+
+            if (!data.roles || !data.roles.length) {
+                $roles.html('<span class="text-muted">Bu kapsamda tanımlı yetki bulunmuyor.</span>');
+            } else {
+                data.roles.forEach(role => {
+                    $roles.append(`
+                        <span class="badge bg-label-primary role-chip">
+                            ${escapeHtml(role.rolAd)} <small>${escapeHtml(role.contextAd)}</small>
+                            <button type="button" class="btn-close btn-close-sm ms-1" aria-label="Sil" onclick="komisyonRolSil(${role.assignmentId})"></button>
+                        </span>
+                    `);
+                });
+            }
+
+            const $select = $('#yetkiRolSelect');
+            $select.empty().append('<option value="">Yetki seçiniz</option>');
+            (data.roleOptions || []).forEach(role => $select.append(new Option(role.ad, role.id)));
+        }
+
+        function komisyonRolEkle() {
+            const personelId = parseInt($('#yetkiPersonelId').val(), 10);
+            const kurumsalRolId = parseInt($('#yetkiRolSelect').val(), 10);
+            const scope = $('#yetkiScopeSelect').val();
+
+            if (!personelId || !kurumsalRolId) {
+                Swal.fire('Eksik Bilgi', 'Eklemek için yetki seçiniz.', 'warning');
+                return;
+            }
+
+            $('#yetkiRolEkleBtn').prop('disabled', true);
+            $.post('/Birimler/KomisyonDetayRolEkle', { personelId, kurumsalRolId, komisyonId, scope })
+                .done(function(response) {
+                    if (response && response.warning) {
+                        Swal.fire('Uyarı', response.warning, 'warning');
+                        return;
+                    }
+                    komisyonYetkilendirAc(personelId, $('#yetkiPersonelAd').text());
+                    Swal.fire({ icon: 'success', title: 'Yetki eklendi', toast: true, position: 'top-end', timer: 1600, showConfirmButton: false });
+                })
+                .fail(function(xhr) {
+                    Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Yetki eklenemedi.', 'error');
+                })
+                .always(function() {
+                    $('#yetkiRolEkleBtn').prop('disabled', false);
+                });
+        }
+
+        function komisyonRolSil(assignmentId) {
+            $.post('/Birimler/KomisyonDetayRolSil', { assignmentId, komisyonId })
+                .done(function() {
+                    const personelId = parseInt($('#yetkiPersonelId').val(), 10);
+                    komisyonYetkilendirAc(personelId, $('#yetkiPersonelAd').text());
+                })
+                .fail(function(xhr) {
+                    Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Yetki silinemedi.', 'error');
+                });
+        }
+
         function toggleContainer(element) {
             if (event) event.stopPropagation();
             
