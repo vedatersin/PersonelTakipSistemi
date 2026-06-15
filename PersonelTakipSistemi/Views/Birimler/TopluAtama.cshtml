@@ -43,6 +43,23 @@
         .personel-card.selected .check-badge {
             display: flex;
         }
+        .personel-name {
+            display: block;
+            min-height: 2.35em;
+            line-height: 1.15;
+            white-space: normal;
+            overflow: visible;
+            overflow-wrap: anywhere;
+        }
+        .personel-name.name-long {
+            font-size: 0.85rem;
+        }
+        .personel-name.name-xlong {
+            font-size: 0.76rem;
+        }
+        .personel-name.name-xxlong {
+            font-size: 0.68rem;
+        }
         .sticky-toolbar {
             position: sticky;
             top: 45px; /* Adjust based on your top navbar height */
@@ -148,6 +165,9 @@
         <div class="row row-cols-1 row-cols-md-4 row-cols-lg-5 g-3" id="personelGrid" style="min-height: calc(100vh - 280px); align-content: flex-start;">
             @foreach(var p in Model.Personeller)
             {
+                var fullName = $"{p.Ad} {p.Soyad}";
+                var nameLength = fullName.Length;
+                var nameSizeClass = nameLength > 42 ? "name-xxlong" : nameLength > 34 ? "name-xlong" : nameLength > 26 ? "name-long" : "";
                 <div class="col personel-col" data-search="@p.Ad.ToLower() @p.Soyad.ToLower()" data-city="@(p.GorevliIl?.Ad ?? "")" data-kadro-city="@(p.KadroIl?.Ad ?? "")">
                     <div class="card h-100 personel-card @(!p.AktifMi ? "passive" : "")" onclick="@(!p.AktifMi ? "" : "toggleSelection(this)")" data-id="@p.PersonelId">
                         <div class="card-body text-center">
@@ -164,7 +184,7 @@
                                 </div>
                             }
                             
-                            <h6 class="mb-1 text-truncate">@p.Ad @p.Soyad</h6>
+                            <h6 class="mb-1 personel-name @nameSizeClass" title="@fullName">@fullName</h6>
                             <small class="text-muted d-block text-truncate">@p.Brans?.Ad</small>
                         </div>
                     </div>

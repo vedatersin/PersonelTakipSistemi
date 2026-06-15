@@ -49,6 +49,8 @@ namespace PersonelTakipSistemi.ViewModels
         public string? KadroIlce { get; set; }
         public string Eposta { get; set; } = null!;
         public bool AktifMi { get; set; }
+        public DateTime? GoreveBaslamaTarihi { get; set; }
+        public DateTime? GorevBitisTarihi { get; set; }
         public string? FotografYolu { get; set; }
         
         public List<string> Yazilimlar { get; set; } = new List<string>();

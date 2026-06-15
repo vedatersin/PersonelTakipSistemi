@@ -66,6 +66,9 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             personel.SistemRolId = targetRole.SistemRolId;
+            personel.YetkiliModlar = string.Equals(targetRole.Ad, "Admin", StringComparison.OrdinalIgnoreCase)
+                ? SerializeModeList(null, defaultToMaster: true)
+                : null;
             await _context.SaveChangesAsync();
 
             try
@@ -240,6 +243,9 @@ namespace PersonelTakipSistemi.Controllers
                         if (sistemRol != null)
                         {
                             personel.SistemRolId = sistemRol.SistemRolId;
+                            personel.YetkiliModlar = string.Equals(sistemRol.Ad, "Admin", StringComparison.OrdinalIgnoreCase)
+                                ? SerializeModeList(dto.YetkiliModlar, defaultToMaster: true)
+                                : null;
                         }
                     }
 
@@ -398,6 +404,27 @@ namespace PersonelTakipSistemi.Controllers
             {
                 return Content($"Hata: {ex.Message}");
             }
+        }
+
+        private static List<string> NormalizeModeList(IEnumerable<string>? modes)
+        {
+            var allowed = new[] { "program", "komisyon", "master" };
+            return (modes ?? Enumerable.Empty<string>())
+                .Select(x => (x ?? string.Empty).Trim().ToLowerInvariant())
+                .Where(x => allowed.Contains(x))
+                .Distinct()
+                .ToList();
+        }
+
+        private static string? SerializeModeList(IEnumerable<string>? modes, bool defaultToMaster = false)
+        {
+            var normalized = NormalizeModeList(modes);
+            if (normalized.Count == 0 && defaultToMaster)
+            {
+                normalized.Add("master");
+            }
+
+            return normalized.Count == 0 ? null : string.Join(",", normalized);
         }
     }
 }

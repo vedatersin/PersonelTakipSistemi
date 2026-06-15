@@ -10,5 +10,6 @@ namespace PersonelTakipSistemi.Dtos
         public bool OkunduMu { get; set; }
         public string GonderenAdSoyad { get; set; } = "Sistem";
         public string? GonderenKurumsalRolOzet { get; set; }
+        public string? GonderenFotoUrl { get; set; }
     }
 }

@@ -1,6 +1,9 @@
 ﻿@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
 @{
     var antiForgeryToken = Antiforgery.GetAndStoreTokens(Context).RequestToken;
+    var currentPersonelId = User.FindFirst("PersonelId")?.Value
+        ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+        ?? string.Empty;
 }
 <!doctype html>
 <html lang="en" class="layout-menu-fixed layout-compact" data-assets-path="/sevilay-tema/assets/" data-template="vertical-menu-template-free">
@@ -42,7 +45,7 @@
 
   <!-- Page CSS -->
   @await RenderSectionAsync("Styles", required: false)
-  <link rel="stylesheet" href="~/css/site.css?v=5" />
+  <link rel="stylesheet" href="~/css/site.css?v=10" />
   <link rel="stylesheet" href="~/css/bildirimler.css" />
 
   <!-- Helpers -->
@@ -118,6 +121,9 @@
   <!-- SweetAlert2 -->
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   
+  <script>
+    window.personelTakipCurrentUserId = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(currentPersonelId));
+  </script>
   <script src="~/js/bildirimler.js" asp-append-version="true"></script>
 
   <!-- Vendors JS -->

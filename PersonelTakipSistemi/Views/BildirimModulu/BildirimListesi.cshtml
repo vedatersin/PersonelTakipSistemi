@@ -1,0 +1,110 @@
+@model PersonelTakipSistemi.ViewModels.BildirimListeViewModel
+@{
+    ViewData["Title"] = "Bildirimler Listesi";
+}
+
+@section Styles {
+    <style>
+        .delivery-state {
+            display: inline-flex;
+            align-items: center;
+            gap: .22rem;
+            white-space: nowrap;
+        }
+        .delivery-ticks {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            font-size: 1rem;
+            font-weight: 900;
+            line-height: 1;
+            vertical-align: -0.08em;
+        }
+        .delivery-ticks i {
+            font-weight: 900;
+            -webkit-text-stroke: .65px currentColor;
+        }
+        .delivery-ticks i + i {
+            margin-left: -0.45rem;
+        }
+        .delivery-ticks.text-primary {
+            color: #008cff !important;
+        }
+        .delivery-separator {
+            color: #9aa3ad;
+            margin: 0 .18rem;
+        }
+    </style>
+}
+
+<div class="card">
+    <div class="card-header d-flex flex-wrap gap-3 justify-content-between align-items-center">
+        <div>
+            <h5 class="mb-1">Bildirimler Listesi</h5>
+            <div class="text-muted small">Gönderilmiş tüm bildirimler</div>
+        </div>
+        <form method="get" class="d-flex gap-2">
+            <input type="text" name="q" value="@Model.Search" class="form-control" placeholder="Başlık, alıcı, gönderen ara..." style="min-width: 280px;" />
+            <button type="submit" class="btn btn-primary"><i class="bx bx-search me-1"></i>Ara</button>
+        </form>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Başlık</th>
+                    <th>Alıcı</th>
+                    <th>Gönderen</th>
+                    <th>Tip</th>
+                    <th>Gönderim</th>
+                    <th>Durum</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items.Any())
+                {
+                    foreach (var item in Model.Items)
+                    {
+                        <tr onclick="window.location.href='@Url.Action("Detay", "BildirimModulu", new { id = item.BildirimId })'" style="cursor:pointer;">
+                            <td class="fw-semibold">@item.Baslik</td>
+                            <td>@item.AliciAdSoyad</td>
+                            <td>@item.GonderenAdSoyad</td>
+                            <td><span class="badge bg-label-secondary">@item.Tip</span></td>
+                            <td>@item.GonderimTarihi.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>
+                                <span class="delivery-state">
+                                    <span class="fw-semibold">@item.Durum</span>
+                                    <span class="delivery-ticks @item.TickClass">
+                                        @for (var i = 0; i < item.TickCount; i++)
+                                        {
+                                            <i class="bx bx-check"></i>
+                                        }
+                                    </span>
+                                    <span class="delivery-separator">-</span>
+                                    <span class="text-muted small">@(item.DurumTarihi?.ToString("dd.MM.yyyy HH:mm") ?? "-")</span>
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Bildirim bulunamadı.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="card-footer d-flex justify-content-between align-items-center">
+            <span class="text-muted small">@Model.TotalItems kayıt</span>
+            <div class="btn-group">
+                <a class="btn btn-outline-secondary @(Model.Page <= 1 ? "disabled" : "")" href="@Url.Action("BildirimListesi", new { page = Model.Page - 1, q = Model.Search })">Önceki</a>
+                <span class="btn btn-label-secondary">@Model.Page / @Model.TotalPages</span>
+                <a class="btn btn-outline-secondary @(Model.Page >= Model.TotalPages ? "disabled" : "")" href="@Url.Action("BildirimListesi", new { page = Model.Page + 1, q = Model.Search })">Sonraki</a>
+            </div>
+        </div>
+    }
+</div>

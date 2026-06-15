@@ -6,6 +6,8 @@ namespace PersonelTakipSistemi.Models.ViewModels
     {
         public int Id { get; set; }
         public int GorevTuruId { get; set; }
+        public bool PersonelGorevListesindenGizlensinMi { get; set; }
+        public bool SadeceAdminGorebilirMi { get; set; }
     }
 
     public class GorevAtamaViewModel
@@ -40,11 +42,20 @@ namespace PersonelTakipSistemi.Models.ViewModels
         // Optional: assignment role info (Görev Rolü)
         public int? GorevTuruId { get; set; }
         public string? GorevTuruAd { get; set; }
+        public bool PersonelGorevListesindenGizlensinMi { get; set; }
+        public bool SadeceAdminGorebilirMi { get; set; }
     }
 
     public class GorevDurumUpdateViewModel
     {
         public int GorevId { get; set; }
+        public int DurumId { get; set; }
+        public string? Aciklama { get; set; }
+    }
+
+    public class GorevDurumGecmisiUpdateViewModel
+    {
+        public int Id { get; set; }
         public int DurumId { get; set; }
         public string? Aciklama { get; set; }
     }

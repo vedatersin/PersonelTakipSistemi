@@ -1,0 +1,924 @@
+﻿@{
+    ViewData["Title"] = "Öğrenci Profili Yönetimi";
+}
+
+@section Styles {
+    <style>
+        .profile-management {
+            --pm-fg: #25324b;
+            --pm-muted: #697a8d;
+            --pm-border: #d9e2ef;
+            --pm-soft: #f5f8fd;
+            --pm-blue: #2563eb;
+            --pm-danger: #dc2626;
+            color: var(--pm-fg);
+        }
+
+        .profile-management-summary,
+        .profile-management-panel {
+            border-radius: 0.5rem;
+            background: #fff;
+            box-shadow: 0 0.25rem 1rem rgba(67, 89, 113, 0.08);
+        }
+
+        .profile-management-summary {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            min-height: 98px;
+            padding: 1.35rem 1.5rem;
+        }
+
+        .profile-management-summary h4 {
+            margin: 0 0 0.35rem;
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .profile-management-summary p {
+            margin: 0;
+            color: var(--pm-muted);
+            font-weight: 600;
+        }
+
+        .profile-management-stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        .profile-management-stats span {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0.25rem 0.65rem;
+            border-radius: 0.45rem;
+            background: var(--pm-soft);
+            color: #526579;
+            font-size: 0.84rem;
+            font-weight: 800;
+        }
+
+        .profile-management-panel {
+            overflow: hidden;
+            margin-top: 1.25rem;
+            border: 1px solid var(--pm-border);
+        }
+
+        .profile-management-filters {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: end;
+            gap: 0.7rem;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--pm-border);
+        }
+
+        .profile-management-filter {
+            display: grid;
+            gap: 0.25rem;
+            min-width: 190px;
+        }
+
+        .profile-management-filter label {
+            margin: 0;
+            color: var(--pm-muted);
+            font-size: 0.74rem;
+            font-weight: 800;
+        }
+
+        .profile-management-filter select,
+        .profile-management-filter input {
+            min-height: 36px;
+            border: 1px solid var(--pm-border);
+            border-radius: 0.45rem;
+            padding: 0.35rem 0.6rem;
+            background: #fff;
+            color: var(--pm-fg);
+            font-size: 0.86rem;
+            font-weight: 700;
+        }
+
+        .profile-management-add {
+            margin-left: auto;
+        }
+
+        .profile-management-primary-btn,
+        .profile-management-page-btn,
+        .profile-management-action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.35rem;
+            border: 1px solid var(--pm-border);
+            border-radius: 0.4rem;
+            background: #fff;
+            color: #345;
+            font-size: 0.84rem;
+            font-weight: 800;
+        }
+
+        .profile-management-primary-btn {
+            min-width: 150px;
+            min-height: 38px;
+            padding: 0.45rem 1.1rem;
+            border-color: #16a34a;
+            background: #16a34a;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .profile-management-primary-btn:hover {
+            border-color: #15803d;
+            background: #15803d;
+            color: #fff;
+        }
+
+        .profile-management-table-wrap {
+            overflow-x: auto;
+            overflow-y: visible;
+        }
+
+        .profile-management-table {
+            width: 100%;
+            min-width: 1160px;
+            border-collapse: collapse;
+        }
+
+        .profile-management-table th {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            padding: 0.8rem 1rem;
+            background: #eff6ff;
+            color: #1e3a8a;
+            font-size: 0.78rem;
+            font-weight: 900;
+            text-align: left;
+            text-transform: uppercase;
+        }
+
+        .profile-management-table td {
+            padding: 0.85rem 1rem;
+            border-top: 1px solid #edf1f7;
+            color: #34495e;
+            font-weight: 650;
+            vertical-align: top;
+        }
+
+        .profile-management-table tr:hover td {
+            background: #f8fbff;
+        }
+
+        .profile-pill {
+            display: inline-flex;
+            align-items: center;
+            margin: 0 0.25rem 0.25rem 0;
+            padding: 0.18rem 0.5rem;
+            border-radius: 999px;
+            background: #eaf3ff;
+            color: #1d4ed8;
+            font-size: 0.78rem;
+            font-weight: 800;
+        }
+
+        .profile-management-empty {
+            padding: 2rem;
+            color: var(--pm-muted);
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .profile-management-actions {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.35rem;
+            white-space: nowrap;
+        }
+
+        .profile-management-action-btn {
+            width: 42px;
+            height: 42px;
+            padding: 0;
+            color: #fff;
+            font-size: 1.35rem;
+            font-weight: 900;
+        }
+
+        .profile-management-action-btn.is-edit {
+            border-color: #2563eb;
+            background: #2563eb;
+        }
+
+        .profile-management-action-btn.is-edit:hover {
+            border-color: #1d4ed8;
+            background: #1d4ed8;
+            color: #fff;
+        }
+
+        .profile-management-action-btn.is-danger {
+            border-color: #dc2626;
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .profile-management-action-btn.is-danger:hover {
+            border-color: #b91c1c;
+            background: #b91c1c;
+            color: #fff;
+        }
+
+        .profile-modal-control {
+            width: 100%;
+        }
+
+        .profile-support-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.55rem;
+            padding: 0.75rem;
+            border: 1px solid var(--pm-border);
+            border-radius: 0.5rem;
+            background: #f8fbff;
+        }
+
+        .profile-support-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            min-height: 34px;
+            margin: 0;
+            color: #34495e;
+            font-weight: 800;
+        }
+
+        .profile-support-option input {
+            width: 1.05rem;
+            height: 1.05rem;
+        }
+
+        @@media (max-width: 575.98px) {
+            .profile-support-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .profile-management-pagination {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.85rem 1.25rem;
+            border-top: 1px solid var(--pm-border);
+            background: #fff;
+        }
+
+        .profile-management-page-left {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .profile-management-page-size {
+            min-height: 34px;
+            border: 1px solid var(--pm-border);
+            border-radius: 0.4rem;
+            padding: 0.25rem 0.6rem;
+            background: #fff;
+            color: var(--pm-fg);
+            font-size: 0.84rem;
+            font-weight: 800;
+        }
+
+        .profile-management-page-info {
+            color: var(--pm-muted);
+            font-size: 0.86rem;
+            font-weight: 750;
+        }
+
+        .profile-management-page-buttons {
+            display: inline-flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.35rem;
+        }
+
+        .profile-management-page-btn {
+            min-width: 34px;
+            min-height: 34px;
+            padding: 0.25rem 0.6rem;
+        }
+
+        .profile-management-page-btn:hover:not(:disabled),
+        .profile-management-page-btn.is-active {
+            border-color: #bfdbfe;
+            background: #eaf3ff;
+            color: #1d4ed8;
+        }
+
+        .profile-management-page-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+    </style>
+}
+
+<div class="profile-management">
+    <h4 class="fw-normal mb-4">Program Geliştirme Modülü / <span class="fw-bold">Öğrenci Profili Yönetimi</span></h4>
+
+    <section class="profile-management-summary">
+        <div>
+            <h4>Öğrenci Profili Yönetimi</h4>
+            <p>Kayıt, tema ve profil eşleşmeleri.</p>
+        </div>
+        <div id="profileManagementStats" class="profile-management-stats" aria-live="polite"></div>
+    </section>
+
+    <section class="profile-management-panel">
+        <div class="profile-management-filters">
+            <div class="profile-management-filter">
+                <label for="categoryFilter">Kategori</label>
+                <select id="categoryFilter"></select>
+            </div>
+            <div class="profile-management-filter">
+                <label for="lessonFilter">Ders</label>
+                <select id="lessonFilter"></select>
+            </div>
+            <div class="profile-management-filter">
+                <label for="classFilter">Sınıf</label>
+                <select id="classFilter"></select>
+            </div>
+            <div class="profile-management-filter" style="min-width: 260px;">
+                <label for="searchFilter">Arama</label>
+                <input id="searchFilter" type="search" placeholder="Tema veya profil ara">
+            </div>
+            <button id="addProfileRecordBtn" type="button" class="profile-management-primary-btn profile-management-add">
+                <i class="bx bx-plus"></i>
+                <span>Yeni Ekle</span>
+            </button>
+        </div>
+        <div class="profile-management-table-wrap">
+            <table class="profile-management-table">
+                <thead>
+                    <tr>
+                        <th>Kategori</th>
+                        <th>Ders</th>
+                        <th>Sınıf</th>
+                        <th>Tema</th>
+                        <th>Ana Profil</th>
+                        <th>Destekleyici Profil</th>
+                        <th>İşlem</th>
+                    </tr>
+                </thead>
+                <tbody id="profileManagementRows"></tbody>
+            </table>
+        </div>
+        <div class="profile-management-pagination">
+            <div class="profile-management-page-left">
+                <div id="profileManagementPageInfo" class="profile-management-page-info"></div>
+                <select id="pageSizeFilter" class="profile-management-page-size" aria-label="Kayıt sayısı">
+                    <option value="10" selected>10 kayıt</option>
+                    <option value="20">20 kayıt</option>
+                    <option value="50">50 kayıt</option>
+                </select>
+            </div>
+            <div id="profileManagementPagination" class="profile-management-page-buttons"></div>
+        </div>
+    </section>
+</div>
+
+<div class="modal fade" id="profileRecordModal" tabindex="-1" aria-labelledby="profileRecordModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="profileRecordModalTitle">Öğrenci Profili Kaydı</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="modalCategory" class="form-label fw-bold">Kategori</label>
+                        <select id="modalCategory" class="form-select profile-modal-control" data-modal-field="kategori"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="modalLesson" class="form-label fw-bold">Ders</label>
+                        <select id="modalLesson" class="form-select profile-modal-control" data-modal-field="ders"></select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="modalClassLevel" class="form-label fw-bold">Sınıf</label>
+                        <select id="modalClassLevel" class="form-select profile-modal-control" data-modal-field="sinif"></select>
+                    </div>
+                    <div class="col-12">
+                        <label for="modalTheme" class="form-label fw-bold">Tema</label>
+                        <select id="modalTheme" class="form-select profile-modal-control" data-modal-field="unite"></select>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="modalMainProfile" class="form-label fw-bold">Ana Profil</label>
+                        <select id="modalMainProfile" class="form-select profile-modal-control" data-modal-field="anaProfil"></select>
+                    </div>
+                    <div class="col-md-7">
+                        <label class="form-label fw-bold">Destekleyici Profil</label>
+                        <div id="modalSupportProfiles" class="profile-support-grid"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Vazgeç</button>
+                <button id="saveProfileRecordBtn" type="button" class="btn btn-primary">
+                    <i class="bx bx-check me-1"></i>Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/ogrenci-profili-store.js" asp-append-version="true"></script>
+    <script>
+        (() => {
+            const dataUrl = '/data/ogrenci_profili_ag_verisi.json';
+            const storageKey = 'tegm-ogrenci-profili-yonetimi-records-v1';
+            const records = [];
+            let definitions = {
+                categories: [],
+                lessons: [],
+                classes: [],
+                themes: []
+            };
+            const profileOptions = [];
+            const filters = {
+                category: '',
+                lesson: '',
+                classLevel: '',
+                search: ''
+            };
+            const pagination = {
+                pageSize: 10,
+                currentPage: 1
+            };
+            const editState = {
+                id: null,
+                isNew: false
+            };
+
+            const elements = {
+                stats: document.getElementById('profileManagementStats'),
+                category: document.getElementById('categoryFilter'),
+                lesson: document.getElementById('lessonFilter'),
+                classLevel: document.getElementById('classFilter'),
+                search: document.getElementById('searchFilter'),
+                pageSize: document.getElementById('pageSizeFilter'),
+                rows: document.getElementById('profileManagementRows'),
+                pageInfo: document.getElementById('profileManagementPageInfo'),
+                pagination: document.getElementById('profileManagementPagination'),
+                addButton: document.getElementById('addProfileRecordBtn'),
+                modal: document.getElementById('profileRecordModal'),
+                modalTitle: document.getElementById('profileRecordModalTitle'),
+                modalCategory: document.getElementById('modalCategory'),
+                modalLesson: document.getElementById('modalLesson'),
+                modalClassLevel: document.getElementById('modalClassLevel'),
+                modalTheme: document.getElementById('modalTheme'),
+                modalMainProfile: document.getElementById('modalMainProfile'),
+                modalSupportProfiles: document.getElementById('modalSupportProfiles'),
+                modalSave: document.getElementById('saveProfileRecordBtn')
+            };
+            const recordModal = bootstrap.Modal.getOrCreateInstance(elements.modal);
+
+            function escapeHtml(value) {
+                return (value || '').toString().replace(/[&<>"']/g, char => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[char]));
+            }
+
+            function unique(values) {
+                return [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'tr'));
+            }
+
+            function makeRecordId(record, index) {
+                return [
+                    'record',
+                    index,
+                    record.kategori,
+                    record.ders,
+                    record.sinif,
+                    record.unite
+                ].join('|');
+            }
+
+            function normalizeRecord(record, index) {
+                return {
+                    ...record,
+                    id: record.id || makeRecordId(record, index),
+                    anaProfiller: Array.isArray(record.anaProfiller) ? record.anaProfiller : [],
+                    destekProfiller: Array.isArray(record.destekProfiller) ? record.destekProfiller : []
+                };
+            }
+
+            function loadStoredRecords(baseRecords) {
+                const raw = localStorage.getItem(storageKey);
+                if (!raw) return baseRecords;
+                try {
+                    const stored = JSON.parse(raw);
+                    return Array.isArray(stored) ? stored.map(normalizeRecord) : baseRecords;
+                } catch {
+                    return baseRecords;
+                }
+            }
+
+            function saveRecords() {
+                window.OgrenciProfiliStore.saveRecords(records);
+            }
+
+            function fillSelect(select, values, allLabel, selectedValue) {
+                select.innerHTML = `<option value="">${allLabel}</option>` + values.map(value => {
+                    const selected = value === selectedValue ? 'selected' : '';
+                    return `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(value)}</option>`;
+                }).join('');
+            }
+
+            function optionList(values, selectedValue) {
+                return values.map(value => {
+                    const selected = value === selectedValue ? 'selected' : '';
+                    return `<option value="${escapeHtml(value)}" ${selected}>${escapeHtml(value)}</option>`;
+                }).join('');
+            }
+
+            function categoryValues() {
+                return definitions.categories.map(item => item.name);
+            }
+
+            function lessonValues(category) {
+                const categoryItem = definitions.categories.find(item => item.name === category);
+                return definitions.lessons
+                    .filter(item => !categoryItem || item.categoryId === categoryItem.id)
+                    .map(item => item.name);
+            }
+
+            function classValues(category, lesson) {
+                const categoryItem = definitions.categories.find(item => item.name === category);
+                const lessonItem = definitions.lessons.find(item => item.name === lesson && (!categoryItem || item.categoryId === categoryItem.id));
+                return definitions.classes
+                    .filter(item =>
+                        (!categoryItem || item.categoryId === categoryItem.id)
+                        && (!lessonItem || item.lessonId === lessonItem.id))
+                    .map(item => item.name);
+            }
+
+            function themeValues(category, lesson, classLevel) {
+                const categoryItem = definitions.categories.find(item => item.name === category);
+                const lessonItem = definitions.lessons.find(item => item.name === lesson && (!categoryItem || item.categoryId === categoryItem.id));
+                const classItem = definitions.classes.find(item =>
+                    item.name === classLevel
+                    && (!categoryItem || item.categoryId === categoryItem.id)
+                    && (!lessonItem || item.lessonId === lessonItem.id));
+                return definitions.themes
+                    .filter(item =>
+                        (!categoryItem || item.categoryId === categoryItem.id)
+                        && (!lessonItem || item.lessonId === lessonItem.id)
+                        && (!classItem || item.classId === classItem.id))
+                    .map(item => item.name);
+            }
+
+            function filteredRecords() {
+                const needle = filters.search.trim().toLocaleLowerCase('tr');
+                return records.filter(record => {
+                    if (filters.category && record.kategori !== filters.category) return false;
+                    if (filters.lesson && record.ders !== filters.lesson) return false;
+                    if (filters.classLevel && record.sinif !== filters.classLevel) return false;
+                    if (!needle) return true;
+                    return [
+                        record.unite,
+                        record.anaProfilRaw,
+                        record.destekProfilRaw,
+                        ...(record.anaProfiller || []),
+                        ...(record.destekProfiller || [])
+                    ].join(' ').toLocaleLowerCase('tr').includes(needle);
+                });
+            }
+
+            function renderFilters() {
+                const categories = categoryValues();
+                const lessons = lessonValues(filters.category);
+                if (filters.lesson && !lessons.includes(filters.lesson)) filters.lesson = '';
+
+                const classes = classValues(filters.category, filters.lesson);
+                if (filters.classLevel && !classes.includes(filters.classLevel)) filters.classLevel = '';
+
+                fillSelect(elements.category, categories, 'Tüm kategoriler', filters.category);
+                fillSelect(elements.lesson, lessons, 'Tüm dersler', filters.lesson);
+                fillSelect(elements.classLevel, classes, 'Tüm sınıflar', filters.classLevel);
+            }
+
+            function renderStats(items) {
+                const lessons = unique(items.map(record => record.ders)).length;
+                const themes = unique(items.map(record => `${record.kategori}|${record.ders}|${record.sinif}|${record.unite}`)).length;
+                const profiles = unique(items.flatMap(record => [...(record.anaProfiller || []), ...(record.destekProfiller || [])])).length;
+                elements.stats.innerHTML = `
+                    <span>${items.length} kayıt</span>
+                    <span>${lessons} ders</span>
+                    <span>${themes} tema</span>
+                    <span>${profiles} profil</span>
+                `;
+            }
+
+            function renderProfilePills(values) {
+                return (values || []).map(profile => `<span class="profile-pill">${escapeHtml(profile)}</span>`).join('');
+            }
+
+            function rowActions(record) {
+                return `
+                    <span class="profile-management-actions">
+                        <button type="button" class="profile-management-action-btn is-edit" data-edit-id="${escapeHtml(record.id)}" title="Düzenle">
+                            <i class="bx bx-edit"></i>
+                        </button>
+                        <button type="button" class="profile-management-action-btn is-danger" data-delete-id="${escapeHtml(record.id)}" title="Sil">
+                            <i class="bx bx-trash"></i>
+                        </button>
+                    </span>
+                `;
+            }
+
+            function renderRows(items) {
+                if (!items.length) {
+                    elements.rows.innerHTML = '<tr><td colspan="7"><div class="profile-management-empty">Kayıt bulunamadı.</div></td></tr>';
+                    return;
+                }
+
+                elements.rows.innerHTML = items.map(record => `
+                        <tr>
+                            <td>${escapeHtml(record.kategori)}</td>
+                            <td>${escapeHtml(record.ders)}</td>
+                            <td>${escapeHtml(record.sinif)}</td>
+                            <td>${escapeHtml(record.unite)}</td>
+                            <td>${renderProfilePills(record.anaProfiller)}</td>
+                            <td>${renderProfilePills(record.destekProfiller)}</td>
+                            <td>${rowActions(record)}</td>
+                        </tr>
+                    `).join('');
+            }
+
+            function defaultModalRecord() {
+                const kategori = filters.category || categoryValues()[0] || '';
+                const ders = filters.lesson || lessonValues(kategori)[0] || '';
+                const sinif = filters.classLevel || classValues(kategori, ders)[0] || '';
+                return {
+                    id: 'new',
+                    kategori,
+                    ders,
+                    sinif,
+                    unite: '',
+                    anaProfiller: [profileOptions[0]].filter(Boolean),
+                    destekProfiller: []
+                };
+            }
+
+            function renderSupportCheckboxes(selectedValues) {
+                const selectedSet = new Set(selectedValues || []);
+                elements.modalSupportProfiles.innerHTML = profileOptions.map(profile => `
+                    <label class="profile-support-option">
+                        <input class="form-check-input" type="checkbox" value="${escapeHtml(profile)}" ${selectedSet.has(profile) ? 'checked' : ''}>
+                        <span>${escapeHtml(profile)}</span>
+                    </label>
+                `).join('');
+            }
+
+            function updateModalLessonAndClass(selectedLesson, selectedClass) {
+                const kategori = elements.modalCategory.value;
+                const lessons = lessonValues(kategori);
+                if (selectedLesson && !lessons.includes(selectedLesson)) lessons.push(selectedLesson);
+                elements.modalLesson.innerHTML = optionList(lessons, selectedLesson || lessons[0] || '');
+
+                const lesson = elements.modalLesson.value;
+                const classes = classValues(kategori, lesson);
+                if (selectedClass && !classes.includes(selectedClass)) classes.push(selectedClass);
+                elements.modalClassLevel.innerHTML = optionList(classes, selectedClass || classes[0] || '');
+            }
+
+            function updateModalThemes(selectedTheme) {
+                const themes = themeValues(
+                    elements.modalCategory.value,
+                    elements.modalLesson.value,
+                    elements.modalClassLevel.value
+                );
+                if (selectedTheme && !themes.includes(selectedTheme)) themes.push(selectedTheme);
+                elements.modalTheme.innerHTML = optionList(themes, selectedTheme || themes[0] || '');
+            }
+
+            function openRecordModal(record) {
+                const model = record || defaultModalRecord();
+                editState.id = record ? record.id : 'new';
+                editState.isNew = !record;
+                elements.modalTitle.textContent = record ? 'Öğrenci Profili Kaydını Düzenle' : 'Yeni Öğrenci Profili Kaydı';
+                elements.modalCategory.innerHTML = optionList(categoryValues(), model.kategori);
+                updateModalLessonAndClass(model.ders, model.sinif);
+                updateModalThemes(model.unite || '');
+                elements.modalMainProfile.innerHTML = optionList(profileOptions, (model.anaProfiller || [])[0] || '');
+                renderSupportCheckboxes(model.destekProfiller || []);
+                recordModal.show();
+            }
+
+            function renderPagination(totalCount, visibleCount, startIndex, totalPages) {
+                if (!totalCount) {
+                    elements.pageInfo.textContent = 'Kayıt bulunamadı';
+                    elements.pagination.innerHTML = '';
+                    return;
+                }
+
+                const endIndex = startIndex + visibleCount;
+                elements.pageInfo.textContent = `${totalCount} kayıttan ${startIndex + 1}-${endIndex} arası gösteriliyor`;
+
+                const pages = [];
+                for (let page = 1; page <= totalPages; page++) {
+                    if (page === 1 || page === totalPages || Math.abs(page - pagination.currentPage) <= 1) {
+                        pages.push(page);
+                    }
+                }
+
+                const parts = [];
+                parts.push(`<button type="button" class="profile-management-page-btn" data-page-action="prev" ${pagination.currentPage === 1 ? 'disabled' : ''}>Önceki</button>`);
+                let previousPage = 0;
+                pages.forEach(page => {
+                    if (previousPage && page - previousPage > 1) {
+                        parts.push('<span class="profile-management-page-info px-1">...</span>');
+                    }
+                    parts.push(`<button type="button" class="profile-management-page-btn ${page === pagination.currentPage ? 'is-active' : ''}" data-page="${page}">${page}</button>`);
+                    previousPage = page;
+                });
+                parts.push(`<button type="button" class="profile-management-page-btn" data-page-action="next" ${pagination.currentPage === totalPages ? 'disabled' : ''}>Sonraki</button>`);
+                elements.pagination.innerHTML = parts.join('');
+            }
+
+            function render() {
+                renderFilters();
+                const items = filteredRecords();
+                const totalPages = Math.max(1, Math.ceil(items.length / pagination.pageSize));
+                if (pagination.currentPage > totalPages) pagination.currentPage = totalPages;
+                if (pagination.currentPage < 1) pagination.currentPage = 1;
+                const startIndex = (pagination.currentPage - 1) * pagination.pageSize;
+                const pageItems = items.slice(startIndex, startIndex + pagination.pageSize);
+                renderStats(items);
+                renderRows(pageItems);
+                renderPagination(items.length, pageItems.length, startIndex, totalPages);
+            }
+
+            function collectModalRecord() {
+                return {
+                    id: editState.isNew ? `custom-${Date.now()}` : editState.id,
+                    kategori: elements.modalCategory.value || '',
+                    ders: elements.modalLesson.value || '',
+                    sinif: elements.modalClassLevel.value || '',
+                    unite: elements.modalTheme.value || '',
+                    anaProfiller: [elements.modalMainProfile.value].filter(Boolean),
+                    destekProfiller: Array.from(elements.modalSupportProfiles.querySelectorAll('input:checked')).map(input => input.value)
+                };
+            }
+
+            function saveEdit() {
+                const updated = collectModalRecord();
+                if (!updated || !updated.kategori || !updated.ders || !updated.sinif || !updated.unite || !updated.anaProfiller.length) {
+                    alert('Kategori, ders, sınıf, tema ve ana profil alanlarını doldurun.');
+                    return;
+                }
+
+                updated.anaProfilRaw = updated.anaProfiller.join(', ');
+                updated.destekProfilRaw = updated.destekProfiller.join(', ');
+
+                if (editState.isNew) {
+                    records.unshift(updated);
+                    pagination.currentPage = 1;
+                } else {
+                    const index = records.findIndex(record => record.id === updated.id);
+                    if (index >= 0) {
+                        records[index] = { ...records[index], ...updated };
+                    }
+                }
+                editState.id = null;
+                editState.isNew = false;
+                saveRecords();
+                recordModal.hide();
+                render();
+            }
+
+            function deleteRecord(id) {
+                if (!confirm('Bu kaydı silmek istiyor musunuz?')) return;
+                const index = records.findIndex(record => record.id === id);
+                if (index >= 0) {
+                    records.splice(index, 1);
+                    saveRecords();
+                    if (editState.id === id) {
+                        editState.id = null;
+                        editState.isNew = false;
+                    }
+                    render();
+                }
+            }
+
+            function resetToFirstPage() {
+                pagination.currentPage = 1;
+                editState.id = null;
+                editState.isNew = false;
+            }
+
+            elements.category.addEventListener('change', event => {
+                filters.category = event.target.value;
+                filters.lesson = '';
+                filters.classLevel = '';
+                resetToFirstPage();
+                render();
+            });
+            elements.lesson.addEventListener('change', event => {
+                filters.lesson = event.target.value;
+                filters.classLevel = '';
+                resetToFirstPage();
+                render();
+            });
+            elements.classLevel.addEventListener('change', event => {
+                filters.classLevel = event.target.value;
+                resetToFirstPage();
+                render();
+            });
+            elements.search.addEventListener('input', event => {
+                filters.search = event.target.value;
+                resetToFirstPage();
+                render();
+            });
+            elements.pageSize.addEventListener('change', event => {
+                pagination.pageSize = Number(event.target.value) || 10;
+                resetToFirstPage();
+                render();
+            });
+            elements.pagination.addEventListener('click', event => {
+                const button = event.target.closest('button');
+                if (!button || button.disabled) return;
+
+                const page = Number(button.dataset.page);
+                if (page) {
+                    pagination.currentPage = page;
+                } else if (button.dataset.pageAction === 'prev') {
+                    pagination.currentPage -= 1;
+                } else if (button.dataset.pageAction === 'next') {
+                    pagination.currentPage += 1;
+                }
+                editState.id = null;
+                editState.isNew = false;
+                render();
+            });
+            elements.addButton.addEventListener('click', () => {
+                openRecordModal(null);
+            });
+            elements.rows.addEventListener('click', event => {
+                const editButton = event.target.closest('[data-edit-id]');
+                if (editButton) {
+                    const record = records.find(item => item.id === editButton.dataset.editId);
+                    if (record) openRecordModal(record);
+                    return;
+                }
+
+                const deleteButton = event.target.closest('[data-delete-id]');
+                if (deleteButton) {
+                    deleteRecord(deleteButton.dataset.deleteId);
+                    return;
+                }
+
+            });
+            elements.modalCategory.addEventListener('change', () => {
+                updateModalLessonAndClass('', '');
+                updateModalThemes('');
+            });
+            elements.modalLesson.addEventListener('change', () => {
+                const classes = classValues(elements.modalCategory.value, elements.modalLesson.value);
+                elements.modalClassLevel.innerHTML = optionList(classes, classes[0] || '');
+                updateModalThemes('');
+            });
+            elements.modalClassLevel.addEventListener('change', () => {
+                updateModalThemes('');
+            });
+            elements.modalSave.addEventListener('click', saveEdit);
+
+            window.OgrenciProfiliStore.loadData(dataUrl)
+                .then(data => {
+                    const loadedRecords = data.records || [];
+                    definitions = data.definitions || window.OgrenciProfiliStore.buildDefinitions(loadedRecords);
+                    const profiles = unique(loadedRecords.flatMap(record => [...(record.anaProfiller || []), ...(record.destekProfiller || [])]));
+                    records.splice(0, records.length, ...loadedRecords);
+                    profileOptions.splice(0, profileOptions.length, ...profiles);
+                    render();
+                })
+                .catch(() => {
+                    elements.rows.innerHTML = '<tr><td colspan="7"><div class="profile-management-empty">Kayıtlar yüklenemedi.</div></td></tr>';
+                });
+        })();
+    </script>
+}
+

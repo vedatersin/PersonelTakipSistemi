@@ -18,6 +18,7 @@ namespace PersonelTakipSistemi.Controllers
     public class GorevlerController : Controller
     {
         private static readonly int[] HighLevelRoleIds = [7, 8, 9, 10];
+        private static readonly int[] CoordinatorAssignmentRoleIds = [3, 4, 5, 14];
 
         private readonly TegmPersonelTakipDbContext _context;
         private readonly Services.ILogService _logService;
@@ -93,6 +94,11 @@ namespace PersonelTakipSistemi.Controllers
 
             if (onlyActive) query = query.Where(x => x.IsActive);
 
+            if (!User.IsInRole("Admin"))
+            {
+                query = query.Where(x => !x.GorevAtamaPersoneller.Any(ap => ap.SadeceAdminGorebilirMi));
+            }
+
             // 3. Assignment Filters (Junction Tables)
             if (assignedTeskilatId.HasValue)
                 query = query.Where(g => g.GorevAtamaTeskilatlar.Any(at => at.TeskilatId == assignedTeskilatId.Value));
@@ -127,6 +133,9 @@ namespace PersonelTakipSistemi.Controllers
             // Assignment Dropdowns for Filter
             ViewBag.Teskilatlar = await _context.Teskilatlar.OrderBy(x => x.Ad).ToListAsync();
             ViewBag.Koordinatorlukler = await _context.Koordinatorlukler.OrderBy(x => x.Ad).ToListAsync();
+            ViewBag.CanAssignKoordinatorluk = true;
+            ViewBag.CanAssignKomisyon = true;
+            ViewBag.CanAssignPersonel = true;
             
             // Assign SelectListItem to ViewBag
             var komisyonQuery = _context.Komisyonlar
@@ -484,12 +493,44 @@ namespace PersonelTakipSistemi.Controllers
 
         private async Task PopulateAssignmentDropdowns()
         {
-            ViewBag.Teskilatlar = await _context.Teskilatlar.OrderBy(x => x.Ad).ToListAsync();
-            ViewBag.Koordinatorlukler = await _context.Koordinatorlukler.OrderBy(x => x.Ad).ToListAsync();
+            var currentUserId = GetCurrentUserId();
+            var hasGlobalAssignmentAccess = HasGlobalAssignmentAccess();
+            var coordinatorIds = currentUserId > 0
+                ? await _context.PersonelKurumsalRolAtamalari
+                    .AsNoTracking()
+                    .Where(x => x.PersonelId == currentUserId && x.KoordinatorlukId.HasValue && CoordinatorAssignmentRoleIds.Contains(x.KurumsalRolId))
+                    .Select(x => x.KoordinatorlukId!.Value)
+                    .Distinct()
+                    .ToListAsync()
+                : [];
+            var chairedCommissionIds = currentUserId > 0
+                ? await _context.PersonelKurumsalRolAtamalari
+                    .AsNoTracking()
+                    .Where(x => x.PersonelId == currentUserId && x.KurumsalRolId == 2 && x.KomisyonId.HasValue)
+                    .Select(x => x.KomisyonId!.Value)
+                    .Distinct()
+                    .ToListAsync()
+                : [];
+
+            ViewBag.CanAssignKoordinatorluk = hasGlobalAssignmentAccess;
+            ViewBag.CanAssignKomisyon = hasGlobalAssignmentAccess || coordinatorIds.Any();
+            ViewBag.CanAssignPersonel = hasGlobalAssignmentAccess || coordinatorIds.Any() || chairedCommissionIds.Any();
+
+            var koordinatorlukQuery = _context.Koordinatorlukler.AsNoTracking().AsQueryable();
+            if (!hasGlobalAssignmentAccess)
+            {
+                koordinatorlukQuery = koordinatorlukQuery.Where(x => false);
+            }
+
+            ViewBag.Koordinatorlukler = await koordinatorlukQuery.OrderBy(x => x.Ad).ToListAsync();
 
             var komisyonlar = await _context.Komisyonlar
                 .Include(k => k.Koordinatorluk).ThenInclude(koord => koord.Il)
                 .Include(k => k.BagliMerkezKoordinatorluk)
+                .Where(k => hasGlobalAssignmentAccess ||
+                            (coordinatorIds.Any() &&
+                             (coordinatorIds.Contains(k.KoordinatorlukId) ||
+                              (k.BagliMerkezKoordinatorlukId.HasValue && coordinatorIds.Contains(k.BagliMerkezKoordinatorlukId.Value)))))
                 .OrderBy(x => x.Ad)
                 .ToListAsync();
 
@@ -513,8 +554,31 @@ namespace PersonelTakipSistemi.Controllers
                 .OrderBy(x => x.Text)
                 .ToList();
 
-            ViewBag.Personeller = await _context.Personeller
+            var personelQuery = _context.Personeller
                 .Where(p => !p.PersonelKurumsalRolAtamalari.Any(r => HighLevelRoleIds.Contains(r.KurumsalRolId)))
+                .AsQueryable();
+
+            if (!hasGlobalAssignmentAccess)
+            {
+                if (coordinatorIds.Any())
+                {
+                    personelQuery = personelQuery.Where(p =>
+                        p.PersonelKoordinatorlukler.Any(pk => coordinatorIds.Contains(pk.KoordinatorlukId)) ||
+                        p.PersonelKomisyonlar.Any(pk =>
+                            coordinatorIds.Contains(pk.Komisyon.KoordinatorlukId) ||
+                            (pk.Komisyon.BagliMerkezKoordinatorlukId.HasValue && coordinatorIds.Contains(pk.Komisyon.BagliMerkezKoordinatorlukId.Value))));
+                }
+                else if (chairedCommissionIds.Any())
+                {
+                    personelQuery = personelQuery.Where(p => p.PersonelKomisyonlar.Any(pk => chairedCommissionIds.Contains(pk.KomisyonId)));
+                }
+                else
+                {
+                    personelQuery = personelQuery.Where(p => false);
+                }
+            }
+
+            ViewBag.Personeller = await personelQuery
                 .OrderBy(x => x.Ad)
                 .ThenBy(x => x.Soyad)
                 .Select(x => new SelectListItem
@@ -530,6 +594,177 @@ namespace PersonelTakipSistemi.Controllers
                 .OrderBy(x => x.Ad)
                 .Select(x => new SelectListItem { Value = x.GorevTuruId.ToString(), Text = x.Ad })
                 .ToListAsync();
+        }
+
+        private int GetCurrentUserId()
+        {
+            var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(currentUserIdStr, out var currentUserId) ? currentUserId : 0;
+        }
+
+        private bool HasGlobalAssignmentAccess()
+        {
+            return User.IsInRole("Admin") || User.IsInRole("Yönetici") || User.IsInRole("Editör");
+        }
+
+        private async Task<bool> UserCanManageAssignmentsForTaskAsync(Gorev task, int currentUserId)
+        {
+            if (currentUserId <= 0)
+            {
+                return false;
+            }
+
+            if (HasGlobalAssignmentAccess() || task.CreatedByPersonelId == currentUserId)
+            {
+                return true;
+            }
+
+            var coordinatorIds = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Where(x => x.PersonelId == currentUserId && x.KoordinatorlukId.HasValue && CoordinatorAssignmentRoleIds.Contains(x.KurumsalRolId))
+                .Select(x => x.KoordinatorlukId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            if (coordinatorIds.Any())
+            {
+                var taskAssignedToCoordinator = task.GorevAtamaKoordinatorlukler
+                    .Any(x => coordinatorIds.Contains(x.KoordinatorlukId));
+                var taskAssignedToCoordinatorCommission = task.GorevAtamaKomisyonlar
+                    .Any(x => x.Komisyon != null &&
+                              (coordinatorIds.Contains(x.Komisyon.KoordinatorlukId) ||
+                               (x.Komisyon.BagliMerkezKoordinatorlukId.HasValue && coordinatorIds.Contains(x.Komisyon.BagliMerkezKoordinatorlukId.Value))));
+
+                if (taskAssignedToCoordinator || taskAssignedToCoordinatorCommission)
+                {
+                    return true;
+                }
+            }
+
+            var chairedCommissionIds = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Where(x => x.PersonelId == currentUserId && x.KurumsalRolId == 2 && x.KomisyonId.HasValue)
+                .Select(x => x.KomisyonId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            return chairedCommissionIds.Any() &&
+                   task.GorevAtamaKomisyonlar.Any(x => chairedCommissionIds.Contains(x.KomisyonId));
+        }
+
+        private async Task PopulateAssignmentNavigationLinksAsync(Gorev task, int currentUserId)
+        {
+            var koordinatorlukLinks = new Dictionary<int, string>();
+            var komisyonLinks = new Dictionary<int, string>();
+            var personelLinks = new Dictionary<int, string>();
+
+            var isAdmin = User.IsInRole("Admin");
+            var hasGlobalStatsAccess = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+
+            var assignedKoordinatorlukIds = task.GorevAtamaKoordinatorlukler.Select(x => x.KoordinatorlukId).Distinct().ToList();
+            var assignedKomisyonIds = task.GorevAtamaKomisyonlar.Select(x => x.KomisyonId).Distinct().ToList();
+            var assignedPersonelIds = task.GorevAtamaPersoneller.Select(x => x.PersonelId).Distinct().ToList();
+
+            if (isAdmin)
+            {
+                foreach (var id in assignedKoordinatorlukIds)
+                {
+                    koordinatorlukLinks[id] = Url.Action("BirimListele", "Birimler", new { koordinatorlukId = id }) ?? "#";
+                }
+
+                foreach (var id in assignedKomisyonIds)
+                {
+                    komisyonLinks[id] = Url.Action("BirimListele", "Birimler", new { komisyonId = id }) ?? "#";
+                }
+            }
+
+            if (hasGlobalStatsAccess)
+            {
+                foreach (var id in assignedPersonelIds)
+                {
+                    personelLinks[id] = Url.Action("Index", "Istatistik", new { personelId = id }) ?? "#";
+                }
+            }
+
+            if (currentUserId > 0)
+            {
+                var coordinatorIds = await _context.PersonelKurumsalRolAtamalari
+                    .AsNoTracking()
+                    .Where(x => x.PersonelId == currentUserId && x.KoordinatorlukId.HasValue && CoordinatorAssignmentRoleIds.Contains(x.KurumsalRolId))
+                    .Select(x => x.KoordinatorlukId!.Value)
+                    .Distinct()
+                    .ToListAsync();
+
+                var chairedCommissionIds = await _context.PersonelKurumsalRolAtamalari
+                    .AsNoTracking()
+                    .Where(x => x.PersonelId == currentUserId && x.KurumsalRolId == 2 && x.KomisyonId.HasValue)
+                    .Select(x => x.KomisyonId!.Value)
+                    .Distinct()
+                    .ToListAsync();
+
+                if (!isAdmin && coordinatorIds.Any())
+                {
+                    foreach (var id in assignedKoordinatorlukIds.Where(coordinatorIds.Contains))
+                    {
+                        koordinatorlukLinks[id] = Url.Action("KordinatorlukYonetimi", "BirimYonetimi", new { id }) ?? "#";
+                    }
+
+                    var allowedKomisyonIds = await _context.Komisyonlar
+                        .AsNoTracking()
+                        .Where(x => assignedKomisyonIds.Contains(x.KomisyonId) &&
+                                    (coordinatorIds.Contains(x.KoordinatorlukId) ||
+                                     (x.BagliMerkezKoordinatorlukId.HasValue && coordinatorIds.Contains(x.BagliMerkezKoordinatorlukId.Value))))
+                        .Select(x => x.KomisyonId)
+                        .ToListAsync();
+
+                    foreach (var id in allowedKomisyonIds)
+                    {
+                        komisyonLinks[id] = Url.Action("KomisyonYonetimi", "BirimYonetimi", new { id }) ?? "#";
+                    }
+                }
+
+                if (!isAdmin && chairedCommissionIds.Any())
+                {
+                    foreach (var id in assignedKomisyonIds.Where(chairedCommissionIds.Contains))
+                    {
+                        komisyonLinks[id] = Url.Action("KomisyonYonetimi", "BirimYonetimi", new { id }) ?? "#";
+                    }
+                }
+
+                if (!hasGlobalStatsAccess && assignedPersonelIds.Any())
+                {
+                    var scopedPersonelIdsQuery = _context.Personeller
+                        .AsNoTracking()
+                        .Where(p => assignedPersonelIds.Contains(p.PersonelId));
+
+                    if (coordinatorIds.Any())
+                    {
+                        scopedPersonelIdsQuery = scopedPersonelIdsQuery.Where(p =>
+                            p.PersonelKoordinatorlukler.Any(pk => coordinatorIds.Contains(pk.KoordinatorlukId)) ||
+                            p.PersonelKomisyonlar.Any(pk =>
+                                coordinatorIds.Contains(pk.Komisyon.KoordinatorlukId) ||
+                                (pk.Komisyon.BagliMerkezKoordinatorlukId.HasValue && coordinatorIds.Contains(pk.Komisyon.BagliMerkezKoordinatorlukId.Value))));
+                    }
+                    else if (chairedCommissionIds.Any())
+                    {
+                        scopedPersonelIdsQuery = scopedPersonelIdsQuery.Where(p => p.PersonelKomisyonlar.Any(pk => chairedCommissionIds.Contains(pk.KomisyonId)));
+                    }
+                    else
+                    {
+                        scopedPersonelIdsQuery = scopedPersonelIdsQuery.Where(p => p.PersonelId == currentUserId);
+                    }
+
+                    var scopedPersonelIds = await scopedPersonelIdsQuery.Select(p => p.PersonelId).ToListAsync();
+                    foreach (var id in scopedPersonelIds)
+                    {
+                        personelLinks[id] = Url.Action("Index", "Istatistik", new { personelId = id }) ?? "#";
+                    }
+                }
+            }
+
+            ViewBag.AssignmentKoordinatorlukLinks = koordinatorlukLinks;
+            ViewBag.AssignmentKomisyonLinks = komisyonLinks;
+            ViewBag.AssignmentPersonelLinks = personelLinks;
         }
 
         private async Task<bool> CurrentUserCanUpdateStatusAsync(int personelId)
@@ -558,7 +793,6 @@ namespace PersonelTakipSistemi.Controllers
         // 5. ATAMA / YETKİLENDİRME (AJAX)
         // ==============================================================
         [HttpGet]
-        [Authorize(Roles = "Admin,Yönetici,Editör")]
         public async Task<IActionResult> GetAssignmentData(int id)
         {
             try
@@ -575,14 +809,22 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Admin,Yönetici,Editör")]
         public async Task<IActionResult> SaveAssignments([FromBody] GorevAtamaViewModel model)
         {
             if (model == null) return BadRequest();
             var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(currentUserId, out int senderId);
 
-            var result = await _gorevWorkflowService.SaveAssignmentsAsync(model, senderId > 0 ? senderId : null);
+            if (!User.IsInRole("Admin"))
+            {
+                foreach (var item in model.Personeller)
+                {
+                    item.PersonelGorevListesindenGizlensinMi = false;
+                    item.SadeceAdminGorebilirMi = false;
+                }
+            }
+
+            var result = await _gorevWorkflowService.SaveAssignmentsAsync(model, senderId > 0 ? senderId : null, HasGlobalAssignmentAccess());
             if (result.HttpStatusCode == 400)
             {
                 return BadRequest(new { success = false, message = result.Message });
@@ -637,6 +879,94 @@ namespace PersonelTakipSistemi.Controllers
                 statusColor = durum?.Renk,
                 note = model.Aciklama
             });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateStatusHistory([FromBody] GorevDurumGecmisiUpdateViewModel model)
+        {
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            if (!await CurrentUserCanUpdateStatusAsync(currentUserId))
+            {
+                return Ok(new { success = false, message = "Yetki Hatası: Durum güncellemesi sadece üst yetkili kurumsal rollere aittir." });
+            }
+
+            var history = await _context.GorevDurumGecmisleri
+                .Include(x => x.Gorev)
+                .FirstOrDefaultAsync(x => x.Id == model.Id);
+
+            if (history == null)
+            {
+                return NotFound(new { success = false, message = "Durum geçmişi bulunamadı." });
+            }
+
+            var durumExists = await _context.GorevDurumlari.AnyAsync(x => x.GorevDurumId == model.DurumId);
+            if (!durumExists)
+            {
+                return BadRequest(new { success = false, message = "Geçerli bir durum seçiniz." });
+            }
+
+            history.GorevDurumId = model.DurumId;
+            history.Aciklama = string.IsNullOrWhiteSpace(model.Aciklama) ? null : model.Aciklama.Trim();
+            history.IslemYapanPersonelId = currentUserId;
+
+            await _context.SaveChangesAsync();
+            await SyncGorevStatusFromLatestHistoryAsync(history.GorevId);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteStatusHistory(int id)
+        {
+            var currentUserId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "0");
+            if (!await CurrentUserCanUpdateStatusAsync(currentUserId))
+            {
+                return Ok(new { success = false, message = "Yetki Hatası: Durum güncellemesi sadece üst yetkili kurumsal rollere aittir." });
+            }
+
+            var history = await _context.GorevDurumGecmisleri.FirstOrDefaultAsync(x => x.Id == id);
+            if (history == null)
+            {
+                return NotFound(new { success = false, message = "Durum geçmişi bulunamadı." });
+            }
+
+            var gorevId = history.GorevId;
+            _context.GorevDurumGecmisleri.Remove(history);
+            await _context.SaveChangesAsync();
+
+            await SyncGorevStatusFromLatestHistoryAsync(gorevId);
+            await _context.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
+
+        private async Task SyncGorevStatusFromLatestHistoryAsync(int gorevId)
+        {
+            var gorev = await _context.Gorevler.FirstOrDefaultAsync(x => x.GorevId == gorevId);
+            if (gorev == null)
+            {
+                return;
+            }
+
+            var latestHistory = await _context.GorevDurumGecmisleri
+                .AsNoTracking()
+                .Where(x => x.GorevId == gorevId)
+                .OrderByDescending(x => x.Tarih)
+                .ThenByDescending(x => x.Id)
+                .FirstOrDefaultAsync();
+
+            if (latestHistory != null)
+            {
+                gorev.GorevDurumId = latestHistory.GorevDurumId;
+                gorev.DurumAciklamasi = latestHistory.Aciklama;
+            }
+            else
+            {
+                gorev.DurumAciklamasi = null;
+            }
+
+            gorev.UpdatedAt = DateTime.Now;
         }
 
         [HttpGet]
@@ -696,6 +1026,7 @@ namespace PersonelTakipSistemi.Controllers
 
             // Populate Status Dropdown for Modal
             ViewBag.GorevDurumlari = await _context.GorevDurumlari.OrderBy(x => x.Sira).ToListAsync();
+            ViewBag.IsNitelikleri = await _context.IsNitelikleri.OrderBy(x => x.Ad).ToListAsync();
             await PopulateAssignmentDropdowns();
 
             var currentUserId = 0;
@@ -703,8 +1034,17 @@ namespace PersonelTakipSistemi.Controllers
             int.TryParse(userIdStr, out currentUserId);
             var isHighLevelReadOnly = ViewBag.IsHighLevelReadOnly == true;
 
+            if (!User.IsInRole("Admin") &&
+                task.GorevAtamaPersoneller.Any(ap => ap.SadeceAdminGorebilirMi) &&
+                !task.GorevAtamaPersoneller.Any(ap => ap.SadeceAdminGorebilirMi && ap.PersonelId == currentUserId))
+            {
+                return RedirectToAction("AccessDenied", "Account");
+            }
+
+            await PopulateAssignmentNavigationLinksAsync(task, currentUserId);
             ViewBag.CanUpdateGorevStatus = currentUserId > 0 && await CurrentUserCanUpdateStatusAsync(currentUserId);
-            ViewBag.CanEditAssignments = !isHighLevelReadOnly && (User.IsInRole("Admin") || task.CreatedByPersonelId == currentUserId);
+            ViewBag.CanQuickEditTask = !isHighLevelReadOnly && CanEditTask(task.CreatedByPersonelId);
+            ViewBag.CanEditAssignments = !isHighLevelReadOnly && await UserCanManageAssignmentsForTaskAsync(task, currentUserId);
             ViewBag.ReturnUrl = !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl)
                 ? returnUrl
                 : Url.Action(nameof(Gorevlerim), "Gorevler");

@@ -31,6 +31,8 @@ namespace PersonelTakipSistemi.ViewModels
         public int? PersonelCinsiyet { get; set; } // 0: Erkek, 1: Kadın
          
         public DateTime? DogumTarihi { get; set; }
+        public DateTime? GoreveBaslamaTarihi { get; set; }
+        public DateTime? GorevBitisTarihi { get; set; } = new DateTime(2026, 6, 30);
 
         public int? GorevliIlId { get; set; }
          
@@ -69,6 +71,7 @@ namespace PersonelTakipSistemi.ViewModels
         // Yeni "Yetkiler" Tabı İçin Özellikler
         // System Role
         public int? SistemRolId { get; set; } // Dropdown
+        public List<string> YetkiliModlar { get; set; } = new List<string>();
         public string? YetkiKapsami { get; set; } = "Self"; // Self, Koordinatorluk, Komisyon, All
 
         // Dynamic Role Assignments (Multiple)
@@ -118,6 +121,13 @@ namespace PersonelTakipSistemi.ViewModels
                 yield return new ValidationResult(
                     "Doğum tarihi 1900 yılından küçük olamaz.",
                     new[] { nameof(DogumTarihi) });
+            }
+
+            if (GoreveBaslamaTarihi.HasValue && GorevBitisTarihi.HasValue && GorevBitisTarihi.Value.Date < GoreveBaslamaTarihi.Value.Date)
+            {
+                yield return new ValidationResult(
+                    "Görev bitiş tarihi, göreve başlama tarihinden önce olamaz.",
+                    new[] { nameof(GorevBitisTarihi) });
             }
         }
     }

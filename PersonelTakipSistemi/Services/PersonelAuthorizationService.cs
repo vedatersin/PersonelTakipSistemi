@@ -28,6 +28,7 @@ namespace PersonelTakipSistemi.Services
                 .Include(p => p.PersonelKoordinatorlukler).ThenInclude(pk => pk.Koordinatorluk)
                 .Include(p => p.PersonelKomisyonlar).ThenInclude(pk => pk.Komisyon).ThenInclude(k => k.Koordinatorluk).ThenInclude(koord => koord.Il)
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.KurumsalRol)
+                .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Komisyon)
                 .Include(p => p.SistemRol)
                 .Include(p => p.Brans)
                 .Include(p => p.PersonelYazilimlar).ThenInclude(py => py.Yazilim)
@@ -43,11 +44,19 @@ namespace PersonelTakipSistemi.Services
                 AdSoyad = $"{p.Ad} {p.Soyad}",
                 FotografYolu = p.FotografYolu,
                 SistemRol = p.SistemRol?.Ad ?? string.Empty,
+                YetkiliModlar = ParseModeList(p.YetkiliModlar),
                 AktifMi = p.AktifMi,
                 TeskilatAdlari = p.PersonelTeskilatlar.Select(pt => pt.Teskilat.Ad).ToList(),
                 KoordinatorlukAdlari = p.PersonelKoordinatorlukler.Select(pk => pk.Koordinatorluk.Ad).ToList(),
-                KomisyonAdlari = p.PersonelKomisyonlar.Select(pk => FormatKomisyonAd(pk.Komisyon)).ToList(),
-                KurumsalRolAdlari = p.PersonelKurumsalRolAtamalari.Select(ra => ra.KurumsalRol.Ad).Distinct().ToList(),
+                KomisyonAdlari = p.PersonelKomisyonlar
+                    .Where(pk => pk.Komisyon.IsActive)
+                    .Select(pk => FormatKomisyonAd(pk.Komisyon))
+                    .ToList(),
+                KurumsalRolAdlari = p.PersonelKurumsalRolAtamalari
+                    .Where(ra => !ra.KomisyonId.HasValue || (ra.Komisyon != null && ra.Komisyon.IsActive))
+                    .Select(ra => ra.KurumsalRol.Ad)
+                    .Distinct()
+                    .ToList(),
                 Brans = p.Brans?.Ad,
                 Yazilimlar = p.PersonelYazilimlar.Select(py => py.Yazilim.Ad).ToList(),
                 Uzmanliklar = p.PersonelUzmanliklar.Select(pu => pu.Uzmanlik.Ad).ToList(),
@@ -100,6 +109,7 @@ namespace PersonelTakipSistemi.Services
                 .AsNoTracking()
                 .Include(k => k.Koordinatorluk)
                 .ThenInclude(k => k.Il)
+                .Where(k => k.IsActive)
                 .ToListAsync();
 
             return komisyonlar
@@ -135,22 +145,29 @@ namespace PersonelTakipSistemi.Services
                 AdSoyad = $"{personel.Ad} {personel.Soyad}",
                 FotografYolu = personel.FotografYolu,
                 SistemRol = personel.SistemRol?.Ad ?? string.Empty,
+                YetkiliModlar = ParseModeList(personel.YetkiliModlar),
                 AktifMi = personel.AktifMi,
                 SelectedTeskilatIds = personel.PersonelTeskilatlar.Select(x => x.TeskilatId).ToList(),
                 SelectedKoordinatorlukIds = personel.PersonelKoordinatorlukler.Select(x => x.KoordinatorlukId).ToList(),
-                SelectedKomisyonIds = personel.PersonelKomisyonlar.Select(x => x.KomisyonId).ToList(),
+                SelectedKomisyonIds = personel.PersonelKomisyonlar.Where(x => x.Komisyon.IsActive).Select(x => x.KomisyonId).ToList(),
                 TeskilatAssignments = personel.PersonelTeskilatlar.Select(x => new AssignmentViewModel { Id = x.TeskilatId, Ad = x.Teskilat.Ad }).ToList(),
                 KoordinatorlukAssignments = personel.PersonelKoordinatorlukler.Select(x => new AssignmentViewModel { Id = x.KoordinatorlukId, Ad = x.Koordinatorluk.Ad }).ToList(),
-                KomisyonAssignments = personel.PersonelKomisyonlar.Select(x => new AssignmentViewModel { Id = x.KomisyonId, Ad = x.Komisyon.Ad }).ToList(),
-                KurumsalRolAssignments = personel.PersonelKurumsalRolAtamalari.Select(x => new RoleAssignmentViewModel
-                {
-                    AssignmentId = x.Id,
-                    KurumsalRolId = x.KurumsalRolId,
-                    RolAd = x.KurumsalRol.Ad,
-                    ContextAd = x.Koordinatorluk != null ? x.Koordinatorluk.Ad : (x.Komisyon != null ? x.Komisyon.Ad : "Genel"),
-                    KoordinatorlukId = x.KoordinatorlukId,
-                    KomisyonId = x.KomisyonId
-                }).ToList()
+                KomisyonAssignments = personel.PersonelKomisyonlar
+                    .Where(x => x.Komisyon.IsActive)
+                    .Select(x => new AssignmentViewModel { Id = x.KomisyonId, Ad = x.Komisyon.Ad })
+                    .ToList(),
+                KurumsalRolAssignments = personel.PersonelKurumsalRolAtamalari
+                    .Where(x => !x.KomisyonId.HasValue || (x.Komisyon != null && x.Komisyon.IsActive))
+                    .Select(x => new RoleAssignmentViewModel
+                    {
+                        AssignmentId = x.Id,
+                        KurumsalRolId = x.KurumsalRolId,
+                        RolAd = x.KurumsalRol.Ad,
+                        ContextAd = x.Koordinatorluk != null ? x.Koordinatorluk.Ad : (x.Komisyon != null ? x.Komisyon.Ad : "Genel"),
+                        KoordinatorlukId = x.KoordinatorlukId,
+                        KomisyonId = x.KomisyonId
+                    })
+                    .ToList()
             };
 
             model.AllTeskilatlar = await BuildTeskilatLookupsAsync(scope);
@@ -189,7 +206,7 @@ namespace PersonelTakipSistemi.Services
             }
 
             var chairKomisyonIds = await _context.PersonelKurumsalRolAtamalari
-                .Where(a => a.PersonelId == currentUserId && a.KurumsalRolId == 2 && a.KomisyonId.HasValue)
+                .Where(a => a.PersonelId == currentUserId && a.KurumsalRolId == 2 && a.KomisyonId.HasValue && a.Komisyon != null && a.Komisyon.IsActive)
                 .Select(a => a.KomisyonId!.Value)
                 .ToListAsync();
 
@@ -226,7 +243,9 @@ namespace PersonelTakipSistemi.Services
             }
 
             return await _context.Komisyonlar
-                .Where(k => koordinatorlukIds.Contains(k.KoordinatorlukId) || koordinatorlukIds.Contains(k.BagliMerkezKoordinatorlukId ?? 0))
+                .Where(k => k.IsActive &&
+                    (koordinatorlukIds.Contains(k.KoordinatorlukId) ||
+                     koordinatorlukIds.Contains(k.BagliMerkezKoordinatorlukId ?? 0)))
                 .Select(k => k.KomisyonId)
                 .ToListAsync();
         }
@@ -274,6 +293,7 @@ namespace PersonelTakipSistemi.Services
         private async Task<List<LookupItemViewModel>> BuildKomisyonLookupsAsync(AuthorizationScope scope)
         {
             var query = _context.Komisyonlar
+                .Where(k => k.IsActive)
                 .Include(k => k.Koordinatorluk)
                 .ThenInclude(koord => koord.Il)
                 .AsQueryable();
@@ -311,6 +331,15 @@ namespace PersonelTakipSistemi.Services
             return komisyon.BagliMerkezKoordinatorlukId != null && komisyon.Koordinatorluk?.Il != null
                 ? $"{komisyon.Koordinatorluk.Il.Ad} {komisyon.Ad}"
                 : komisyon.Ad;
+        }
+
+        private static List<string> ParseModeList(string? value)
+        {
+            return (value ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Where(x => x is "program" or "komisyon" or "master")
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         private sealed record AuthorizationScope(

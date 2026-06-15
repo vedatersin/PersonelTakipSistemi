@@ -1,0 +1,163 @@
+@model PersonelTakipSistemi.ViewModels.SifreBelirleViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Yeni Şifre Belirle";
+    var personelAd = TempData["PasswordResetPersonel"] as string;
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Komisyon İzleme Sistemi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/sevilay-tema/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="~/sevilay-tema/assets/vendor/css/theme-default.css" />
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    <style>
+        .wizard-title { color: #334155; font-weight: 700; }
+        .rule-list {
+            display: grid;
+            gap: .45rem;
+            margin: .75rem 0 1rem;
+            padding: 0;
+            list-style: none;
+            text-align: left;
+        }
+        .rule-list li {
+            align-items: center;
+            color: #64748b;
+            display: flex;
+            font-size: .85rem;
+            gap: .45rem;
+        }
+        .rule-dot {
+            background: #cbd5e1;
+            border-radius: 999px;
+            display: inline-block;
+            height: .55rem;
+            width: .55rem;
+        }
+        .rule-list li.is-ok { color: #15803d; font-weight: 600; }
+        .rule-list li.is-ok .rule-dot { background: #22c55e; }
+        .strength-meter {
+            background: #e2e8f0;
+            border-radius: 999px;
+            height: .55rem;
+            overflow: hidden;
+        }
+        .strength-meter span {
+            background: #f59e0b;
+            display: block;
+            height: 100%;
+            transition: width .2s ease, background-color .2s ease;
+            width: 0;
+        }
+        .strength-meter span.is-medium { background: #2563eb; }
+        .strength-meter span.is-strong { background: #16a34a; }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <canvas id="bg-canvas"></canvas>
+        <div class="login-card">
+            <div class="logo-container">
+               <img src="~/images/meb-logo.png" alt="MEB Logo" class="meb-logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Meb_logo.png/600px-Meb_logo.png'" />
+            </div>
+
+            <h1 class="org-title">Temel Eğitim Genel Müdürlüğü</h1>
+            <h2 class="app-title">Yeni Şifre Belirle</h2>
+            @if (!string.IsNullOrWhiteSpace(personelAd))
+            {
+                <p class="text-muted mb-3">@personelAd</p>
+            }
+
+            <form asp-controller="Account" asp-action="SifreBelirle" method="post" id="passwordWizardForm">
+                @Html.AntiForgeryToken()
+                <input asp-for="Token" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3 text-start">
+                    <label asp-for="YeniSifre" class="form-label"></label>
+                    <input asp-for="YeniSifre"
+                           class="form-control"
+                           placeholder="Orta düzey güvenli şifre"
+                           autocomplete="new-password" />
+                    <span asp-validation-for="YeniSifre" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 text-start">
+                    <label asp-for="YeniSifreTekrar" class="form-label"></label>
+                    <input asp-for="YeniSifreTekrar"
+                           class="form-control"
+                           placeholder="Şifreyi tekrar yazınız"
+                           autocomplete="new-password" />
+                    <span asp-validation-for="YeniSifreTekrar" class="text-danger"></span>
+                </div>
+
+                <div class="text-start">
+                    <div class="wizard-title">Şifre Kuralları</div>
+                    <ul class="rule-list">
+                        <li data-rule="length"><span class="rule-dot"></span>En az 8 karakter</li>
+                        <li data-rule="upper"><span class="rule-dot"></span>En az bir büyük harf</li>
+                        <li data-rule="lower"><span class="rule-dot"></span>En az bir küçük harf</li>
+                        <li data-rule="digit"><span class="rule-dot"></span>En az bir rakam</li>
+                        <li data-rule="special"><span class="rule-dot"></span>En az bir özel karakter</li>
+                        <li data-rule="match"><span class="rule-dot"></span>Şifreler eşleşmeli</li>
+                    </ul>
+                    <div class="strength-meter mb-3"><span id="strengthBar"></span></div>
+                </div>
+
+                <div class="mb-3">
+                    <button class="btn btn-primary w-100" type="submit">Şifreyi Kaydet</button>
+                </div>
+
+                <a asp-controller="Account" asp-action="Login" asp-route-normal="true" class="text-primary fw-medium">Giriş ekranına dön</a>
+            </form>
+        </div>
+    </div>
+
+    <script src="~/sevilay-tema/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="~/sevilay-tema/assets/vendor/libs/jquery-validation/jquery.validate.js"></script>
+    <script src="~/sevilay-tema/assets/vendor/libs/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+    <script src="~/js/login-bg.js" asp-append-version="true"></script>
+    <script>
+        const passwordInput = document.getElementById('YeniSifre');
+        const repeatInput = document.getElementById('YeniSifreTekrar');
+        const strengthBar = document.getElementById('strengthBar');
+        const rules = {
+            length: value => value.length >= 8,
+            upper: value => /[A-ZÇĞİÖŞÜ]/.test(value),
+            lower: value => /[a-zçğıöşü]/.test(value),
+            digit: value => /\d/.test(value),
+            special: value => /[^A-Za-z0-9ÇĞİÖŞÜçğıöşü]/.test(value),
+            match: value => value.length > 0 && value === repeatInput.value
+        };
+
+        function updateWizard() {
+            const value = passwordInput.value || '';
+            let passed = 0;
+
+            Object.entries(rules).forEach(([key, test]) => {
+                const item = document.querySelector(`[data-rule="${key}"]`);
+                const ok = test(value);
+                item.classList.toggle('is-ok', ok);
+                if (ok) passed += 1;
+            });
+
+            const percent = Math.round((passed / Object.keys(rules).length) * 100);
+            strengthBar.style.width = `${percent}%`;
+            strengthBar.classList.toggle('is-medium', percent >= 67 && percent < 100);
+            strengthBar.classList.toggle('is-strong', percent === 100);
+        }
+
+        passwordInput.addEventListener('input', updateWizard);
+        repeatInput.addEventListener('input', updateWizard);
+        updateWizard();
+    </script>
+</body>
+</html>

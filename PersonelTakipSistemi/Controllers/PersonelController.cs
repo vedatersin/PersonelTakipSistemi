@@ -59,6 +59,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index(PersonelIndexFilterViewModel filter, bool showAll = false, int? highlightId = null)
         {
             ViewBag.HighlightId = highlightId;
@@ -68,7 +69,6 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.Brans)
                 .Include(p => p.PersonelYazilimlar).ThenInclude(py => py.Yazilim)
                 .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
-                .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
                 .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
                 .AsNoTracking()
                 .AsQueryable();
@@ -138,7 +138,8 @@ namespace PersonelTakipSistemi.Controllers
 
             if (filter.SeciliGorevTuruIdleri != null && filter.SeciliGorevTuruIdleri.Any())
             {
-                query = query.Where(p => p.PersonelGorevTurleri.Any(pg => filter.SeciliGorevTuruIdleri.Contains(pg.GorevTuruId)));
+                var assignedPersonelIds = BuildPersonelIdsWithAssignedGorevTurleri(filter.SeciliGorevTuruIdleri);
+                query = query.Where(p => assignedPersonelIds.Contains(p.PersonelId));
             }
 
             if (filter.SeciliIsNiteligiIdleri != null && filter.SeciliIsNiteligiIdleri.Any())
@@ -170,14 +171,23 @@ namespace PersonelTakipSistemi.Controllers
                     KadroIlce = p.KadroIlce != null ? p.KadroIlce.Ad : "",
                     Eposta = p.Eposta,
                     AktifMi = p.AktifMi,
+                    GoreveBaslamaTarihi = p.GoreveBaslamaTarihi,
+                    GorevBitisTarihi = p.GorevBitisTarihi,
                     FotografYolu = p.FotografYolu,
                     Yazilimlar = p.PersonelYazilimlar.Select(py => py.Yazilim.Ad).ToList(),
                     Uzmanliklar = p.PersonelUzmanliklar.Select(pu => pu.Uzmanlik.Ad).ToList(),
-                    GorevTurleri = p.PersonelGorevTurleri.Select(pg => pg.GorevTuru.Ad).ToList(),
                     IsNitelikleri = p.PersonelIsNitelikleri.Select(pi => pi.IsNiteligi.Ad).ToList(),
                     AddedViaTemplate = p.AddedViaTemplate
                 })
                 .ToListAsync();
+
+            var assignedGorevTurleri = await GetAssignedGorevTurleriByPersonelIdsAsync(results.Select(x => x.PersonelId));
+            foreach (var row in results)
+            {
+                row.GorevTurleri = assignedGorevTurleri.TryGetValue(row.PersonelId, out var gorevTurleri)
+                    ? gorevTurleri
+                    : new List<string>();
+            }
 
             // 3. ViewModel Hazirligi
             var model = new PersonelIndexViewModel
@@ -207,6 +217,7 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ExportExcel(PersonelIndexFilterViewModel filter)
         {
             var query = _context.Personeller
@@ -214,7 +225,6 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.Brans)
                 .Include(p => p.PersonelYazilimlar).ThenInclude(py => py.Yazilim)
                 .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
-                .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
                 .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
                 .AsNoTracking()
                 .AsQueryable();
@@ -263,7 +273,8 @@ namespace PersonelTakipSistemi.Controllers
 
             if (filter.SeciliGorevTuruIdleri != null && filter.SeciliGorevTuruIdleri.Any())
             {
-                query = query.Where(p => p.PersonelGorevTurleri.Any(pg => filter.SeciliGorevTuruIdleri.Contains(pg.GorevTuruId)));
+                var assignedPersonelIds = BuildPersonelIdsWithAssignedGorevTurleri(filter.SeciliGorevTuruIdleri);
+                query = query.Where(p => assignedPersonelIds.Contains(p.PersonelId));
             }
 
             if (filter.SeciliIsNiteligiIdleri != null && filter.SeciliIsNiteligiIdleri.Any())
@@ -274,6 +285,7 @@ namespace PersonelTakipSistemi.Controllers
             var rows = await ApplySorting(query, filter)
                 .Select(p => new
                 {
+                    PersonelId = p.PersonelId,
                     Ad = p.Ad,
                     Soyad = p.Soyad,
                     Eposta = p.Eposta,
@@ -284,10 +296,11 @@ namespace PersonelTakipSistemi.Controllers
                     AktifMi = p.AktifMi,
                     Yazilimlar = string.Join(", ", p.PersonelYazilimlar.Select(py => py.Yazilim.Ad)),
                     Uzmanliklar = string.Join(", ", p.PersonelUzmanliklar.Select(pu => pu.Uzmanlik.Ad)),
-                    GorevTurleri = string.Join(", ", p.PersonelGorevTurleri.Select(pg => pg.GorevTuru.Ad)),
                     IsNitelikleri = string.Join(", ", p.PersonelIsNitelikleri.Select(pi => pi.IsNiteligi.Ad))
                 })
                 .ToListAsync();
+
+            var exportedGorevTurleri = await GetAssignedGorevTurleriByPersonelIdsAsync(rows.Select(x => x.PersonelId));
 
             OfficeOpenXml.ExcelPackage.LicenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
             using var package = new OfficeOpenXml.ExcelPackage();
@@ -318,7 +331,9 @@ namespace PersonelTakipSistemi.Controllers
                 ws.Cells[i + 2, 8].Value = r.AktifMi ? "Aktif" : "Pasif";
                 ws.Cells[i + 2, 9].Value = r.Yazilimlar;
                 ws.Cells[i + 2, 10].Value = r.Uzmanliklar;
-                ws.Cells[i + 2, 11].Value = r.GorevTurleri;
+                ws.Cells[i + 2, 11].Value = exportedGorevTurleri.TryGetValue(r.PersonelId, out var gorevTurleri)
+                    ? string.Join(", ", gorevTurleri)
+                    : "";
                 ws.Cells[i + 2, 12].Value = r.IsNitelikleri;
             }
 
@@ -369,6 +384,9 @@ namespace PersonelTakipSistemi.Controllers
                         .ThenBy(p => p.KadroIlce != null ? p.KadroIlce.Ad : string.Empty)
                         .ThenBy(p => p.Ad)
                         .ThenBy(p => p.Soyad),
+                "GorevBitisTarihi" => isDescending
+                    ? query.OrderByDescending(p => p.GorevBitisTarihi).ThenByDescending(p => p.Ad).ThenByDescending(p => p.Soyad)
+                    : query.OrderBy(p => p.GorevBitisTarihi).ThenBy(p => p.Ad).ThenBy(p => p.Soyad),
                 _ => query.OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
             };
         }
@@ -395,7 +413,6 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(p => p.KadroIlce) // New
                 .Include(p => p.PersonelYazilimlar).ThenInclude(py => py.Yazilim)
                 .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
-                .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
                 .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
                 .Include(p => p.SistemRol) // Include SistemRol
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pk => pk.KurumsalRol)
@@ -434,11 +451,15 @@ namespace PersonelTakipSistemi.Controllers
                 CreatedAt = personel.CreatedAt,
                 Yazilimlar = personel.PersonelYazilimlar.Select(py => py.Yazilim.Ad).ToList(),
                 Uzmanliklar = personel.PersonelUzmanliklar.Select(pu => pu.Uzmanlik.Ad).ToList(),
-                GorevTurleri = personel.PersonelGorevTurleri.Select(pg => pg.GorevTuru.Ad).ToList(),
                 IsNitelikleri = personel.PersonelIsNitelikleri.Select(pi => pi.IsNiteligi.Ad).ToList(),
 
                 SistemRol = personel.SistemRol?.Ad ?? string.Empty,
             };
+
+            var personelGorevTurleri = await GetAssignedGorevTurleriByPersonelIdsAsync(new[] { personel.PersonelId });
+            model.GorevTurleri = personelGorevTurleri.TryGetValue(personel.PersonelId, out var detailGorevTurleri)
+                ? detailGorevTurleri
+                : new List<string>();
 
             // Aggregate Roles Logic (Unified with Frontend)
             // Aggregate Roles Logic (Optimized for Simple Text Display)
@@ -449,6 +470,11 @@ namespace PersonelTakipSistemi.Controllers
             // 1. Explicit Roles
             foreach (var r in personel.PersonelKurumsalRolAtamalari)
             {
+                if (r.KomisyonId.HasValue && r.Komisyon?.IsActive != true)
+                {
+                    continue;
+                }
+
                 var roleName = r.KurumsalRol.Ad;
                 string fullString = roleName;
 
@@ -501,6 +527,7 @@ namespace PersonelTakipSistemi.Controllers
             // 2. Implicit Komisyon Memberships
             foreach (var pk in personel.PersonelKomisyonlar)
             {
+                if (!pk.Komisyon.IsActive) continue;
                 if (coveredKomIds.Contains(pk.KomisyonId)) continue;
 
                 var kom = pk.Komisyon;
@@ -569,6 +596,82 @@ namespace PersonelTakipSistemi.Controllers
                 : "Personel Listesine Dön";
 
             return View(model);
+        }
+
+        private IQueryable<int> BuildPersonelIdsWithAssignedGorevTurleri(IReadOnlyCollection<int> gorevTuruIds)
+        {
+            var directPersonelIds = _context.GorevAtamaPersoneller
+                .Where(a => gorevTuruIds.Contains(a.GorevTuruId))
+                .Select(a => a.PersonelId);
+
+            var teskilatPersonelIds =
+                from pt in _context.PersonelTeskilatlar
+                join atama in _context.GorevAtamaTeskilatlar on pt.TeskilatId equals atama.TeskilatId
+                where gorevTuruIds.Contains(atama.GorevTuruId)
+                select pt.PersonelId;
+
+            var koordinatorlukPersonelIds =
+                from pk in _context.PersonelKoordinatorlukler
+                join atama in _context.GorevAtamaKoordinatorlukler on pk.KoordinatorlukId equals atama.KoordinatorlukId
+                where gorevTuruIds.Contains(atama.GorevTuruId)
+                select pk.PersonelId;
+
+            var komisyonPersonelIds =
+                from pk in _context.PersonelKomisyonlar
+                join atama in _context.GorevAtamaKomisyonlar on pk.KomisyonId equals atama.KomisyonId
+                where gorevTuruIds.Contains(atama.GorevTuruId)
+                select pk.PersonelId;
+
+            return directPersonelIds
+                .Concat(teskilatPersonelIds)
+                .Concat(koordinatorlukPersonelIds)
+                .Concat(komisyonPersonelIds)
+                .Distinct();
+        }
+
+        private async Task<Dictionary<int, List<string>>> GetAssignedGorevTurleriByPersonelIdsAsync(IEnumerable<int> personelIds)
+        {
+            var ids = personelIds.Distinct().ToList();
+            if (!ids.Any())
+            {
+                return new Dictionary<int, List<string>>();
+            }
+
+            var direct =
+                from atama in _context.GorevAtamaPersoneller
+                where ids.Contains(atama.PersonelId)
+                select new { atama.PersonelId, GorevTuruAd = atama.GorevTuru!.Ad };
+
+            var teskilat =
+                from pt in _context.PersonelTeskilatlar
+                join atama in _context.GorevAtamaTeskilatlar on pt.TeskilatId equals atama.TeskilatId
+                where ids.Contains(pt.PersonelId)
+                select new { pt.PersonelId, GorevTuruAd = atama.GorevTuru!.Ad };
+
+            var koordinatorluk =
+                from pk in _context.PersonelKoordinatorlukler
+                join atama in _context.GorevAtamaKoordinatorlukler on pk.KoordinatorlukId equals atama.KoordinatorlukId
+                where ids.Contains(pk.PersonelId)
+                select new { pk.PersonelId, GorevTuruAd = atama.GorevTuru!.Ad };
+
+            var komisyon =
+                from pk in _context.PersonelKomisyonlar
+                join atama in _context.GorevAtamaKomisyonlar on pk.KomisyonId equals atama.KomisyonId
+                where ids.Contains(pk.PersonelId)
+                select new { pk.PersonelId, GorevTuruAd = atama.GorevTuru!.Ad };
+
+            var assignments = await direct
+                .Concat(teskilat)
+                .Concat(koordinatorluk)
+                .Concat(komisyon)
+                .Distinct()
+                .ToListAsync();
+
+            return assignments
+                .GroupBy(x => x.PersonelId)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.GorevTuruAd).Distinct().OrderBy(x => x).ToList());
         }
 
         private Task FillIndexLookupsAsync(LookupListsViewModel model, PersonelIndexFilterViewModel? filter = null)

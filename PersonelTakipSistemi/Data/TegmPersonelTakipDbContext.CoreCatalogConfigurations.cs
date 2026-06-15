@@ -95,9 +95,13 @@ namespace PersonelTakipSistemi.Data
                 entity.HasIndex(e => e.Eposta).IsUnique();
                 entity.Property(e => e.SifreHash).IsRequired();
                 entity.Property(e => e.SifreSalt).IsRequired();
+                entity.Property(e => e.SifreSifirlamaGerekli).HasDefaultValue(false);
                 entity.Property(e => e.PersonelCinsiyet).HasColumnType("bit");
                 entity.Property(e => e.DogumTarihi).HasColumnType("date");
+                entity.Property(e => e.GoreveBaslamaTarihi).HasColumnType("date");
+                entity.Property(e => e.GorevBitisTarihi).HasColumnType("date");
                 entity.Property(e => e.AktifMi).HasDefaultValue(true);
+                entity.Property(e => e.YetkiliModlar).HasMaxLength(80);
 
                 entity.HasOne(d => d.GorevliIl)
                     .WithMany(p => p.Personeller)

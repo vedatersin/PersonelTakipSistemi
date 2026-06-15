@@ -94,13 +94,15 @@ namespace PersonelTakipSistemi.Services
                         Name = x.Personel != null ? $"{x.Personel.Ad} {x.Personel.Soyad}" : "Silinmis",
                         Type = "Personel",
                         GorevTuruId = x.GorevTuruId,
-                        GorevTuruAd = x.GorevTuru != null ? x.GorevTuru.Ad : null
+                        GorevTuruAd = x.GorevTuru != null ? x.GorevTuru.Ad : null,
+                        PersonelGorevListesindenGizlensinMi = x.PersonelGorevListesindenGizlensinMi,
+                        SadeceAdminGorebilirMi = x.SadeceAdminGorebilirMi
                     })
                     .ToListAsync()
             };
         }
 
-        public async Task<GorevCommandResult> SaveAssignmentsAsync(GorevAtamaViewModel model, int? senderPersonelId)
+        public async Task<GorevCommandResult> SaveAssignmentsAsync(GorevAtamaViewModel model, int? senderPersonelId, bool hasGlobalAssignmentAccess)
         {
             var gorevExists = await _context.Gorevler.AnyAsync(x => x.GorevId == model.GorevId);
             if (!gorevExists)
@@ -108,10 +110,46 @@ namespace PersonelTakipSistemi.Services
                 return GorevCommandResult.NotFound("Gorev bulunamadi.");
             }
 
-            var allItems = model.Teskilatlar.Concat(model.Koordinatorlukler).Concat(model.Komisyonlar).Concat(model.Personeller).ToList();
-            if (allItems.Any(x => x.GorevTuruId <= 0))
+            model.Teskilatlar.Clear();
+
+            var defaultGorevTuruId = await _context.GorevTurleri
+                .AsNoTracking()
+                .OrderBy(x => x.GorevTuruId)
+                .Select(x => x.GorevTuruId)
+                .FirstOrDefaultAsync();
+
+            if (defaultGorevTuruId <= 0)
             {
-                return GorevCommandResult.BadRequest("Lütfen atama yapılacak kişi/birim için Görev Rolü seçiniz.");
+                return GorevCommandResult.BadRequest("Görev türü kataloğu boş. Atama kaydedilemedi.");
+            }
+
+            foreach (var item in model.Koordinatorlukler)
+            {
+                if (item.GorevTuruId <= 0) item.GorevTuruId = defaultGorevTuruId;
+            }
+
+            foreach (var item in model.Komisyonlar)
+            {
+                if (item.GorevTuruId <= 0) item.GorevTuruId = defaultGorevTuruId;
+            }
+
+            if (model.Personeller.Any(x => x.GorevTuruId <= 0))
+            {
+                return GorevCommandResult.BadRequest("Personele görev atarken görev türü seçiniz.");
+            }
+
+            if (!hasGlobalAssignmentAccess)
+            {
+                if (!senderPersonelId.HasValue)
+                {
+                    return GorevCommandResult.BadRequest("Atama yapma yetkiniz bulunmuyor.");
+                }
+
+                var accessResult = await ValidateScopedAssignmentAccessAsync(model, senderPersonelId.Value);
+                if (!accessResult.Success)
+                {
+                    return accessResult;
+                }
             }
 
             var previousKoordinatorlukIds = await _context.GorevAtamaKoordinatorlukler
@@ -185,7 +223,14 @@ namespace PersonelTakipSistemi.Services
             _context.GorevAtamaPersoneller.RemoveRange(existingPersonel);
             foreach (var item in model.Personeller.DistinctBy(x => x.Id))
             {
-                _context.GorevAtamaPersoneller.Add(new GorevAtamaPersonel { GorevId = model.GorevId, PersonelId = item.Id, GorevTuruId = item.GorevTuruId });
+                _context.GorevAtamaPersoneller.Add(new GorevAtamaPersonel
+                {
+                    GorevId = model.GorevId,
+                    PersonelId = item.Id,
+                    GorevTuruId = item.GorevTuruId,
+                    PersonelGorevListesindenGizlensinMi = item.PersonelGorevListesindenGizlensinMi,
+                    SadeceAdminGorebilirMi = item.SadeceAdminGorebilirMi
+                });
             }
 
             await _context.SaveChangesAsync();
@@ -200,6 +245,21 @@ namespace PersonelTakipSistemi.Services
             var addedKomisyonIds = komisyonIds.Except(previousKomisyonIds).ToList();
 
             var recipients = new HashSet<int>(addedPersonelIds);
+
+            var addedPersonelManagerVisibleIds = model.Personeller
+                .Where(x => addedPersonelIds.Contains(x.Id) && !x.SadeceAdminGorebilirMi)
+                .Select(x => x.Id)
+                .Distinct()
+                .ToList();
+
+            if (addedPersonelManagerVisibleIds.Any())
+            {
+                var personelManagers = await GetDirectPersonelAssignmentManagerIdsAsync(addedPersonelManagerVisibleIds);
+                foreach (var id in personelManagers)
+                {
+                    recipients.Add(id);
+                }
+            }
 
             if (addedKoordinatorlukIds.Any())
             {
@@ -232,6 +292,145 @@ namespace PersonelTakipSistemi.Services
             await SendAssignmentNotificationsAsync(model.GorevId, recipients, senderPersonelId);
 
             return GorevCommandResult.SuccessResult();
+        }
+
+        private async Task<GorevCommandResult> ValidateScopedAssignmentAccessAsync(GorevAtamaViewModel model, int senderPersonelId)
+        {
+            if (model.Teskilatlar.Any())
+            {
+                return GorevCommandResult.BadRequest("Bu yetki düzeyinde teşkilat ataması yapılamaz.");
+            }
+
+            var requestedKoordinatorlukIds = model.Koordinatorlukler.Select(x => x.Id).Distinct().ToList();
+            var existingKoordinatorlukIds = await _context.GorevAtamaKoordinatorlukler
+                .AsNoTracking()
+                .Where(x => x.GorevId == model.GorevId)
+                .Select(x => x.KoordinatorlukId)
+                .ToListAsync();
+
+            if (requestedKoordinatorlukIds.Any() || existingKoordinatorlukIds.Any())
+            {
+                if (requestedKoordinatorlukIds.Except(existingKoordinatorlukIds).Any() ||
+                    existingKoordinatorlukIds.Except(requestedKoordinatorlukIds).Any())
+                {
+                    return GorevCommandResult.BadRequest("Koordinatörlük atamasını sadece genel yetkili kullanıcılar değiştirebilir.");
+                }
+            }
+
+            var coordinatorRoleIds = new[] { 3, 4, 5, 14 };
+            var coordinatorIds = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Where(x => x.PersonelId == senderPersonelId && x.KoordinatorlukId.HasValue && coordinatorRoleIds.Contains(x.KurumsalRolId))
+                .Select(x => x.KoordinatorlukId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            var chairedCommissionIds = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Where(x => x.PersonelId == senderPersonelId && x.KurumsalRolId == 2 && x.KomisyonId.HasValue)
+                .Select(x => x.KomisyonId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            if (coordinatorIds.Any())
+            {
+                var taskIsInScope = await _context.GorevAtamaKoordinatorlukler
+                    .AnyAsync(x => x.GorevId == model.GorevId && coordinatorIds.Contains(x.KoordinatorlukId));
+
+                if (!taskIsInScope)
+                {
+                    taskIsInScope = await _context.GorevAtamaKomisyonlar.AnyAsync(x =>
+                        x.GorevId == model.GorevId &&
+                        (coordinatorIds.Contains(x.Komisyon.KoordinatorlukId) ||
+                         (x.Komisyon.BagliMerkezKoordinatorlukId.HasValue && coordinatorIds.Contains(x.Komisyon.BagliMerkezKoordinatorlukId.Value))));
+                }
+
+                if (!taskIsInScope)
+                {
+                    return GorevCommandResult.BadRequest("Bu görev koordinatörlüğünüzün kapsamında değil.");
+                }
+
+                var requestedKomisyonIds = model.Komisyonlar.Select(x => x.Id).Distinct().ToList();
+                if (requestedKomisyonIds.Any())
+                {
+                    var allowedKomisyonIds = await _context.Komisyonlar
+                        .AsNoTracking()
+                        .Where(x => coordinatorIds.Contains(x.KoordinatorlukId) ||
+                                    (x.BagliMerkezKoordinatorlukId.HasValue && coordinatorIds.Contains(x.BagliMerkezKoordinatorlukId.Value)))
+                        .Select(x => x.KomisyonId)
+                        .ToListAsync();
+
+                    if (requestedKomisyonIds.Except(allowedKomisyonIds).Any())
+                    {
+                        return GorevCommandResult.BadRequest("Sadece kendi koordinatörlüğünüze bağlı komisyonları seçebilirsiniz.");
+                    }
+                }
+
+                var requestedPersonelIds = model.Personeller.Select(x => x.Id).Distinct().ToList();
+                if (requestedPersonelIds.Any())
+                {
+                    var allowedPersonelIds = await _context.Personeller
+                        .AsNoTracking()
+                        .Where(p =>
+                            p.PersonelKoordinatorlukler.Any(pk => coordinatorIds.Contains(pk.KoordinatorlukId)) ||
+                            p.PersonelKomisyonlar.Any(pk =>
+                                coordinatorIds.Contains(pk.Komisyon.KoordinatorlukId) ||
+                                (pk.Komisyon.BagliMerkezKoordinatorlukId.HasValue && coordinatorIds.Contains(pk.Komisyon.BagliMerkezKoordinatorlukId.Value))))
+                        .Select(p => p.PersonelId)
+                        .ToListAsync();
+
+                    if (requestedPersonelIds.Except(allowedPersonelIds).Any())
+                    {
+                        return GorevCommandResult.BadRequest("Sadece kendi koordinatörlüğünüzdeki personelleri seçebilirsiniz.");
+                    }
+                }
+
+                return GorevCommandResult.SuccessResult();
+            }
+
+            if (chairedCommissionIds.Any())
+            {
+                var requestedKomisyonIds = model.Komisyonlar.Select(x => x.Id).Distinct().ToList();
+                var existingKomisyonIds = await _context.GorevAtamaKomisyonlar
+                    .AsNoTracking()
+                    .Where(x => x.GorevId == model.GorevId)
+                    .Select(x => x.KomisyonId)
+                    .ToListAsync();
+
+                if (requestedKomisyonIds.Except(existingKomisyonIds).Any() ||
+                    existingKomisyonIds.Except(requestedKomisyonIds).Any())
+                {
+                    return GorevCommandResult.BadRequest("Komisyon başkanı sadece personele görev dağıtabilir.");
+                }
+
+                var taskIsInScope = await _context.GorevAtamaKomisyonlar
+                    .AnyAsync(x => x.GorevId == model.GorevId && chairedCommissionIds.Contains(x.KomisyonId));
+
+                if (!taskIsInScope)
+                {
+                    return GorevCommandResult.BadRequest("Bu görev komisyonunuzun kapsamında değil.");
+                }
+
+                var requestedPersonelIds = model.Personeller.Select(x => x.Id).Distinct().ToList();
+                if (requestedPersonelIds.Any())
+                {
+                    var allowedPersonelIds = await _context.PersonelKomisyonlar
+                        .AsNoTracking()
+                        .Where(pk => chairedCommissionIds.Contains(pk.KomisyonId))
+                        .Select(pk => pk.PersonelId)
+                        .Distinct()
+                        .ToListAsync();
+
+                    if (requestedPersonelIds.Except(allowedPersonelIds).Any())
+                    {
+                        return GorevCommandResult.BadRequest("Sadece kendi komisyonunuzdaki personelleri seçebilirsiniz.");
+                    }
+                }
+
+                return GorevCommandResult.SuccessResult();
+            }
+
+            return GorevCommandResult.BadRequest("Atama yapma yetkiniz bulunmuyor.");
         }
 
         public async Task<GorevCommandResult> UpdateStatusAsync(GorevDurumUpdateViewModel model, int currentUserId, bool isManager)
@@ -300,24 +499,27 @@ namespace PersonelTakipSistemi.Services
             gorev.DurumAciklamasi = normalizedNote;
             gorev.UpdatedAt = now;
 
-            _context.GorevDurumGecmisleri.Add(new GorevDurumGecmisi
+            var history = new GorevDurumGecmisi
             {
                 GorevId = gorev.GorevId,
                 GorevDurumId = model.DurumId,
                 Aciklama = normalizedNote,
                 Tarih = now,
                 IslemYapanPersonelId = currentUserId
-            });
+            };
+            _context.GorevDurumGecmisleri.Add(history);
 
             await _context.SaveChangesAsync();
 
+            var statusName = await _context.GorevDurumlari
+                .Where(d => d.GorevDurumId == model.DurumId)
+                .Select(d => d.Ad)
+                .FirstOrDefaultAsync() ?? "Bilinmiyor";
+
+            await SendStatusUpdateNotificationsAsync(gorev, history.Id, statusName, normalizedNote, currentUserId);
+
             try
             {
-                var statusName = await _context.GorevDurumlari
-                    .Where(d => d.GorevDurumId == model.DurumId)
-                    .Select(d => d.Ad)
-                    .FirstOrDefaultAsync() ?? "Bilinmiyor";
-
                 await _logService.LogAsync(
                     "Durum",
                     $"Gorev durumu degistirildi: {gorev.Ad}",
@@ -387,17 +589,13 @@ namespace PersonelTakipSistemi.Services
 
         public async Task<List<Gorev>> GetUserTasksAsync(int userId)
         {
-            var coordinatorRoleIds = new[] { 3, 4, 5, 14 };
-
-            var coordinatorIds = await _context.PersonelKurumsalRolAtamalari
-                .AsNoTracking()
-                .Where(x => x.PersonelId == userId && x.KoordinatorlukId.HasValue && coordinatorRoleIds.Contains(x.KurumsalRolId))
-                .Select(x => x.KoordinatorlukId!.Value)
-                .ToListAsync();
-
             var commissionIds = await _context.PersonelKurumsalRolAtamalari
                 .AsNoTracking()
-                .Where(x => x.PersonelId == userId && x.KurumsalRolId == 2 && x.KomisyonId.HasValue)
+                .Where(x => x.PersonelId == userId &&
+                    x.KurumsalRolId == 2 &&
+                    x.KomisyonId.HasValue &&
+                    x.Komisyon != null &&
+                    x.Komisyon.IsActive)
                 .Select(x => x.KomisyonId!.Value)
                 .ToListAsync();
 
@@ -409,13 +607,6 @@ namespace PersonelTakipSistemi.Services
                 .Include(g => g.GorevAtamaKomisyonlar).ThenInclude(ak => ak.GorevTuru)
                 .Where(g => g.IsActive && (
                     g.GorevAtamaPersoneller.Any(p => p.PersonelId == userId) ||
-                    (coordinatorIds.Count > 0 && (
-                        g.GorevAtamaKoordinatorlukler.Any(k => coordinatorIds.Contains(k.KoordinatorlukId)) ||
-                        g.GorevAtamaKomisyonlar.Any(k =>
-                            (k.Komisyon.KoordinatorlukId != 0 && coordinatorIds.Contains(k.Komisyon.KoordinatorlukId)) ||
-                            (k.Komisyon.BagliMerkezKoordinatorlukId.HasValue && coordinatorIds.Contains(k.Komisyon.BagliMerkezKoordinatorlukId.Value))
-                        )
-                    )) ||
                     (commissionIds.Count > 0 && g.GorevAtamaKomisyonlar.Any(k => commissionIds.Contains(k.KomisyonId)))
                 ))
                 .OrderByDescending(g => g.BaslangicTarihi)
@@ -446,11 +637,12 @@ namespace PersonelTakipSistemi.Services
             var komisyonlar = await _context.Komisyonlar
                 .Include(x => x.Koordinatorluk)
                 .ThenInclude(koord => koord.Il)
-                .Where(x => x.Ad.ToLower().Contains(query) ||
+                .Where(x => x.IsActive &&
+                            (x.Ad.ToLower().Contains(query) ||
                             (x.BagliMerkezKoordinatorlukId != null &&
                              x.Koordinatorluk != null &&
                              x.Koordinatorluk.Il != null &&
-                             x.Koordinatorluk.Il.Ad.ToLower().Contains(query)))
+                             x.Koordinatorluk.Il.Ad.ToLower().Contains(query))))
                 .ToListAsync();
 
             return komisyonlar
@@ -563,6 +755,138 @@ namespace PersonelTakipSistemi.Services
                     gorevId,
                     $"/Gorevler/Detay/{gorevId}");
             }
+        }
+
+        private async Task SendStatusUpdateNotificationsAsync(Gorev gorev, int historyId, string statusName, string? note, int currentUserId)
+        {
+            var recipients = await GetActiveTaskRecipientIdsAsync(gorev.GorevId);
+            recipients.Remove(currentUserId);
+
+            if (!recipients.Any())
+            {
+                return;
+            }
+
+            var description = string.IsNullOrWhiteSpace(note)
+                ? $"'{gorev.Ad}' gorevinin durumu '{statusName}' olarak guncellendi."
+                : $"'{gorev.Ad}' gorevinin durumu '{statusName}' olarak guncellendi. Aciklama: {note}";
+
+            foreach (var personelId in recipients)
+            {
+                await _notificationService.CreateAsync(
+                    personelId,
+                    currentUserId,
+                    "Gorev Durumu Guncellendi",
+                    description,
+                    "GorevDurumGuncelleme",
+                    "GorevDurumGecmisi",
+                    historyId,
+                    $"/Gorevler/Detay/{gorev.GorevId}");
+            }
+        }
+
+        private async Task<List<int>> GetDirectPersonelAssignmentManagerIdsAsync(List<int> personelIds)
+        {
+            var managerIds = new HashSet<int>();
+
+            var komisyonHeads = await _context.PersonelKomisyonlar
+                .AsNoTracking()
+                .Where(x => personelIds.Contains(x.PersonelId) &&
+                    x.Komisyon.IsActive &&
+                    x.Komisyon.BaskanPersonelId.HasValue)
+                .Select(x => x.Komisyon.BaskanPersonelId!.Value)
+                .ToListAsync();
+
+            foreach (var id in komisyonHeads)
+            {
+                managerIds.Add(id);
+            }
+
+            var koordinatorlukHeads = await _context.PersonelKoordinatorlukler
+                .AsNoTracking()
+                .Where(x => personelIds.Contains(x.PersonelId) &&
+                    x.Koordinatorluk.IsActive &&
+                    x.Koordinatorluk.BaskanPersonelId.HasValue)
+                .Select(x => x.Koordinatorluk.BaskanPersonelId!.Value)
+                .ToListAsync();
+
+            foreach (var id in koordinatorlukHeads)
+            {
+                managerIds.Add(id);
+            }
+
+            var commissionCoordinatorHeads = await _context.PersonelKomisyonlar
+                .AsNoTracking()
+                .Where(x => personelIds.Contains(x.PersonelId) &&
+                    x.Komisyon.IsActive &&
+                    x.Komisyon.Koordinatorluk.BaskanPersonelId.HasValue)
+                .Select(x => x.Komisyon.Koordinatorluk.BaskanPersonelId!.Value)
+                .ToListAsync();
+
+            foreach (var id in commissionCoordinatorHeads)
+            {
+                managerIds.Add(id);
+            }
+
+            return managerIds.ToList();
+        }
+
+        private async Task<HashSet<int>> GetActiveTaskRecipientIdsAsync(int gorevId)
+        {
+            var recipients = new HashSet<int>();
+
+            var directPersonelIds = await _context.GorevAtamaPersoneller
+                .AsNoTracking()
+                .Where(x => x.GorevId == gorevId && x.Personel.AktifMi)
+                .Select(x => x.PersonelId)
+                .ToListAsync();
+
+            foreach (var id in directPersonelIds)
+            {
+                recipients.Add(id);
+            }
+
+            var komisyonIds = await _context.GorevAtamaKomisyonlar
+                .AsNoTracking()
+                .Where(x => x.GorevId == gorevId)
+                .Select(x => x.KomisyonId)
+                .ToListAsync();
+
+            if (komisyonIds.Any())
+            {
+                var komisyonPersonelIds = await _context.PersonelKomisyonlar
+                    .AsNoTracking()
+                    .Where(x => komisyonIds.Contains(x.KomisyonId) && x.Personel.AktifMi)
+                    .Select(x => x.PersonelId)
+                    .ToListAsync();
+
+                foreach (var id in komisyonPersonelIds)
+                {
+                    recipients.Add(id);
+                }
+            }
+
+            var koordinatorlukIds = await _context.GorevAtamaKoordinatorlukler
+                .AsNoTracking()
+                .Where(x => x.GorevId == gorevId)
+                .Select(x => x.KoordinatorlukId)
+                .ToListAsync();
+
+            if (koordinatorlukIds.Any())
+            {
+                var koordinatorlukPersonelIds = await _context.PersonelKoordinatorlukler
+                    .AsNoTracking()
+                    .Where(x => koordinatorlukIds.Contains(x.KoordinatorlukId) && x.Personel.AktifMi)
+                    .Select(x => x.PersonelId)
+                    .ToListAsync();
+
+                foreach (var id in koordinatorlukPersonelIds)
+                {
+                    recipients.Add(id);
+                }
+            }
+
+            return recipients;
         }
     }
 }

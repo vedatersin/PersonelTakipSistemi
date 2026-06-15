@@ -66,6 +66,25 @@
       .table-sort-btn i {
           font-size: 1rem;
       }
+
+      .gorev-bitis-date-cell {
+          border-radius: 0.35rem;
+          display: inline-block;
+          min-width: 92px;
+          padding: 0.35rem 0.55rem;
+          text-align: center;
+          font-weight: 600;
+      }
+
+      .gorev-bitis-date-cell.is-near {
+          background-color: #ffe4e7;
+          color: #b4232e;
+      }
+
+      .gorev-bitis-date-cell.is-safe {
+          background-color: #d9fbe3;
+          color: #087f3d;
+      }
   </style>
 }
 
@@ -326,7 +345,12 @@
                             <i class="@GetSortIconClass("KadroYeri")"></i>
                         </button>
                     </th>
-                    <th>Durum</th>
+                    <th>
+                        <button type="button" class="table-sort-btn" onclick="applySort('GorevBitisTarihi'); event.stopPropagation();">
+                            <span>Görev Bitiş Tarihi</span>
+                            <i class="@GetSortIconClass("GorevBitisTarihi")"></i>
+                        </button>
+                    </th>
                 </tr>
             </thead>
             <tbody class="table-border-bottom-0">
@@ -524,27 +548,27 @@
                         <td>
                             @if(!string.IsNullOrEmpty(item.KadroIl))
                             {
-                                @item.KadroIl 
+                                @item.KadroIl
                                 @if(!string.IsNullOrEmpty(item.KadroIlce)) { <small class="text-muted"> / @item.KadroIlce</small> }
                             }
                             else { <span class="text-muted">-</span> }
                         </td>
                         <td>
-                            @if (item.AktifMi)
+                            @if (item.GorevBitisTarihi.HasValue)
                             {
-                                <span class="badge bg-label-success me-1">Aktif</span>
+                                var cssClass = item.GorevBitisTarihi.Value.Date < DateTime.Today.AddMonths(1)
+                                    ? "is-near"
+                                    : "is-safe";
+                                <span class="gorev-bitis-date-cell @cssClass">@item.GorevBitisTarihi.Value.ToString("dd.MM.yyyy")</span>
                             }
-                            else
-                            {
-                                <span class="badge status-passive me-1">Pasif</span>
-                            }
+                            else { <span class="text-muted">-</span> }
                         </td>
                     </tr>
                 }
                 @if (!Model.Results.Any())
                 {
                     <tr>
-                        <td colspan="9" class="text-center py-4">Kayıt bulunamadı.</td>
+                        <td colspan="10" class="text-center py-4">Kayıt bulunamadı.</td>
                     </tr>
                 }
             </tbody>

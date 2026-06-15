@@ -70,6 +70,7 @@ namespace PersonelTakipSistemi.ViewModels
         public int? DefaultDaireBaskanligiId { get; set; }
         public int? DefaultTeskilatId { get; set; }
         public int? DefaultKoordinatorlukId { get; set; }
+        public int? DefaultKomisyonId { get; set; }
     }
 
     public class BirimKartItem
@@ -82,6 +83,7 @@ namespace PersonelTakipSistemi.ViewModels
         public int? IlId { get; set; }
         public string? IlAdi { get; set; }
         public int? ParentId { get; set; } // Komisyon için KoordinatorlukId
+        public bool IsActive { get; set; } = true;
     }
 
     public class HaritaIlItem
@@ -122,6 +124,8 @@ namespace PersonelTakipSistemi.ViewModels
         public string? KoordinatorlukAd { get; set; }
         public string? TeskilatAd { get; set; }
         public string? IlAd { get; set; }
+        public bool IsActive { get; set; } = true;
+        public bool CanManagePersoneller { get; set; }
 
         // Personel Listesi
         public List<KomisyonPersonelItem> Personeller { get; set; } = new();

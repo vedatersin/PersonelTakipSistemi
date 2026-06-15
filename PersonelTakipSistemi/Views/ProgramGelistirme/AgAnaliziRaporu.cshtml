@@ -1,0 +1,1043 @@
+@{
+    ViewData["Title"] = "Ağ Analizi Raporu";
+}
+
+@section Styles {
+    <style>
+        .profile-dashboard {
+            --dash-bg: #ffffff;
+            --dash-fg: #0f172a;
+            --dash-muted: #697a8d;
+            --dash-bar: #f8f9fb;
+            --dash-border: #d9dee3;
+            --dash-focus: #1f6feb;
+            --ana-fill: #f59e0b;
+            --ana-border: #c2410c;
+            --ana-text: #9a3412;
+            --destek-fill: #fde047;
+            --destek-border: #ca8a04;
+            --destek-text: #713f12;
+            position: relative;
+            color: var(--dash-fg);
+        }
+
+        .profile-dashboard[data-theme="dark"] {
+            --dash-bg: #0b0e14;
+            --dash-fg: #e7e7e7;
+            --dash-muted: #aaa;
+            --dash-bar: #121723;
+            --dash-border: #2a2f3a;
+            --dash-focus: #58a6ff;
+        }
+
+        .profile-dashboard[data-theme="hc"] {
+            --dash-bg: #000;
+            --dash-fg: #fff;
+            --dash-muted: #ddd;
+            --dash-bar: #000;
+            --dash-border: #444;
+            --dash-focus: #ffea00;
+        }
+
+        .profile-dashboard .dashboard-topbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.65rem;
+            align-items: center;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--dash-border);
+            background: var(--dash-bar);
+        }
+
+        .profile-dashboard .dashboard-network {
+            width: 100%;
+            height: 720px;
+            min-height: 580px;
+            background: var(--dash-bg);
+        }
+
+        .profile-dashboard .dash-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            min-height: 30px;
+            padding: 0.25rem 0.55rem;
+            border: 1px solid var(--dash-border);
+            border-radius: 0.75rem;
+            background: var(--dash-bg);
+            color: var(--dash-fg);
+            font-size: 0.8125rem;
+        }
+
+        .profile-dashboard .dash-chip.legend-ana {
+            border-color: rgba(194, 65, 12, 0.42);
+            background: #fff7ed;
+            color: var(--ana-text);
+            font-weight: 700;
+        }
+
+        .profile-dashboard .dash-chip.legend-destek {
+            border-color: rgba(202, 138, 4, 0.42);
+            background: #fefce8;
+            color: var(--destek-text);
+            font-weight: 700;
+        }
+
+        .profile-dashboard .legend-shape {
+            width: 0.95rem;
+            height: 0.95rem;
+            display: inline-block;
+            border: 2px solid currentColor;
+            flex: 0 0 auto;
+        }
+
+        .profile-dashboard .legend-hex {
+            clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);
+            border-color: var(--ana-border);
+            background: var(--ana-fill);
+        }
+
+        .profile-dashboard .legend-box {
+            border-radius: 0.15rem;
+            border-color: var(--destek-border);
+            background: var(--destek-fill);
+        }
+
+        .profile-dashboard .dashboard-search {
+            width: 245px;
+            min-height: 34px;
+            padding: 0.35rem 0.65rem;
+            border: 1px solid var(--dash-border);
+            border-radius: 0.5rem;
+            background: var(--dash-bg);
+            color: var(--dash-fg);
+        }
+
+        .profile-dashboard button,
+        .profile-dashboard select {
+            min-height: 34px;
+            padding: 0.35rem 0.65rem;
+            border: 1px solid var(--dash-border);
+            border-radius: 0.5rem;
+            background: var(--dash-bg);
+            color: var(--dash-fg);
+            font-size: 0.8125rem;
+        }
+
+        .profile-dashboard button:focus,
+        .profile-dashboard input:focus,
+        .profile-dashboard select:focus {
+            outline: 3px solid var(--dash-focus);
+            outline-offset: 1px;
+        }
+
+        .profile-dashboard .multiselect-wrap {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-dashboard .multiselect-btn {
+            min-width: 145px;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .profile-dashboard .multiselect-panel {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            z-index: 20;
+            min-width: 230px;
+            max-height: 270px;
+            overflow: auto;
+            margin-top: 0.25rem;
+            padding: 0.5rem;
+            border: 1px solid var(--dash-border);
+            border-radius: 0.5rem;
+            background: var(--dash-bg);
+            box-shadow: 0 0.5rem 1.5rem rgba(67, 89, 113, 0.18);
+        }
+
+        .profile-dashboard .multiselect-panel.open {
+            display: block;
+        }
+
+        .profile-dashboard .multiselect-panel label {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.3rem 0.2rem;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 0.8125rem;
+        }
+
+        .profile-dashboard .multiselect-panel label:hover {
+            background: var(--dash-bar);
+        }
+
+        .profile-dashboard .dashboard-popup {
+            position: absolute;
+            top: 5.5rem;
+            right: 1rem;
+            z-index: 10;
+            display: none;
+            width: min(430px, calc(100% - 2rem));
+            max-height: calc(100% - 7rem);
+            overflow: auto;
+            padding: 1rem;
+            border: 1px solid var(--dash-border);
+            border-radius: 0.65rem;
+            background: var(--dash-bg);
+            box-shadow: 0 0.5rem 1.5rem rgba(67, 89, 113, 0.18);
+        }
+
+        .profile-dashboard .dashboard-popup h5 {
+            max-width: calc(100% - 2.4rem);
+            margin: 0.15rem 0 0.35rem;
+        }
+
+        .profile-dashboard .popup-meta {
+            margin-bottom: 0.7rem;
+            color: var(--dash-muted);
+            font-size: 0.8125rem;
+            line-height: 1.5;
+        }
+
+        .profile-dashboard .popup-section-title {
+            margin-top: 0.75rem;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid var(--dash-border);
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
+        .profile-dashboard .popup-context-item {
+            margin: 0.45rem 0;
+            padding: 0.6rem;
+            border-radius: 0.4rem;
+            background: var(--dash-bar);
+            font-size: 0.8125rem;
+            line-height: 1.5;
+        }
+
+        .profile-dashboard .popup-list {
+            max-height: 210px;
+            overflow: auto;
+            margin: 0.35rem 0 0.6rem 1.2rem;
+            padding: 0;
+            font-size: 0.8125rem;
+        }
+
+        .profile-dashboard .popup-close {
+            position: absolute;
+            top: 0.45rem;
+            right: 0.45rem;
+            width: 2rem;
+            min-height: 2rem;
+            padding: 0;
+            color: var(--dash-muted);
+        }
+
+        .profile-dashboard .dashboard-status {
+            margin-left: auto;
+            color: var(--dash-muted);
+            font-size: 0.78rem;
+        }
+
+        .profile-dashboard .filter-label {
+            color: var(--dash-muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .profile-dashboard .toolbar-group,
+        .profile-dashboard .dashboard-legend {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .profile-dashboard .dashboard-loading {
+            position: absolute;
+            inset: 4.25rem 0 0;
+            z-index: 4;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.88);
+            color: #566a7f;
+            font-weight: 700;
+        }
+
+        .profile-dashboard[data-theme="dark"] .dashboard-loading,
+        .profile-dashboard[data-theme="hc"] .dashboard-loading {
+            background: rgba(0, 0, 0, 0.76);
+            color: var(--dash-fg);
+        }
+
+        @@media (max-width: 991.98px) {
+            .profile-dashboard .dashboard-topbar {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .profile-dashboard .dashboard-status {
+                margin-left: 0;
+            }
+
+            .profile-dashboard .dashboard-search,
+            .profile-dashboard .multiselect-btn {
+                width: 100%;
+            }
+
+            .profile-dashboard .dashboard-network {
+                height: 620px;
+            }
+        }
+    </style>
+}
+
+<div class="pg-page-title">
+    <h4><span class="text-muted fw-light">Program Geliştirme Modülü /</span> <strong>Öğrenci Profili</strong></h4>
+</div>
+
+<div class="card pg-summary-card mb-3">
+    <div class="card-body pg-summary-body">
+        <div>
+            <h5 class="pg-summary-title">Ağ Analizi Raporu</h5>
+            <div id="dashboardStatus" class="pg-summary-subtitle" aria-live="polite">Ağ verisi yükleniyor...</div>
+        </div>
+        <div id="dashboardSummaryStats" class="pg-summary-stats" aria-live="polite"></div>
+    </div>
+</div>
+
+<div id="profileDashboard" class="card profile-dashboard pg-filter-card" data-theme="light">
+    <div class="dashboard-topbar pg-filter-row" role="toolbar" aria-label="Dashboard araç çubuğu">
+        <div class="toolbar-group">
+            <input id="dashboardSearch" class="dashboard-search" type="search" placeholder="Ana profil ara" list="dashboardSuggest" aria-label="Ana profil ara" />
+            <datalist id="dashboardSuggest"></datalist>
+            <button id="dashboardFocusBtn" type="button" aria-keyshortcuts="Enter">
+                <i class="bx bx-target-lock me-1"></i> Odağı Bul
+            </button>
+            <button id="dashboardClearBtn" type="button" aria-keyshortcuts="Esc">
+                <i class="bx bx-x me-1"></i> Temizle
+            </button>
+            <button id="dashboardExportBtn" type="button">
+                <i class="bx bx-download me-1"></i> PNG
+            </button>
+        </div>
+        <span class="text-muted">|</span>
+        <label for="dashboardTheme" class="filter-label">Tema</label>
+        <select id="dashboardTheme" aria-label="Tema seçimi">
+            <option value="light">Açık</option>
+            <option value="dark">Koyu</option>
+            <option value="hc">Yüksek Kontrast</option>
+        </select>
+        <span class="text-muted">|</span>
+        <div class="toolbar-group">
+            <span class="filter-label">Kategori</span>
+            <select id="dashboardCategoryFilter" aria-label="Kategori seçimi">
+                <option value="">Tümü</option>
+            </select>
+            <span class="filter-label">Ders</span>
+            <div class="multiselect-wrap" id="msDers"></div>
+            <span class="filter-label">Sınıf</span>
+            <div class="multiselect-wrap" id="msSinif"></div>
+            <span class="filter-label">Tema</span>
+            <div class="multiselect-wrap" id="msTema"></div>
+            <span class="filter-label">Ana Profil</span>
+            <div class="multiselect-wrap" id="msAna"></div>
+            <span class="filter-label">Destekleyici</span>
+            <div class="multiselect-wrap" id="msDestek"></div>
+        </div>
+        <div class="dashboard-legend">
+            <span class="dash-chip legend-ana"><span class="legend-shape legend-hex"></span> Altıgen = Ana Profil</span>
+            <span class="dash-chip legend-destek"><span class="legend-shape legend-box"></span> Kutu = Destekleyici Profil</span>
+        </div>
+    </div>
+
+    <div id="dashboardNetwork" class="dashboard-network" aria-label="Profil ilişki ağı" role="application" tabindex="0"></div>
+    <div id="dashboardLoading" class="dashboard-loading">Ağ verisi yükleniyor...</div>
+
+    <div id="dashboardPopup" class="dashboard-popup" role="dialog" aria-modal="false" aria-label="Profil ayrıntıları">
+        <button id="dashboardPopupClose" class="popup-close" type="button" title="Kapat" aria-label="Kapat">
+            <i class="bx bx-x"></i>
+        </button>
+        <h5 id="dashboardPopupTitle"></h5>
+        <div id="dashboardPopupMeta" class="popup-meta"></div>
+        <div class="popup-section-title">İlişkili Müfredat Bağlamları</div>
+        <div id="dashboardPopupContexts"></div>
+        <div id="dashboardPopupRelationTitle" class="popup-section-title">Bağlantılar</div>
+        <div id="dashboardPopupRelations"></div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/ogrenci-profili-store.js" asp-append-version="true"></script>
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script>
+        (() => {
+            const dataSourceUrl = `/data/ogrenci_profili_ag_verisi.json?v=${Date.now()}`;
+            window.addEventListener('storage', event => {
+                if (event.key === window.OgrenciProfiliStore.recordsKey || event.key === window.OgrenciProfiliStore.definitionsKey) {
+                    window.location.reload();
+                }
+            });
+            const hcPalette = { ana: '#00e676', destek: '#00b0ff' };
+            const edgeColor = { color: '#75aaf5', highlight: '#4f8fe8', hover: '#4f8fe8', opacity: 0.55 };
+            const anaNodeColor = {
+                background: '#f59e0b',
+                border: '#c2410c',
+                highlight: { background: '#fb923c', border: '#9a3412' },
+                hover: { background: '#f97316', border: '#9a3412' }
+            };
+            const anaNodeFont = '#9a3412';
+            const destekNodeColor = {
+                background: '#fde047',
+                border: '#ca8a04',
+                highlight: { background: '#facc15', border: '#a16207' },
+                hover: { background: '#facc15', border: '#a16207' }
+            };
+            const destekNodeFont = '#713f12';
+            const profilePalette = {
+                'Vatansever': '#a45d72',
+                'Ahlaklı': '#c46283',
+                'Bilge': '#1ea7e1',
+                'Cesaretli': '#8263a8',
+                'Estetik': '#6f77b5',
+                'İradeli': '#36899b',
+                'Merhametli': '#47a89b',
+                'Sağlıklı': '#66b98e',
+                'Sorgulayıcı': '#86ad71',
+                'Üretken': '#d6955f'
+            };
+
+            const el = {
+                root: document.getElementById('profileDashboard'),
+                network: document.getElementById('dashboardNetwork'),
+                loading: document.getElementById('dashboardLoading'),
+                search: document.getElementById('dashboardSearch'),
+                suggest: document.getElementById('dashboardSuggest'),
+                focusBtn: document.getElementById('dashboardFocusBtn'),
+                clearBtn: document.getElementById('dashboardClearBtn'),
+                exportBtn: document.getElementById('dashboardExportBtn'),
+                theme: document.getElementById('dashboardTheme'),
+                categoryFilter: document.getElementById('dashboardCategoryFilter'),
+                status: document.getElementById('dashboardStatus'),
+                summaryStats: document.getElementById('dashboardSummaryStats'),
+                popup: document.getElementById('dashboardPopup'),
+                popupClose: document.getElementById('dashboardPopupClose'),
+                popupTitle: document.getElementById('dashboardPopupTitle'),
+                popupMeta: document.getElementById('dashboardPopupMeta'),
+                popupContexts: document.getElementById('dashboardPopupContexts'),
+                popupRelationTitle: document.getElementById('dashboardPopupRelationTitle'),
+                popupRelations: document.getElementById('dashboardPopupRelations')
+            };
+
+            let records = [];
+            let baseNodes = [];
+            let baseEdges = [];
+            let anaProfiller = [];
+            let destekleyiciProfiller = [];
+            let kategoriler = [];
+            let dersler = [];
+            let siniflar = [];
+            let temalar = [];
+            let profileContext = {};
+            let nodes;
+            let edges;
+            let network;
+            let baseNodeStyles = {};
+            let filterKategori;
+            let filterDers;
+            let filterSinif;
+            let filterTema;
+            let filterAna;
+            let filterDestek;
+            let filterDersControl;
+            let filterSinifControl;
+            let filterTemaControl;
+
+            function uniqueSorted(values) {
+                return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'tr'));
+            }
+
+            function cloneNodeColor(color) {
+                return JSON.parse(JSON.stringify(color));
+            }
+
+            function nodeSize(count, min, max) {
+                if (min === max) return 30;
+                return Math.round(24 + ((count - min) / (max - min)) * 28);
+            }
+
+            function categorySortKey(value) {
+                if (value === 'Ortaöğretim') return 0;
+                if (value === 'Temel Eğitim') return 1;
+                if (value === 'Din Öğretimi') return 2;
+                return 99;
+            }
+
+            function classSortKey(value) {
+                const normalized = String(value || '').toLocaleLowerCase('tr-TR');
+                if (normalized.includes('hazırlık') || normalized.includes('hazirlik')) return 0;
+                const match = String(value || '').match(/\d+/);
+                return match ? parseInt(match[0], 10) : 999;
+            }
+
+            function normalizeRecords(rawRecords) {
+                return rawRecords.map(record => ({
+                    kategori: record.kategori || record.category || 'Temel Eğitim',
+                    sinif: record.sinif,
+                    ders: record.ders,
+                    brans: record.ders,
+                    unite: record.unite,
+                    ana_profiller: record.anaProfiller || [],
+                    destekleyici_profiller: record.destekProfiller || []
+                }));
+            }
+
+            function buildDashboardData(rawRecords) {
+                records = normalizeRecords(rawRecords);
+                kategoriler = uniqueSorted(records.map(record => record.kategori)).sort((a, b) => categorySortKey(a) - categorySortKey(b) || a.localeCompare(b, 'tr'));
+                dersler = uniqueSorted(records.map(record => record.ders));
+                siniflar = uniqueSorted(records.map(record => record.sinif)).sort((a, b) => classSortKey(a) - classSortKey(b) || a.localeCompare(b, 'tr'));
+                temalar = uniqueSorted(records.map(record => record.unite));
+                anaProfiller = uniqueSorted(records.flatMap(record => record.ana_profiller));
+                destekleyiciProfiller = uniqueSorted(records.flatMap(record => record.destekleyici_profiller));
+                el.summaryStats.innerHTML = `
+                    <span>${records.length} kayıt</span>
+                    <span>${anaProfiller.length} ana profil</span>
+                    <span>${dersler.length} ders</span>
+                    <span>${temalar.length} tema</span>`;
+
+                const anaCounts = new Map();
+                const destekCounts = new Map();
+                const edgeCounts = new Map();
+                profileContext = {};
+
+                records.forEach(record => {
+                    record.ana_profiller.forEach(ana => {
+                        anaCounts.set(ana, (anaCounts.get(ana) || 0) + 1);
+                        const anaKey = `ana:${ana}`;
+                        profileContext[anaKey] ??= [];
+                        profileContext[anaKey].push(record);
+
+                        record.destekleyici_profiller.forEach(destek => {
+                            destekCounts.set(destek, (destekCounts.get(destek) || 0) + 1);
+                            const destekKey = `destek:${destek}`;
+                            profileContext[destekKey] ??= [];
+                            profileContext[destekKey].push(record);
+                            const edgeKey = `${anaKey}|${destekKey}`;
+                            edgeCounts.set(edgeKey, (edgeCounts.get(edgeKey) || 0) + 1);
+                        });
+                    });
+                });
+
+                const allCounts = [...anaCounts.values(), ...destekCounts.values()];
+                const minCount = Math.min(...allCounts);
+                const maxCount = Math.max(...allCounts);
+
+                baseNodes = [
+                    ...anaProfiller.map(name => {
+                        const count = anaCounts.get(name) || 0;
+                        return {
+                            id: `ana:${name}`,
+                            name,
+                            label: `${name}\n${count} kayıt`,
+                            group: 'ana',
+                            shape: 'hexagon',
+                            size: nodeSize(count, minCount, maxCount),
+                            value: count,
+                            profileColor: anaNodeColor.background,
+                            color: cloneNodeColor(anaNodeColor),
+                            font: { color: anaNodeFont, multi: true, bold: true },
+                            borderWidth: 2,
+                            borderWidthSelected: 3,
+                            title: `${name}: ${count} kayıt`
+                        };
+                    }),
+                    ...destekleyiciProfiller.map(name => {
+                        const count = destekCounts.get(name) || 0;
+                        return {
+                            id: `destek:${name}`,
+                            name,
+                            label: `${name}\n${count} kayıt`,
+                            group: 'destek',
+                            shape: 'box',
+                            size: nodeSize(count, minCount, maxCount),
+                            value: count,
+                            profileColor: destekNodeColor.border,
+                            color: cloneNodeColor(destekNodeColor),
+                            font: { color: destekNodeFont, multi: true, bold: true },
+                            borderWidth: 2,
+                            borderWidthSelected: 3,
+                            title: `${name}: ${count} kayıt`
+                        };
+                    })
+                ];
+
+                baseEdges = Array.from(edgeCounts.entries()).map(([key, count]) => {
+                    const [from, to] = key.split('|');
+                    return {
+                        id: `edge:${from}->${to}`,
+                        from,
+                        to,
+                        arrows: 'to',
+                        value: count,
+                        label: String(count),
+                        title: `${count} ilişkili kayıt`,
+                        font: { align: 'middle', size: 10 },
+                        color: { ...edgeColor }
+                    };
+                });
+            }
+
+            function buildMultiselect(containerId, items, label, onChange, options = {}) {
+                const wrap = document.getElementById(containerId);
+                wrap.innerHTML = '';
+                const btn = document.createElement('button');
+                btn.className = 'multiselect-btn';
+                btn.type = 'button';
+                const panel = document.createElement('div');
+                panel.className = 'multiselect-panel';
+                let currentItems = [...items];
+                let selected = options.selectAll === false ? new Set() : new Set(currentItems);
+
+                function updateLabel() {
+                    if (!currentItems.length) {
+                        btn.textContent = `${label} seçin`;
+                        return;
+                    }
+                    const n = selected.size;
+                    btn.textContent = n === currentItems.length ? `${label} (Tümü)` : `${label} (${n})`;
+                }
+
+                function renderOptions() {
+                    panel.innerHTML = '';
+
+                    const allBtn = document.createElement('button');
+                    allBtn.textContent = currentItems.length && selected.size === currentItems.length
+                        ? 'Tümünü Temizle'
+                        : 'Tümünü Seç';
+                    allBtn.type = 'button';
+                    allBtn.style.cssText = 'margin:4px 0;width:100%;font-size:12px;';
+                    allBtn.disabled = !currentItems.length;
+                    allBtn.addEventListener('click', () => {
+                        selected = selected.size === currentItems.length ? new Set() : new Set(currentItems);
+                        renderOptions();
+                        updateLabel();
+                        onChange(selected);
+                    });
+                    panel.appendChild(allBtn);
+
+                    currentItems.forEach(item => {
+                        const lbl = document.createElement('label');
+                        const cb = document.createElement('input');
+                        cb.type = 'checkbox';
+                        cb.checked = selected.has(item);
+                        cb.value = item;
+                        lbl.appendChild(cb);
+                        lbl.appendChild(document.createTextNode(item));
+                        panel.appendChild(lbl);
+                        cb.addEventListener('change', () => {
+                            if (cb.checked) selected.add(item);
+                            else selected.delete(item);
+                            renderOptions();
+                            updateLabel();
+                            onChange(selected);
+                        });
+                    });
+                }
+
+                btn.addEventListener('click', event => {
+                    event.stopPropagation();
+                    panel.classList.toggle('open');
+                });
+                document.addEventListener('click', () => panel.classList.remove('open'));
+                panel.addEventListener('click', event => event.stopPropagation());
+
+                renderOptions();
+                updateLabel();
+                wrap.appendChild(btn);
+                wrap.appendChild(panel);
+                return {
+                    getSelected: () => new Set(selected),
+                    setItems: (nextItems, preserveSelection = true) => {
+                        currentItems = [...nextItems];
+                        const preserved = preserveSelection
+                            ? currentItems.filter(item => selected.has(item))
+                            : currentItems;
+                        selected = new Set(preserved.length || !currentItems.length ? preserved : currentItems);
+                        renderOptions();
+                        updateLabel();
+                    },
+                    clear: () => {
+                        selected = new Set();
+                        renderOptions();
+                        updateLabel();
+                    }
+                };
+            }
+
+            function matchingRecords({ useSinif = true, useDers = true } = {}) {
+                return records.filter(record => {
+                    if (filterKategori.size && !filterKategori.has(record.kategori)) return false;
+                    if (useSinif && !filterSinif.has(record.sinif)) return false;
+                    if (useDers && !filterDers.has(record.ders)) return false;
+                    return true;
+                });
+            }
+
+            function syncHierarchy(fromLevel) {
+                if (fromLevel === 'kategori') {
+                    const nextDersler = uniqueSorted(matchingRecords({ useSinif: false, useDers: false }).map(record => record.ders));
+                    filterDersControl.setItems(nextDersler);
+                    filterDers = filterDersControl.getSelected();
+                }
+
+                if (fromLevel === 'kategori' || fromLevel === 'ders') {
+                    const nextSiniflar = uniqueSorted(matchingRecords({ useSinif: false }).map(record => record.sinif))
+                        .sort((a, b) => classSortKey(a) - classSortKey(b) || a.localeCompare(b, 'tr'));
+                    filterSinifControl.setItems(nextSiniflar);
+                    filterSinif = filterSinifControl.getSelected();
+                }
+
+                const nextTemalar = uniqueSorted(matchingRecords().map(record => record.unite));
+                filterTemaControl.setItems(nextTemalar);
+                filterTema = filterTemaControl.getSelected();
+            }
+
+            function populateCategoryFilter() {
+                el.categoryFilter.innerHTML = '<option value="">Tümü</option>' +
+                    kategoriler.map(kategori => `<option value="${escapeHtml(kategori)}">${escapeHtml(kategori)}</option>`).join('');
+            }
+
+            function getVisibleRecordKeys() {
+                const keys = new Set();
+                records.forEach(record => {
+                    if (filterKategori.size && !filterKategori.has(record.kategori)) return;
+                    if (!filterDers.has(record.ders)) return;
+                    if (!filterSinif.has(record.sinif)) return;
+                    if (!filterTema.has(record.unite)) return;
+                    const anas = record.ana_profiller || [];
+                    if (anas.length && !anas.some(ana => filterAna.has(ana))) return;
+                    const desteks = record.destekleyici_profiller || [];
+                    if (desteks.length && !desteks.some(destek => filterDestek.has(destek))) return;
+                    keys.add(`${record.kategori}|${record.sinif}|${record.ders}|${record.unite}`);
+                });
+                return keys;
+            }
+
+            function applyFilters() {
+                const visibleKeys = getVisibleRecordKeys();
+                const visibleAna = new Set();
+                const visibleDestek = new Set();
+                const visibleEdges = new Set();
+
+                records.forEach(record => {
+                    const key = `${record.kategori}|${record.sinif}|${record.ders}|${record.unite}`;
+                    if (!visibleKeys.has(key)) return;
+                    record.ana_profiller.forEach(ana => {
+                        if (!filterAna.has(ana)) return;
+                        const anaId = `ana:${ana}`;
+                        visibleAna.add(anaId);
+                        record.destekleyici_profiller.forEach(destek => {
+                            if (filterDestek.has(destek)) {
+                                const destekId = `destek:${destek}`;
+                                visibleDestek.add(destekId);
+                                visibleEdges.add(`${anaId}|${destekId}`);
+                            }
+                        });
+                    });
+                });
+
+                nodes.forEach(node => {
+                    const show = node.group === 'ana' ? visibleAna.has(node.id) : visibleDestek.has(node.id);
+                    nodes.update({ id: node.id, hidden: !show });
+                });
+                edges.forEach(edge => {
+                    edges.update({ id: edge.id, hidden: !visibleEdges.has(`${edge.from}|${edge.to}`) });
+                });
+
+                const visibleNodes = nodes.get({ filter: node => !node.hidden }).length;
+                const visibleEdgeCount = edges.get({ filter: edge => !edge.hidden }).length;
+                const anaCount = nodes.get({ filter: node => !node.hidden && node.group === 'ana' }).length;
+                const destekCount = nodes.get({ filter: node => !node.hidden && node.group === 'destek' }).length;
+                const kategoriText = filterKategori.size ? Array.from(filterKategori).join(', ') : 'Tümü';
+                el.status.textContent = `${kategoriText}: ${visibleNodes} düğüm (${anaCount} ana + ${destekCount} destek), ${visibleEdgeCount} bağlantı`;
+            }
+
+            function applyTheme(value) {
+                el.root.setAttribute('data-theme', value);
+                nodes.forEach(node => {
+                    if (value === 'hc') {
+                        const border = node.profileColor || hcPalette[node.group] || '#ffffff';
+                        nodes.update({
+                            id: node.id,
+                            color: { background: '#000000', border },
+                            font: { color: '#ffffff', multi: true, bold: node.group === 'ana' }
+                        });
+                    } else if (value === 'dark') {
+                        const base = baseNodeStyles[node.id];
+                        if (!base) return;
+                        nodes.update({
+                            id: node.id,
+                            color: cloneNodeColor(base.color),
+                            font: { ...base.font }
+                        });
+                    } else {
+                        const base = baseNodeStyles[node.id];
+                        if (base) nodes.update({ id: node.id, color: base.color, font: base.font });
+                    }
+                });
+            }
+
+            function hidePopup() {
+                el.popup.style.display = 'none';
+            }
+
+            function getFilteredContexts(nodeId) {
+                const contexts = profileContext[nodeId] || [];
+                return contexts.filter(record => {
+                    if (filterKategori.size && !filterKategori.has(record.kategori)) return false;
+                    if (!filterDers.has(record.ders)) return false;
+                    if (!filterSinif.has(record.sinif)) return false;
+                    if (!filterTema.has(record.unite)) return false;
+                    const anas = record.ana_profiller || [];
+                    if (anas.length && !anas.some(ana => filterAna.has(ana))) return false;
+                    const desteks = record.destekleyici_profiller || [];
+                    if (desteks.length && !desteks.some(destek => filterDestek.has(destek))) return false;
+                    return true;
+                });
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function showPopup(id) {
+                const node = nodes.get(id);
+                if (!node || node.hidden) return;
+                const isAna = node.group === 'ana';
+                el.popupTitle.textContent = node.name || id;
+                el.popupMeta.innerHTML = `<strong>Tip:</strong> ${isAna ? 'Ana Profil (altıgen)' : 'Destekleyici Profil (kutu)'}`;
+
+                const contexts = getFilteredContexts(id);
+                if (!contexts.length) {
+                    el.popupContexts.innerHTML = '<p class="text-muted small mb-0">Seçili filtrelere uygun bağlam bulunamadı.</p>';
+                } else {
+                    el.popupContexts.innerHTML = contexts.slice(0, 30).map(record => `
+                        <div class="popup-context-item">
+                            <strong>Kategori:</strong> ${escapeHtml(record.kategori || '-')}<br/>
+                            <strong>Sınıf:</strong> ${escapeHtml(record.sinif || '-')}<br/>
+                            <strong>Ders:</strong> ${escapeHtml(record.ders || '-')}<br/>
+                            <strong>Ünite/Tema:</strong> ${escapeHtml(record.unite || '-')}<br/>
+                            <strong>Ana Profil:</strong> ${escapeHtml((record.ana_profiller || []).join(', ') || '-')}<br/>
+                            <strong>Destekleyici:</strong> ${escapeHtml((record.destekleyici_profiller || []).join(', ') || '-')}
+                        </div>`).join('');
+                }
+
+                if (isAna) {
+                    const outgoing = edges.get({ filter: edge => edge.from === id && !edge.hidden });
+                    el.popupRelations.innerHTML = outgoing.length
+                        ? `<ul class="popup-list">${outgoing.map(edge => {
+                            const child = nodes.get(edge.to);
+                            return `<li>${escapeHtml(child ? child.name : edge.to)} (${edge.value})</li>`;
+                        }).join('')}</ul>`
+                        : '<p class="text-muted small mb-0">Bağlı destekleyici profil yok.</p>';
+                    el.popupRelationTitle.textContent = 'Kapsadığı Destekleyici Profiller';
+                } else {
+                    const incoming = edges.get({ filter: edge => edge.to === id && !edge.hidden });
+                    el.popupRelations.innerHTML = incoming.length
+                        ? `<ul class="popup-list">${incoming.map(edge => {
+                            const parent = nodes.get(edge.from);
+                            return `<li>${escapeHtml(parent ? parent.name : edge.from)} (${edge.value})</li>`;
+                        }).join('')}</ul>`
+                        : '<p class="text-muted small mb-0">Bağlı ana profil yok.</p>';
+                    el.popupRelationTitle.textContent = 'Kapsayan Ana Profiller';
+                }
+                el.popup.style.display = 'block';
+            }
+
+            function focusSearchResult() {
+                const query = el.search.value.trim().toLocaleLowerCase('tr-TR');
+                if (!query) return;
+                let targetId = null;
+                nodes.forEach(node => {
+                    if (targetId || node.group !== 'ana' || node.hidden) return;
+                    const name = String(node.name || '').toLocaleLowerCase('tr-TR');
+                    const label = String(node.label || '').toLocaleLowerCase('tr-TR');
+                    if (name.includes(query) || label.includes(query)) targetId = node.id;
+                });
+
+                if (!targetId) {
+                    el.status.textContent = `Ana profil bulunamadı: ${query}`;
+                    return;
+                }
+
+                network.selectNodes([targetId]);
+                network.focus(targetId, { scale: 1.2, animation: true });
+                showPopup(targetId);
+            }
+
+            function exportPng() {
+                const canvas = el.network.querySelector('canvas');
+                if (!canvas) return;
+                const link = document.createElement('a');
+                link.download = 'ogrenci-profil-ag-analizi.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            }
+
+            function initDashboard(payload) {
+                buildDashboardData(payload.records || []);
+                if (!records.length) throw new Error('JSON veri kaynağında kayıt bulunamadı.');
+
+                nodes = new vis.DataSet(JSON.parse(JSON.stringify(baseNodes)));
+                edges = new vis.DataSet(JSON.parse(JSON.stringify(baseEdges)));
+                baseNodeStyles = {};
+                baseNodes.forEach(node => {
+                    baseNodeStyles[node.id] = { color: cloneNodeColor(node.color), font: { ...node.font } };
+                });
+
+                el.suggest.innerHTML = anaProfiller.map(profile => `<option value="${escapeHtml(profile)}"></option>`).join('');
+                populateCategoryFilter();
+                filterKategori = new Set();
+                filterDers = new Set();
+                filterSinif = new Set();
+                filterTema = new Set();
+                filterAna = new Set(anaProfiller);
+                filterDestek = new Set(destekleyiciProfiller);
+
+                filterDersControl = buildMultiselect('msDers', [], 'Ders', selected => {
+                    filterDers = new Set(selected);
+                    syncHierarchy('ders');
+                    applyFilters();
+                });
+                filterSinifControl = buildMultiselect('msSinif', [], 'Sınıf', selected => {
+                    filterSinif = new Set(selected);
+                    syncHierarchy('sinif');
+                    applyFilters();
+                });
+                filterTemaControl = buildMultiselect('msTema', [], 'Tema', selected => { filterTema = new Set(selected); applyFilters(); });
+                buildMultiselect('msAna', anaProfiller, 'Ana Profil', selected => { filterAna = new Set(selected); applyFilters(); });
+                buildMultiselect('msDestek', destekleyiciProfiller, 'Destekleyici', selected => { filterDestek = new Set(selected); applyFilters(); });
+                syncHierarchy('kategori');
+
+                el.categoryFilter.addEventListener('change', () => {
+                    filterKategori = el.categoryFilter.value ? new Set([el.categoryFilter.value]) : new Set();
+                    syncHierarchy('kategori');
+                    applyFilters();
+                });
+
+                network = new vis.Network(el.network, { nodes, edges }, {
+                    autoResize: true,
+                    groups: {
+                        ana: {
+                            shape: 'hexagon',
+                            color: cloneNodeColor(anaNodeColor),
+                            font: { color: anaNodeFont, multi: true, bold: true },
+                            borderWidth: 2,
+                            borderWidthSelected: 3
+                        },
+                        destek: {
+                            shape: 'box',
+                            color: cloneNodeColor(destekNodeColor),
+                            font: { color: destekNodeFont, multi: true, bold: true },
+                            borderWidth: 2,
+                            borderWidthSelected: 3
+                        }
+                    },
+                    edges: { smooth: { type: 'continuous' }, font: { size: 10, align: 'middle' } },
+                    physics: {
+                        stabilization: { iterations: 220 },
+                        barnesHut: { gravitationalConstant: -25000, springLength: 180, springConstant: 0.02 }
+                    },
+                    layout: { improvedLayout: true },
+                    interaction: {
+                        hover: true,
+                        multiselect: true,
+                        navigationButtons: true,
+                        selectable: true,
+                        keyboard: { bindToWindow: false }
+                    }
+                });
+
+                network.on('stabilized', () => network.fit({ animation: true }));
+                network.on('click', params => {
+                    if (params.nodes.length) showPopup(params.nodes[0]);
+                    else hidePopup();
+                });
+                network.on('doubleClick', params => {
+                    if (!params.nodes.length) return;
+                    const id = params.nodes[0];
+                    const connected = network.getConnectedNodes(id);
+                    network.selectNodes([id, ...connected]);
+                    network.fit({ nodes: [id, ...connected], animation: true });
+                    showPopup(id);
+                });
+
+                el.network.addEventListener('keydown', event => {
+                    const step = 80;
+                    if (event.key === '+') network.moveTo({ scale: network.getScale() * 1.1 });
+                    if (event.key === '-') network.moveTo({ scale: network.getScale() / 1.1 });
+                    if (event.key === 'ArrowUp') {
+                        const position = network.getViewPosition();
+                        network.moveTo({ position: { x: position.x, y: position.y + step } });
+                    }
+                    if (event.key === 'ArrowDown') {
+                        const position = network.getViewPosition();
+                        network.moveTo({ position: { x: position.x, y: position.y - step } });
+                    }
+                    if (event.key === 'ArrowLeft') {
+                        const position = network.getViewPosition();
+                        network.moveTo({ position: { x: position.x + step, y: position.y } });
+                    }
+                    if (event.key === 'ArrowRight') {
+                        const position = network.getViewPosition();
+                        network.moveTo({ position: { x: position.x - step, y: position.y } });
+                    }
+                });
+
+                el.loading.style.display = 'none';
+                applyFilters();
+                setTimeout(() => network.fit({ animation: true }), 800);
+            }
+
+            el.focusBtn.addEventListener('click', focusSearchResult);
+            el.clearBtn.addEventListener('click', () => {
+                el.search.value = '';
+                network?.unselectAll();
+                network?.fit({ animation: true });
+                hidePopup();
+            });
+            el.exportBtn.addEventListener('click', exportPng);
+            el.theme.addEventListener('change', event => applyTheme(event.target.value));
+            el.popupClose.addEventListener('click', hidePopup);
+            el.search.addEventListener('keydown', event => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    focusSearchResult();
+                }
+                if (event.key === 'Escape') {
+                    el.clearBtn.click();
+                }
+            });
+
+            window.OgrenciProfiliStore.loadData(dataSourceUrl)
+                .then(initDashboard)
+                .catch(error => {
+                    el.loading.textContent = error.message;
+                    el.status.textContent = 'Ağ verisi yüklenemedi.';
+                });
+        })();
+    </script>
+}

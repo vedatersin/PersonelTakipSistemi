@@ -169,6 +169,13 @@ namespace PersonelTakipSistemi.Data
 
             modelBuilder.Entity<GorevAtamaPersonel>(entity => {
                 entity.HasKey(e => new { e.GorevId, e.PersonelId });
+
+                entity.Property(e => e.PersonelGorevListesindenGizlensinMi)
+                    .HasDefaultValue(false);
+
+                entity.Property(e => e.SadeceAdminGorebilirMi)
+                    .HasDefaultValue(false);
+
                 entity.HasOne(e => e.Gorev)
                     .WithMany(g => g.GorevAtamaPersoneller)
                     .HasForeignKey(e => e.GorevId)

@@ -20,6 +20,21 @@ namespace PersonelTakipSistemi.Controllers
         {
             if (User.IsInRole("Admin"))
             {
+                var adminPersonelIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (int.TryParse(adminPersonelIdStr, out var adminPersonelId))
+                {
+                    var adminModes = ParseModeList(await _context.Personeller
+                        .AsNoTracking()
+                        .Where(p => p.PersonelId == adminPersonelId)
+                        .Select(p => p.YetkiliModlar)
+                        .FirstOrDefaultAsync());
+
+                    if (IsProgramModeRequested(adminModes))
+                    {
+                        return RedirectToAction("GunesIsiniDiagrami", "ProgramGelistirme");
+                    }
+                }
+
                 return RedirectToAction("BirimListele", "Birimler");
             }
 
@@ -53,6 +68,22 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             return RedirectToAction("BenimDetay", "Personel");
+        }
+
+        private bool IsProgramModeRequested(IReadOnlyCollection<string> allowedModes)
+        {
+            return string.Equals(Request.Cookies["tegm-system-mode"], "program", StringComparison.OrdinalIgnoreCase)
+                && allowedModes.Contains("program");
+        }
+
+        private static List<string> ParseModeList(string? rawModes)
+        {
+            return (rawModes ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(mode => mode.ToLowerInvariant())
+                .Where(mode => mode is "program" or "komisyon" or "master")
+                .Distinct()
+                .ToList();
         }
     }
 }

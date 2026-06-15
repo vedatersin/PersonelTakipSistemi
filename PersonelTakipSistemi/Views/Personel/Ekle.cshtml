@@ -126,7 +126,20 @@
           object-fit: cover;
           overflow: hidden;
       }
-      .photo-circle img { width: 100%; height: 100%; object-fit: cover; }
+      .photo-circle img,
+      #photoPreview,
+      #kontrolFoto {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: cover;
+      }
+
+      #photoPreview,
+      #kontrolFoto {
+          border-radius: 50%;
+      }
       
       /* Custom Checkbox Grid */
       .checkbox-grid {
@@ -233,12 +246,6 @@
       <div class="step-name">Uzmanlık</div>
     </div>
 
-    <!-- 4. Görev Türü -->
-    <div class="step-item" data-step="tab4" onclick="handleStepClick('tab4')">
-      <div class="step-counter"><i class='bx bx-task'></i></div>
-      <div class="step-name">Görev Türü</div>
-    </div>
-
     <!-- 5. İş Niteliği -->
     <div class="step-item" data-step="tab5" onclick="handleStepClick('tab5')">
       <div class="step-counter"><i class='bx bx-file'></i></div>
@@ -288,7 +295,7 @@
               
               @if(hasPhoto)
               {
-                   <img id="photoPreview" src="@imgSrc" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
+                   <img id="photoPreview" src="@imgSrc" style="display:block; width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"/>
                    <span id="previewInitials" class="avatar-initial rounded-circle bg-label-primary" style="display:none; width:100%; height:100%; font-size:2rem;">@initials</span>
               }
               else
@@ -347,6 +354,18 @@
                     <span asp-validation-for="DogumTarihi" class="text-danger"></span>
                 </div>
                
+                <div class="mb-3 mt-4">
+                    <label asp-for="GoreveBaslamaTarihi" class="form-label">Göreve Başlama Tarihi</label>
+                    <input type="date" asp-for="GoreveBaslamaTarihi" class="form-control">
+                    <span asp-validation-for="GoreveBaslamaTarihi" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="GorevBitisTarihi" class="form-label">Görev Bitiş Tarihi</label>
+                    <input type="date" asp-for="GorevBitisTarihi" class="form-control">
+                    <span asp-validation-for="GorevBitisTarihi" class="text-danger"></span>
+                </div>
+
                 <!-- AktifMi Switch: Only Show to Admin -->
                 @if(User.IsInRole("Admin"))
                 {
@@ -527,6 +546,23 @@
                                                             </select>
                                                             <span asp-validation-for="SistemRolId" class="text-danger"></span>
                                                         </div>
+                                                        <div id="adminModeOptions" class="border rounded p-3 bg-light @(Model.SistemRolId == 1 ? "" : "d-none")">
+                                                            <label class="form-label text-muted small text-uppercase mb-2">Admin Modları</label>
+                                                            <div class="d-flex flex-column gap-2">
+                                                                <label class="form-check mb-0">
+                                                                    <input class="form-check-input admin-mode-checkbox" type="checkbox" name="YetkiliModlar" value="program" @(Model.YetkiliModlar.Contains("program") ? "checked" : "")>
+                                                                    <span class="form-check-label">Program Geliştirme Modu</span>
+                                                                </label>
+                                                                <label class="form-check mb-0">
+                                                                    <input class="form-check-input admin-mode-checkbox" type="checkbox" name="YetkiliModlar" value="komisyon" @(Model.YetkiliModlar.Contains("komisyon") ? "checked" : "")>
+                                                                    <span class="form-check-label">Komisyon İzleme Modu</span>
+                                                                </label>
+                                                                <label class="form-check mb-0">
+                                                                    <input class="form-check-input admin-mode-checkbox" type="checkbox" name="YetkiliModlar" value="master" @(Model.YetkiliModlar.Contains("master") || (Model.SistemRolId == 1 && !Model.YetkiliModlar.Any()) ? "checked" : "")>
+                                                                    <span class="form-check-label">Master Admin Modu</span>
+                                                                </label>
+                                                            </div>
+                                                        </div>
                                                         <!-- Yetki Kapsamı Removed -->
                                                     </div>
                                                 </div>
@@ -599,31 +635,6 @@
         <div class="d-flex gap-2">
             <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab3')"><i class='bx bx-eraser me-1'></i>Temizle</button>
             <button type="button" class="btn btn-primary px-4" id="next3">İlerle <i class='bx bx-chevron-right ms-1'></i></button>
-        </div>
-    </div>
-  </div>
-
-<!-- TAB4 GÖREVİ-->
-  <div id="tab4" class="tab-content">
-    <div class="checkbox-grid">
-         @if(Model.GorevTurleri != null)
-        {
-            @foreach(var item in Model.GorevTurleri)
-            {
-                <label class="custom-checkbox-card" for="gorev_@item.Id">
-                    <input class="form-check-input m-0" type="checkbox" id="gorev_@item.Id" value="@item.Id" name="SeciliGorevTuruIdleri" @(Model.SeciliGorevTuruIdleri != null && Model.SeciliGorevTuruIdleri.Contains(item.Id) ? "checked" : "")>
-                    <span>@item.Ad</span>
-                </label>
-            }
-        }
-    </div>
-    <div class="action-bar">
-        <div>
-            <button type="button" class="btn btn-step-back px-4" onclick="goPrev('tab4')"><i class='bx bx-chevron-left me-1'></i>Geri</button>
-        </div>
-        <div class="d-flex gap-2">
-            <button type="button" class="btn btn-outline-secondary" onclick="clearCheckboxes('tab4')"><i class='bx bx-eraser me-1'></i>Temizle</button>
-            <button type="button" class="btn btn-primary px-4" id="next4">İlerle <i class='bx bx-chevron-right ms-1'></i></button>
         </div>
     </div>
   </div>
@@ -703,7 +714,7 @@
     <div class="text-center mb-4">
         <div class="photo-preview-container mx-auto" id="controlContainer">
             <span id="controlIcon" class="avatar-initial rounded-circle bg-label-primary" style="display:flex; width:100%; height:100%; font-size:2rem;">@initials</span>
-            <img id="kontrolFoto" src="" alt="Personel Fotoğrafı" style="display:none;" onerror="this.style.display='none'; document.getElementById('controlIcon').style.display='flex';"/>
+            <img id="kontrolFoto" src="" alt="Personel Fotoğrafı" style="display:none; width:100%; height:100%; object-fit:cover;" onerror="this.style.display='none'; document.getElementById('controlIcon').style.display='flex';"/>
         </div>
         <p class="mt-2 fw-bold">Personel Fotoğrafı</p>
     </div>
@@ -807,8 +818,8 @@
         window.wizardState = {
             unlockedTabs: new Set(["tab1"]),
             tabOrder: @Html.Raw(User.IsInRole("Admin")
-           ? "[\"tab1\", \"tab_auth\", \"tab2\", \"tab3\", \"tab4\", \"tab5\", \"tab6\"]"
-           : "[\"tab1\", \"tab2\", \"tab3\", \"tab4\", \"tab5\", \"tab6\"]"),
+           ? "[\"tab1\", \"tab_auth\", \"tab2\", \"tab3\", \"tab5\", \"tab6\"]"
+           : "[\"tab1\", \"tab2\", \"tab3\", \"tab5\", \"tab6\"]"),
             assignedRoles: @Html.Raw(Model.AtananRollerJson ?? "[]")
         };
 
@@ -920,6 +931,8 @@
                 ? (aktifMiEl.checked ? "Aktif" : "Pasif")
                 : (hiddenAktifMiEl?.value === "false" ? "Pasif" : "Aktif");
             addRow(leftBody, "Durum", aktifMi);
+            addRow(leftBody, "Göreve Başlama Tarihi", document.getElementById("GoreveBaslamaTarihi")?.value);
+            addRow(leftBody, "Görev Bitiş Tarihi", document.getElementById("GorevBitisTarihi")?.value);
 
             addRow(rightBody, "Kadro Kurum", document.getElementById("personelKadroKurum")?.value);
 
@@ -946,7 +959,6 @@
 
             addRow(rightBody, "Beceriler", getLabels_("SeciliYazilimIdleri"));
             addRow(rightBody, "Uzmanlıklar", getLabels_("SeciliUzmanlikIdleri"));
-            addRow(rightBody, "Görev Türü", getLabels_("SeciliGorevTuruIdleri"));
             addRow(rightBody, "İş Niteliği", getLabels_("SeciliIsNiteligiIdleri"));
 
             const rolesBody = document.getElementById("kontrolTableBodyRoles");
@@ -1298,6 +1310,7 @@
 
             $('input[name="PersonelId"]').val(0);
             $('input[name="IsEditMode"]').val('False');
+            $('#GorevBitisTarihi').val('2026-06-30');
 
             const preview = document.getElementById("photoPreview");
             const initialsBadge = document.getElementById("previewInitials");
@@ -1475,7 +1488,6 @@
 
             setupNextBtn("next2", "tab2");
             setupNextBtn("next3", "tab3");
-            setupNextBtn("next4", "tab4");
             setupNextBtn("next5", "tab5");
 
             // --- Next 1 (AJAX Check) ---
@@ -1547,6 +1559,32 @@
                     activateTab("tab2");
                 });
             }
+
+            function syncAdminModeOptions() {
+                const isAdminRole = $('#sistemRolSelect').val() === '1';
+                const $panel = $('#adminModeOptions');
+                $panel.toggleClass('d-none', !isAdminRole);
+                if (isAdminRole) {
+                    const hasCheckedMode = $panel.find('.admin-mode-checkbox:checked').length > 0;
+                    if (!hasCheckedMode) {
+                        $panel.find('.admin-mode-checkbox[value="master"]').prop('checked', true);
+                    }
+                } else {
+                    $panel.find('.admin-mode-checkbox').prop('checked', false);
+                }
+            }
+
+            $('#sistemRolSelect').on('change', syncAdminModeOptions);
+            syncAdminModeOptions();
+
+            $('#adminModeOptions').on('click change', '.admin-mode-checkbox, .form-check-label', function (event) {
+                event.stopPropagation();
+                setTimeout(function () {
+                    if (!$('#tab_auth').hasClass('active')) {
+                        activateTab('tab_auth');
+                    }
+                }, 0);
+            });
 
             const btnNextPass = document.getElementById("next_pass");
             if (btnNextPass) {

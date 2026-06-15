@@ -1,0 +1,718 @@
+@{
+    ViewData["Title"] = "Öğrenci Profili Tanımları";
+}
+
+@section Styles {
+    <style>
+        .profile-definitions {
+            --def-fg: #25324b;
+            --def-muted: #697a8d;
+            --def-border: #d9e2ef;
+            --def-soft: #f5f8fd;
+            --def-blue: #2563eb;
+            --def-sky: #0891b2;
+            color: var(--def-fg);
+        }
+
+        .definition-summary {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            min-height: 98px;
+            padding: 1.35rem 1.5rem;
+            border-radius: 0.5rem;
+            background: #fff;
+            box-shadow: 0 0.25rem 1rem rgba(67, 89, 113, 0.08);
+        }
+
+        .definition-summary h4 {
+            margin: 0 0 0.35rem;
+            font-size: 1.1rem;
+            font-weight: 800;
+        }
+
+        .definition-summary p {
+            margin: 0;
+            color: var(--def-muted);
+            font-weight: 600;
+        }
+
+        .definition-stats {
+            display: inline-flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 0.5rem;
+        }
+
+        .definition-stats span {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0.25rem 0.65rem;
+            border-radius: 0.45rem;
+            background: #f2f6fc;
+            color: #526579;
+            font-size: 0.84rem;
+            font-weight: 800;
+        }
+
+        .definition-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1.25rem;
+            margin-top: 1.25rem;
+        }
+
+        .definition-card {
+            min-width: 0;
+            overflow: hidden;
+            border: 1px solid var(--def-border);
+            border-radius: 0.5rem;
+            background: #fff;
+            box-shadow: 0 0.25rem 1rem rgba(67, 89, 113, 0.08);
+        }
+
+        .definition-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            min-height: 64px;
+            padding: 1rem 1.25rem;
+            background: linear-gradient(135deg, #2563eb, #0891b2);
+            color: #fff;
+        }
+
+        .definition-card:nth-child(2) .definition-card-header {
+            background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+        }
+
+        .definition-card:nth-child(3) .definition-card-header {
+            background: linear-gradient(135deg, #0f766e, #0284c7);
+        }
+
+        .definition-card:nth-child(4) .definition-card-header {
+            background: linear-gradient(135deg, #0369a1, #2563eb);
+        }
+
+        .definition-card-title {
+            display: inline-flex;
+            align-items: center;
+            min-width: 0;
+            gap: 0.45rem;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .definition-add-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            min-height: 30px;
+            padding: 0.25rem 0.7rem;
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 0.35rem;
+            background: rgba(255, 255, 255, 0.92);
+            color: #345;
+            font-size: 0.82rem;
+            font-weight: 800;
+        }
+
+        .definition-add-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        .definition-list {
+            min-height: 340px;
+            max-height: 420px;
+            overflow: auto;
+            background: #fff;
+        }
+
+        .definition-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 0.75rem;
+            min-height: 48px;
+            padding: 0.75rem 1.25rem;
+            border-bottom: 1px solid #edf1f7;
+            color: #34495e;
+            font-weight: 750;
+        }
+
+        .definition-row.is-selected {
+            background: #eaf3ff;
+            color: #133b75;
+        }
+
+        .definition-row.is-muted {
+            color: #98a6b5;
+            font-weight: 700;
+        }
+
+        .definition-row-main {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .definition-row-sub {
+            display: block;
+            margin-top: 0.2rem;
+            color: var(--def-muted);
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .definition-actions {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .definition-icon-btn {
+            display: inline-grid;
+            place-items: center;
+            width: 30px;
+            height: 30px;
+            border: 0;
+            border-radius: 0.35rem;
+            background: transparent;
+            color: #7890aa;
+            font-size: 1.15rem;
+        }
+
+        .definition-icon-btn:hover {
+            background: #edf4ff;
+            color: var(--def-blue);
+        }
+
+        .definition-icon-btn.is-danger:hover {
+            background: #fff1f1;
+            color: #dc2626;
+        }
+
+        .definition-inline-form {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .definition-inline-form input {
+            min-width: 0;
+            min-height: 34px;
+            border: 1px solid #bfdbfe;
+            border-radius: 0.4rem;
+            padding: 0.35rem 0.55rem;
+            color: var(--def-fg);
+            font-weight: 700;
+        }
+
+        .definition-empty {
+            display: grid;
+            place-items: center;
+            min-height: 160px;
+            padding: 1.5rem;
+            color: var(--def-muted);
+            font-weight: 700;
+            text-align: center;
+        }
+
+        @@media (max-width: 991.98px) {
+            .definition-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+<div class="profile-definitions">
+    <h4 class="fw-normal mb-4">Program Geliştirme Modülü / <span class="fw-bold">Öğrenci Profili Tanımları</span></h4>
+
+    <section class="definition-summary">
+        <div>
+            <h4>Öğrenci Profili Tanımları</h4>
+            <p>Kategori, ders, sınıf seviyesi ve tema tanımları.</p>
+        </div>
+        <div id="definitionStats" class="definition-stats" aria-live="polite"></div>
+    </section>
+
+    <section class="definition-grid" aria-label="Öğrenci profili tanım listeleri">
+        <article class="definition-card" data-panel="category">
+            <div class="definition-card-header">
+                <div class="definition-card-title">
+                    <i class="bx bx-category"></i>
+                    <span>Kategoriler</span>
+                </div>
+                <button type="button" class="definition-add-btn" data-add="category">
+                    <i class="bx bx-plus"></i>
+                    <span>Ekle</span>
+                </button>
+            </div>
+            <div id="categoryList" class="definition-list"></div>
+        </article>
+
+        <article class="definition-card" data-panel="lesson">
+            <div class="definition-card-header">
+                <div class="definition-card-title">
+                    <i class="bx bx-book-open"></i>
+                    <span>Dersler</span>
+                </div>
+                <button type="button" class="definition-add-btn" data-add="lesson">
+                    <i class="bx bx-plus"></i>
+                    <span>Ekle</span>
+                </button>
+            </div>
+            <div id="lessonList" class="definition-list"></div>
+        </article>
+
+        <article class="definition-card" data-panel="class">
+            <div class="definition-card-header">
+                <div class="definition-card-title">
+                    <i class="bx bx-layer"></i>
+                    <span>Sınıf Seviyeleri</span>
+                </div>
+                <button type="button" class="definition-add-btn" data-add="class">
+                    <i class="bx bx-plus"></i>
+                    <span>Ekle</span>
+                </button>
+            </div>
+            <div id="classList" class="definition-list"></div>
+        </article>
+
+        <article class="definition-card" data-panel="theme">
+            <div class="definition-card-header">
+                <div class="definition-card-title">
+                    <i class="bx bx-purchase-tag-alt"></i>
+                    <span>Temalar</span>
+                </div>
+                <button type="button" class="definition-add-btn" data-add="theme">
+                    <i class="bx bx-plus"></i>
+                    <span>Ekle</span>
+                </button>
+            </div>
+            <div id="themeList" class="definition-list"></div>
+        </article>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/ogrenci-profili-store.js" asp-append-version="true"></script>
+    <script>
+        (() => {
+            const dataUrl = '/data/ogrenci_profili_ag_verisi.json';
+            const storageKey = 'tegm-ogrenci-profili-tanimlari-v1';
+            const state = {
+                categories: [],
+                lessons: [],
+                classes: [],
+                themes: []
+            };
+            const selected = {
+                categoryId: null,
+                lessonId: null,
+                classId: null
+            };
+            let editing = null;
+            let adding = null;
+
+            const panels = {
+                category: document.getElementById('categoryList'),
+                lesson: document.getElementById('lessonList'),
+                class: document.getElementById('classList'),
+                theme: document.getElementById('themeList')
+            };
+
+            function slug(value) {
+                return (value || '')
+                    .toString()
+                    .normalize('NFD')
+                    .replace(/[\u0300-\u036f]/g, '')
+                    .replace(/ı/g, 'i')
+                    .replace(/İ/g, 'I')
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]+/g, '-')
+                    .replace(/^-+|-+$/g, '') || 'tanim';
+            }
+
+            function escapeHtml(value) {
+                return (value || '').toString().replace(/[&<>"']/g, char => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[char]));
+            }
+
+            function makeId(prefix, parts) {
+                return `${prefix}-${parts.map(slug).join('-')}`;
+            }
+
+            function sortByName(items) {
+                return [...items].sort((a, b) => a.name.localeCompare(b.name, 'tr'));
+            }
+
+            function sortCategories(items) {
+                const order = ['Temel Eğitim', 'Ortaöğretim', 'Din Öğretimi'];
+                return [...items].sort((a, b) => {
+                    const ai = order.indexOf(a.name);
+                    const bi = order.indexOf(b.name);
+                    if (ai !== -1 || bi !== -1) {
+                        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+                    }
+                    return a.name.localeCompare(b.name, 'tr');
+                });
+            }
+
+            function uniqueById(items) {
+                const map = new Map();
+                items.forEach(item => map.set(item.id, item));
+                return [...map.values()];
+            }
+
+            function buildBaseState(records) {
+                const categories = [];
+                const lessons = [];
+                const classes = [];
+                const themes = [];
+
+                records.forEach(record => {
+                    const kategori = (record.kategori || '').trim();
+                    const ders = (record.ders || '').trim();
+                    const sinif = (record.sinif || '').trim();
+                    const tema = (record.unite || '').trim();
+                    if (!kategori) return;
+
+                    const categoryId = makeId('kat', [kategori]);
+                    categories.push({ id: categoryId, name: kategori });
+
+                    if (!ders) return;
+                    const lessonId = makeId('ders', [kategori, ders]);
+                    lessons.push({ id: lessonId, categoryId, name: ders });
+
+                    if (!sinif) return;
+                    const classId = makeId('sinif', [kategori, ders, sinif]);
+                    classes.push({ id: classId, categoryId, lessonId, name: sinif });
+
+                    if (!tema) return;
+                    themes.push({ id: makeId('tema', [kategori, ders, sinif, tema]), categoryId, lessonId, classId, name: tema });
+                });
+
+                return {
+                    categories: sortCategories(uniqueById(categories)),
+                    lessons: sortByName(uniqueById(lessons)),
+                    classes: sortByName(uniqueById(classes)),
+                    themes: sortByName(uniqueById(themes))
+                };
+            }
+
+            function loadStoredState(baseState) {
+                const raw = localStorage.getItem(storageKey);
+                if (!raw) return baseState;
+                try {
+                    const parsed = JSON.parse(raw);
+                    return {
+                        categories: Array.isArray(parsed.categories) ? parsed.categories : baseState.categories,
+                        lessons: Array.isArray(parsed.lessons) ? parsed.lessons : baseState.lessons,
+                        classes: Array.isArray(parsed.classes) ? parsed.classes : baseState.classes,
+                        themes: Array.isArray(parsed.themes) ? parsed.themes : baseState.themes
+                    };
+                } catch {
+                    return baseState;
+                }
+            }
+
+            function saveState() {
+                window.OgrenciProfiliStore.saveDefinitions(state);
+            }
+
+            function activeCategory() {
+                return state.categories.find(item => item.id === selected.categoryId) || null;
+            }
+
+            function activeLesson() {
+                return state.lessons.find(item => item.id === selected.lessonId) || null;
+            }
+
+            function activeClass() {
+                return state.classes.find(item => item.id === selected.classId) || null;
+            }
+
+            function lessonItems() {
+                return state.lessons.filter(item => item.categoryId === selected.categoryId);
+            }
+
+            function classItems() {
+                return state.classes.filter(item => item.categoryId === selected.categoryId && item.lessonId === selected.lessonId);
+            }
+
+            function themeItems() {
+                return state.themes.filter(item => item.categoryId === selected.categoryId && item.lessonId === selected.lessonId && item.classId === selected.classId);
+            }
+
+            function ensureSelections() {
+                if (!state.categories.some(item => item.id === selected.categoryId)) {
+                    selected.categoryId = state.categories[0]?.id || null;
+                }
+                const lessons = lessonItems();
+                if (!lessons.some(item => item.id === selected.lessonId)) {
+                    selected.lessonId = lessons[0]?.id || null;
+                }
+                const classes = classItems();
+                if (!classes.some(item => item.id === selected.classId)) {
+                    selected.classId = classes[0]?.id || null;
+                }
+            }
+
+            function renderStats() {
+                document.getElementById('definitionStats').innerHTML = `
+                    <span>${state.categories.length} kategori</span>
+                    <span>${state.lessons.length} ders</span>
+                    <span>${state.classes.length} sınıf</span>
+                    <span>${state.themes.length} tema</span>
+                `;
+            }
+
+            function renderPanel(type, items, selectedId, emptyText) {
+                const panel = panels[type];
+                if (!items.length && adding !== type) {
+                    panel.innerHTML = `<div class="definition-empty">${escapeHtml(emptyText)}</div>`;
+                    return;
+                }
+
+                const addRow = adding === type ? renderInlineForm(type, '', 'add') : '';
+                panel.innerHTML = addRow + items.map(item => renderRow(type, item, item.id === selectedId)).join('');
+            }
+
+            function renderInlineForm(type, value, mode, id) {
+                return `
+                    <div class="definition-row">
+                        <form class="definition-inline-form" data-form-type="${type}" data-form-mode="${mode}" data-form-id="${escapeHtml(id || '')}">
+                            <input type="text" value="${escapeHtml(value)}" autocomplete="off" maxlength="180" aria-label="Tanım adı">
+                            <span class="definition-actions">
+                                <button type="submit" class="definition-icon-btn" title="Kaydet"><i class="bx bx-check"></i></button>
+                                <button type="button" class="definition-icon-btn is-danger" data-cancel-form title="Vazgeç"><i class="bx bx-x"></i></button>
+                            </span>
+                        </form>
+                    </div>
+                `;
+            }
+
+            function renderRow(type, item, isSelected) {
+                if (editing && editing.type === type && editing.id === item.id) {
+                    return renderInlineForm(type, item.name, 'edit', item.id);
+                }
+
+                const subtitle = type === 'lesson'
+                    ? activeCategory()?.name
+                    : type === 'class'
+                        ? activeLesson()?.name
+                        : type === 'theme'
+                            ? activeClass()?.name
+                            : '';
+
+                return `
+                    <div class="definition-row ${isSelected ? 'is-selected' : ''}" data-select-type="${type}" data-select-id="${escapeHtml(item.id)}">
+                        <div class="definition-row-main" title="${escapeHtml(item.name)}">
+                            ${escapeHtml(item.name)}
+                            ${subtitle ? `<span class="definition-row-sub">${escapeHtml(subtitle)}</span>` : ''}
+                        </div>
+                        <span class="definition-actions">
+                            <button type="button" class="definition-icon-btn" data-edit-type="${type}" data-edit-id="${escapeHtml(item.id)}" title="Düzenle"><i class="bx bx-edit"></i></button>
+                            <button type="button" class="definition-icon-btn is-danger" data-delete-type="${type}" data-delete-id="${escapeHtml(item.id)}" title="Sil"><i class="bx bx-trash"></i></button>
+                        </span>
+                    </div>
+                `;
+            }
+
+            function render() {
+                ensureSelections();
+                renderStats();
+                renderPanel('category', sortCategories(state.categories), selected.categoryId, 'Kategori tanımı bulunamadı.');
+                renderPanel('lesson', sortByName(lessonItems()), selected.lessonId, 'Seçili kategoriye bağlı ders bulunamadı.');
+                renderPanel('class', sortByName(classItems()), selected.classId, 'Seçili derse bağlı sınıf seviyesi bulunamadı.');
+                renderPanel('theme', sortByName(themeItems()), null, 'Seçili sınıf seviyesine bağlı tema bulunamadı.');
+
+                document.querySelector('[data-add="lesson"]').disabled = !selected.categoryId;
+                document.querySelector('[data-add="class"]').disabled = !selected.lessonId;
+                document.querySelector('[data-add="theme"]').disabled = !selected.classId;
+
+                const firstInput = document.querySelector('.definition-inline-form input');
+                if (firstInput) firstInput.focus();
+            }
+
+            function addItem(type, name) {
+                const clean = name.trim();
+                if (!clean) return;
+
+                if (type === 'category') {
+                    const id = makeId('kat', [clean]);
+                    if (!state.categories.some(item => item.id === id)) {
+                        state.categories.push({ id, name: clean });
+                    }
+                    selected.categoryId = id;
+                } else if (type === 'lesson') {
+                    const category = activeCategory();
+                    if (!category) return;
+                    const id = makeId('ders', [category.name, clean]);
+                    if (!state.lessons.some(item => item.id === id)) {
+                        state.lessons.push({ id, categoryId: category.id, name: clean });
+                    }
+                    selected.lessonId = id;
+                } else if (type === 'class') {
+                    const category = activeCategory();
+                    const lesson = activeLesson();
+                    if (!category || !lesson) return;
+                    const id = makeId('sinif', [category.name, lesson.name, clean]);
+                    if (!state.classes.some(item => item.id === id)) {
+                        state.classes.push({ id, categoryId: category.id, lessonId: lesson.id, name: clean });
+                    }
+                    selected.classId = id;
+                } else if (type === 'theme') {
+                    const category = activeCategory();
+                    const lesson = activeLesson();
+                    const classLevel = activeClass();
+                    if (!category || !lesson || !classLevel) return;
+                    const id = makeId('tema', [category.name, lesson.name, classLevel.name, clean]);
+                    if (!state.themes.some(item => item.id === id)) {
+                        state.themes.push({ id, categoryId: category.id, lessonId: lesson.id, classId: classLevel.id, name: clean });
+                    }
+                }
+
+                adding = null;
+                saveState();
+                render();
+            }
+
+            function editItem(type, id, name) {
+                const collectionNames = {
+                    category: 'categories',
+                    lesson: 'lessons',
+                    class: 'classes',
+                    theme: 'themes'
+                };
+                const item = state[collectionNames[type]]?.find(row => row.id === id);
+                const clean = name.trim();
+                if (!item || !clean) return;
+                item.name = clean;
+                editing = null;
+                saveState();
+                render();
+            }
+
+            function deleteItem(type, id) {
+                if (!confirm('Bu tanımı silmek istiyor musunuz?')) return;
+
+                if (type === 'category') {
+                    state.categories = state.categories.filter(item => item.id !== id);
+                    state.lessons = state.lessons.filter(item => item.categoryId !== id);
+                    state.classes = state.classes.filter(item => item.categoryId !== id);
+                    state.themes = state.themes.filter(item => item.categoryId !== id);
+                } else if (type === 'lesson') {
+                    state.lessons = state.lessons.filter(item => item.id !== id);
+                    state.classes = state.classes.filter(item => item.lessonId !== id);
+                    state.themes = state.themes.filter(item => item.lessonId !== id);
+                } else if (type === 'class') {
+                    state.classes = state.classes.filter(item => item.id !== id);
+                    state.themes = state.themes.filter(item => item.classId !== id);
+                } else if (type === 'theme') {
+                    state.themes = state.themes.filter(item => item.id !== id);
+                }
+
+                saveState();
+                render();
+            }
+
+            document.addEventListener('click', event => {
+                const addButton = event.target.closest('[data-add]');
+                if (addButton && !addButton.disabled) {
+                    adding = addButton.dataset.add;
+                    editing = null;
+                    render();
+                    return;
+                }
+
+                const cancelButton = event.target.closest('[data-cancel-form]');
+                if (cancelButton) {
+                    adding = null;
+                    editing = null;
+                    render();
+                    return;
+                }
+
+                const editButton = event.target.closest('[data-edit-type]');
+                if (editButton) {
+                    editing = { type: editButton.dataset.editType, id: editButton.dataset.editId };
+                    adding = null;
+                    render();
+                    return;
+                }
+
+                const deleteButton = event.target.closest('[data-delete-type]');
+                if (deleteButton) {
+                    deleteItem(deleteButton.dataset.deleteType, deleteButton.dataset.deleteId);
+                    return;
+                }
+
+                const row = event.target.closest('[data-select-type]');
+                if (!row || event.target.closest('.definition-actions')) return;
+
+                const type = row.dataset.selectType;
+                const id = row.dataset.selectId;
+                if (type === 'category') {
+                    selected.categoryId = id;
+                    selected.lessonId = null;
+                    selected.classId = null;
+                } else if (type === 'lesson') {
+                    selected.lessonId = id;
+                    selected.classId = null;
+                } else if (type === 'class') {
+                    selected.classId = id;
+                }
+                adding = null;
+                editing = null;
+                render();
+            });
+
+            document.addEventListener('submit', event => {
+                const form = event.target.closest('.definition-inline-form');
+                if (!form) return;
+                event.preventDefault();
+                const type = form.dataset.formType;
+                const mode = form.dataset.formMode;
+                const id = form.dataset.formId;
+                const value = form.querySelector('input')?.value || '';
+
+                if (mode === 'add') {
+                    addItem(type, value);
+                } else {
+                    editItem(type, id, value);
+                }
+            });
+
+            fetch(dataUrl)
+                .then(response => {
+                    if (!response.ok) throw new Error('Tanımlar yüklenemedi');
+                    return response.json();
+                })
+                .then(data => {
+                    const baseState = buildBaseState(data.records || []);
+                    const loadedState = window.OgrenciProfiliStore.loadDefinitions(data.records || []);
+                    Object.assign(state, loadedState);
+                    render();
+                })
+                .catch(() => {
+                    Object.values(panels).forEach(panel => {
+                        panel.innerHTML = '<div class="definition-empty">Tanımlar yüklenemedi.</div>';
+                    });
+                });
+        })();
+    </script>
+}

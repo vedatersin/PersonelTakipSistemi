@@ -1,6 +1,8 @@
 ﻿
 // Global variables
 let selectedNotificationId = null;
+const notificationToastStorageKeyPrefix = 'personelTakipShownNotificationToasts';
+const notificationToastVisibleIds = new Set();
 
 $(document).ready(function () {
     // Check URL for selectedId
@@ -323,6 +325,120 @@ function formatDate(dateString) {
     return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' });
 }
 
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function getShownNotificationToastIds() {
+    try {
+        const storedValue = localStorage.getItem(getNotificationToastStorageKey());
+        const parsedValue = storedValue ? JSON.parse(storedValue) : [];
+        return Array.isArray(parsedValue) ? parsedValue.map(String) : [];
+    } catch (err) {
+        console.warn('Bildirim toast kayıtları okunamadı.', err);
+        return [];
+    }
+}
+
+function rememberNotificationToastShown(id) {
+    const normalizedId = String(id);
+    const shownIds = new Set(getShownNotificationToastIds());
+    shownIds.add(normalizedId);
+
+    try {
+        localStorage.setItem(getNotificationToastStorageKey(), JSON.stringify(Array.from(shownIds)));
+    } catch (err) {
+        console.warn('Bildirim toast kaydı tutulamadı.', err);
+    }
+}
+
+function getNotificationToastStorageKey() {
+    const userId = window.personelTakipCurrentUserId || 'anonymous';
+    return `${notificationToastStorageKeyPrefix}:${userId}`;
+}
+
+function ensureNotificationToastStack() {
+    let stack = $('#notificationToastStack');
+    if (!stack.length) {
+        stack = $('<div id="notificationToastStack" class="notification-toast-stack" aria-live="polite" aria-atomic="false"></div>');
+        $('body').append(stack);
+    }
+    return stack;
+}
+
+function getNotificationToastAvatar(n) {
+    if (n.gonderenFotoUrl) {
+        return `<img src="${escapeHtml(n.gonderenFotoUrl)}" alt="">`;
+    }
+
+    return escapeHtml(getInitials(n.gonderenAdSoyad));
+}
+
+function openNotificationFromToast(id) {
+    markRead(null, id);
+    window.location.href = `/Bildirimler/Index?selectedId=${id}`;
+}
+
+function closeNotificationToast(id) {
+    $(`#notification-toast-${id}`).fadeOut(160, function () {
+        $(this).remove();
+        notificationToastVisibleIds.delete(String(id));
+    });
+}
+
+function showNotificationToasts(list) {
+    if (!Array.isArray(list) || !list.length || !$('#notificationBadge').length) return;
+
+    const shownIds = new Set(getShownNotificationToastIds());
+    const stack = ensureNotificationToastStack();
+
+    list
+        .filter(n => n && !n.okunduMu && !shownIds.has(String(n.bildirimId)) && !notificationToastVisibleIds.has(String(n.bildirimId)))
+        .forEach(n => {
+            const id = String(n.bildirimId);
+            notificationToastVisibleIds.add(id);
+            rememberNotificationToastShown(id);
+
+            const toast = $(`
+                <div class="notification-toast-card" id="notification-toast-${escapeHtml(id)}" role="button" tabindex="0">
+                    <div class="notification-toast-avatar">${getNotificationToastAvatar(n)}</div>
+                    <div class="notification-toast-body">
+                        <div class="notification-toast-sender text-truncate">${escapeHtml(n.gonderenAdSoyad || 'Sistem')}</div>
+                        <div class="notification-toast-title">${escapeHtml(n.baslik)}</div>
+                    </div>
+                    <button type="button" class="notification-toast-close" aria-label="Bildirimi kapat">
+                        <i class="bx bx-x"></i>
+                    </button>
+                </div>
+            `);
+
+            toast.on('click', function (e) {
+                if ($(e.target).closest('.notification-toast-close').length) return;
+                openNotificationFromToast(id);
+            });
+
+            toast.on('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openNotificationFromToast(id);
+                }
+            });
+
+            toast.find('.notification-toast-close').on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                closeNotificationToast(id);
+            });
+
+            stack.append(toast.hide().fadeIn(160));
+        });
+}
+
 // Topbar Logic (Global)
 function loadTopbarCount() {
     $.get('/Bildirimler/Topbar', function (data) {
@@ -336,6 +452,7 @@ function loadTopbarCount() {
             badge.text('0').show();
         }
         renderDropdown(data.top);
+        showNotificationToasts(data.top);
     }).fail(function () {
         console.error("Bildirimler/Topbar failed.");
         const badge = $('#notificationBadge');

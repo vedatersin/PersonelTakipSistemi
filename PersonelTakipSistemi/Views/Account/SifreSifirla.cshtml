@@ -1,0 +1,100 @@
+@model PersonelTakipSistemi.ViewModels.SifreSifirlaViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Şifre Sıfırla";
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Komisyon İzleme Sistemi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/sevilay-tema/assets/vendor/css/core.css" />
+    <link rel="stylesheet" href="~/sevilay-tema/assets/vendor/css/theme-default.css" />
+    <link rel="stylesheet" href="~/css/login.css" asp-append-version="true" />
+    <style>
+        .reset-note { color: #64748b; font-size: .9rem; line-height: 1.45; }
+        .captcha-box {
+            background: #eef6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 10px;
+            color: #0f3b72;
+            font-family: Consolas, "Courier New", monospace;
+            font-size: 1.45rem;
+            font-weight: 700;
+            letter-spacing: .35rem;
+            padding: .85rem 1rem;
+            text-align: center;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-page">
+        <canvas id="bg-canvas"></canvas>
+        <div class="login-card">
+            <div class="logo-container">
+               <img src="~/images/meb-logo.png" alt="MEB Logo" class="meb-logo" onerror="this.src='https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Meb_logo.png/600px-Meb_logo.png'" />
+            </div>
+
+            <h1 class="org-title">Temel Eğitim Genel Müdürlüğü</h1>
+            <h2 class="app-title">Şifre Belirleme</h2>
+            <p class="reset-note mb-4">T.C. Kimlik No ve ekrandaki CAPTCHA kodu ile yeni şifre belirleme adımına geçin.</p>
+
+            @if (TempData["PasswordResetInfo"] is string resetInfo)
+            {
+                <div class="alert alert-info text-start mb-3">@resetInfo</div>
+            }
+
+            <form asp-controller="Account" asp-action="SifreSifirla" method="post">
+                @Html.AntiForgeryToken()
+                <input asp-for="CaptchaKey" type="hidden" />
+                <input asp-for="CaptchaQuestion" type="hidden" />
+
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3 text-start">
+                    <label asp-for="TcKimlikNo" class="form-label"></label>
+                    <input asp-for="TcKimlikNo"
+                           class="form-control"
+                           placeholder="T.C. Kimlik No giriniz"
+                           maxlength="11"
+                           inputmode="numeric"
+                           pattern="\d*"
+                           autocomplete="username"
+                           autofocus />
+                    <span asp-validation-for="TcKimlikNo" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3 text-start">
+                    <label asp-for="CaptchaCevap" class="form-label"></label>
+                    <div class="captcha-box mb-2">@Model.CaptchaQuestion</div>
+                    <input asp-for="CaptchaCevap"
+                           class="form-control"
+                           placeholder="Kodu yazınız"
+                           maxlength="6"
+                           autocapitalize="characters"
+                           style="text-transform: uppercase;"
+                           autocomplete="off" />
+                    <span asp-validation-for="CaptchaCevap" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <button class="btn btn-primary w-100" type="submit">Devam Et</button>
+                </div>
+
+                <a asp-controller="Account" asp-action="Login" asp-route-normal="true" class="text-primary fw-medium">Giriş ekranına dön</a>
+            </form>
+        </div>
+    </div>
+
+    <script src="~/sevilay-tema/assets/vendor/libs/jquery/jquery.js"></script>
+    <script src="~/sevilay-tema/assets/vendor/libs/jquery-validation/jquery.validate.js"></script>
+    <script src="~/sevilay-tema/assets/vendor/libs/jquery-validation-unobtrusive/jquery.validate.unobtrusive.js"></script>
+    <script src="~/js/login-bg.js" asp-append-version="true"></script>
+</body>
+</html>

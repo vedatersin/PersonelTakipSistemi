@@ -11,8 +11,17 @@
     var koordinatorlukler = ViewBag.Koordinatorlukler as IEnumerable<PersonelTakipSistemi.Models.Koordinatorluk>;
     var komisyonlar = ViewBag.Komisyonlar as List<SelectListItem>;
     var personeller = ViewBag.Personeller as List<SelectListItem>;
+    var isNitelikleri = ViewBag.IsNitelikleri as IEnumerable<PersonelTakipSistemi.Models.IsNiteligi>;
     var canUpdateStatus = ViewBag.CanUpdateGorevStatus == true;
+    var canQuickEditTask = ViewBag.CanQuickEditTask == true;
     var canEditAssignments = ViewBag.CanEditAssignments == true;
+    var canAssignKoordinatorluk = ViewBag.CanAssignKoordinatorluk == true;
+    var canAssignKomisyon = ViewBag.CanAssignKomisyon == true;
+    var canAssignPersonel = ViewBag.CanAssignPersonel == true;
+    var canUsePrivatePersonelAssignmentOptions = User.IsInRole("Admin");
+    var assignmentKoordinatorlukLinks = ViewBag.AssignmentKoordinatorlukLinks as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var assignmentKomisyonLinks = ViewBag.AssignmentKomisyonLinks as Dictionary<int, string> ?? new Dictionary<int, string>();
+    var assignmentPersonelLinks = ViewBag.AssignmentPersonelLinks as Dictionary<int, string> ?? new Dictionary<int, string>();
 
     var statusClass = Model.GorevDurumId switch
     {
@@ -42,6 +51,11 @@
         .status-note-box {
             min-height: 46px;
         }
+
+        .detail-card-header-actions {
+            margin-left: auto;
+            padding-left: 1rem;
+        }
     </style>
 }
 
@@ -57,6 +71,14 @@
         <div class="card mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">@Model.Ad</h5>
+                @if (canQuickEditTask)
+                {
+                    <div class="detail-card-header-actions">
+                        <button type="button" class="btn btn-sm btn-outline-primary" onclick="openQuickEditDrawer(@Model.GorevId)">
+                            <i class="bx bx-edit me-1"></i> Düzenle
+                        </button>
+                    </div>
+                }
             </div>
             <div class="card-body">
                 <div class="row mb-3">
@@ -65,19 +87,11 @@
                         <div class="fw-bold">@Model.IsNiteligi?.Ad</div>
                     </div>
                     <div class="col-md-6 mb-3">
-                        <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
-                            <div>
-                                <label class="form-label text-muted mb-1">Atama Durumu</label>
-                                <div><span class="badge @statusClass">@Model.GorevDurum?.Ad</span></div>
-                            </div>
-                            @if (canUpdateStatus)
-                            {
-                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#updateStatusModal">
-                                    <i class="bx bx-edit me-1"></i> Düzenle
-                                </button>
-                            }
+                        <div class="mb-2">
+                            <label class="form-label text-muted mb-1">Güncel Görev Durumu</label>
+                            <div><span class="badge @statusClass">@Model.GorevDurum?.Ad</span></div>
                         </div>
-                        <label class="form-label text-muted">Durum Açıklaması / Notu</label>
+                        <label class="form-label text-muted">Güncel Görev Durumu Açıklaması</label>
                         <div class="fw-bold border rounded p-2 bg-light status-note-box">
                             @if(!string.IsNullOrEmpty(Model.DurumAciklamasi))
                             {
@@ -145,9 +159,9 @@
                                           @(ap.Personel?.Ad?.Substring(0,1))@(ap.Personel?.Soyad?.Substring(0,1))
                                       </span>
                                   </div>
-                                  @if(User.IsInRole("Admin") || User.IsInRole("Yönetici") || User.IsInRole("Editör"))
+                                  @if(assignmentPersonelLinks.TryGetValue(ap.PersonelId, out var personelLink))
                                   {
-                                      <a href="/Personel/Detay/@ap.PersonelId" class="text-body fw-semibold">
+                                      <a href="@personelLink" class="text-body fw-semibold">
                                           @ap.Personel?.Ad @ap.Personel?.Soyad
                                       </a>
                                   }
@@ -171,10 +185,6 @@
                           {
                               <li class="list-group-item d-flex align-items-center assignment-summary-item">
                                   <i class="bx bx-building me-2 text-muted"></i> @at.Teskilat?.Ad
-                                  @if(at.GorevTuru != null)
-                                  {
-                                      <span class="badge bg-label-secondary assignment-role-badge">@at.GorevTuru.Ad</span>
-                                  }
                               </li>
                            }
                       }
@@ -185,10 +195,14 @@
                           @foreach(var at in Model.GorevAtamaKoordinatorlukler)
                           {
                               <li class="list-group-item d-flex align-items-center assignment-summary-item">
-                                  <i class="bx bx-business me-2 text-muted"></i> @at.Koordinatorluk?.Ad
-                                  @if(at.GorevTuru != null)
+                                  <i class="bx bx-business me-2 text-muted"></i>
+                                  @if(assignmentKoordinatorlukLinks.TryGetValue(at.KoordinatorlukId, out var koordinatorlukLink))
                                   {
-                                      <span class="badge bg-label-secondary assignment-role-badge">@at.GorevTuru.Ad</span>
+                                      <a href="@koordinatorlukLink" class="text-body fw-semibold">@at.Koordinatorluk?.Ad</a>
+                                  }
+                                  else
+                                  {
+                                      <span>@at.Koordinatorluk?.Ad</span>
                                   }
                               </li>
                            }
@@ -209,10 +223,13 @@
                                            displayText2 = $"{sehirAd2} {birimAd2} {at.Komisyon.Ad}";
                                        }
                                    }
-                                   <span>@displayText2</span>
-                                   @if(at.GorevTuru != null)
+                                   @if(assignmentKomisyonLinks.TryGetValue(at.KomisyonId, out var komisyonLink))
                                    {
-                                       <span class="badge bg-label-secondary assignment-role-badge">@at.GorevTuru.Ad</span>
+                                       <a href="@komisyonLink" class="text-body fw-semibold">@displayText2</a>
+                                   }
+                                   else
+                                   {
+                                       <span>@displayText2</span>
                                    }
                                </li>
                           }
@@ -241,6 +258,12 @@
         <div class="card">
             <div class="card-header border-bottom d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Görev Durum Güncellemeleri</h5>
+                @if (canUpdateStatus)
+                {
+                    <button type="button" class="btn btn-sm btn-primary" onclick="openStatusCreateModal()">
+                        <i class="bx bx-plus me-1"></i> Ekle
+                    </button>
+                }
             </div>
             <div class="table-responsive text-nowrap">
                 <table class="table table-hover">
@@ -250,6 +273,10 @@
                             <th>İşlem Yapan</th>
                             <th>Durum</th>
                             <th>Açıklama</th>
+                            @if (canUpdateStatus)
+                            {
+                                <th class="text-end">İşlemler</th>
+                            }
                         </tr>
                     </thead>
                     <tbody class="table-border-bottom-0">
@@ -275,19 +302,85 @@
                                     <td style="white-space: normal;">
                                         @item.Aciklama
                                     </td>
+                                    @if (canUpdateStatus)
+                                    {
+                                        <td class="text-end">
+                                            <button type="button"
+                                                    class="btn btn-sm btn-outline-primary me-1"
+                                                    data-history-id="@item.Id"
+                                                    data-durum-id="@item.GorevDurumId"
+                                                    data-aciklama="@(item.Aciklama ?? string.Empty)"
+                                                    onclick="openStatusEditModalFromButton(this)">
+                                                <i class="bx bx-edit me-1"></i>Düzenle
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteStatusHistory(@item.Id)">
+                                                <i class="bx bx-trash me-1"></i>Sil
+                                            </button>
+                                        </td>
+                                    }
                                 </tr>
                             }
                         }
                         else
                         {
                             <tr>
-                                <td colspan="4" class="text-center text-muted">Henüz durum güncellemesi yapılmadı.</td>
+                                <td colspan="@(canUpdateStatus ? 5 : 4)" class="text-center text-muted">Henüz durum güncellemesi yapılmadı.</td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Quick Edit Drawer -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="quickEditDrawer" aria-labelledby="quickEditDrawerLabel" style="width: 540px; max-width: 100vw;">
+    <div class="offcanvas-header border-bottom">
+        <h5 id="quickEditDrawerLabel" class="offcanvas-title">Görevi Düzenle</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
+    </div>
+    <div class="offcanvas-body">
+        <input type="hidden" id="quickEditGorevId" />
+        <div class="mb-3">
+            <label for="quickEditAd" class="form-label">Görev Adı *</label>
+            <input type="text" id="quickEditAd" class="form-control" maxlength="200" />
+        </div>
+        <div class="mb-3">
+            <label for="quickEditAciklama" class="form-label">Görev Tanımı/Açıklama</label>
+            <textarea id="quickEditAciklama" class="form-control" rows="3"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="quickEditIsNiteligiId" class="form-label">İş Niteliği *</label>
+            <select id="quickEditIsNiteligiId" class="form-select">
+                <option value="">Seçiniz...</option>
+                @if (isNitelikleri != null)
+                {
+                    foreach (var nitelik in isNitelikleri)
+                    {
+                        <option value="@nitelik.IsNiteligiId">@nitelik.Ad</option>
+                    }
+                }
+            </select>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label for="quickEditBaslangicTarihi" class="form-label">Başlangıç Tarihi *</label>
+                <input type="date" id="quickEditBaslangicTarihi" class="form-control" />
+            </div>
+            <div class="col-md-6">
+                <label for="quickEditBitisTarihi" class="form-label">Bitiş Tarihi</label>
+                <input type="date" id="quickEditBitisTarihi" class="form-control" />
+            </div>
+        </div>
+        <div class="form-check form-switch mt-3">
+            <input class="form-check-input" type="checkbox" id="quickEditIsActive" />
+            <label class="form-check-label" for="quickEditIsActive">Kayıt aktif mi?</label>
+        </div>
+    </div>
+    <div class="offcanvas-footer p-3 border-top d-flex gap-2 bg-light">
+        <button type="button" class="btn btn-label-secondary w-50" data-bs-dismiss="offcanvas">Kapat</button>
+        <button type="button" class="btn btn-primary w-50" id="quickEditSaveBtn" onclick="saveQuickEdit()">Kaydet</button>
     </div>
 </div>
 
@@ -311,14 +404,26 @@
 
                     <div class="mb-2">
                         <select id="assignTypeSelector" class="form-select mb-2">
-                            <option value="personel">Personel</option>
-                            <option value="teskilat">Teşkilat</option>
-                            <option value="koordinatorluk">Koordinatörlük</option>
-                            <option value="komisyon">Komisyon</option>
+                            @if (canAssignPersonel)
+                            {
+                                <option value="personel">Personel</option>
+                            }
+                            @if (canAssignKoordinatorluk)
+                            {
+                                <option value="koordinatorluk">Koordinatörlük</option>
+                            }
+                            @if (canAssignKomisyon)
+                            {
+                                <option value="komisyon">Komisyon</option>
+                            }
+                            @if (!canAssignPersonel && !canAssignKoordinatorluk && !canAssignKomisyon)
+                            {
+                                <option value="">Atama yetkiniz yok</option>
+                            }
                         </select>
                     </div>
 
-                    <div id="selector-personel" class="entity-selector">
+                    <div id="selector-personel" class="entity-selector @(canAssignPersonel ? "" : "d-none")">
                         <select class="form-select select2-drawer" id="drawerSelectPersonel" style="width: 100%;">
                             <option value="">Personel Seçiniz...</option>
                             @if (personeller != null)
@@ -333,18 +438,6 @@
                                     {
                                         <option value="@p.Value">@p.Text</option>
                                     }
-                                }
-                            }
-                        </select>
-                    </div>
-                    <div id="selector-teskilat" class="entity-selector d-none">
-                        <select class="form-select select2-drawer" id="drawerSelectTeskilat" style="width: 100%;">
-                            <option value="">Teşkilat Seçiniz...</option>
-                            @if (teskilatlar != null)
-                            {
-                                foreach (var t in teskilatlar)
-                                {
-                                    <option value="@t.TeskilatId">@t.Ad</option>
                                 }
                             }
                         </select>
@@ -374,10 +467,10 @@
                         </select>
                     </div>
 
-                    <div class="mt-3 pt-2 border-top">
-                        <label class="form-label mb-1">Görev Rolü</label>
+                    <div id="assignmentRoleWrapper" class="mt-3 pt-2 border-top">
+                        <label class="form-label mb-1">Görev Türü</label>
                         <select class="form-select select2-drawer" id="drawerSelectGorevRolu" style="width: 100%;">
-                            <option value="">Görev Rolü Seçiniz...</option>
+                            <option value="">Görev Türü Seçiniz...</option>
                             @if (ViewBag.GorevRolleri != null)
                             {
                                 foreach (var r in ViewBag.GorevRolleri)
@@ -386,8 +479,22 @@
                                 }
                             }
                         </select>
-                        <small class="text-muted d-block mt-1">Atanan kişi/birim için görev rolü zorunludur.</small>
+                        <small class="text-muted d-block mt-1">Personele görev atarken görev türü zorunludur.</small>
                     </div>
+
+                    @if (canUsePrivatePersonelAssignmentOptions)
+                    {
+                        <div id="personelPrivateAssignmentOptions" class="mt-3 d-none">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="drawerPersonelGorevGizle">
+                                <label class="form-check-label" for="drawerPersonelGorevGizle">Personel görev listesinden gizlensin mi?</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="drawerSadeceAdminGorebilir">
+                                <label class="form-check-label" for="drawerSadeceAdminGorebilir">Sadece Admin yetkili kullanıcı personelin üzerindeki görevi görebilsin</label>
+                            </div>
+                        </div>
+                    }
 
                     <button class="btn btn-primary w-100 mt-2" onclick="addAssignment()">Ekle</button>
                 </div>
@@ -411,10 +518,11 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Atama Durumunu Düzenle</h5>
+                <h5 class="modal-title">Görev Durum Güncellemesi Ekle</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <input type="hidden" id="statusHistoryId" value="" />
                 <div class="row">
                     <div class="col-12 mb-3">
                         <label for="newStatusId" class="form-label">Atama Durumu</label>
@@ -443,7 +551,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">İptal</button>
-                <button type="button" class="btn btn-primary" onclick="updateStatus()">Kaydet</button>
+                <button type="button" class="btn btn-primary" onclick="updateStatus()">Ekle</button>
             </div>
         </div>
     </div>
@@ -454,7 +562,10 @@
     <script>
         var offcanvasElement = document.getElementById('assignmentDrawer');
         var assignmentOffcanvas = offcanvasElement ? new bootstrap.Offcanvas(offcanvasElement) : null;
+        var quickEditElement = document.getElementById('quickEditDrawer');
+        var quickEditDrawer = quickEditElement ? new bootstrap.Offcanvas(quickEditElement) : null;
         var currentTaskId = @Model.GorevId;
+        var canUsePrivatePersonelAssignmentOptions = @canUsePrivatePersonelAssignmentOptions.ToString().ToLowerInvariant();
         var localAssignments = [];
 
         $(document).ready(function() {
@@ -466,11 +577,111 @@
             });
 
             $('#assignTypeSelector').on('change', function() {
-                var type = $(this).val();
-                $('.entity-selector').addClass('d-none');
-                $('#selector-' + type).removeClass('d-none');
+                syncAssignmentTargetVisibility();
             });
+
+            syncAssignmentTargetVisibility();
         });
+
+        function syncAssignmentTargetVisibility() {
+            var type = $('#assignTypeSelector').val();
+            $('.entity-selector').addClass('d-none');
+            if (type) {
+                $('#selector-' + type).removeClass('d-none');
+            }
+            $('#assignmentRoleWrapper').toggleClass('d-none', type !== 'personel');
+            $('#personelPrivateAssignmentOptions').toggleClass('d-none', !(type === 'personel' && canUsePrivatePersonelAssignmentOptions));
+            if (type !== 'personel') {
+                $('#drawerPersonelGorevGizle, #drawerSadeceAdminGorebilir').prop('checked', false);
+            }
+        }
+
+        function openQuickEditDrawer(id) {
+            $('#quickEditGorevId').val(id);
+            $('#quickEditAd').val('');
+            $('#quickEditAciklama').val('');
+            $('#quickEditIsNiteligiId').val('');
+            $('#quickEditBaslangicTarihi').val('');
+            $('#quickEditBitisTarihi').val('');
+            $('#quickEditIsActive').prop('checked', true);
+            $('#quickEditSaveBtn').prop('disabled', true);
+
+            $.get('/Gorevler/GetQuickEditData/' + id, function(resp) {
+                if (!resp.success) {
+                    showMessage('warning', 'Uyarı', resp.message || 'Görev bilgisi alınamadı.');
+                    return;
+                }
+
+                $('#quickEditGorevId').val(resp.gorevId);
+                $('#quickEditAd').val(resp.ad);
+                $('#quickEditAciklama').val(resp.aciklama || '');
+                $('#quickEditIsNiteligiId').val(resp.isNiteligiId);
+                $('#quickEditBaslangicTarihi').val(resp.baslangicTarihi);
+                $('#quickEditBitisTarihi').val(resp.bitisTarihi || '');
+                $('#quickEditIsActive').prop('checked', resp.isActive);
+                $('#quickEditSaveBtn').prop('disabled', false);
+
+                if (quickEditDrawer) {
+                    quickEditDrawer.show();
+                }
+            }).fail(function() {
+                showMessage('error', 'Hata', 'Görev bilgisi alınırken hata oluştu.');
+            });
+        }
+
+        function saveQuickEdit() {
+            var payload = {
+                GorevId: parseInt($('#quickEditGorevId').val()),
+                Ad: $('#quickEditAd').val(),
+                Aciklama: $('#quickEditAciklama').val(),
+                IsNiteligiId: parseInt($('#quickEditIsNiteligiId').val()),
+                BaslangicTarihi: $('#quickEditBaslangicTarihi').val(),
+                BitisTarihi: $('#quickEditBitisTarihi').val() || null,
+                IsActive: $('#quickEditIsActive').is(':checked')
+            };
+
+            if (!payload.Ad || !payload.IsNiteligiId || !payload.BaslangicTarihi) {
+                showMessage('warning', 'Eksik Bilgi', 'Görev adı, iş niteliği ve başlangıç tarihi zorunludur.');
+                return;
+            }
+
+            var $btn = $('#quickEditSaveBtn');
+            if ($btn.prop('disabled')) return;
+            $btn.prop('disabled', true);
+
+            $.ajax({
+                url: '/Gorevler/QuickUpdate',
+                type: 'POST',
+                contentType: 'application/json; charset=utf-8',
+                data: JSON.stringify(payload),
+                success: function(resp) {
+                    if (!resp.success) {
+                        showMessage('warning', 'Uyarı', resp.message || 'Görev güncellenemedi.');
+                        return;
+                    }
+
+                    if (window.Swal) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Güncellendi',
+                            toast: true,
+                            position: 'top-end',
+                            showConfirmButton: false,
+                            timer: 1200
+                        });
+                        setTimeout(function() { location.reload(); }, 850);
+                    } else {
+                        location.reload();
+                    }
+                },
+                error: function() {
+                    showMessage('error', 'Hata', 'Sunucu hatası.');
+                },
+                complete: function() {
+                    $btn.prop('disabled', false);
+                }
+            });
+        }
 
         function showMessage(type, title, text) {
             if (window.Swal) {
@@ -503,7 +714,17 @@
                     if (data.teskilatlar) data.teskilatlar.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Teskilat', gorevTuruId: i.gorevTuruId, gorevTuruAd: i.gorevTuruAd }); });
                     if (data.koordinatorlukler) data.koordinatorlukler.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Koordinatorluk', gorevTuruId: i.gorevTuruId, gorevTuruAd: i.gorevTuruAd }); });
                     if (data.komisyonlar) data.komisyonlar.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Komisyon', gorevTuruId: i.gorevTuruId, gorevTuruAd: i.gorevTuruAd }); });
-                    if (data.personeller) data.personeller.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Personel', gorevTuruId: i.gorevTuruId, gorevTuruAd: i.gorevTuruAd }); });
+                if (data.personeller) data.personeller.forEach(function(i) {
+                    localAssignments.push({
+                        id: i.id,
+                        name: i.name,
+                        type: 'Personel',
+                        gorevTuruId: i.gorevTuruId,
+                        gorevTuruAd: i.gorevTuruAd,
+                        personelGorevListesindenGizlensinMi: i.personelGorevListesindenGizlensinMi,
+                        sadeceAdminGorebilirMi: i.sadeceAdminGorebilirMi
+                    });
+                });
                 }
                 renderAssignments();
             }).fail(function() {
@@ -527,17 +748,28 @@
                 if (item.type === 'Komisyon') icon = 'bxs-group';
                 if (item.type === 'Personel') icon = 'bxs-user';
 
+                var roleEditor = item.type === 'Personel'
+                    ? `<div class="ms-4 mt-1" style="max-width: 260px;">
+                           <select class="form-select form-select-sm assignment-role-select" data-type="${item.type}" data-id="${item.id}">
+                               ${roleOptionsHtml}
+                           </select>
+                       </div>`
+                    : '';
+                var privateBadges = item.type === 'Personel' && canUsePrivatePersonelAssignmentOptions
+                    ? `<div class="ms-4 mt-2 d-flex flex-wrap gap-1">
+                           ${item.personelGorevListesindenGizlensinMi ? '<span class="badge bg-label-secondary">Personelden gizli</span>' : ''}
+                           ${item.sadeceAdminGorebilirMi ? '<span class="badge bg-label-danger">Sadece Admin</span>' : ''}
+                       </div>`
+                    : '';
+
                 var li = `
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div class="flex-grow-1 pe-2">
                             <i class='bx ${icon} me-2 text-secondary'></i>
                             <span>${item.name}</span>
                             <br><small class="text-muted ms-4" style="font-size:0.75rem">${item.type}</small>
-                            <div class="ms-4 mt-1" style="max-width: 260px;">
-                                <select class="form-select form-select-sm assignment-role-select" data-type="${item.type}" data-id="${item.id}">
-                                    ${roleOptionsHtml}
-                                </select>
-                            </div>
+                            ${roleEditor}
+                            ${privateBadges}
                         </div>
                         <button class="btn btn-xs btn-outline-danger" onclick="removeAssignment('${item.type}', ${item.id})"><i class="bx bx-trash"></i></button>
                     </li>`;
@@ -568,7 +800,6 @@
             var name = '';
 
             if (type === 'personel') { id = $('#drawerSelectPersonel').val(); name = $('#drawerSelectPersonel option:selected').text(); }
-            if (type === 'teskilat') { id = $('#drawerSelectTeskilat').val(); name = $('#drawerSelectTeskilat option:selected').text(); }
             if (type === 'koordinatorluk') { id = $('#drawerSelectKoordinatorluk').val(); name = $('#drawerSelectKoordinatorluk option:selected').text(); }
             if (type === 'komisyon') { id = $('#drawerSelectKomisyon').val(); name = $('#drawerSelectKomisyon option:selected').text(); }
 
@@ -577,11 +808,15 @@
                 return;
             }
 
-            var roleId = parseInt($('#drawerSelectGorevRolu').val());
-            var roleName = $('#drawerSelectGorevRolu option:selected').text();
-            if (!roleId) {
-                showMessage('warning', 'Uyarı', 'Lütfen Görev Rolü seçiniz.');
-                return;
+            var roleId = 0;
+            var roleName = '';
+            if (type === 'personel') {
+                roleId = parseInt($('#drawerSelectGorevRolu').val());
+                roleName = $('#drawerSelectGorevRolu option:selected').text();
+                if (!roleId) {
+                    showMessage('warning', 'Uyarı', 'Lütfen Görev Türü seçiniz.');
+                    return;
+                }
             }
 
             var typePascal = type.charAt(0).toUpperCase() + type.slice(1);
@@ -593,9 +828,18 @@
                 return;
             }
 
-            localAssignments.push({ id: parseInt(id), name: name, type: typePascal, gorevTuruId: roleId, gorevTuruAd: roleName });
+            localAssignments.push({
+                id: parseInt(id),
+                name: name,
+                type: typePascal,
+                gorevTuruId: roleId,
+                gorevTuruAd: roleName,
+                personelGorevListesindenGizlensinMi: type === 'personel' && canUsePrivatePersonelAssignmentOptions ? $('#drawerPersonelGorevGizle').is(':checked') : false,
+                sadeceAdminGorebilirMi: type === 'personel' && canUsePrivatePersonelAssignmentOptions ? $('#drawerSadeceAdminGorebilir').is(':checked') : false
+            });
             renderAssignments();
-            $('#drawerSelectPersonel, #drawerSelectTeskilat, #drawerSelectKoordinatorluk, #drawerSelectKomisyon').val(null).trigger('change');
+            $('#drawerSelectPersonel, #drawerSelectKoordinatorluk, #drawerSelectKomisyon').val(null).trigger('change');
+            $('#drawerPersonelGorevGizle, #drawerSadeceAdminGorebilir').prop('checked', false);
         }
 
         function removeAssignment(type, id) {
@@ -603,10 +847,70 @@
             renderAssignments();
         }
 
+        function openStatusCreateModal() {
+            $('#statusHistoryId').val('');
+            $('#newStatusId').val('@Model.GorevDurumId');
+            $('#statusDescription').val('');
+            $('#updateStatusModal .modal-title').text('Görev Durum Güncellemesi Ekle');
+            $('#updateStatusModal .modal-footer .btn-primary').text('Ekle');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('updateStatusModal')).show();
+        }
+
+        function openStatusEditModalFromButton(button) {
+            openStatusEditModal(
+                parseInt(button.dataset.historyId),
+                parseInt(button.dataset.durumId),
+                button.dataset.aciklama || ''
+            );
+        }
+
+        function openStatusEditModal(historyId, durumId, aciklama) {
+            $('#statusHistoryId').val(historyId);
+            $('#newStatusId').val(durumId);
+            $('#statusDescription').val(aciklama || '');
+            $('#updateStatusModal .modal-title').text('Görev Durum Güncellemesini Düzenle');
+            $('#updateStatusModal .modal-footer .btn-primary').text('Kaydet');
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('updateStatusModal')).show();
+        }
+
+        function deleteStatusHistory(historyId) {
+            const doDelete = function() {
+                $.post('/Gorevler/DeleteStatusHistory', { id: historyId })
+                    .done(function(response) {
+                        if (response && response.success === false) {
+                            showMessage('warning', 'Uyarı', response.message || 'Durum güncellemesi silinemedi.');
+                            return;
+                        }
+                        location.reload();
+                    })
+                    .fail(function(xhr) {
+                        var message = xhr.responseJSON && xhr.responseJSON.message ? xhr.responseJSON.message : 'Durum güncellemesi silinemedi.';
+                        showMessage('error', 'Hata', message);
+                    });
+            };
+
+            if (window.Swal) {
+                Swal.fire({
+                    title: 'Durum güncellemesi silinsin mi?',
+                    text: 'Bu kayıt geçmişten kaldırılacak.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sil',
+                    cancelButtonText: 'İptal'
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        doDelete();
+                    }
+                });
+            } else if (confirm('Durum güncellemesi silinsin mi?')) {
+                doDelete();
+            }
+        }
+
         function saveAssignments() {
-            var missingRole = localAssignments.some(function(i) { return !i.gorevTuruId; });
+            var missingRole = localAssignments.some(function(i) { return i.type === 'Personel' && !i.gorevTuruId; });
             if (missingRole) {
-                showMessage('warning', 'Eksik Bilgi', 'Lütfen tüm atamalar için Görev Rolü seçiniz.');
+                showMessage('warning', 'Eksik Bilgi', 'Lütfen personele yapılan atamalar için Görev Türü seçiniz.');
                 return;
             }
 
@@ -620,9 +924,16 @@
 
             localAssignments.forEach(function(i) {
                 if (i.type === 'Teskilat') payload.Teskilatlar.push({ Id: i.id, GorevTuruId: i.gorevTuruId });
-                if (i.type === 'Koordinatorluk') payload.Koordinatorlukler.push({ Id: i.id, GorevTuruId: i.gorevTuruId });
-                if (i.type === 'Komisyon') payload.Komisyonlar.push({ Id: i.id, GorevTuruId: i.gorevTuruId });
-                if (i.type === 'Personel') payload.Personeller.push({ Id: i.id, GorevTuruId: i.gorevTuruId });
+                if (i.type === 'Koordinatorluk') payload.Koordinatorlukler.push({ Id: i.id, GorevTuruId: i.gorevTuruId || 0 });
+                if (i.type === 'Komisyon') payload.Komisyonlar.push({ Id: i.id, GorevTuruId: i.gorevTuruId || 0 });
+                if (i.type === 'Personel') {
+                    payload.Personeller.push({
+                        Id: i.id,
+                        GorevTuruId: i.gorevTuruId,
+                        PersonelGorevListesindenGizlensinMi: !!i.personelGorevListesindenGizlensinMi,
+                        SadeceAdminGorebilirMi: !!i.sadeceAdminGorebilirMi
+                    });
+                }
             });
 
             $.ajax({
@@ -651,6 +962,7 @@
 
         function updateStatus() {
             var gorevId = @Model.GorevId;
+            var historyId = parseInt($('#statusHistoryId').val());
             var durumId = $('#newStatusId').val();
             var aciklama = $('#statusDescription').val();
 
@@ -659,11 +971,16 @@
                 return;
             }
 
+            var isEdit = !!historyId;
+            var payload = isEdit
+                ? { id: historyId, durumId: parseInt(durumId), aciklama: aciklama }
+                : { gorevId: gorevId, durumId: parseInt(durumId), aciklama: aciklama };
+
             $.ajax({
-                url: '/Gorevler/UpdateStatus',
+                url: isEdit ? '/Gorevler/UpdateStatusHistory' : '/Gorevler/UpdateStatus',
                 type: 'POST',
                 contentType: 'application/json',
-                data: JSON.stringify({ gorevId: gorevId, durumId: parseInt(durumId), aciklama: aciklama }),
+                data: JSON.stringify(payload),
                 success: function(response) {
                     if(response.success) {
                         location.reload();

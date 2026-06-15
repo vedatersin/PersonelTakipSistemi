@@ -219,7 +219,8 @@ namespace PersonelTakipSistemi.Services
                 OlusturmaTarihi = b.OlusturmaTarihi,
                 OkunduMu = b.OkunduMu,
                 GonderenAdSoyad = b.BildirimGonderen?.GorunenAd ?? "Sistem",
-                GonderenKurumsalRolOzet = "Sistem" // Simplified for topbar
+                GonderenKurumsalRolOzet = "Sistem", // Simplified for topbar
+                GonderenFotoUrl = b.BildirimGonderen?.AvatarUrl
             }).ToList();
 
             return (unreadCount, dtos);

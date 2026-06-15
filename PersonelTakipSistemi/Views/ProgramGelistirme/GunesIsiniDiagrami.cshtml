@@ -1,0 +1,986 @@
+@{
+    ViewData["Title"] = "Güneş Işını Haritası";
+}
+
+@section Styles {
+    <style>
+        .sunburst-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .sunburst-filterbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.65rem;
+        }
+
+        .sunburst-filter {
+            display: grid;
+            gap: 0.2rem;
+            min-width: 180px;
+        }
+
+        .sunburst-filter label {
+            margin: 0;
+            color: #697a8d;
+            font-size: 0.74rem;
+            font-weight: 700;
+        }
+
+        .sunburst-filter select {
+            min-height: 34px;
+            border: 1px solid #d9dee3;
+            border-radius: 0.45rem;
+            background-color: #fff;
+            color: #25324b;
+            font-size: 0.84rem;
+            font-weight: 600;
+        }
+
+        .sunburst-titleblock {
+            min-width: min(100%, 320px);
+        }
+
+        .sunburst-summary {
+            display: inline-flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 0.45rem;
+            color: #566a7f;
+            font-size: 0.84rem;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .sunburst-summary span {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0.25rem 0.55rem;
+            border-radius: 0.45rem;
+            background: #f5f7fb;
+        }
+
+        .sunburst-card {
+            position: relative;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .sunburst-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #d9dee3;
+            background: #fff;
+        }
+
+        .sunburst-header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .sunburst-mode-toggle {
+            display: inline-flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 0.4rem;
+        }
+
+        .sunburst-mode-btn {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0.25rem 0.7rem;
+            border: 1px solid #dbe4f0;
+            border-radius: 0.45rem;
+            background: #fff;
+            color: #566a7f;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            line-height: 1;
+            transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+        }
+
+        .sunburst-mode-btn:hover {
+            border-color: #bfdbfe;
+            color: #1e63b6;
+        }
+
+        .sunburst-mode-btn.is-active {
+            border-color: #bfdbfe;
+            background: #eef5ff;
+            color: #1e63b6;
+        }
+
+        .sunburst-canvas {
+            position: relative;
+            display: grid;
+            place-items: center;
+            width: 100%;
+            min-height: 760px;
+            padding: 1.25rem;
+            background: #fff;
+        }
+
+        .sunburst-svg {
+            display: block;
+            width: min(100%, 980px);
+            height: auto;
+            aspect-ratio: 1 / 1;
+            overflow: visible;
+        }
+
+        .sunburst-arc {
+            cursor: pointer;
+            transition: opacity 0.16s ease, filter 0.16s ease, stroke-width 0.16s ease;
+        }
+
+        .sunburst-arc:hover,
+        .sunburst-arc.is-active {
+            filter: saturate(1.18);
+            opacity: 1;
+            stroke-width: 2.4;
+        }
+
+        .sunburst-arc.is-muted {
+            opacity: 0.22;
+        }
+
+        .sunburst-profile-band {
+            fill: none;
+            stroke-linecap: round;
+            stroke-width: 66px;
+            filter: drop-shadow(0 5px 9px rgba(37, 50, 75, 0.16));
+            pointer-events: visibleStroke;
+        }
+
+        .sunburst-profile-band:hover,
+        .sunburst-profile-band.is-active {
+            stroke-width: 66px;
+            filter: saturate(1.18) drop-shadow(0 7px 12px rgba(37, 50, 75, 0.22));
+        }
+
+        .sunburst-center {
+            pointer-events: none;
+            text-anchor: middle;
+        }
+
+        .sunburst-center-title {
+            fill: #25324b;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .sunburst-center-subtitle {
+            fill: #25324b;
+            font-size: 14px;
+        }
+
+        .sunburst-center-percent {
+            fill: #25324b;
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .sunburst-ring-label {
+            fill: #fff;
+            font-weight: 800;
+            letter-spacing: 0;
+            pointer-events: none;
+            text-anchor: middle;
+            paint-order: stroke;
+            stroke: rgba(0, 0, 0, 0.24);
+            stroke-width: 2.4px;
+            stroke-linejoin: round;
+        }
+
+        .sunburst-tooltip {
+            position: absolute;
+            z-index: 4;
+            display: none;
+            max-width: 360px;
+            padding: 0.75rem 0.85rem;
+            border: 1px solid #d9dee3;
+            border-radius: 0.5rem;
+            background: #fff;
+            box-shadow: 0 0.5rem 1.5rem rgba(67, 89, 113, 0.18);
+            color: #25324b;
+            font-size: 0.875rem;
+            pointer-events: none;
+        }
+
+        .sunburst-tooltip.is-visible {
+            display: block;
+        }
+
+        .sunburst-tooltip-title {
+            margin-bottom: 0.2rem;
+            font-weight: 700;
+        }
+
+        .sunburst-tooltip-meta {
+            color: #697a8d;
+            font-size: 0.8rem;
+        }
+
+        .sunburst-error {
+            position: absolute;
+            inset: 0;
+            display: none;
+            place-items: center;
+            padding: 1.25rem;
+            background: rgba(255, 255, 255, 0.92);
+            color: #566a7f;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .sunburst-error.is-visible {
+            display: grid;
+        }
+
+        @@media (max-width: 767.98px) {
+            .sunburst-toolbar,
+            .sunburst-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .sunburst-summary {
+                justify-content: flex-start;
+            }
+
+            .sunburst-header-actions,
+            .sunburst-mode-toggle {
+                justify-content: flex-start;
+            }
+
+            .sunburst-filter,
+            .sunburst-filter select {
+                width: 100%;
+            }
+
+            .sunburst-canvas {
+                min-height: 620px;
+                padding: 0.75rem;
+            }
+        }
+    </style>
+}
+
+<div class="pg-page-title">
+    <h4><span class="text-muted fw-light">Program Geliştirme Modülü /</span> <strong>Öğrenci Profili</strong></h4>
+</div>
+
+<div class="card pg-summary-card mb-3">
+    <div class="card-body pg-summary-body">
+        <div class="sunburst-titleblock">
+            <h5 class="pg-summary-title">Güneş Işını Haritası</h5>
+            <div id="sunburstStatus" class="pg-summary-subtitle">Ana Profil diagramı hazır.</div>
+        </div>
+        <div id="sunburstSummaryStats" class="sunburst-summary pg-summary-stats" aria-live="polite">
+            <span>0 kayıt</span>
+            <span>0 profil</span>
+            <span>0 ders</span>
+            <span>0 tema</span>
+        </div>
+    </div>
+</div>
+
+<div class="card sunburst-card pg-filter-card">
+    <div class="sunburst-header pg-filter-row">
+        <div class="sunburst-filterbar" aria-label="Güneş ışını filtreleri">
+            <div class="sunburst-filter">
+                <label for="sunburstCategoryFilter">Kategori</label>
+                <select id="sunburstCategoryFilter" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                </select>
+            </div>
+            <div class="sunburst-filter">
+                <label for="sunburstLessonFilter">Ders</label>
+                <select id="sunburstLessonFilter" class="form-select form-select-sm">
+                    <option value="">Tüm dersler</option>
+                </select>
+            </div>
+            <div class="sunburst-filter">
+                <label for="sunburstClassFilter">Sınıf</label>
+                <select id="sunburstClassFilter" class="form-select form-select-sm">
+                    <option value="">Tüm sınıflar</option>
+                </select>
+            </div>
+        </div>
+        <div class="sunburst-header-actions">
+            <div id="sunburstModeToggle" class="sunburst-mode-toggle" aria-label="Profil türü">
+                <button type="button" class="sunburst-mode-btn is-active" data-mode="ana">Ana Profil</button>
+                <button type="button" class="sunburst-mode-btn" data-mode="destek">Destekleyici Profil</button>
+            </div>
+        </div>
+    </div>
+    <div id="sunburstCanvas" class="sunburst-canvas">
+        <svg id="sunburstSvg" class="sunburst-svg" viewBox="-560 -560 1120 1120" role="img" aria-label="Öğrenci profili güneş ışını diagramı"></svg>
+        <div id="sunburstTooltip" class="sunburst-tooltip" role="status" aria-live="polite"></div>
+        <div id="sunburstError" class="sunburst-error">Diagram verisi yüklenemedi.</div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/ogrenci-profili-store.js" asp-append-version="true"></script>
+    <script>
+        (() => {
+            const dataSourceUrl = `/data/ogrenci_profili_ag_verisi.json?v=${Date.now()}`;
+            const svg = document.getElementById('sunburstSvg');
+            const canvas = document.getElementById('sunburstCanvas');
+            const tooltip = document.getElementById('sunburstTooltip');
+            const status = document.getElementById('sunburstStatus');
+            const summaryStats = document.getElementById('sunburstSummaryStats');
+            const error = document.getElementById('sunburstError');
+            const categoryFilter = document.getElementById('sunburstCategoryFilter');
+            const classFilter = document.getElementById('sunburstClassFilter');
+            const lessonFilter = document.getElementById('sunburstLessonFilter');
+            const modeButtons = Array.from(document.querySelectorAll('#sunburstModeToggle [data-mode]'));
+            const profileOrder = ['Vatansever', 'Ahlaklı', 'Bilge', 'Cesaretli', 'Estetik', 'İradeli', 'Merhametli', 'Sağlıklı', 'Sorgulayıcı', 'Üretken'];
+            const modeLabels = {
+                ana: 'Ana Profil',
+                destek: 'Destekleyici Profil'
+            };
+            const profileColors = {
+                'Vatansever': '#a45d72',
+                'Ahlaklı': '#c46283',
+                'Bilge': '#1ea7e1',
+                'Cesaretli': '#8263a8',
+                'Estetik': '#6f77b5',
+                'İradeli': '#36899b',
+                'Merhametli': '#47a89b',
+                'Sağlıklı': '#66b98e',
+                'Sorgulayıcı': '#86ad71',
+                'Üretken': '#d6955f'
+            };
+            window.addEventListener('storage', event => {
+                if (event.key === window.OgrenciProfiliStore.recordsKey || event.key === window.OgrenciProfiliStore.definitionsKey) {
+                    window.location.reload();
+                }
+            });
+            const state = {
+                mode: 'ana',
+                allRecords: [],
+                records: [],
+                selectedCategory: '',
+                selectedClass: '',
+                selectedLesson: '',
+                summary: null
+            };
+            let renderedNodes = [];
+
+            function normalizeText(value) {
+                return String(value || '').trim();
+            }
+
+            function uniqueSorted(values) {
+                return Array.from(new Set(values.map(normalizeText).filter(Boolean)))
+                    .sort((a, b) => a.localeCompare(b, 'tr', { numeric: true }));
+            }
+
+            function categorySortKey(value) {
+                if (value === 'Ortaöğretim') return 0;
+                if (value === 'Temel Eğitim') return 1;
+                if (value === 'Din Öğretimi') return 2;
+                return 99;
+            }
+
+            function classSortKey(value) {
+                const text = normalizeText(value).toLocaleLowerCase('tr-TR');
+                if (text.includes('hazırlık') || text.includes('hazirlik')) return 0;
+                const match = text.match(/\d+/);
+                return match ? parseInt(match[0], 10) : 999;
+            }
+
+            function filteredByCategory(records) {
+                return state.selectedCategory
+                    ? records.filter(record => normalizeText(record.kategori || 'Temel Eğitim') === state.selectedCategory)
+                    : records;
+            }
+
+            function filteredByLesson(records) {
+                const categoryRecords = filteredByCategory(records);
+                return state.selectedLesson
+                    ? categoryRecords.filter(record => normalizeText(record.ders) === state.selectedLesson)
+                    : categoryRecords;
+            }
+
+            function filteredRecords() {
+                const lessonRecords = filteredByLesson(state.allRecords);
+                return state.selectedClass
+                    ? lessonRecords.filter(record => normalizeText(record.sinif) === state.selectedClass)
+                    : lessonRecords;
+            }
+
+            function optionMarkup(value, label = value) {
+                return `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`;
+            }
+
+            function populateCategoryFilter(records) {
+                const categories = uniqueSorted(records.map(record => record.kategori || 'Temel Eğitim'))
+                    .sort((a, b) => categorySortKey(a) - categorySortKey(b) || a.localeCompare(b, 'tr'));
+                categoryFilter.innerHTML = optionMarkup('', 'Tümü') + categories.map(item => optionMarkup(item)).join('');
+                categoryFilter.value = state.selectedCategory;
+            }
+
+            function populateClassFilter(records) {
+                const classes = uniqueSorted(filteredByLesson(records).map(record => record.sinif))
+                    .sort((a, b) => classSortKey(a) - classSortKey(b) || a.localeCompare(b, 'tr'));
+                if (state.selectedClass && !classes.includes(state.selectedClass)) {
+                    state.selectedClass = '';
+                }
+                classFilter.innerHTML = optionMarkup('', 'Tüm sınıflar') + classes.map(item => optionMarkup(item)).join('');
+                classFilter.value = state.selectedClass;
+                classFilter.disabled = classes.length === 0;
+            }
+
+            function populateLessonFilter() {
+                const lessons = uniqueSorted(filteredByCategory(state.allRecords).map(record => record.ders));
+                if (state.selectedLesson && !lessons.includes(state.selectedLesson)) {
+                    state.selectedLesson = '';
+                }
+                lessonFilter.innerHTML = optionMarkup('', 'Tüm dersler') + lessons.map(item => optionMarkup(item)).join('');
+                lessonFilter.value = state.selectedLesson;
+                lessonFilter.disabled = lessons.length === 0;
+            }
+
+            function getChild(parent, key, factory) {
+                parent._childrenByName ??= new Map();
+                if (!parent._childrenByName.has(key)) {
+                    const child = factory();
+                    child.parent = parent;
+                    parent.children ??= [];
+                    parent.children.push(child);
+                    parent._childrenByName.set(key, child);
+                }
+                return parent._childrenByName.get(key);
+            }
+
+            function profilesForRecord(record, mode) {
+                const allowed = new Set(profileOrder);
+                const profiles = mode === 'destek'
+                    ? (record.destekProfiller?.length ? record.destekProfiller : [])
+                    : (record.anaProfiller?.length ? record.anaProfiller : [record.anaProfilRaw].filter(Boolean));
+                return profiles.filter(profile => allowed.has(profile));
+            }
+
+            function createProfileNode(root, profileName) {
+                return getChild(root, profileName, () => ({
+                    name: profileName,
+                    kind: 'profil',
+                    color: profileColors[profileName] || '#7a9e9f',
+                    count: 0,
+                    classes: new Set(),
+                    records: []
+                }));
+            }
+
+            function buildHierarchy(records, mode) {
+                const root = {
+                    name: modeLabels[mode],
+                    kind: 'root',
+                    children: [],
+                    count: records.length,
+                    mode
+                };
+
+                profileOrder.forEach(profileName => createProfileNode(root, profileName));
+
+                records.forEach(record => {
+                    profilesForRecord(record, mode).forEach(profileName => {
+                        const profile = createProfileNode(root, profileName);
+                        profile.count += 1;
+                        profile.records.push(record);
+                        if (record.sinif) profile.classes.add(record.sinif);
+
+                        const lessonName = normalizeText(record.ders) || 'Ders belirtilmemiş';
+                        const lesson = getChild(profile, lessonName, () => ({
+                            name: lessonName,
+                            kind: 'ders',
+                            color: blend(profile.color, '#ffffff', 0.24),
+                            count: 0,
+                            classes: new Set(),
+                            records: []
+                        }));
+                        lesson.count += 1;
+                        lesson.records.push(record);
+                        if (record.sinif) lesson.classes.add(record.sinif);
+
+                        const unitName = normalizeText(record.unite) || 'Tema belirtilmemiş';
+                        const unitKey = `${record.sinif || ''}|${unitName}`;
+                        const unit = getChild(lesson, unitKey, () => ({
+                            name: unitName,
+                            kind: 'unite',
+                            color: blend(profile.color, lesson.color, 0.5),
+                            count: 0,
+                            classes: new Set(),
+                            records: [],
+                            spike: 0
+                        }));
+                        unit.count += 1;
+                        unit.value = unit.count;
+                        unit.records.push(record);
+                        if (record.sinif) unit.classes.add(record.sinif);
+                        unit.spike = Math.min(5, unit.classes.size + unit.count % 4);
+                    });
+                });
+
+                sortTree(root);
+                return root;
+            }
+
+            function sortTree(node) {
+                if (!node.children?.length) return;
+                node.children.sort((a, b) => {
+                    if (a.kind === 'profil' && b.kind === 'profil') {
+                        const firstIndex = profileOrder.includes(a.name) ? profileOrder.indexOf(a.name) : profileOrder.length;
+                        const secondIndex = profileOrder.includes(b.name) ? profileOrder.indexOf(b.name) : profileOrder.length;
+                        return firstIndex - secondIndex || b.count - a.count || a.name.localeCompare(b.name, 'tr');
+                    }
+                    return b.count - a.count || a.name.localeCompare(b.name, 'tr');
+                });
+                node.children.forEach(sortTree);
+            }
+
+            function computeValues(node, depth = 0, parent = null) {
+                node.depth = depth;
+                node.parent = parent;
+                if (node.children?.length) {
+                    node.children.forEach(child => computeValues(child, depth + 1, node));
+                    node.value = node.children.reduce((sum, child) => sum + child.value, 0);
+                } else {
+                    node.value = node.count || 1;
+                }
+                return node.value;
+            }
+
+            function layout(node, startAngle, endAngle) {
+                node.startAngle = startAngle;
+                node.endAngle = endAngle;
+                if (!node.children?.length) return;
+                let current = startAngle;
+                if (node.depth === 0) {
+                    const span = (endAngle - startAngle) / node.children.length;
+                    const gap = Math.min(0.028, span * 0.12);
+                    node.children.forEach(child => {
+                        layout(child, current + gap, current + span - gap);
+                        current += span;
+                    });
+                    return;
+                }
+                node.children.forEach(child => {
+                    const span = (endAngle - startAngle) * (child.value / node.value);
+                    layout(child, current, current + span);
+                    current += span;
+                });
+            }
+
+            function flatten(node) {
+                return [node, ...(node.children || []).flatMap(flatten)];
+            }
+
+            function radiusFor(node, outer) {
+                if (node.depth === 1) return outer ? 230 : 150;
+                if (node.depth === 2) return outer ? 328 : 230;
+                if (node.depth === 3) return outer ? 448 + (node.spike || 0) * 10 : 328;
+                return outer ? 448 + (node.spike || 0) * 10 : 328;
+            }
+
+            function polar(angle, radius) {
+                const adjusted = angle - Math.PI / 2;
+                return [Math.cos(adjusted) * radius, Math.sin(adjusted) * radius];
+            }
+
+            function arcPath(node) {
+                const start = node.startAngle + 0.001;
+                const end = node.endAngle - 0.001;
+                const inner = radiusFor(node, false);
+                const outer = radiusFor(node, true);
+                const largeArc = end - start > Math.PI ? 1 : 0;
+                const p1 = polar(start, outer);
+                const p2 = polar(end, outer);
+                const p3 = polar(end, inner);
+                const p4 = polar(start, inner);
+                return [
+                    `M ${p1[0]} ${p1[1]}`,
+                    `A ${outer} ${outer} 0 ${largeArc} 1 ${p2[0]} ${p2[1]}`,
+                    `L ${p3[0]} ${p3[1]}`,
+                    `A ${inner} ${inner} 0 ${largeArc} 0 ${p4[0]} ${p4[1]}`,
+                    'Z'
+                ].join(' ');
+            }
+
+            function profileBandPath(node) {
+                const radius = (radiusFor(node, false) + radiusFor(node, true)) / 2;
+                return arcLinePath(node.startAngle + 0.018, node.endAngle - 0.018, radius);
+            }
+
+            function labelFontSize(node, available) {
+                const fullLength = Array.from(displayNodeLabel(node)).length;
+                const byArc = available / Math.max(fullLength, 1) * 1.65;
+                return Math.max(12, Math.min(18, byArc));
+            }
+
+            function displayNodeLabel(node) {
+                if (node?.kind !== 'ders') return node?.name || '';
+                const lesson = String(node.name || '').toLocaleUpperCase('tr-TR');
+                if (lesson === 'MATEMATİK (TEMEL EĞİTİM)') return 'Matematik T.E.';
+                if (lesson === 'MATEMATİK (ORTAÖĞRETİM)') return 'Matematik O.O.';
+                return node.name;
+            }
+
+            function labelFor(node, fontSize, available) {
+                const labelText = displayNodeLabel(node);
+                if (node.depth === 1) {
+                    return labelText;
+                }
+                const estimated = Array.from(labelText).length * fontSize * 0.58;
+                if (estimated <= available) {
+                    return labelText;
+                }
+                const words = labelText.split(/\s+/).filter(Boolean);
+                const initials = words.length > 1
+                    ? `${words.map(word => Array.from(word)[0] || '').join('')}.`
+                    : `${Array.from(labelText.trim())[0] || ''}.`;
+                const initialsEstimated = Array.from(initials).length * fontSize * 0.58;
+                if (initialsEstimated <= available) {
+                    return initials;
+                }
+                const firstLetter = Array.from(labelText.trim())[0] || '';
+                return firstLetter ? `${firstLetter}.` : '';
+            }
+
+            function arcLinePath(startAngle, endAngle, radius) {
+                const start = startAngle + 0.012;
+                const end = endAngle - 0.012;
+                const largeArc = end - start > Math.PI ? 1 : 0;
+                const p1 = polar(start, radius);
+                const p2 = polar(end, radius);
+                return `M ${p1[0]} ${p1[1]} A ${radius} ${radius} 0 ${largeArc} 1 ${p2[0]} ${p2[1]}`;
+            }
+
+            function addDefs() {
+                let defs = svg.querySelector('defs');
+                if (!defs) {
+                    defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                    svg.insertBefore(defs, svg.firstChild);
+                }
+                return defs;
+            }
+
+            function addRingLabel(node, index) {
+                if (node.depth > 2) return;
+                const radius = (radiusFor(node, false) + radiusFor(node, true)) / 2;
+                const available = Math.max(0, (node.endAngle - node.startAngle) * radius - 18);
+                const fontSize = node.depth === 1
+                    ? Math.min(16, labelFontSize(node, available))
+                    : Math.max(13, Math.min(16, labelFontSize(node, available) * 1.18));
+                const text = labelFor(node, fontSize, available);
+                if (!text) return;
+
+                const pathId = `sunburst-label-path-${index}`;
+                const defs = addDefs();
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                line.setAttribute('id', pathId);
+                line.setAttribute('d', arcLinePath(node.startAngle, node.endAngle, radius));
+                line.setAttribute('fill', 'none');
+                defs.appendChild(line);
+
+                const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('class', 'sunburst-ring-label');
+                label.setAttribute('font-size', fontSize.toFixed(1));
+                label.setAttribute('dominant-baseline', 'middle');
+                const textPath = document.createElementNS('http://www.w3.org/2000/svg', 'textPath');
+                textPath.setAttribute('href', `#${pathId}`);
+                textPath.setAttribute('startOffset', '50%');
+                textPath.setAttribute('text-anchor', 'middle');
+                textPath.textContent = text;
+                label.appendChild(textPath);
+                svg.appendChild(label);
+            }
+
+            function ancestry(node) {
+                const result = [];
+                let current = node;
+                while (current) {
+                    result.push(current);
+                    current = current.parent;
+                }
+                return result;
+            }
+
+            function displayCount(node) {
+                return node.count ?? node.value ?? 0;
+            }
+
+            function splitCenterTitle(value) {
+                const text = normalizeText(value);
+                if (text.length <= 30) return [text, ''];
+
+                const words = text.split(/\s+/).filter(Boolean);
+                let first = '';
+                let second = '';
+
+                words.forEach(word => {
+                    if ((first.length + word.length + 1 <= 30 || !first) && !second) {
+                        first = first ? `${first} ${word}` : word;
+                    } else {
+                        second = second ? `${second} ${word}` : word;
+                    }
+                });
+
+                return [first, second || ''];
+            }
+
+            function setCenterTitle(title) {
+                const [firstLine, secondLine] = splitCenterTitle(title);
+                const titleEl = svg.querySelector('#centerTitle');
+                const titleSecondEl = svg.querySelector('#centerTitleSecond');
+                const subtitleEl = svg.querySelector('#centerSubtitle');
+                const percentEl = svg.querySelector('#centerPercent');
+
+                titleEl.textContent = firstLine;
+                titleSecondEl.textContent = secondLine;
+                titleEl.setAttribute('y', secondLine ? '-24' : '-6');
+                titleSecondEl.setAttribute('y', secondLine ? '-2' : '-2');
+                subtitleEl.setAttribute('y', secondLine ? '30' : '24');
+                percentEl.setAttribute('y', secondLine ? '58' : '52');
+            }
+
+            function showCenter(node, summary) {
+                const title = node?.depth ? node.name : modeLabels[summary.mode];
+                const subtitle = node?.depth
+                    ? `${displayCount(node)} kayıt`
+                    : `${summary.records} kayıt | ${summary.profiles} profil`;
+                const percent = node?.depth
+                    ? formatPercent(displayCount(node) / Math.max(summary.totalAssignments || summary.records || 1, 1))
+                    : '';
+                setCenterTitle(title);
+                svg.querySelector('#centerSubtitle').textContent = truncate(subtitle, 34);
+                svg.querySelector('#centerPercent').textContent = percent;
+            }
+
+            function showTooltip(event, node) {
+                const path = ancestry(node)
+                    .reverse()
+                    .map(item => item.name)
+                    .filter(name => name !== 'Ana Profil' && name !== 'Destekleyici Profil');
+                const classes = Array.from(node.classes || []).sort((a, b) => a.localeCompare(b, 'tr'));
+                tooltip.innerHTML = `
+                    <div class="sunburst-tooltip-title">${escapeHtml(node.name)}</div>
+                    <div class="sunburst-tooltip-meta">${escapeHtml(path.join(' / '))}</div>
+                    <div class="mt-2">${escapeHtml(displayCount(node))} kayıt</div>
+                    ${classes.length ? `<div class="sunburst-tooltip-meta">Sınıf: ${escapeHtml(classes.join(', '))}</div>` : ''}`;
+                const bounds = canvas.getBoundingClientRect();
+                tooltip.style.left = `${Math.min(event.clientX - bounds.left + 14, bounds.width - 382)}px`;
+                tooltip.style.top = `${Math.max(event.clientY - bounds.top + 14, 12)}px`;
+                tooltip.classList.add('is-visible');
+            }
+
+            function render(root, summary) {
+                computeValues(root);
+                summary.totalValue = root.value;
+                layout(root, 0, Math.PI * 2);
+                renderedNodes = flatten(root).filter(node => node.depth > 0);
+                svg.innerHTML = '';
+
+                renderedNodes.forEach(node => {
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    if (node.depth === 1) {
+                        path.setAttribute('d', profileBandPath(node));
+                        path.setAttribute('fill', 'none');
+                        path.setAttribute('stroke', node.color || '#8bc57d');
+                        path.setAttribute('stroke-width', '66');
+                        path.setAttribute('class', 'sunburst-arc sunburst-profile-band');
+                    } else {
+                        path.setAttribute('d', arcPath(node));
+                        path.setAttribute('fill', node.color || node.parent?.color || '#8bc57d');
+                        path.setAttribute('stroke', '#fff');
+                        path.setAttribute('stroke-width', node.depth >= 4 ? '1.05' : node.depth === 3 ? '1.25' : '1.8');
+                        path.setAttribute('class', 'sunburst-arc');
+                    }
+                    path.setAttribute('tabindex', '0');
+                    path.addEventListener('mouseenter', event => activateNode(node, path, event, summary));
+                    path.addEventListener('mousemove', event => showTooltip(event, node));
+                    path.addEventListener('mouseleave', () => resetSelection(summary));
+                    path.addEventListener('focus', event => activateNode(node, path, event, summary));
+                    path.addEventListener('blur', () => resetSelection(summary));
+                    svg.appendChild(path);
+                });
+                renderedNodes.forEach(addRingLabel);
+
+                const center = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                center.setAttribute('class', 'sunburst-center');
+                center.innerHTML = `
+                    <text id="centerTitle" x="0" y="-6" class="sunburst-center-title">${modeLabels[summary.mode]}</text>
+                    <text id="centerTitleSecond" x="0" y="-2" class="sunburst-center-title"></text>
+                    <text id="centerSubtitle" x="0" y="24" class="sunburst-center-subtitle">${summary.records} kayıt | ${summary.profiles} profil</text>
+                    <text id="centerPercent" x="0" y="52" class="sunburst-center-percent"></text>`;
+                svg.appendChild(center);
+                showCenter(null, summary);
+                status.textContent = `${modeLabels[summary.mode]} diagramı hazır.`;
+            }
+
+            function activateNode(node, path, event, summary) {
+                const family = new Set(ancestry(node));
+                const arcs = Array.from(svg.querySelectorAll('.sunburst-arc'));
+                arcs.forEach(item => item.classList.add('is-muted'));
+                path.classList.remove('is-muted');
+                path.classList.add('is-active');
+                renderedNodes.forEach((candidate, index) => {
+                    if (family.has(candidate) || ancestry(candidate).includes(node)) {
+                        arcs[index].classList.remove('is-muted');
+                    }
+                });
+                showCenter(node, summary);
+                if (Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+                    showTooltip(event, node);
+                }
+                status.textContent = `${node.name} seçili.`;
+            }
+
+            function resetSelection(summary) {
+                svg.querySelectorAll('.sunburst-arc').forEach(item => item.classList.remove('is-muted', 'is-active'));
+                tooltip.classList.remove('is-visible');
+                showCenter(null, summary);
+                status.textContent = `${modeLabels[summary.mode]} diagramı hazır.`;
+            }
+
+            function hexToRgb(hex) {
+                const normalized = hex.replace('#', '');
+                return {
+                    r: parseInt(normalized.slice(0, 2), 16),
+                    g: parseInt(normalized.slice(2, 4), 16),
+                    b: parseInt(normalized.slice(4, 6), 16)
+                };
+            }
+
+            function rgbToObject(value) {
+                const match = String(value).match(/\d+/g);
+                return { r: Number(match?.[0] || 0), g: Number(match?.[1] || 0), b: Number(match?.[2] || 0) };
+            }
+
+            function colorObject(value) {
+                return String(value).startsWith('#') ? hexToRgb(value) : rgbToObject(value);
+            }
+
+            function blend(a, b, amount) {
+                const first = colorObject(a);
+                const second = colorObject(b);
+                const channel = key => Math.round(first[key] + (second[key] - first[key]) * amount);
+                return `rgb(${channel('r')}, ${channel('g')}, ${channel('b')})`;
+            }
+
+            function truncate(value, max) {
+                const text = normalizeText(value);
+                return text.length > max ? `${text.slice(0, max - 3)}...` : text;
+            }
+
+            function formatPercent(value) {
+                return `%${(value * 100).toLocaleString('tr-TR', {
+                    minimumFractionDigits: value > 0 && value < 0.01 ? 2 : 1,
+                    maximumFractionDigits: value > 0 && value < 0.01 ? 2 : 1
+                })}`;
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function buildSummary(records, mode) {
+                const totalAssignments = records.reduce((sum, record) => sum + profilesForRecord(record, mode).length, 0);
+                return {
+                    mode,
+                    records: records.length,
+                    profiles: profileOrder.length,
+                    lessons: new Set(records.map(record => normalizeText(record.ders)).filter(Boolean)).size,
+                    units: new Set(records.map(record => normalizeText(record.unite)).filter(Boolean)).size,
+                    totalAssignments
+                };
+            }
+
+            function updateSummaryStats(summary) {
+                summaryStats.innerHTML = `
+                    <span>${summary.records} kayıt</span>
+                    <span>${summary.profiles} profil</span>
+                    <span>${summary.lessons} ders</span>
+                    <span>${summary.units} tema</span>`;
+            }
+
+            function renderCurrent() {
+                state.records = filteredRecords();
+                const summary = buildSummary(state.records, state.mode);
+                const root = buildHierarchy(state.records, state.mode);
+                state.summary = summary;
+                updateSummaryStats(summary);
+                render(root, summary);
+            }
+
+            function setMode(mode) {
+                state.mode = mode;
+                modeButtons.forEach(button => button.classList.toggle('is-active', button.dataset.mode === mode));
+                renderCurrent();
+            }
+
+            modeButtons.forEach(button => {
+                button.addEventListener('click', () => setMode(button.dataset.mode));
+            });
+
+            categoryFilter.addEventListener('change', () => {
+                state.selectedCategory = categoryFilter.value;
+                state.selectedLesson = '';
+                state.selectedClass = '';
+                populateLessonFilter();
+                populateClassFilter(state.allRecords);
+                renderCurrent();
+            });
+
+            lessonFilter.addEventListener('change', () => {
+                state.selectedLesson = lessonFilter.value;
+                state.selectedClass = '';
+                populateClassFilter(state.allRecords);
+                renderCurrent();
+            });
+
+            classFilter.addEventListener('change', () => {
+                state.selectedClass = classFilter.value;
+                renderCurrent();
+            });
+
+            window.OgrenciProfiliStore.loadData(dataSourceUrl)
+                .then(payload => {
+                    const records = payload.records || [];
+                    if (!records.length) throw new Error('Ham veri JSON dosyasında kayıt bulunamadı.');
+                    state.allRecords = records;
+                    populateCategoryFilter(records);
+                    populateLessonFilter();
+                    populateClassFilter(records);
+                    renderCurrent();
+                })
+                .catch(fetchError => {
+                    status.textContent = 'Ham veri diagramı yüklenemedi.';
+                    error.textContent = fetchError.message;
+                    error.classList.add('is-visible');
+                });
+        })();
+    </script>
+}

@@ -101,14 +101,18 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
                     if (personelIdClaim != null && int.TryParse(personelIdClaim.Value, out var personelId))
                     {
                         var db = context.HttpContext.RequestServices.GetRequiredService<PersonelTakipSistemi.Data.TegmPersonelTakipDbContext>();
-                        var aktifMi = await db.Personeller
+                        var personelOturumDurumu = await db.Personeller
                             .AsNoTracking()
                             .Where(p => p.PersonelId == personelId)
-                            .Select(p => (bool?)p.AktifMi)
+                            .Select(p => new
+                            {
+                                AktifMi = (bool?)p.AktifMi,
+                                p.SifreSifirlamaGerekli
+                            })
                             .FirstOrDefaultAsync();
 
                         // Kullanıcı silindiyse (null) veya pasifse anında oturumu sonlandır.
-                        if (!aktifMi.HasValue || !aktifMi.Value)
+                        if (personelOturumDurumu?.AktifMi != true || personelOturumDurumu.SifreSifirlamaGerekli)
                         {
                             context.RejectPrincipal();
                             await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);

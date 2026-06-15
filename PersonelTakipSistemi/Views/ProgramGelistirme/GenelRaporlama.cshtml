@@ -1,0 +1,908 @@
+@{
+    ViewData["Title"] = "Genel Raporlama";
+}
+
+@section Styles {
+    <style>
+        .general-report {
+            --report-fg: #25324b;
+            --report-muted: #697a8d;
+            --report-border: #d9dee3;
+            --report-soft: #f5f5f9;
+            --report-blue: #3b82f6;
+            --report-red: #dc2626;
+            --report-orange: #f59e0b;
+            --report-green: #16a34a;
+            color: var(--report-fg);
+        }
+
+        .general-report-card {
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .general-report-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--report-border);
+            background: #fff;
+        }
+
+        .general-report-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .general-report-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .general-filterbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .general-filter {
+            display: grid;
+            gap: 0.2rem;
+            min-width: 170px;
+        }
+
+        .general-filter label {
+            margin: 0;
+            color: var(--report-muted);
+            font-size: 0.74rem;
+            font-weight: 800;
+        }
+
+        .general-filter select {
+            min-height: 34px;
+            border: 1px solid var(--report-border);
+            border-radius: 0.45rem;
+            background-color: #fff;
+            color: var(--report-fg);
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
+
+        .general-report-stat {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0.25rem 0.65rem;
+            border-radius: 0.45rem;
+            background: var(--report-soft);
+            color: #566a7f;
+            font-size: 0.8125rem;
+            font-weight: 700;
+        }
+
+        .general-report-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .general-chart-panel {
+            min-width: 0;
+            overflow: hidden;
+            border: 1px solid var(--report-border);
+            border-radius: 0.5rem;
+            background: #fff;
+            box-shadow: 0 0.35rem 1.2rem rgba(67, 89, 113, 0.08);
+        }
+
+        .general-chart-panel.is-wide {
+            grid-column: 1 / -1;
+        }
+
+        .general-chart-panel.is-column .general-chart-body {
+            min-height: 590px;
+        }
+
+        .general-chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            min-height: 62px;
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid var(--report-border);
+            background: #fbfcfe;
+        }
+
+        .general-chart-title {
+            margin: 0;
+            color: var(--report-fg);
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .general-chart-subtitle {
+            margin-top: 0.15rem;
+            color: var(--report-muted);
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        .general-chart-badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            padding: 0.2rem 0.58rem;
+            border-radius: 0.45rem;
+            background: #eef5ff;
+            color: #1e63b6;
+            font-size: 0.78rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .general-chart-actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 0.4rem;
+        }
+
+        .general-chart-mode {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0.25rem 0.7rem;
+            border: 1px solid #dbe4f0;
+            border-radius: 0.45rem;
+            background: #fff;
+            color: #566a7f;
+            font-size: 0.78rem;
+            font-weight: 800;
+            line-height: 1;
+            transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+        }
+
+        .general-chart-mode:hover {
+            border-color: #bfdbfe;
+            color: #1e63b6;
+        }
+
+        .general-chart-mode.is-active {
+            border-color: #bfdbfe;
+            background: #eef5ff;
+            color: #1e63b6;
+        }
+
+        .general-chart-body {
+            min-height: 430px;
+            padding: 0.75rem;
+        }
+
+        .general-chart-body.is-compact {
+            min-height: 380px;
+        }
+
+        .general-chart-svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            overflow: visible;
+        }
+
+        .general-axis {
+            stroke: #cbd5e1;
+            stroke-width: 1;
+        }
+
+        .general-grid-line {
+            stroke: #e5e7eb;
+            stroke-width: 1;
+        }
+
+        .general-axis-label,
+        .general-bar-label,
+        .general-pie-label {
+            fill: var(--report-fg);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .general-small-label {
+            fill: var(--report-muted);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .general-bar-segment {
+            cursor: pointer;
+            stroke: rgba(255, 255, 255, 0.82);
+            stroke-width: 1;
+            transition: filter 0.14s ease, transform 0.14s ease;
+        }
+
+        .general-bar-segment:hover {
+            filter: saturate(1.12) brightness(1.04);
+        }
+
+        .general-pie-slice {
+            stroke: #fff;
+            stroke-width: 2;
+            transition: filter 0.14s ease, transform 0.14s ease;
+        }
+
+        .general-pie-slice-group {
+            cursor: pointer;
+            transition: transform 0.18s ease;
+        }
+
+        .general-pie-slice-group:hover .general-pie-slice {
+            filter: saturate(1.12) brightness(1.04);
+        }
+
+        .general-pie-depth {
+            stroke: rgba(255, 255, 255, 0.62);
+            stroke-width: 1.2;
+        }
+
+        .general-legend {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.35rem 0.65rem;
+        }
+
+        .general-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            min-width: 0;
+            color: var(--report-fg);
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .general-legend-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            flex: 0 0 auto;
+            border-radius: 50%;
+        }
+
+        .general-legend-text {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .general-profile-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem 0.65rem;
+            align-items: center;
+            color: var(--report-fg);
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .general-profile-legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            min-width: 0;
+        }
+
+        .general-tooltip {
+            position: fixed;
+            z-index: 20;
+            display: none;
+            max-width: 300px;
+            padding: 0.55rem 0.65rem;
+            border: 1px solid var(--report-border);
+            border-radius: 0.45rem;
+            background: #fff;
+            box-shadow: 0 0.5rem 1.5rem rgba(67, 89, 113, 0.18);
+            color: var(--report-fg);
+            font-size: 0.82rem;
+            font-weight: 700;
+            pointer-events: none;
+        }
+
+        .general-tooltip.is-visible {
+            display: block;
+        }
+
+        .general-loading {
+            display: grid;
+            min-height: 360px;
+            place-items: center;
+            color: #566a7f;
+            font-weight: 700;
+        }
+
+        @@media (max-width: 1199.98px) {
+            .general-report-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media (max-width: 767.98px) {
+            .general-report-header,
+            .general-chart-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .general-report-actions,
+            .general-filterbar,
+            .general-filter,
+            .general-filter select {
+                width: 100%;
+            }
+
+            .general-report-grid {
+                padding: 0.75rem;
+                gap: 0.75rem;
+            }
+
+            .general-chart-body,
+            .general-chart-body.is-compact {
+                min-height: 340px;
+            }
+
+            .general-legend {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+}
+
+<div class="pg-page-title">
+    <h4><span class="text-muted fw-light">Program Geliştirme Modülü /</span> <strong>Öğrenci Profili</strong></h4>
+</div>
+
+<div class="card pg-summary-card mb-3">
+    <div class="card-body pg-summary-body">
+        <div>
+            <h5 class="pg-summary-title">Genel Raporlama</h5>
+            <div id="generalReportStatus" class="pg-summary-subtitle">Grafikler hazırlanıyor...</div>
+        </div>
+        <div id="generalReportStats" class="general-report-stats pg-summary-stats" aria-live="polite"></div>
+    </div>
+</div>
+
+<div class="card general-report general-report-card pg-filter-card">
+    <div class="general-report-header pg-filter-row">
+        <div class="general-filterbar" aria-label="Genel raporlama filtreleri">
+            <div class="general-filter">
+                <label for="generalCategoryFilter">Kategori</label>
+                <select id="generalCategoryFilter" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                </select>
+            </div>
+            <div class="general-filter">
+                <label for="generalLessonFilter">Ders</label>
+                <select id="generalLessonFilter" class="form-select form-select-sm">
+                    <option value="">Tüm dersler</option>
+                </select>
+            </div>
+            <div class="general-filter">
+                <label for="generalClassFilter">Sınıf</label>
+                <select id="generalClassFilter" class="form-select form-select-sm">
+                    <option value="">Tüm sınıflar</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div id="generalReportGrid" class="general-report-grid">
+        <section class="general-chart-panel is-column">
+            <div class="general-chart-header">
+                <div>
+                    <h5 class="general-chart-title">Sütun Grafik</h5>
+                    <div class="general-chart-subtitle">Derslerdeki profil dağılımı</div>
+                </div>
+                <div class="general-chart-actions" id="lessonChartModeToggle" aria-label="Sütun grafik profil türü">
+                    <button type="button" class="general-chart-mode is-active" data-mode="ana">Ana profil</button>
+                    <button type="button" class="general-chart-mode" data-mode="destek">Destekleyici profil</button>
+                </div>
+            </div>
+            <div class="general-chart-body">
+                <svg id="lessonColumnChart" class="general-chart-svg" viewBox="0 0 1120 560" role="img" aria-label="Derslere göre profil dağılımı"></svg>
+            </div>
+        </section>
+
+        <section class="general-chart-panel is-wide">
+            <div class="general-chart-header">
+                <div>
+                    <h5 class="general-chart-title">3D Pasta Grafik</h5>
+                    <div class="general-chart-subtitle">Profil türüne göre dağılım</div>
+                </div>
+                <div class="general-chart-actions" id="pieChartModeToggle" aria-label="Pasta grafik profil türü">
+                    <button type="button" class="general-chart-mode is-active" data-mode="ana">Ana profil</button>
+                    <button type="button" class="general-chart-mode" data-mode="destek">Destekleyici profil</button>
+                </div>
+            </div>
+            <div class="general-chart-body">
+                <svg id="profilePieChart" class="general-chart-svg" viewBox="0 0 1120 430" role="img" aria-label="Profil pasta grafiği"></svg>
+            </div>
+        </section>
+    </div>
+
+    <div id="generalReportLoading" class="general-loading">Genel raporlama verisi yükleniyor...</div>
+</div>
+
+<div id="generalReportTooltip" class="general-tooltip" role="status" aria-live="polite"></div>
+
+@section Scripts {
+    <script src="~/js/ogrenci-profili-store.js" asp-append-version="true"></script>
+    <script>
+        (() => {
+            const dataSourceUrl = `/data/ogrenci_profili_ag_verisi.json?v=${Date.now()}`;
+            const palette = ['#f97316', '#22c55e', '#3b82f6', '#e11d48', '#8b5cf6', '#14b8a6', '#f59e0b', '#64748b', '#06b6d4', '#84cc16', '#ec4899', '#0ea5e9'];
+            const lessonOrder = ['MATEMATİK (TEMEL EĞİTİM)', 'MATEMATİK (ORTAÖĞRETİM)', 'TÜRKÇE', 'FEN BİLİMLERİ', 'SOSYAL BİLGİLER', 'MÜZİK', 'HAYAT BİLGİSİ', 'T.C. İNKILAP TARİHİ VE ATATÜRKÇÜLÜK'];
+            const profileOrder = ['Vatansever', 'Ahlaklı', 'Bilge', 'Cesaretli', 'Estetik', 'İradeli', 'Merhametli', 'Sağlıklı', 'Sorgulayıcı', 'Üretken'];
+            const modeLabels = {
+                ana: 'Ana profil',
+                destek: 'Destekleyici profil'
+            };
+            window.addEventListener('storage', event => {
+                if (event.key === window.OgrenciProfiliStore.recordsKey || event.key === window.OgrenciProfiliStore.definitionsKey) {
+                    window.location.reload();
+                }
+            });
+            const state = {
+                allRecords: [],
+                records: [],
+                columnMode: 'ana',
+                pieMode: 'ana',
+                selectedCategory: '',
+                selectedClass: '',
+                selectedLesson: ''
+            };
+            const el = {
+                status: document.getElementById('generalReportStatus'),
+                stats: document.getElementById('generalReportStats'),
+                loading: document.getElementById('generalReportLoading'),
+                tooltip: document.getElementById('generalReportTooltip'),
+                pie: document.getElementById('profilePieChart'),
+                lesson: document.getElementById('lessonColumnChart'),
+                categoryFilter: document.getElementById('generalCategoryFilter'),
+                classFilter: document.getElementById('generalClassFilter'),
+                lessonFilter: document.getElementById('generalLessonFilter'),
+                lessonModes: Array.from(document.querySelectorAll('#lessonChartModeToggle [data-mode]')),
+                pieModes: Array.from(document.querySelectorAll('#pieChartModeToggle [data-mode]'))
+            };
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function normalizeLesson(value) {
+                const lesson = String(value || '').trim();
+                return lesson ? lesson.toLocaleUpperCase('tr-TR') : 'BELİRTİLMEMİŞ';
+            }
+
+            function compactLessonLabel(value) {
+                const lesson = normalizeLesson(value);
+                if (lesson === 'MATEMATİK (TEMEL EĞİTİM)') return 'Matematik T.E.';
+                if (lesson === 'MATEMATİK (ORTAÖĞRETİM)') return 'Matematik O.O.';
+                return value;
+            }
+
+            function normalizeText(value) {
+                return String(value || '').trim();
+            }
+
+            function uniqueSorted(values) {
+                return Array.from(new Set(values.map(normalizeText).filter(Boolean)))
+                    .sort((a, b) => a.localeCompare(b, 'tr', { numeric: true }));
+            }
+
+            function optionMarkup(value, label = value) {
+                return `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`;
+            }
+
+            function categorySortKey(value) {
+                if (value === 'Ortaöğretim') return 0;
+                if (value === 'Temel Eğitim') return 1;
+                if (value === 'Din Öğretimi') return 2;
+                return 99;
+            }
+
+            function classSortKey(value) {
+                const text = normalizeText(value).toLocaleLowerCase('tr-TR');
+                if (text.includes('hazırlık') || text.includes('hazirlik')) return 0;
+                const match = text.match(/\d+/);
+                return match ? parseInt(match[0], 10) : 999;
+            }
+
+            function filteredByCategory(records) {
+                return state.selectedCategory
+                    ? records.filter(record => normalizeText(record.kategori || 'Temel Eğitim') === state.selectedCategory)
+                    : records;
+            }
+
+            function filteredByLesson(records) {
+                const categoryRecords = filteredByCategory(records);
+                return state.selectedLesson
+                    ? categoryRecords.filter(record => normalizeText(record.ders) === state.selectedLesson)
+                    : categoryRecords;
+            }
+
+            function filteredRecords() {
+                const lessonRecords = filteredByLesson(state.allRecords);
+                return state.selectedClass
+                    ? lessonRecords.filter(record => normalizeText(record.sinif) === state.selectedClass)
+                    : lessonRecords;
+            }
+
+            function populateCategoryFilter(records) {
+                const categories = uniqueSorted(records.map(record => record.kategori || 'Temel Eğitim'))
+                    .sort((a, b) => categorySortKey(a) - categorySortKey(b) || a.localeCompare(b, 'tr'));
+                el.categoryFilter.innerHTML = optionMarkup('', 'Tümü') + categories.map(item => optionMarkup(item)).join('');
+                el.categoryFilter.value = state.selectedCategory;
+            }
+
+            function populateClassFilter(records) {
+                const classes = uniqueSorted(filteredByLesson(records).map(record => record.sinif))
+                    .sort((a, b) => classSortKey(a) - classSortKey(b) || a.localeCompare(b, 'tr'));
+                if (state.selectedClass && !classes.includes(state.selectedClass)) {
+                    state.selectedClass = '';
+                }
+                el.classFilter.innerHTML = optionMarkup('', 'Tüm sınıflar') + classes.map(item => optionMarkup(item)).join('');
+                el.classFilter.value = state.selectedClass;
+                el.classFilter.disabled = classes.length === 0;
+            }
+
+            function populateLessonFilter() {
+                const lessons = uniqueSorted(filteredByCategory(state.allRecords).map(record => record.ders));
+                if (state.selectedLesson && !lessons.includes(state.selectedLesson)) {
+                    state.selectedLesson = '';
+                }
+                el.lessonFilter.innerHTML = optionMarkup('', 'Tüm dersler') + lessons.map(item => optionMarkup(item)).join('');
+                el.lessonFilter.value = state.selectedLesson;
+                el.lessonFilter.disabled = lessons.length === 0;
+            }
+
+            function increment(map, key, amount = 1) {
+                map.set(key, (map.get(key) || 0) + amount);
+            }
+
+            function orderedEntries(map, order) {
+                const index = new Map(order.map((item, i) => [item, i]));
+                return Array.from(map.entries()).sort((a, b) => {
+                    const ai = index.has(a[0]) ? index.get(a[0]) : 999;
+                    const bi = index.has(b[0]) ? index.get(b[0]) : 999;
+                    return ai - bi || b[1] - a[1] || a[0].localeCompare(b[0], 'tr');
+                });
+            }
+
+            function showTooltip(event, title, value, detail) {
+                el.tooltip.innerHTML = `<div>${escapeHtml(title)}</div><div class="text-muted small">${escapeHtml(value)}</div>${detail ? `<div class="text-muted small">${escapeHtml(detail)}</div>` : ''}`;
+                el.tooltip.style.left = `${Math.min(event.clientX + 12, window.innerWidth - 320)}px`;
+                el.tooltip.style.top = `${Math.min(event.clientY + 12, window.innerHeight - 110)}px`;
+                el.tooltip.classList.add('is-visible');
+            }
+
+            function hideTooltip() {
+                el.tooltip.classList.remove('is-visible');
+            }
+
+            function polarToEllipse(cx, cy, rx, ry, angle) {
+                return [cx + Math.cos(angle) * rx, cy + Math.sin(angle) * ry];
+            }
+
+            function piePath(cx, cy, rx, ry, start, end) {
+                const span = end - start;
+                if (span >= Math.PI * 2 - 0.001) {
+                    const [sx, sy] = polarToEllipse(cx, cy, rx, ry, start);
+                    const [mx, my] = polarToEllipse(cx, cy, rx, ry, start + Math.PI);
+                    return `M ${cx} ${cy} L ${sx} ${sy} A ${rx} ${ry} 0 1 1 ${mx} ${my} A ${rx} ${ry} 0 1 1 ${sx} ${sy} Z`;
+                }
+
+                const [sx, sy] = polarToEllipse(cx, cy, rx, ry, start);
+                const [ex, ey] = polarToEllipse(cx, cy, rx, ry, end);
+                const large = end - start > Math.PI ? 1 : 0;
+                return `M ${cx} ${cy} L ${sx} ${sy} A ${rx} ${ry} 0 ${large} 1 ${ex} ${ey} Z`;
+            }
+
+            function darkenColor(color, amount = 0.28) {
+                const hex = color.replace('#', '');
+                const parts = [0, 2, 4].map(index => parseInt(hex.slice(index, index + 2), 16));
+                return `rgb(${parts.map(part => Math.max(0, Math.round(part * (1 - amount)))).join(',')})`;
+            }
+
+            function getProfiles(record, mode) {
+                return mode === 'destek' ? (record.destekProfiller || []) : (record.anaProfiller || []);
+            }
+
+            function profileColor(profile) {
+                const index = profileOrder.indexOf(profile);
+                if (index >= 0) {
+                    return palette[index % palette.length];
+                }
+
+                let hash = 0;
+                String(profile || '').split('').forEach(char => {
+                    hash = (hash * 31 + char.charCodeAt(0)) >>> 0;
+                });
+                return palette[hash % palette.length];
+            }
+
+            function getProfileEntries(records, mode) {
+                const counts = new Map();
+                records.forEach(record => getProfiles(record, mode).forEach(profile => increment(counts, profile)));
+                return orderedEntries(counts, profileOrder);
+            }
+
+            function getLessonProfileEntries(records, mode) {
+                const lessons = new Map();
+                records.forEach(record => {
+                    const lesson = normalizeLesson(record.ders);
+                    if (!lessons.has(lesson)) {
+                        lessons.set(lesson, { total: 0, profiles: new Map() });
+                    }
+
+                    const item = lessons.get(lesson);
+                    getProfiles(record, mode).forEach(profile => {
+                        increment(item.profiles, profile);
+                        item.total += 1;
+                    });
+                });
+
+                const totals = new Map(Array.from(lessons.entries()).map(([lesson, item]) => [lesson, item.total]));
+                return orderedEntries(totals, lessonOrder).map(([lesson]) => {
+                    const item = lessons.get(lesson);
+                    return {
+                        lesson,
+                        total: item.total,
+                        profiles: orderedEntries(item.profiles, profileOrder).map(([profile, value]) => ({
+                            profile,
+                            value,
+                            color: profileColor(profile)
+                        }))
+                    };
+                });
+            }
+
+            function getLessonRecordCounts(records) {
+                const counts = new Map();
+                records.forEach(record => increment(counts, normalizeLesson(record.ders)));
+                return counts;
+            }
+
+            function renderPie(entries, total, mode) {
+                const cx = 320;
+                const cy = 184;
+                const rx = 210;
+                const ry = 120;
+                const depth = 28;
+                let angle = -Math.PI / 2;
+                const legendX = 625;
+                const legendY = 58;
+
+                if (!entries.length) {
+                    el.pie.innerHTML = `<text x="560" y="210" text-anchor="middle" class="general-axis-label">${escapeHtml(modeLabels[mode])} verisi bulunamadı</text>`;
+                    return;
+                }
+
+                const slices = entries.map(([name, value], index) => {
+                    const span = total ? (value / total) * Math.PI * 2 : 0;
+                    const item = { name, value, color: palette[index % palette.length], start: angle, end: angle + span };
+                    angle += span;
+                    return item;
+                });
+
+                el.pie.innerHTML = `
+                    <ellipse cx="${cx}" cy="${cy + depth + 12}" rx="${rx + 20}" ry="${ry + 24}" fill="rgba(37,50,75,0.12)"></ellipse>
+                    <ellipse cx="${cx}" cy="${cy + depth}" rx="${rx}" ry="${ry}" fill="rgba(37,50,75,0.34)"></ellipse>
+                    ${slices.map(slice => {
+                        const percent = total ? `%${((slice.value / total) * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}` : '%0';
+                        return `
+                            <g class="general-pie-slice-group" data-title="${escapeHtml(slice.name)}" data-value="${slice.value} profil" data-detail="${escapeHtml(modeLabels[mode])} - ${percent}">
+                                <path class="general-pie-slice" d="${piePath(cx, cy, rx, ry, slice.start, slice.end)}" fill="${slice.color}"></path>
+                            </g>`;
+                    }).join('')}
+                    <text x="${cx}" y="${cy + depth + ry + 44}" text-anchor="middle" class="general-axis-label">${escapeHtml(modeLabels[mode])}: ${total} profil</text>
+                    <foreignObject x="${legendX}" y="${legendY}" width="430" height="290">
+                        <div xmlns="http://www.w3.org/1999/xhtml" class="general-legend">
+                            ${slices.map(slice => `
+                                <div class="general-legend-item" title="${escapeHtml(slice.name)}">
+                                    <span class="general-legend-dot" style="background:${slice.color}"></span>
+                                    <span class="general-legend-text">${escapeHtml(slice.name)} (${slice.value})</span>
+                                </div>`).join('')}
+                        </div>
+                    </foreignObject>`;
+
+                el.pie.querySelectorAll('.general-pie-slice-group').forEach(slice => {
+                    slice.addEventListener('mousemove', event => showTooltip(event, slice.dataset.title, slice.dataset.value, slice.dataset.detail));
+                    slice.addEventListener('mouseleave', () => {
+                        hideTooltip();
+                    });
+                });
+            }
+
+            function renderColumn(entries, mode, recordCounts) {
+                const width = 1120;
+                const height = 560;
+                const pad = { top: 68, right: 34, bottom: 124, left: 64 };
+                const innerW = width - pad.left - pad.right;
+                const innerH = height - pad.top - pad.bottom;
+                const max = Math.max(...entries.map(item => item.total), 1);
+                const barGap = entries.length > 9 ? 10 : 18;
+                const maxBarW = 128;
+                const naturalBarW = (innerW - barGap * (entries.length - 1)) / Math.max(entries.length, 1);
+                const barW = Math.max(18, Math.min(maxBarW, naturalBarW));
+                const barsW = entries.length * barW + Math.max(0, entries.length - 1) * barGap;
+                const barsStartX = pad.left + Math.max(0, (innerW - barsW) / 2);
+                const activeProfiles = [];
+                const activeProfileSet = new Set();
+
+                entries.forEach(entry => {
+                    entry.profiles.forEach(segment => {
+                        if (!activeProfileSet.has(segment.profile)) {
+                            activeProfileSet.add(segment.profile);
+                            activeProfiles.push(segment);
+                        }
+                    });
+                });
+
+                const gridLines = [0, 0.25, 0.5, 0.75, 1].map(t => {
+                    const y = pad.top + innerH - innerH * t;
+                    const value = Math.round(max * t);
+                    return `<line class="general-grid-line" x1="${pad.left}" y1="${y}" x2="${width - pad.right}" y2="${y}"></line>
+                            <text x="${pad.left - 10}" y="${y + 4}" text-anchor="end" class="general-small-label">${value}</text>`;
+                }).join('');
+
+                el.lesson.innerHTML = `
+                    ${gridLines}
+                    <line class="general-axis" x1="${pad.left}" y1="${pad.top + innerH}" x2="${width - pad.right}" y2="${pad.top + innerH}"></line>
+                    <line class="general-axis" x1="${pad.left}" y1="${pad.top}" x2="${pad.left}" y2="${pad.top + innerH}"></line>
+                    <text x="${pad.left + innerW / 2}" y="${height - 18}" text-anchor="middle" class="general-axis-label">Dersler</text>
+                    <text x="20" y="${pad.top + innerH / 2}" text-anchor="middle" transform="rotate(-90 20 ${pad.top + innerH / 2})" class="general-axis-label">Profil sayısı</text>
+                    <foreignObject x="${pad.left}" y="10" width="${innerW}" height="42">
+                        <div xmlns="http://www.w3.org/1999/xhtml" class="general-profile-legend">
+                            ${activeProfiles.map(segment => `
+                                <div class="general-profile-legend-item" title="${escapeHtml(segment.profile)}">
+                                    <span class="general-legend-dot" style="background:${segment.color}"></span>
+                                    <span class="general-legend-text">${escapeHtml(segment.profile)}</span>
+                                </div>`).join('')}
+                        </div>
+                    </foreignObject>
+                    ${entries.map((entry, index) => {
+                        const x = barsStartX + index * (barW + barGap);
+                        const totalH = (entry.total / max) * innerH;
+                        const labelY = pad.top + innerH - totalH - 7;
+                        const recordCount = recordCounts.get(entry.lesson) || 0;
+                        let cursorY = pad.top + innerH;
+                        const segments = entry.profiles.map(segment => {
+                            const h = (segment.value / max) * innerH;
+                            const y = cursorY - h;
+                            cursorY = y;
+                            return `<rect class="general-bar-segment" x="${x}" y="${y}" width="${barW}" height="${h}" fill="${segment.color}" data-title="${escapeHtml(segment.profile)}" data-value="${escapeHtml(entry.lesson)}: ${segment.value} profil" data-detail="${escapeHtml(modeLabels[mode])} - ${recordCount} kayıt"></rect>`;
+                        }).join('');
+                        return `
+                            ${segments}
+                            <text x="${x + barW / 2}" y="${labelY}" text-anchor="middle" class="general-bar-label">${entry.total}</text>
+                            <text x="${x + barW / 2}" y="${pad.top + innerH + 24}" text-anchor="end" transform="rotate(-32 ${x + barW / 2} ${pad.top + innerH + 24})" class="general-small-label">${escapeHtml(compactLessonLabel(entry.lesson))}</text>`;
+                    }).join('')}`;
+
+                el.lesson.querySelectorAll('.general-bar-segment').forEach(bar => {
+                    bar.addEventListener('mousemove', event => showTooltip(event, bar.dataset.title, bar.dataset.value, bar.dataset.detail));
+                    bar.addEventListener('mouseleave', hideTooltip);
+                });
+            }
+
+            function renderCharts() {
+                const recordCounts = getLessonRecordCounts(state.records);
+                const columnEntries = getLessonProfileEntries(state.records, state.columnMode);
+                const pieEntries = getProfileEntries(state.records, state.pieMode);
+                const pieTotal = pieEntries.reduce((sum, item) => sum + item[1], 0);
+
+                renderColumn(columnEntries, state.columnMode, recordCounts);
+                renderPie(pieEntries, pieTotal, state.pieMode);
+            }
+
+            function buildCharts(records) {
+                const themes = new Set();
+                const classes = new Set();
+                const profiles = new Set();
+                const lessons = new Set();
+
+                records.forEach(record => {
+                    lessons.add(normalizeLesson(record.ders));
+                    (record.anaProfiller || []).forEach(profile => profiles.add(profile));
+                    (record.destekProfiller || []).forEach(profile => profiles.add(profile));
+                    if (record.unite) themes.add(record.unite);
+                    if (record.sinif) classes.add(record.sinif);
+                });
+
+                el.stats.innerHTML = `
+                    <span class="general-report-stat">${records.length} kayıt</span>
+                    <span class="general-report-stat">${classes.size} sınıf</span>
+                    <span class="general-report-stat">${lessons.size} ders</span>
+                    <span class="general-report-stat">${themes.size} tema</span>
+                    <span class="general-report-stat">${profiles.size} profil</span>`;
+
+                state.records = records;
+                renderCharts();
+                el.loading.style.display = 'none';
+                el.status.textContent = 'Genel raporlama hazır.';
+            }
+
+            function renderCurrent() {
+                buildCharts(filteredRecords());
+            }
+
+            function bindModeButtons(buttons, onChange) {
+                buttons.forEach(button => {
+                    button.addEventListener('click', () => {
+                        buttons.forEach(item => item.classList.toggle('is-active', item === button));
+                        onChange(button.dataset.mode);
+                    });
+                });
+            }
+
+            bindModeButtons(el.lessonModes, mode => {
+                state.columnMode = mode;
+                renderCharts();
+            });
+
+            bindModeButtons(el.pieModes, mode => {
+                state.pieMode = mode;
+                renderCharts();
+            });
+
+            el.categoryFilter.addEventListener('change', () => {
+                state.selectedCategory = el.categoryFilter.value;
+                state.selectedLesson = '';
+                state.selectedClass = '';
+                populateLessonFilter();
+                populateClassFilter(state.allRecords);
+                renderCurrent();
+            });
+
+            el.lessonFilter.addEventListener('change', () => {
+                state.selectedLesson = el.lessonFilter.value;
+                state.selectedClass = '';
+                populateClassFilter(state.allRecords);
+                renderCurrent();
+            });
+
+            el.classFilter.addEventListener('change', () => {
+                state.selectedClass = el.classFilter.value;
+                renderCurrent();
+            });
+
+            window.OgrenciProfiliStore.loadData(dataSourceUrl)
+                .then(payload => {
+                    const records = payload.records || [];
+                    if (!records.length) throw new Error('Ham veri JSON dosyasında kayıt bulunamadı.');
+                    state.allRecords = records;
+                    populateCategoryFilter(records);
+                    populateLessonFilter();
+                    populateClassFilter(records);
+                    renderCurrent();
+                })
+                .catch(error => {
+                    el.status.textContent = 'Genel raporlama yüklenemedi.';
+                    el.loading.textContent = error.message;
+                });
+        })();
+    </script>
+}

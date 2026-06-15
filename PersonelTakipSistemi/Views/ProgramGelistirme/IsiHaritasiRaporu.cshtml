@@ -1,0 +1,867 @@
+@{
+    ViewData["Title"] = "Isı Haritası Raporu";
+}
+
+@section Styles {
+    <style>
+        .heatmap-report {
+            position: relative;
+        }
+
+        .heatmap-card {
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .heatmap-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #d9dee3;
+            background: #fff;
+        }
+
+        .heatmap-stats {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .heatmap-header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.75rem;
+        }
+
+        .heatmap-filterbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .heatmap-filter {
+            display: grid;
+            gap: 0.2rem;
+            min-width: 170px;
+        }
+
+        .heatmap-filter label {
+            margin: 0;
+            color: #697a8d;
+            font-size: 0.74rem;
+            font-weight: 800;
+        }
+
+        .heatmap-filter select {
+            min-height: 34px;
+            border: 1px solid #d9dee3;
+            border-radius: 0.45rem;
+            background-color: #fff;
+            color: #25324b;
+            font-size: 0.84rem;
+            font-weight: 700;
+        }
+
+        .heatmap-mode-btn {
+            display: inline-flex;
+            align-items: center;
+            min-height: 34px;
+            padding: 0.35rem 0.75rem;
+            border: 1px solid #dbe4f0;
+            border-radius: 0.45rem;
+            background: #fff;
+            color: #566a7f;
+            font-size: 0.8125rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .heatmap-mode-btn:hover,
+        .heatmap-mode-btn.is-active {
+            border-color: #bfdbfe;
+            background: #eef5ff;
+            color: #1e63b6;
+        }
+
+        .heatmap-stat {
+            display: inline-flex;
+            align-items: center;
+            min-height: 30px;
+            padding: 0.25rem 0.65rem;
+            border-radius: 0.45rem;
+            background: #f5f5f9;
+            color: #566a7f;
+            font-size: 0.8125rem;
+            font-weight: 600;
+        }
+
+        .heatmap-body {
+            padding: 1.25rem 1.5rem 2rem;
+        }
+
+        .heatmap-title {
+            margin: 0 0 1rem;
+            color: #25324b;
+            font-size: 1.35rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .heatmap-grid-wrap {
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr) 112px;
+            gap: 1.1rem;
+            align-items: start;
+            overflow: visible;
+            padding: 0.25rem 0 1.25rem;
+        }
+
+        .heatmap-y-labels {
+            display: grid;
+            gap: 0;
+        }
+
+        .heatmap-y-label {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            min-height: 66px;
+            padding-right: 0.85rem;
+            color: #25324b;
+            font-size: 0.94rem;
+            font-weight: 700;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .heatmap-matrix-block {
+            min-width: 0;
+        }
+
+        .heatmap-x-labels,
+        .heatmap-row {
+            display: grid;
+            grid-template-columns: repeat(var(--profile-count), minmax(54px, 1fr));
+        }
+
+        .heatmap-x-labels {
+            align-items: end;
+            margin-top: 1rem;
+            padding-top: 0.35rem;
+        }
+
+        .heatmap-x-label {
+            height: 104px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            color: #25324b;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transform: rotate(-34deg);
+            transform-origin: 50% 0;
+            white-space: nowrap;
+            overflow: visible;
+        }
+
+        .heatmap-cell {
+            position: relative;
+            display: grid;
+            place-items: center;
+            min-height: 66px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            color: #151515;
+            font-size: 0.96rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease, border-color 0.16s ease;
+            overflow: hidden;
+        }
+
+        .heatmap-cell:hover,
+        .heatmap-cell.is-active,
+        .heatmap-cell.is-locked {
+            z-index: 2;
+            transform: scale(1.055);
+            border-color: rgba(67, 89, 113, 0.35);
+            box-shadow: 0 0.55rem 1.1rem rgba(67, 89, 113, 0.22);
+            filter: saturate(1.1);
+        }
+
+        .heatmap-cell.is-locked::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.1);
+            pointer-events: none;
+        }
+
+        .heatmap-cell.is-dark-text {
+            color: #151515;
+        }
+
+        .heatmap-cell.is-light-text {
+            color: #fff;
+        }
+
+        .heatmap-axis-caption {
+            margin-top: 0.8rem;
+            color: #25324b;
+            font-size: 0.95rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .heatmap-colorbar {
+            display: grid;
+            grid-template-columns: 28px 34px 28px;
+            gap: 0.5rem;
+            align-items: stretch;
+            min-height: 462px;
+            padding-top: 0;
+        }
+
+        .heatmap-gradient {
+            width: 28px;
+            border: 1px solid #25324b;
+            background: linear-gradient(180deg, #7f000d 0%, #c5161d 24%, #ef3b2c 45%, #fb9272 65%, #fee0d2 84%, #fff5f0 100%);
+        }
+
+        .heatmap-scale {
+            position: relative;
+            color: #25324b;
+            font-size: 0.78rem;
+            font-weight: 700;
+        }
+
+        .heatmap-scale span {
+            position: absolute;
+            left: 0;
+            transform: translateY(-50%);
+        }
+
+        .heatmap-scale-label {
+            writing-mode: vertical-rl;
+            transform: rotate(180deg);
+            color: #25324b;
+            font-size: 0.86rem;
+            font-weight: 700;
+            text-align: center;
+            align-self: center;
+        }
+
+        .heatmap-detail {
+            position: fixed;
+            top: 1rem;
+            left: 1rem;
+            z-index: 20;
+            width: min(380px, calc(100vw - 2rem));
+            max-height: calc(100vh - 2rem);
+            border: 1px solid #d9dee3;
+            border-radius: 0.65rem;
+            background: #fff;
+            box-shadow: 0 0.75rem 2rem rgba(67, 89, 113, 0.18);
+            overflow: auto;
+            transform: translateY(0.4rem) scale(0.98);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.22s ease, opacity 0.22s ease;
+        }
+
+        .heatmap-detail.is-visible {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .heatmap-detail-body {
+            padding: 1rem;
+        }
+
+        .heatmap-detail-empty {
+            display: grid;
+            min-height: 280px;
+            place-items: center;
+            color: #697a8d;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .heatmap-detail-kpis {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.65rem;
+            margin-bottom: 0.9rem;
+        }
+
+        .heatmap-detail-kpi {
+            padding: 0.7rem;
+            border-radius: 0.5rem;
+            background: #f5f5f9;
+        }
+
+        .heatmap-detail-kpi strong {
+            display: block;
+            color: #25324b;
+            font-size: 1.15rem;
+        }
+
+        .heatmap-detail-kpi span {
+            color: #697a8d;
+            font-size: 0.78rem;
+        }
+
+        .heatmap-detail-section {
+            margin-top: 0.85rem;
+        }
+
+        .heatmap-detail-section h6 {
+            margin: 0 0 0.45rem;
+            color: #25324b;
+            font-size: 0.86rem;
+            font-weight: 800;
+        }
+
+        .heatmap-detail-list {
+            max-height: 160px;
+            overflow: auto;
+            margin: 0;
+            padding-left: 1.05rem;
+            color: #25324b;
+            font-size: 0.82rem;
+        }
+
+        .heatmap-loading {
+            display: grid;
+            min-height: 520px;
+            place-items: center;
+            color: #566a7f;
+            font-weight: 700;
+        }
+
+        @@media (max-width: 1199.98px) {
+            .heatmap-detail {
+                max-height: min(620px, calc(100vh - 2rem));
+            }
+        }
+
+        @@media (max-width: 767.98px) {
+            .heatmap-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .heatmap-header-actions,
+            .heatmap-filterbar,
+            .heatmap-filter,
+            .heatmap-filter select {
+                width: 100%;
+            }
+
+            .heatmap-body {
+                padding: 0.85rem;
+            }
+
+            .heatmap-grid-wrap {
+                grid-template-columns: 170px minmax(0, 1fr) 104px;
+                gap: 0.85rem;
+            }
+
+            .heatmap-y-label {
+                font-size: 0.82rem;
+            }
+
+            .heatmap-matrix-block {
+                min-width: 0;
+            }
+        }
+    </style>
+}
+
+<div class="pg-page-title">
+    <h4><span class="text-muted fw-light">Program Geliştirme Modülü /</span> <strong>Öğrenci Profili</strong></h4>
+</div>
+
+<div class="heatmap-report">
+    <div class="card pg-summary-card mb-3">
+        <div class="card-body pg-summary-body">
+            <div>
+                <h5 class="pg-summary-title">Isı Haritası Raporu</h5>
+                <div id="heatmapStatus" class="pg-summary-subtitle">Ham veri yükleniyor...</div>
+            </div>
+            <div id="heatmapStats" class="heatmap-stats pg-summary-stats" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <div class="card heatmap-card pg-filter-card">
+        <div class="heatmap-header pg-filter-row">
+            <div class="heatmap-filterbar" aria-label="Isı haritası filtreleri">
+                <div class="heatmap-filter">
+                    <label for="heatmapCategoryFilter">Kategori</label>
+                    <select id="heatmapCategoryFilter" class="form-select form-select-sm">
+                        <option value="">Tümü</option>
+                    </select>
+                </div>
+                <div class="heatmap-filter">
+                    <label for="heatmapLessonFilter">Ders</label>
+                    <select id="heatmapLessonFilter" class="form-select form-select-sm">
+                        <option value="">Tüm dersler</option>
+                    </select>
+                </div>
+                <div class="heatmap-filter">
+                    <label for="heatmapClassFilter">Sınıf</label>
+                    <select id="heatmapClassFilter" class="form-select form-select-sm">
+                        <option value="">Tüm sınıflar</option>
+                    </select>
+                </div>
+            </div>
+            <div class="pg-filter-actions" id="heatmapProfileModeToggle" aria-label="Isı haritası profil türü">
+                <button type="button" class="heatmap-mode-btn is-active" data-mode="ana">Ana Profil</button>
+                <button type="button" class="heatmap-mode-btn" data-mode="destek">Destekleyici Profil</button>
+            </div>
+        </div>
+        <div id="heatmapBody" class="heatmap-body">
+            <div class="heatmap-loading">Isı haritası hazırlanıyor...</div>
+        </div>
+    </div>
+
+    <aside id="heatmapDetail" class="heatmap-detail" aria-live="polite">
+        <div id="heatmapDetailBody" class="heatmap-detail-body">
+            <div class="heatmap-detail-empty">Henüz kare seçilmedi.</div>
+        </div>
+    </aside>
+</div>
+
+@section Scripts {
+    <script src="~/js/ogrenci-profili-store.js" asp-append-version="true"></script>
+    <script>
+        (() => {
+            const dataSourceUrl = `/data/ogrenci_profili_ag_verisi.json?v=${Date.now()}`;
+            const profileOrder = ['Vatansever', 'Ahlaklı', 'Bilge', 'Cesaretli', 'Estetik', 'İradeli', 'Merhametli', 'Sağlıklı', 'Sorgulayıcı', 'Üretken'];
+            window.addEventListener('storage', event => {
+                if (event.key === window.OgrenciProfiliStore.recordsKey || event.key === window.OgrenciProfiliStore.definitionsKey) {
+                    window.location.reload();
+                }
+            });
+            const el = {
+                body: document.getElementById('heatmapBody'),
+                status: document.getElementById('heatmapStatus'),
+                stats: document.getElementById('heatmapStats'),
+                categoryFilter: document.getElementById('heatmapCategoryFilter'),
+                classFilter: document.getElementById('heatmapClassFilter'),
+                lessonFilter: document.getElementById('heatmapLessonFilter'),
+                detail: document.getElementById('heatmapDetail'),
+                detailBody: document.getElementById('heatmapDetailBody')
+            };
+            const state = {
+                allRecords: [],
+                selectedCategory: '',
+                selectedClass: '',
+                selectedLesson: '',
+                profileMode: 'ana'
+            };
+            let activeCell = null;
+            let lockedCell = null;
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function uniqueSorted(values) {
+                return Array.from(new Set(values.filter(Boolean))).sort((a, b) => a.localeCompare(b, 'tr'));
+            }
+
+            function normalizeText(value) {
+                return String(value || '').trim();
+            }
+
+            function optionMarkup(value, label = value) {
+                return `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`;
+            }
+
+            function categorySortKey(value) {
+                if (value === 'Ortaöğretim') return 0;
+                if (value === 'Temel Eğitim') return 1;
+                if (value === 'Din Öğretimi') return 2;
+                return 99;
+            }
+
+            function filteredByCategory(records) {
+                return state.selectedCategory
+                    ? records.filter(record => normalizeText(record.kategori || 'Temel Eğitim') === state.selectedCategory)
+                    : records;
+            }
+
+            function filteredByLesson(records) {
+                const categoryRecords = filteredByCategory(records);
+                return state.selectedLesson
+                    ? categoryRecords.filter(record => normalizeText(record.ders) === state.selectedLesson)
+                    : categoryRecords;
+            }
+
+            function filteredRecords() {
+                const lessonRecords = filteredByLesson(state.allRecords);
+                return state.selectedClass
+                    ? lessonRecords.filter(record => normalizeText(record.sinif) === state.selectedClass)
+                    : lessonRecords;
+            }
+
+            function populateCategoryFilter(records) {
+                const categories = uniqueSorted(records.map(record => record.kategori || 'Temel Eğitim'))
+                    .sort((a, b) => categorySortKey(a) - categorySortKey(b) || a.localeCompare(b, 'tr'));
+                el.categoryFilter.innerHTML = optionMarkup('', 'Tümü') + categories.map(item => optionMarkup(item)).join('');
+                el.categoryFilter.value = state.selectedCategory;
+            }
+
+            function populateClassFilter(records) {
+                const classes = uniqueSorted(filteredByLesson(records).map(record => normalizeText(record.sinif))).sort(classSort);
+                if (state.selectedClass && !classes.includes(state.selectedClass)) {
+                    state.selectedClass = '';
+                }
+                el.classFilter.innerHTML = optionMarkup('', 'Tüm sınıflar') + classes.map(item => optionMarkup(item)).join('');
+                el.classFilter.value = state.selectedClass;
+                el.classFilter.disabled = classes.length === 0;
+            }
+
+            function populateLessonFilter() {
+                const lessons = uniqueSorted(filteredByCategory(state.allRecords).map(record => normalizeText(record.ders)));
+                if (state.selectedLesson && !lessons.includes(state.selectedLesson)) {
+                    state.selectedLesson = '';
+                }
+                el.lessonFilter.innerHTML = optionMarkup('', 'Tüm dersler') + lessons.map(item => optionMarkup(item)).join('');
+                el.lessonFilter.value = state.selectedLesson;
+                el.lessonFilter.disabled = lessons.length === 0;
+            }
+
+            function classSort(a, b) {
+                const aText = normalizeText(a).toLocaleLowerCase('tr-TR');
+                const bText = normalizeText(b).toLocaleLowerCase('tr-TR');
+                const aMatch = aText.match(/\d+/);
+                const bMatch = bText.match(/\d+/);
+                const aValue = aText.includes('hazırlık') || aText.includes('hazirlik') ? 0 : (aMatch ? parseInt(aMatch[0], 10) : 999);
+                const bValue = bText.includes('hazırlık') || bText.includes('hazirlik') ? 0 : (bMatch ? parseInt(bMatch[0], 10) : 999);
+                return aValue - bValue || a.localeCompare(b, 'tr');
+            }
+
+            function colorFor(value, max) {
+                if (max <= 0 || value <= 0) return '#fff5f0';
+                const t = value / max;
+                if (t > 0.82) return '#7f000d';
+                if (t > 0.66) return '#b1121b';
+                if (t > 0.50) return '#de2d26';
+                if (t > 0.34) return '#fb6a4a';
+                if (t > 0.18) return '#fcae91';
+                return '#fee0d2';
+            }
+
+            function normalizeLesson(value) {
+                return String(value || '').toLocaleUpperCase('tr-TR');
+            }
+
+            function compactLessonLabel(value) {
+                const lesson = normalizeLesson(value);
+                if (lesson === 'MATEMATİK (TEMEL EĞİTİM)') return 'Matematik T.E.';
+                if (lesson === 'MATEMATİK (ORTAÖĞRETİM)') return 'Matematik O.O.';
+                return value;
+            }
+
+            function buildHeatmap(records) {
+                const lessons = uniqueSorted(records.map(record => normalizeLesson(record.ders)));
+                const profileField = state.profileMode === 'destek' ? 'destekProfiller' : 'anaProfiller';
+                const profiles = profileOrder.filter(profile =>
+                    records.some(record => (record[profileField] || []).includes(profile))
+                );
+                uniqueSorted(records.flatMap(record => record[profileField] || []))
+                    .forEach(profile => {
+                        if (!profiles.includes(profile)) profiles.push(profile);
+                    });
+
+                const lessonTotals = new Map(lessons.map(lesson => [lesson, 0]));
+                const profileTotals = new Map(profiles.map(profile => [profile, 0]));
+                const cells = new Map();
+
+                lessons.forEach(lesson => {
+                    profiles.forEach(profile => {
+                        cells.set(`${lesson}|${profile}`, {
+                            lesson,
+                            profile,
+                            count: 0,
+                            mainCount: 0,
+                            supportCount: 0,
+                            classes: new Map(),
+                            themes: new Map(),
+                            records: []
+                        });
+                    });
+                });
+
+                records.forEach(record => {
+                    const lesson = normalizeLesson(record.ders);
+                    const appearances = (record[profileField] || []).map(profile => ({
+                        profile,
+                        type: state.profileMode === 'destek' ? 'support' : 'main'
+                    }));
+
+                    appearances.forEach(({ profile, type }) => {
+                        const cell = cells.get(`${lesson}|${profile}`);
+                        if (!cell) return;
+                        cell.count += 1;
+                        if (type === 'main') cell.mainCount += 1;
+                        if (type === 'support') cell.supportCount += 1;
+                        cell.records.push(record);
+                        cell.classes.set(record.sinif, (cell.classes.get(record.sinif) || 0) + 1);
+                        cell.themes.set(record.unite, (cell.themes.get(record.unite) || 0) + 1);
+                        lessonTotals.set(lesson, (lessonTotals.get(lesson) || 0) + 1);
+                        profileTotals.set(profile, (profileTotals.get(profile) || 0) + 1);
+                    });
+                });
+
+                return {
+                    lessons: lessons.sort((a, b) => (lessonTotals.get(b) || 0) - (lessonTotals.get(a) || 0)),
+                    profiles,
+                    cells,
+                    lessonTotals,
+                    profileTotals,
+                    max: Math.max(...Array.from(cells.values()).map(cell => cell.count), 0)
+                };
+            }
+
+            function topEntries(map, limit, sorter) {
+                return Array.from(map.entries())
+                    .sort(sorter || ((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'tr')))
+                    .slice(0, limit);
+            }
+
+            function positionDetailPanel(cellElement) {
+                const gap = 14;
+                const cellRect = cellElement.getBoundingClientRect();
+                const detailWidth = el.detail.offsetWidth || 380;
+                const detailHeight = el.detail.offsetHeight || 360;
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                const opensRight = cellRect.left + (cellRect.width / 2) < viewportWidth / 2;
+                const opensDown = cellRect.top + (cellRect.height / 2) < viewportHeight / 2;
+
+                let left = opensRight ? cellRect.right + gap : cellRect.left - detailWidth - gap;
+                let top = opensDown ? cellRect.bottom + gap : cellRect.top - detailHeight - gap;
+
+                left = Math.min(Math.max(left, gap), viewportWidth - detailWidth - gap);
+                top = Math.min(Math.max(top, gap), viewportHeight - detailHeight - gap);
+
+                el.detail.style.left = `${Math.round(left)}px`;
+                el.detail.style.top = `${Math.round(top)}px`;
+            }
+
+            function renderStats(records, data) {
+                el.stats.innerHTML = `
+                    <span class="heatmap-stat">${records.length} kayıt</span>
+                    <span class="heatmap-stat">${data.lessons.length} ders</span>
+                    <span class="heatmap-stat">${data.profiles.length} profil</span>
+                    <span class="heatmap-stat">Maks. ${data.max}</span>`;
+            }
+
+            function renderDetail(cell, total) {
+                const percent = total ? Math.round((cell.count / total) * 100) : 0;
+                const classes = topEntries(cell.classes, 8, (a, b) => classSort(a[0], b[0]));
+                const themes = topEntries(cell.themes, 12);
+
+                el.detailBody.innerHTML = `
+                    <div class="heatmap-detail-kpis">
+                        <div class="heatmap-detail-kpi">
+                            <strong>${cell.count}</strong>
+                            <span>Kullanım</span>
+                        </div>
+                        <div class="heatmap-detail-kpi">
+                            <strong>%${percent}</strong>
+                            <span>Ders içi pay</span>
+                        </div>
+                        <div class="heatmap-detail-kpi">
+                            <strong>${cell.mainCount}</strong>
+                            <span>Ana profil</span>
+                        </div>
+                        <div class="heatmap-detail-kpi">
+                            <strong>${cell.supportCount}</strong>
+                            <span>Destekleyici</span>
+                        </div>
+                    </div>
+                    <div class="heatmap-detail-section">
+                        <h6>${escapeHtml(cell.lesson)} / ${escapeHtml(cell.profile)}</h6>
+                        <div class="text-muted small">${cell.records.length} ilişkili kayıt</div>
+                    </div>
+                    <div class="heatmap-detail-section">
+                        <h6>Sınıflar</h6>
+                        <ul class="heatmap-detail-list">
+                            ${classes.length ? classes.map(([name, count]) => `<li>${escapeHtml(name)}: ${count}</li>`).join('') : '<li>Kayıt yok</li>'}
+                        </ul>
+                    </div>
+                    <div class="heatmap-detail-section">
+                        <h6>Tema / Ünite</h6>
+                        <ul class="heatmap-detail-list">
+                            ${themes.length ? themes.map(([name, count]) => `<li>${escapeHtml(name)}: ${count}</li>`).join('') : '<li>Kayıt yok</li>'}
+                        </ul>
+                    </div>`;
+            }
+
+            function setActiveCell(cellElement) {
+                if (activeCell) activeCell.classList.remove('is-active');
+                activeCell = cellElement;
+                if (activeCell) activeCell.classList.add('is-active');
+            }
+
+            function lockCell(cellElement) {
+                if (lockedCell) lockedCell.classList.remove('is-locked');
+                lockedCell = cellElement;
+                if (lockedCell) lockedCell.classList.add('is-locked');
+            }
+
+            function closeDetail() {
+                if (!lockedCell) return;
+                lockedCell.classList.remove('is-locked');
+                lockedCell = null;
+                setActiveCell(null);
+                el.detail.classList.remove('is-visible');
+            }
+
+            function renderHeatmap(records) {
+                closeDetail();
+                if (!records.length) {
+                    el.body.innerHTML = '<div class="heatmap-loading">Seçilen filtrelerde kayıt bulunamadı.</div>';
+                    el.stats.innerHTML = `
+                        <span class="heatmap-stat">0 kayıt</span>
+                        <span class="heatmap-stat">0 ders</span>
+                        <span class="heatmap-stat">0 profil</span>
+                        <span class="heatmap-stat">Maks. 0</span>`;
+                    el.status.textContent = 'Seçilen filtrelerde kayıt bulunamadı.';
+                    return;
+                }
+
+                const data = buildHeatmap(records);
+                const scaleMarks = [data.max, Math.round(data.max * 0.75), Math.round(data.max * 0.5), Math.round(data.max * 0.25), 0];
+                el.body.innerHTML = `
+                    <h5 class="heatmap-title">Derslere Göre Öğrenci Profili Kullanım Yoğunluğu Isı Haritası<br><span class="text-muted">(Kırmızı ağırlıklı skala)</span></h5>
+                    <div id="heatmapGrid" class="heatmap-grid-wrap" style="--profile-count:${data.profiles.length}">
+                        <div class="heatmap-y-labels">
+                            ${data.lessons.map(lesson => `<div class="heatmap-y-label" title="${escapeHtml(lesson)}">${escapeHtml(compactLessonLabel(lesson))}</div>`).join('')}
+                        </div>
+                        <div class="heatmap-matrix-block">
+                            <div id="heatmapRows"></div>
+                            <div class="heatmap-x-labels">
+                                ${data.profiles.map(profile => `<div class="heatmap-x-label">${escapeHtml(profile)}</div>`).join('')}
+                            </div>
+                            <div class="heatmap-axis-caption">Profil Kategorileri</div>
+                        </div>
+                        <div class="heatmap-colorbar">
+                            <div class="heatmap-gradient"></div>
+                            <div class="heatmap-scale">
+                                ${scaleMarks.map((mark, index) => `<span style="top:${index * 25}%">${mark}</span>`).join('')}
+                            </div>
+                            <div class="heatmap-scale-label">Kullanım Yoğunluğu (adet)</div>
+                        </div>
+                    </div>`;
+
+                const rows = document.getElementById('heatmapRows');
+                rows.innerHTML = data.lessons.map(lesson => `
+                    <div class="heatmap-row">
+                        ${data.profiles.map(profile => {
+                            const cell = data.cells.get(`${lesson}|${profile}`);
+                            const color = colorFor(cell.count, data.max);
+                            const textClass = cell.count >= data.max * 0.55 ? 'is-light-text' : 'is-dark-text';
+                            return `<button type="button" class="heatmap-cell ${textClass}" data-lesson="${escapeHtml(lesson)}" data-profile="${escapeHtml(profile)}" style="background:${color}" aria-label="${escapeHtml(lesson)} ${escapeHtml(profile)} ${cell.count} kullanım">${cell.count}</button>`;
+                        }).join('')}
+                    </div>`).join('');
+
+                rows.querySelectorAll('.heatmap-cell').forEach(cellElement => {
+                    const lesson = cellElement.getAttribute('data-lesson');
+                    const profile = cellElement.getAttribute('data-profile');
+                    const cell = data.cells.get(`${lesson}|${profile}`);
+                    const show = () => {
+                        if (lockedCell) return;
+                        setActiveCell(cellElement);
+                        renderDetail(cell, data.lessonTotals.get(lesson) || 0);
+                        el.status.textContent = `${lesson} / ${profile}: ${cell.count} kullanım`;
+                    };
+                    const pin = () => {
+                        if (lockedCell === cellElement) {
+                            closeDetail();
+                            return;
+                        }
+
+                        setActiveCell(cellElement);
+                        renderDetail(cell, data.lessonTotals.get(lesson) || 0);
+                        el.status.textContent = `${lesson} / ${profile}: ${cell.count} kullanım`;
+                        lockCell(cellElement);
+                        positionDetailPanel(cellElement);
+                        el.detail.classList.add('is-visible');
+                    };
+                    cellElement.addEventListener('click', pin);
+                });
+
+                renderStats(records, data);
+                el.status.textContent = 'Isı haritası hazır.';
+            }
+
+            function renderCurrent() {
+                renderHeatmap(filteredRecords());
+            }
+
+            el.categoryFilter.addEventListener('change', () => {
+                state.selectedCategory = el.categoryFilter.value;
+                state.selectedLesson = '';
+                state.selectedClass = '';
+                populateLessonFilter();
+                populateClassFilter(state.allRecords);
+                renderCurrent();
+            });
+
+            el.lessonFilter.addEventListener('change', () => {
+                state.selectedLesson = el.lessonFilter.value;
+                state.selectedClass = '';
+                populateClassFilter(state.allRecords);
+                renderCurrent();
+            });
+
+            el.classFilter.addEventListener('change', () => {
+                state.selectedClass = el.classFilter.value;
+                renderCurrent();
+            });
+
+            document.querySelectorAll('#heatmapProfileModeToggle [data-mode]').forEach(button => {
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('#heatmapProfileModeToggle [data-mode]').forEach(item => {
+                        item.classList.toggle('is-active', item === button);
+                    });
+                    state.profileMode = button.dataset.mode;
+                    renderCurrent();
+                });
+            });
+
+            window.OgrenciProfiliStore.loadData(dataSourceUrl)
+                .then(payload => {
+                    const records = payload.records || [];
+                    if (!records.length) throw new Error('Ham veri JSON dosyasında kayıt bulunamadı.');
+                    state.allRecords = records;
+                    populateCategoryFilter(records);
+                    populateLessonFilter();
+                    populateClassFilter(records);
+                    renderCurrent();
+                })
+                .catch(error => {
+                    el.status.textContent = 'Isı haritası yüklenemedi.';
+                    el.body.innerHTML = `<div class="heatmap-loading">${escapeHtml(error.message)}</div>`;
+                });
+        })();
+    </script>
+}

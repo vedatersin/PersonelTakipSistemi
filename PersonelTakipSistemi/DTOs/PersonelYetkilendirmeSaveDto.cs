@@ -6,6 +6,7 @@ namespace PersonelTakipSistemi.DTOs
     {
         public int PersonelId { get; set; }
         public string? SistemRol { get; set; } // "Admin", "Yönetici", etc. Name is easier to map from UI
+        public List<string> YetkiliModlar { get; set; } = new();
         public List<int> TeskilatIds { get; set; } = new();
         public List<int> KoordinatorlukIds { get; set; } = new();
         public List<int> KomisyonIds { get; set; } = new();

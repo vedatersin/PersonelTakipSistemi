@@ -34,15 +34,22 @@ namespace PersonelTakipSistemi.Models
         
         // New Field
         public DateTime DogumTarihi { get; set; }
+        public DateTime? GoreveBaslamaTarihi { get; set; }
+        public DateTime? GorevBitisTarihi { get; set; } = new DateTime(2026, 6, 30);
 
         public byte[] SifreHash { get; set; } = null!;
         public byte[] SifreSalt { get; set; } = null!;
+        public bool SifreSifirlamaGerekli { get; set; }
+        public DateTime? SifreSifirlamaTarihi { get; set; }
+        public int? SifreSifirlayanPersonelId { get; set; }
+        public DateTime? SifreSonDegistirmeTarihi { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
         public DateTime? UpdatedAt { get; set; }
 
         // Sistem Rolü (Foreign Key)
         public int? SistemRolId { get; set; } // Default: Null as per request
         public SistemRol? SistemRol { get; set; }
+        public string? YetkiliModlar { get; set; }
 
         // Navigation Properties
         public ICollection<PersonelYazilim> PersonelYazilimlar { get; set; } = new List<PersonelYazilim>();

@@ -63,6 +63,10 @@
                     <label class="form-label">Personel</label>
                     <select id="personelSelect" class="form-select select2" disabled>
                         <option value="">Tümü</option>
+                        @foreach (var item in Model.PersonelList)
+                        {
+                            <option value="@item.Value" selected="@(item.Selected ? "selected" : null)">@item.Text</option>
+                        }
                     </select>
                 </div>
             </div>
@@ -162,6 +166,9 @@
                 <div class="card-header d-flex align-items-center justify-content-between">
                     <h5 class="card-title m-0 me-2" id="trendTitle">Birim Trendi (Son 6 Ay)</h5>
                     <div class="time-toggle btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary" data-months="0">1 Hafta</button>
+                        <button type="button" class="btn btn-outline-secondary" data-months="1">1 Ay</button>
+                        <button type="button" class="btn btn-outline-secondary" data-months="3">3 Ay</button>
                         <button type="button" class="btn btn-outline-secondary active" data-months="6">6 Ay</button>
                         <button type="button" class="btn btn-outline-secondary" data-months="12">1 Yıl</button>
                     </div>
@@ -457,7 +464,7 @@
                 $('#lineChartWrapper').show();
                 $('#taskListRow').hide();
                 
-                var label = currentMonths === 12 ? 'Son 1 Yıl' : 'Son 6 Ay';
+                var label = getPeriodLabel(currentMonths);
                 $('#trendTitle').text('Birim Trendi (' + label + ')');
 
                 trendChartInst.data = {
@@ -499,6 +506,14 @@
                 $('#lineChartWrapper').hide();
                 $('#taskListRow').hide();
             }
+        }
+
+        function getPeriodLabel(months) {
+            if (months === 0) return 'Son 1 Hafta';
+            if (months === 1) return 'Son 1 Ay';
+            if (months === 3) return 'Son 3 Ay';
+            if (months === 12) return 'Son 1 Yıl';
+            return 'Son 6 Ay';
         }
 
             // Excel İndir butonu

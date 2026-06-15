@@ -3,6 +3,7 @@
     ViewData["Title"] = "Koordinatörlük Yönetimi — " + Model.KoordinatorlukAd;
     var gorevReturnUrl = Context.Request.Path + Context.Request.QueryString;
     const string gorevReturnLabel = "Koordinatörlük Yönetimine Dön";
+    var aktifKomisyonSayisi = Model.Komisyonlar.Count(k => k.IsActive);
 }
 
 <style>
@@ -71,6 +72,23 @@
         border: 1px solid rgba(0,0,0,0.03);
     }
     .birim-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); border-color: #3498db; }
+    .birim-card-passive {
+        filter: grayscale(.9);
+        opacity: .48;
+        background: #f3f5f7;
+    }
+    .birim-card-passive:hover {
+        transform: none;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        border-color: rgba(0,0,0,0.03);
+    }
+    .passive-unit-badge {
+        position: absolute;
+        top: .75rem;
+        right: .75rem;
+        font-size: .7rem;
+        letter-spacing: 0;
+    }
     .birim-ad { font-weight: 700; font-size: 0.95rem; color: #2c3e50; margin-bottom: 0.5rem; }
     .birim-il { font-size: 0.8rem; color: #7f8c8d; margin-bottom: 0.8rem; }
     .stats-row { display: flex; gap: 15px; }
@@ -89,7 +107,62 @@
         margin-bottom: 20px;
         display: inline-block;
     }
+    .summary-action-card {
+        cursor: pointer;
+        transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .summary-action-card:hover,
+    .summary-action-card:focus {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 28px rgba(0,0,0,.14) !important;
+    }
+    .dynamic-section-header {
+        display: flex;
+        align-items: center;
+        gap: .75rem;
+        margin-bottom: 20px;
+    }
+    .dynamic-section-header .section-title {
+        margin-bottom: 0;
+    }
+    .password-reset-btn {
+        align-items: center;
+        background: #0d6efd;
+        border: 0;
+        border-radius: .45rem;
+        color: #fff;
+        display: inline-flex;
+        font-weight: 800;
+        height: 2.15rem;
+        justify-content: center;
+        width: 2.15rem;
+    }
+    .password-reset-btn:hover,
+    .password-reset-btn:focus {
+        background: #0b5ed7;
+        color: #fff;
+    }
+    .password-reset-btn i {
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 800;
+    }
 </style>
+
+@if (TempData["Success"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+@if (TempData["Error"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<form id="passwordResetForm" asp-controller="BirimYonetimi" asp-action="ResetPersonelSifresi" method="post" class="d-none">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="personelId" id="passwordResetPersonelId" />
+    <input type="hidden" name="koordinatorlukId" value="@Model.KoordinatorlukId" />
+</form>
 
 <div class="yonetim-header">
     <div class="d-flex justify-content-between align-items-center">
@@ -108,7 +181,7 @@
             </div>
         </div>
         <div class="text-end">
-            <span class="badge bg-white text-primary px-3 py-2">@Model.Komisyonlar.Count Komisyon</span>
+            <span class="badge bg-white text-primary px-3 py-2">@aktifKomisyonSayisi Komisyon</span>
         </div>
     </div>
 </div>
@@ -135,28 +208,28 @@
     <div class="col-lg-4">
         <div class="row g-3 h-100">
             <div class="col-12">
-                <div class="card h-100 border-0 shadow-sm bg-primary text-white p-4">
+                <button type="button" class="card h-100 w-100 border-0 shadow-sm bg-primary text-white p-4 text-start summary-action-card" onclick="showDynamicSection('personel')">
                     <div class="d-flex align-items-center mb-3">
                         <div class="avatar bg-white bg-opacity-25 rounded p-2 me-3">
                             <i class="bx bx-group fs-3 text-white"></i>
                         </div>
                         <h6 class="mb-0 text-white">Toplam Personel</h6>
                     </div>
-                    <div class="h2 fw-bold mb-0">@Model.Komisyonlar.Sum(k => k.PersonelSayisi)</div>
+                    <div class="h2 fw-bold mb-0">@Model.TumPersoneller.Count</div>
                     <div class="text-white-50 small mt-1">Tüm birimler dahil</div>
-                </div>
+                </button>
             </div>
             <div class="col-12">
-                 <div class="card h-100 border-0 shadow-sm bg-warning text-white p-4">
+                 <button type="button" class="card h-100 w-100 border-0 shadow-sm bg-warning text-white p-4 text-start summary-action-card" onclick="showDynamicSection('gorev')">
                     <div class="d-flex align-items-center mb-3">
                         <div class="avatar bg-white bg-opacity-25 rounded p-2 me-3">
                             <i class="bx bx-task fs-3 text-white"></i>
                         </div>
                         <h6 class="mb-0 text-white">Toplam Görev</h6>
                     </div>
-                    <div class="h2 fw-bold mb-0">@Model.Komisyonlar.Sum(k => k.GorevSayisi)</div>
+                    <div class="h2 fw-bold mb-0">@Model.TumGorevler.Count</div>
                     <div class="text-white-50 small mt-1">Aktif süreçteki görevler</div>
-                </div>
+                </button>
             </div>
         </div>
     </div>
@@ -164,12 +237,21 @@
 
 <!-- 1. KOMİSYON KARTLARI -->
 <div id="komisyonBolumu" class="mb-5">
-    <h5 class="section-title"><i class="bx bx-map-alt me-2 text-primary"></i>Komisyon Kartları</h5>
+    <div class="dynamic-section-header">
+        <button type="button" id="dynamicBackBtn" class="btn btn-sm btn-outline-secondary d-none" onclick="showDynamicSection('komisyon')">
+            <i class="bx bx-arrow-back me-1"></i>Geri
+        </button>
+        <h5 class="section-title" id="dynamicSectionTitle"><i class="bx bx-map-alt me-2 text-primary"></i>Tüm Komisyonlar</h5>
+    </div>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4" id="komisyonContainer">
         @foreach (var k in Model.Komisyonlar)
         {
             <div class="col komisyon-kart-wrapper" data-il-id="@k.IlId">
-                <div class="card birim-card h-100" id="kom-card-@k.Id" onclick="window.location.href='/BirimYonetimi/KomisyonDetay/@k.Id'">
+                <div class="card birim-card @(k.IsActive ? "" : "birim-card-passive") h-100 position-relative" id="kom-card-@k.Id" onclick="window.location.href='/BirimYonetimi/KomisyonDetay/@k.Id'">
+                    @if (!k.IsActive)
+                    {
+                        <span class="badge bg-label-secondary passive-unit-badge">Pasif</span>
+                    }
                     <div class="card-body">
                         <div class="birim-ad">@k.Ad</div>
                         <div class="birim-il"><i class="bx bx-map-pin"></i> @k.IlAdi</div>
@@ -187,6 +269,36 @@
                 </div>
             </div>
         }
+    </div>
+    <div class="card shadow-sm border-0 d-none" id="personelDynamicContainer">
+        <div class="table-responsive text-nowrap">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Personel Ad Soyad</th>
+                        <th>Branşı / Uzmanlık</th>
+                        <th class="text-end">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody id="personelDynamicBody"></tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card shadow-sm border-0 d-none" id="gorevDynamicContainer">
+        <div class="table-responsive text-nowrap">
+            <table class="table table-hover mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th>Görev Başlığı</th>
+                        <th>İş Niteliği</th>
+                        <th>Durum</th>
+                        <th>Başlangıç</th>
+                        <th class="text-end">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody id="gorevDynamicBody"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -221,6 +333,13 @@
                                     <td>@p.Brans</td>
                                     <td class="text-end">
                                         <a href="/Personel/Detay/@p.PersonelId" class="btn btn-sm btn-outline-info">Profili Gör</a>
+                                        <button type="button"
+                                                class="password-reset-btn ms-1"
+                                                title="Şifre sıfırla"
+                                                data-personel-name="@p.AdSoyad"
+                                                onclick="resetPersonelPassword(@p.PersonelId, this.dataset.personelName)">
+                                            <i class="bx bx-key"></i>
+                                        </button>
                                     </td>
                                 </tr>
                             }
@@ -276,9 +395,17 @@
 @section Scripts {
     <script>
         const iller = @Html.Raw(Json.Serialize(Model.HaritaIlleri));
+        const tumPersoneller = @Html.Raw(Json.Serialize(Model.TumPersoneller));
+        const tumGorevler = @Html.Raw(Json.Serialize(Model.TumGorevler));
+        const istatistikUrl = '@Url.Action("Index", "Istatistik")';
+        const gorevDetayUrl = '@Url.Action("Detay", "Gorevler")';
+        const gorevReturnUrl = @Html.Raw(Json.Serialize(gorevReturnUrl));
+        const gorevReturnLabel = @Html.Raw(Json.Serialize(gorevReturnLabel));
         let selectedIlId = null;
 
         $(document).ready(function() {
+            renderDynamicPersoneller();
+            renderDynamicGorevler();
             initMapInteractions();
             
             const isMerkez = @Model.IsMerkez.ToString().ToLower();
@@ -354,6 +481,7 @@
         }
 
         function filterAndScroll(ilId) {
+            showDynamicSection('komisyon');
             let foundCard = false;
             let targetCard = null;
 
@@ -385,6 +513,133 @@
         function resetMap() {
             $('#svg-turkiye-haritasi g[data-plakakodu]').removeClass('map-selected map-hover');
             $('.komisyon-kart-wrapper').find('.birim-card').removeClass('highlight-blue');
+        }
+
+        function showDynamicSection(type) {
+            $('#komisyonContainer, #personelDynamicContainer, #gorevDynamicContainer').addClass('d-none');
+            $('#dynamicBackBtn').toggleClass('d-none', type === 'komisyon');
+
+            if (type === 'personel') {
+                $('#dynamicSectionTitle').html('<i class="bx bx-group me-2 text-primary"></i>Tüm Personeller');
+                $('#personelDynamicContainer').removeClass('d-none');
+            } else if (type === 'gorev') {
+                $('#dynamicSectionTitle').html('<i class="bx bx-task me-2 text-primary"></i>Tüm Görevler');
+                $('#gorevDynamicContainer').removeClass('d-none');
+            } else {
+                $('#dynamicSectionTitle').html('<i class="bx bx-map-alt me-2 text-primary"></i>Tüm Komisyonlar');
+                $('#komisyonContainer').removeClass('d-none');
+            }
+
+            document.getElementById('komisyonBolumu').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function renderDynamicPersoneller() {
+            const $body = $('#personelDynamicBody');
+            if (!tumPersoneller.length) {
+                $body.html('<tr><td colspan="3" class="text-center p-4 text-muted">Bu koordinatörlüğe bağlı personel bulunamadı.</td></tr>');
+                return;
+            }
+
+            $body.html(tumPersoneller.map(p => {
+                const personelId = p.personelId ?? p.PersonelId;
+                const adSoyad = p.adSoyad ?? p.AdSoyad ?? '';
+                const fotografYolu = p.fotografYolu ?? p.FotografYolu;
+                const brans = p.brans ?? p.Brans ?? '-';
+                const avatar = hasCustomPhoto(fotografYolu)
+                    ? `<img src="${escapeHtml(fotografYolu)}" class="rounded-circle me-3" width="35" height="35" />`
+                    : `<div class="avatar-sm bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width:35px; height:35px; font-weight:700;">${escapeHtml(getInitials(adSoyad))}</div>`;
+
+                return `
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                ${avatar}
+                                <span class="fw-bold">${escapeHtml(adSoyad)}</span>
+                            </div>
+                        </td>
+                        <td>${escapeHtml(brans)}</td>
+                        <td class="text-end">
+                            <a href="${istatistikUrl}?personelId=${personelId}" class="btn btn-sm btn-outline-primary">İstatistik</a>
+                            <button type="button"
+                                    class="password-reset-btn ms-1"
+                                    title="Şifre sıfırla"
+                                    data-personel-name="${escapeHtml(adSoyad)}"
+                                    onclick="resetPersonelPassword(${personelId}, this.dataset.personelName)">
+                                <i class="bx bx-key"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            }).join(''));
+        }
+
+        function resetPersonelPassword(personelId, personelName) {
+            if (!personelId) return;
+
+            const message = `${personelName || 'Bu personel'} için şifre sıfırlansın mı?\nPersonel bir sonraki girişte TC + captcha ile yeni şifre belirleyecek.`;
+            if (!confirm(message)) {
+                return;
+            }
+
+            document.getElementById('passwordResetPersonelId').value = personelId;
+            document.getElementById('passwordResetForm').submit();
+        }
+
+        function renderDynamicGorevler() {
+            const $body = $('#gorevDynamicBody');
+            if (!tumGorevler.length) {
+                $body.html('<tr><td colspan="5" class="text-center p-4 text-muted">Bu koordinatörlüğe bağlı görev bulunamadı.</td></tr>');
+                return;
+            }
+
+            $body.html(tumGorevler.map(g => {
+                const gorevId = g.gorevId ?? g.GorevId;
+                const baslik = g.baslik ?? g.Baslik ?? '';
+                const durum = g.durum ?? g.Durum ?? 'Bilinmiyor';
+                const durumRenk = g.durumRenk ?? g.DurumRenk ?? '#6c757d';
+                const kategori = g.kategori ?? g.Kategori ?? '-';
+                const baslangic = formatDate(g.baslangicTarihi ?? g.BaslangicTarihi);
+                const detayUrl = `${gorevDetayUrl}/${gorevId}?returnUrl=${encodeURIComponent(gorevReturnUrl)}&returnLabel=${encodeURIComponent(gorevReturnLabel)}`;
+
+                return `
+                    <tr>
+                        <td class="fw-bold">${escapeHtml(baslik)}</td>
+                        <td>${escapeHtml(kategori)}</td>
+                        <td><span class="badge" style="background-color: ${escapeHtml(durumRenk)}">${escapeHtml(durum)}</span></td>
+                        <td>${baslangic}</td>
+                        <td class="text-end">
+                            <a href="${detayUrl}" class="btn btn-sm btn-outline-warning text-dark">Detay</a>
+                        </td>
+                    </tr>`;
+            }).join(''));
+        }
+
+        function hasCustomPhoto(path) {
+            return !!path && path !== '/img/avatars/1.png' && path.indexOf('default') === -1;
+        }
+
+        function getInitials(name) {
+            return (name || '')
+                .split(' ')
+                .filter(Boolean)
+                .slice(0, 2)
+                .map(x => x.charAt(0).toUpperCase())
+                .join('') || '?';
+        }
+
+        function formatDate(value) {
+            if (!value) return '-';
+            const date = new Date(value);
+            if (Number.isNaN(date.getTime())) return '-';
+            return date.toLocaleDateString('tr-TR');
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
     </script>
 }

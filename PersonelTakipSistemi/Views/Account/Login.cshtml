@@ -48,6 +48,15 @@
             <form asp-controller="Account" asp-action="Login" method="post" id="loginForm">
                 @Html.AntiForgeryToken()
 
+                @if (TempData["PasswordResetInfo"] is string resetInfo)
+                {
+                    <div class="alert alert-info text-start mb-3">@resetInfo</div>
+                }
+                @if (TempData["PasswordResetSuccess"] is string resetSuccess)
+                {
+                    <div class="alert alert-success text-start mb-3">@resetSuccess</div>
+                }
+
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                 <div class="mb-3 text-start">
@@ -83,7 +92,7 @@
                             Beni Hatırla
                         </label>
                     </div>
-                    <a href="javascript:void(0)" class="text-primary fw-medium">Şifremi Unuttum</a>
+                    <a asp-controller="Account" asp-action="SifreSifirla" class="text-primary fw-medium">Şifremi Belirle / Sıfırla</a>
                 </div>
 
                 <div class="mb-3">

@@ -14,5 +14,9 @@ namespace PersonelTakipSistemi.Models
         public int GorevTuruId { get; set; } // Görev Rolü
         [ForeignKey("GorevTuruId")]
         public GorevTuru? GorevTuru { get; set; }
+
+        public bool PersonelGorevListesindenGizlensinMi { get; set; }
+
+        public bool SadeceAdminGorebilirMi { get; set; }
     }
 }

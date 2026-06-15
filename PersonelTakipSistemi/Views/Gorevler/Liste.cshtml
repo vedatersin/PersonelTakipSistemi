@@ -15,6 +15,10 @@
     var personeller = ViewBag.Personeller as List<SelectListItem>;
     var detailReturnUrl = Context.Request.Path + Context.Request.QueryString;
     const string detailReturnLabel = "Görev Listesine Dön";
+    var canAssignKoordinatorluk = ViewBag.CanAssignKoordinatorluk as bool? ?? true;
+    var canAssignKomisyon = ViewBag.CanAssignKomisyon as bool? ?? true;
+    var canAssignPersonel = ViewBag.CanAssignPersonel as bool? ?? true;
+    var canUsePrivatePersonelAssignmentOptions = User.IsInRole("Admin");
 }
 
 @section Styles {
@@ -611,15 +615,27 @@
                         <!-- Type Selector -->
                         <div class="mb-2">
                             <select id="assignTypeSelector" class="form-select mb-2">
-                                <option value="personel">Personel</option>
-                                <option value="teskilat">Teşkilat</option>
-                                <option value="koordinatorluk">Koordinatörlük</option>
-                                <option value="komisyon">Komisyon</option>
+                                @if (canAssignPersonel)
+                                {
+                                    <option value="personel">Personel</option>
+                                }
+                                @if (canAssignKoordinatorluk)
+                                {
+                                    <option value="koordinatorluk">Koordinatörlük</option>
+                                }
+                                @if (canAssignKomisyon)
+                                {
+                                    <option value="komisyon">Komisyon</option>
+                                }
+                                @if (!canAssignPersonel && !canAssignKoordinatorluk && !canAssignKomisyon)
+                                {
+                                    <option value="">Atama yetkiniz yok</option>
+                                }
                             </select>
                         </div>
 
                         <!-- Dynamic Searchable Selects (All hidden initially except default) -->
-                        <div id="selector-personel" class="entity-selector">
+                        <div id="selector-personel" class="entity-selector @(canAssignPersonel ? "" : "d-none")">
                             <select class="form-select select2-drawer" id="drawerSelectPersonel" style="width: 100%;">
                                 <option value="">Personel Seçiniz...</option>
                                 @if(personeller != null) { 
@@ -631,12 +647,6 @@
                                         }
                                     } 
                                 }
-                            </select>
-                        </div>
-                        <div id="selector-teskilat" class="entity-selector d-none">
-                            <select class="form-select select2-drawer" id="drawerSelectTeskilat" style="width: 100%;">
-                                <option value="">Teşkilat Seçiniz...</option>
-                                 @if(teskilatlar != null) { foreach(var t in teskilatlar) { <option value="@t.TeskilatId">@t.Ad</option> } }
                             </select>
                         </div>
                         <div id="selector-koordinatorluk" class="entity-selector d-none">
@@ -652,10 +662,10 @@
                             </select>
                         </div>
 
-                        <div class="mt-3 pt-2 border-top">
-                            <label class="form-label mb-1">Görev Rolü</label>
+                        <div id="assignmentRoleWrapper" class="mt-3 pt-2 border-top">
+                            <label class="form-label mb-1">Görev Türü</label>
                             <select class="form-select select2-drawer" id="drawerSelectGorevRolu" style="width: 100%;">
-                                <option value="">Görev Rolü Seçiniz...</option>
+                                <option value="">Görev Türü Seçiniz...</option>
                                 @if(ViewBag.GorevRolleri != null)
                                 {
                                     foreach (var r in ViewBag.GorevRolleri)
@@ -664,8 +674,22 @@
                                     }
                                 }
                             </select>
-                            <small class="text-muted d-block mt-1">Atanan kişi/birim için görev rolü zorunludur.</small>
+                            <small class="text-muted d-block mt-1">Personele görev atarken görev türü zorunludur.</small>
                         </div>
+
+                        @if (canUsePrivatePersonelAssignmentOptions)
+                        {
+                            <div id="personelPrivateAssignmentOptions" class="mt-3 d-none">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="drawerPersonelGorevGizle">
+                                    <label class="form-check-label" for="drawerPersonelGorevGizle">Personel görev listesinden gizlensin mi?</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="drawerSadeceAdminGorebilir">
+                                    <label class="form-check-label" for="drawerSadeceAdminGorebilir">Sadece Admin yetkili kullanıcı personelin üzerindeki görevi görebilsin</label>
+                                </div>
+                            </div>
+                        }
 
                         <button class="btn btn-primary w-100 mt-2" onclick="addAssignment()">Ekle</button>
                     </div>
@@ -733,6 +757,8 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
+        var canUsePrivatePersonelAssignmentOptions = @canUsePrivatePersonelAssignmentOptions.ToString().ToLowerInvariant();
+
         function goToTaskDetail(id) {
             const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
             const returnLabel = encodeURIComponent('Görev Listesine Dön');
@@ -758,10 +784,9 @@
 
             // Handle Type Change in Drawer
             $('#assignTypeSelector').change(function() {
-                var type = $(this).val();
-                $('.entity-selector').addClass('d-none');
-                $('#selector-' + type).removeClass('d-none');
+                syncAssignmentTargetVisibility();
             });
+            syncAssignmentTargetVisibility();
             
             // Check for New Task Highlighting
             var newGorevId = '@TempData["NewGorevId"]';
@@ -952,6 +977,19 @@
             }
         }
 
+        function syncAssignmentTargetVisibility() {
+            var type = $('#assignTypeSelector').val();
+            $('.entity-selector').addClass('d-none');
+            if (type) {
+                $('#selector-' + type).removeClass('d-none');
+            }
+            $('#assignmentRoleWrapper').toggleClass('d-none', type !== 'personel');
+            $('#personelPrivateAssignmentOptions').toggleClass('d-none', !(type === 'personel' && canUsePrivatePersonelAssignmentOptions));
+            if (type !== 'personel') {
+                $('#drawerPersonelGorevGizle, #drawerSadeceAdminGorebilir').prop('checked', false);
+            }
+        }
+
         // Drawer Utils
         var offcanvasElement = document.getElementById('assignmentDrawer');
         var offcanvas = new bootstrap.Offcanvas(offcanvasElement);
@@ -1079,7 +1117,17 @@
                     if(data.teskilatlar) data.teskilatlar.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Teskilat', gorevTuruId: i.gorevTuruId, gorevTuruAd: i.gorevTuruAd }); });
                     if(data.koordinatorlukler) data.koordinatorlukler.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Koordinatorluk', gorevTuruId: i.gorevTuruId, gorevTuruAd: i.gorevTuruAd }); });
                     if(data.komisyonlar) data.komisyonlar.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Komisyon', gorevTuruId: i.gorevTuruId, gorevTuruAd: i.gorevTuruAd }); });
-                    if(data.personeller) data.personeller.forEach(function(i) { localAssignments.push({ id: i.id, name: i.name, type: 'Personel', gorevTuruId: i.gorevTuruId, gorevTuruAd: i.gorevTuruAd }); });
+                    if(data.personeller) data.personeller.forEach(function(i) {
+                        localAssignments.push({
+                            id: i.id,
+                            name: i.name,
+                            type: 'Personel',
+                            gorevTuruId: i.gorevTuruId,
+                            gorevTuruAd: i.gorevTuruAd,
+                            personelGorevListesindenGizlensinMi: i.personelGorevListesindenGizlensinMi,
+                            sadeceAdminGorebilirMi: i.sadeceAdminGorebilirMi
+                        });
+                    });
                 }
                 renderAssignments();
             }).fail(function(jqXHR, textStatus, errorThrown) {
@@ -1111,17 +1159,28 @@
                  if(item.type === 'Komisyon') icon = 'bxs-group';
                  if(item.type === 'Personel') icon = 'bxs-user';
 
+                var roleEditor = item.type === 'Personel'
+                    ? `<div class="ms-4 mt-1" style="max-width: 260px;">
+                           <select class="form-select form-select-sm assignment-role-select" data-type="${item.type}" data-id="${item.id}">
+                               ${roleOptionsHtml}
+                           </select>
+                       </div>`
+                    : '';
+                var privateBadges = item.type === 'Personel' && canUsePrivatePersonelAssignmentOptions
+                    ? `<div class="ms-4 mt-2 d-flex flex-wrap gap-1">
+                           ${item.personelGorevListesindenGizlensinMi ? '<span class="badge bg-label-secondary">Personelden gizli</span>' : ''}
+                           ${item.sadeceAdminGorebilirMi ? '<span class="badge bg-label-danger">Sadece Admin</span>' : ''}
+                       </div>`
+                    : '';
+
                 var li = `
                    <li class="list-group-item d-flex justify-content-between align-items-center">
                        <div>
                            <i class='bx ${icon} me-2 text-secondary'></i>
                            <span>${item.name}</span>
                            <br><small class="text-muted ms-4" style="font-size:0.75rem">${item.type}</small>
-                           <div class="ms-4 mt-1" style="max-width: 260px;">
-                               <select class="form-select form-select-sm assignment-role-select" data-type="${item.type}" data-id="${item.id}">
-                                   ${roleOptionsHtml}
-                               </select>
-                           </div>
+                           ${roleEditor}
+                           ${privateBadges}
                        </div>
                        <button class="btn btn-xs btn-outline-danger" onclick="removeAssignment('${item.type}', ${item.id})"><i class="bx bx-trash"></i></button>
                    </li>
@@ -1159,7 +1218,6 @@
             var name = "";
 
             if(type === 'personel') { id = $('#drawerSelectPersonel').val(); name = $('#drawerSelectPersonel option:selected').text(); }
-            if(type === 'teskilat') { id = $('#drawerSelectTeskilat').val(); name = $('#drawerSelectTeskilat option:selected').text(); }
             if(type === 'koordinatorluk') { id = $('#drawerSelectKoordinatorluk').val(); name = $('#drawerSelectKoordinatorluk option:selected').text(); }
             if(type === 'komisyon') { id = $('#drawerSelectKomisyon').val(); name = $('#drawerSelectKomisyon option:selected').text(); }
 
@@ -1168,11 +1226,15 @@
                 return;
             }
 
-            var roleId = parseInt($('#drawerSelectGorevRolu').val());
-            var roleName = $('#drawerSelectGorevRolu option:selected').text();
-            if(!roleId) {
-                Swal.fire({ icon: 'warning', title: 'Uyarı', text: 'Lütfen Görev Rolü seçiniz.' });
-                return;
+            var roleId = 0;
+            var roleName = '';
+            if(type === 'personel') {
+                roleId = parseInt($('#drawerSelectGorevRolu').val());
+                roleName = $('#drawerSelectGorevRolu option:selected').text();
+                if(!roleId) {
+                    Swal.fire({ icon: 'warning', title: 'Uyarı', text: 'Lütfen Görev Türü seçiniz.' });
+                    return;
+                }
             }
 
             // Normalize Type
@@ -1185,9 +1247,18 @@
                  return;
             }
 
-            localAssignments.push({ id: parseInt(id), name: name, type: typePascal, gorevTuruId: roleId, gorevTuruAd: roleName });
+            localAssignments.push({
+                id: parseInt(id),
+                name: name,
+                type: typePascal,
+                gorevTuruId: roleId,
+                gorevTuruAd: roleName,
+                personelGorevListesindenGizlensinMi: type === 'personel' && canUsePrivatePersonelAssignmentOptions ? $('#drawerPersonelGorevGizle').is(':checked') : false,
+                sadeceAdminGorebilirMi: type === 'personel' && canUsePrivatePersonelAssignmentOptions ? $('#drawerSadeceAdminGorebilir').is(':checked') : false
+            });
             renderAssignments();
-            $('#drawerSelectPersonel, #drawerSelectTeskilat, #drawerSelectKoordinatorluk, #drawerSelectKomisyon').val(null).trigger('change');
+            $('#drawerSelectPersonel, #drawerSelectKoordinatorluk, #drawerSelectKomisyon').val(null).trigger('change');
+            $('#drawerPersonelGorevGizle, #drawerSadeceAdminGorebilir').prop('checked', false);
         }
 
         function removeAssignment(type, id) {
@@ -1205,16 +1276,22 @@
              };
              
             localAssignments.forEach(function(i) {
-                if(!i.gorevTuruId) return;
                 if(i.type === 'Teskilat') payload.Teskilatlar.push({ Id: i.id, GorevTuruId: i.gorevTuruId });
-                if(i.type === 'Koordinatorluk') payload.Koordinatorlukler.push({ Id: i.id, GorevTuruId: i.gorevTuruId });
-                if(i.type === 'Komisyon') payload.Komisyonlar.push({ Id: i.id, GorevTuruId: i.gorevTuruId });
-                if(i.type === 'Personel') payload.Personeller.push({ Id: i.id, GorevTuruId: i.gorevTuruId });
+                if(i.type === 'Koordinatorluk') payload.Koordinatorlukler.push({ Id: i.id, GorevTuruId: i.gorevTuruId || 0 });
+                if(i.type === 'Komisyon') payload.Komisyonlar.push({ Id: i.id, GorevTuruId: i.gorevTuruId || 0 });
+                if(i.type === 'Personel') {
+                    payload.Personeller.push({
+                        Id: i.id,
+                        GorevTuruId: i.gorevTuruId,
+                        PersonelGorevListesindenGizlensinMi: !!i.personelGorevListesindenGizlensinMi,
+                        SadeceAdminGorebilirMi: !!i.sadeceAdminGorebilirMi
+                    });
+                }
             });
 
-            var missingRole = localAssignments.some(function(i) { return !i.gorevTuruId; });
+            var missingRole = localAssignments.some(function(i) { return i.type === 'Personel' && !i.gorevTuruId; });
             if(missingRole) {
-                Swal.fire({ icon: 'warning', title: 'Eksik Bilgi', text: 'Lütfen tüm atamalar için Görev Rolü seçiniz.' });
+                Swal.fire({ icon: 'warning', title: 'Eksik Bilgi', text: 'Lütfen personele yapılan atamalar için Görev Türü seçiniz.' });
                 return;
             }
 

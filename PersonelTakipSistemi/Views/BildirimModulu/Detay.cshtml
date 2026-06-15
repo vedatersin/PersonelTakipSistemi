@@ -1,0 +1,117 @@
+@model PersonelTakipSistemi.ViewModels.BildirimDetayViewModel
+@{
+    ViewData["Title"] = "Bildirim Detayı";
+}
+
+@section Styles {
+    <style>
+        .delivery-state {
+            display: inline-flex;
+            align-items: center;
+            gap: .22rem;
+            white-space: nowrap;
+        }
+        .delivery-ticks {
+            display: inline-flex;
+            align-items: center;
+            gap: 0;
+            font-size: 1rem;
+            font-weight: 900;
+            line-height: 1;
+            vertical-align: -0.08em;
+        }
+        .delivery-ticks i {
+            font-weight: 900;
+            -webkit-text-stroke: .65px currentColor;
+        }
+        .delivery-ticks i + i {
+            margin-left: -0.45rem;
+        }
+        .delivery-ticks.text-primary {
+            color: #008cff !important;
+        }
+        .delivery-separator {
+            color: #9aa3ad;
+            margin: 0 .18rem;
+        }
+    </style>
+}
+
+<div class="mb-3">
+    <a asp-action="BildirimListesi" class="btn btn-label-secondary">
+        <i class="bx bx-arrow-back me-1"></i> Bildirim Listesine Dön
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-header border-bottom">
+        <h5 class="mb-1">@Model.Baslik</h5>
+        <div class="text-muted small">Bildirim #@Model.BildirimId</div>
+    </div>
+    <div class="card-body">
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="text-muted small text-uppercase mb-1">Alıcı</div>
+                <div class="fw-semibold">@Model.AliciAdSoyad</div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-muted small text-uppercase mb-1">Gönderen</div>
+                <div class="fw-semibold">@Model.GonderenAdSoyad</div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-muted small text-uppercase mb-1">Tip</div>
+                <span class="badge bg-label-secondary">@Model.Tip</span>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="text-muted small text-uppercase mb-1">Gönderim Tarihi</div>
+                <div>@Model.GonderimTarihi.ToString("dd.MM.yyyy HH:mm")</div>
+            </div>
+            <div class="col-md-8">
+                <div class="text-muted small text-uppercase mb-1">Teslim / Okunma Durumu</div>
+                <div>
+                    <span class="delivery-state">
+                        <span class="fw-semibold">@Model.Durum</span>
+                        <span class="delivery-ticks @Model.TickClass">
+                            @for (var i = 0; i < Model.TickCount; i++)
+                            {
+                                <i class="bx bx-check"></i>
+                            }
+                        </span>
+                        <span class="delivery-separator">-</span>
+                        <span class="text-muted">@(Model.DurumTarihi?.ToString("dd.MM.yyyy HH:mm") ?? "-")</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="text-muted small text-uppercase mb-1">Okundu Mu?</div>
+                <div>@(Model.OkunduMu ? "Evet" : "Hayır")</div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-muted small text-uppercase mb-1">Okunma Tarihi</div>
+                <div>@(Model.OkunmaTarihi?.ToString("dd.MM.yyyy HH:mm") ?? "-")</div>
+            </div>
+            <div class="col-md-4">
+                <div class="text-muted small text-uppercase mb-1">Referans</div>
+                <div>@(Model.RefType ?? "-") @(Model.RefId.HasValue ? $"#{Model.RefId}" : "")</div>
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <div class="text-muted small text-uppercase mb-1">İçerik</div>
+            <div class="border rounded p-3 bg-light">@Model.Aciklama</div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Url))
+        {
+            <a href="@Model.Url" class="btn btn-primary">
+                <i class="bx bx-link-external me-1"></i> İlgili Sayfaya Git
+            </a>
+        }
+    </div>
+</div>

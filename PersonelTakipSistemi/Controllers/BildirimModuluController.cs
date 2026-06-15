@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PersonelTakipSistemi.Data;
 using PersonelTakipSistemi.Dtos;
 using PersonelTakipSistemi.Services;
+using PersonelTakipSistemi.ViewModels;
 using System.Security.Claims;
 using PersonelTakipSistemi.Filters;
 
@@ -24,7 +25,12 @@ namespace PersonelTakipSistemi.Controllers
             _logService = logService;
         }
 
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
+        {
+            return RedirectToAction(nameof(Gonder));
+        }
+
+        public async Task<IActionResult> Gonder()
         {
             if (!await HasNotificationModuleAccessAsync()) return Forbid();
 
@@ -38,7 +44,102 @@ namespace PersonelTakipSistemi.Controllers
             ViewBag.GorevTuruList = await _context.GorevTurleri.OrderBy(x => x.Ad).Select(x => new { Value = x.Ad, Text = x.Ad }).ToListAsync();
             ViewBag.IsNiteligiList = await _context.IsNitelikleri.OrderBy(x => x.Ad).Select(x => new { Value = x.Ad, Text = x.Ad }).ToListAsync();
 
-            return View();
+            return View("Index");
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> BildirimListesi(string? q, int page = 1)
+        {
+            const int pageSize = 25;
+            page = Math.Max(1, page);
+
+            var query = _context.Bildirimler
+                .AsNoTracking()
+                .Include(b => b.AliciPersonel)
+                .Include(b => b.BildirimGonderen)
+                .Where(b => !b.SilindiMi)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(q))
+            {
+                var search = q.Trim().ToLower();
+                query = query.Where(b =>
+                    b.Baslik.ToLower().Contains(search) ||
+                    b.Aciklama.ToLower().Contains(search) ||
+                    (b.AliciPersonel.Ad + " " + b.AliciPersonel.Soyad).ToLower().Contains(search) ||
+                    (b.BildirimGonderen != null && b.BildirimGonderen.GorunenAd.ToLower().Contains(search)));
+            }
+
+            var totalItems = await query.CountAsync();
+            var bildirimler = await query
+                .OrderByDescending(b => b.OlusturmaTarihi)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var items = new List<BildirimListeItemViewModel>();
+            foreach (var bildirim in bildirimler)
+            {
+                var delivery = await GetDeliveryStatusAsync(bildirim);
+                items.Add(new BildirimListeItemViewModel
+                {
+                    BildirimId = bildirim.BildirimId,
+                    Baslik = bildirim.Baslik,
+                    AliciAdSoyad = $"{bildirim.AliciPersonel.Ad} {bildirim.AliciPersonel.Soyad}",
+                    GonderenAdSoyad = bildirim.BildirimGonderen?.GorunenAd ?? "Sistem",
+                    Tip = string.IsNullOrWhiteSpace(bildirim.Tip) ? "-" : bildirim.Tip!,
+                    GonderimTarihi = bildirim.OlusturmaTarihi,
+                    Durum = delivery.Durum,
+                    DurumTarihi = delivery.Tarih,
+                    TickClass = delivery.TickClass,
+                    TickCount = delivery.TickCount
+                });
+            }
+
+            return View(new BildirimListeViewModel
+            {
+                Items = items,
+                Page = page,
+                TotalItems = totalItems,
+                TotalPages = Math.Max(1, (int)Math.Ceiling(totalItems / (double)pageSize)),
+                Search = q
+            });
+        }
+
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Detay(int id)
+        {
+            var bildirim = await _context.Bildirimler
+                .AsNoTracking()
+                .Include(b => b.AliciPersonel)
+                .Include(b => b.BildirimGonderen)
+                .FirstOrDefaultAsync(b => b.BildirimId == id && !b.SilindiMi);
+
+            if (bildirim == null)
+            {
+                return NotFound();
+            }
+
+            var delivery = await GetDeliveryStatusAsync(bildirim);
+            return View(new BildirimDetayViewModel
+            {
+                BildirimId = bildirim.BildirimId,
+                Baslik = bildirim.Baslik,
+                Aciklama = bildirim.Aciklama,
+                AliciAdSoyad = $"{bildirim.AliciPersonel.Ad} {bildirim.AliciPersonel.Soyad}",
+                GonderenAdSoyad = bildirim.BildirimGonderen?.GorunenAd ?? "Sistem",
+                Tip = string.IsNullOrWhiteSpace(bildirim.Tip) ? "-" : bildirim.Tip!,
+                GonderimTarihi = bildirim.OlusturmaTarihi,
+                Durum = delivery.Durum,
+                DurumTarihi = delivery.Tarih,
+                TickClass = delivery.TickClass,
+                TickCount = delivery.TickCount,
+                Url = bildirim.Url,
+                RefType = bildirim.RefType,
+                RefId = bildirim.RefId,
+                OkunduMu = bildirim.OkunduMu,
+                OkunmaTarihi = bildirim.OkunmaTarihi
+            });
         }
 
         [HttpGet]
@@ -365,6 +466,30 @@ namespace PersonelTakipSistemi.Controllers
 
             return await _context.PersonelKurumsalRolAtamalari.AsNoTracking()
                 .AnyAsync(a => a.PersonelId == currentUserId && (a.KurumsalRolId == 2 || a.KurumsalRolId == 3 || a.KurumsalRolId == 5));
+        }
+
+        private async Task<(string Durum, DateTime? Tarih, string TickClass, int TickCount)> GetDeliveryStatusAsync(PersonelTakipSistemi.Models.Bildirim bildirim)
+        {
+            if (bildirim.OkunduMu)
+            {
+                return ("Okundu", bildirim.OkunmaTarihi, "text-primary", 2);
+            }
+
+            var reachedAt = await _context.SistemLoglar
+                .AsNoTracking()
+                .Where(l => l.PersonelId == bildirim.AliciPersonelId &&
+                            l.IslemTuru == "Giris" &&
+                            l.Tarih >= bildirim.OlusturmaTarihi)
+                .OrderBy(l => l.Tarih)
+                .Select(l => (DateTime?)l.Tarih)
+                .FirstOrDefaultAsync();
+
+            if (reachedAt.HasValue)
+            {
+                return ("Ulaştı", reachedAt, "text-muted", 2);
+            }
+
+            return ("Gönderildi", bildirim.OlusturmaTarihi, "text-muted", 1);
         }
     }
 

@@ -6,6 +6,7 @@ using PersonelTakipSistemi.ViewModels;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using PersonelTakipSistemi.Filters;
+using PersonelTakipSistemi.Services;
 
 namespace PersonelTakipSistemi.Controllers
 {
@@ -14,13 +15,15 @@ namespace PersonelTakipSistemi.Controllers
     public class BirimYonetimiController : Controller
     {
         private readonly TegmPersonelTakipDbContext _context;
+        private readonly ILogService _logService;
 
-        public BirimYonetimiController(TegmPersonelTakipDbContext context)
+        public BirimYonetimiController(TegmPersonelTakipDbContext context, ILogService logService)
         {
             _context = context;
+            _logService = logService;
         }
 
-        public async Task<IActionResult> KordinatorlukYonetimi()
+        public async Task<IActionResult> KordinatorlukYonetimi(int? id)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (!int.TryParse(userIdStr, out int userId)) return RedirectToAction("Login", "Account");
@@ -37,7 +40,13 @@ namespace PersonelTakipSistemi.Controllers
 
             // Kombine görünüm (Eğer birden fazla koordinatörlükte görevliyse hepsini kapsayacak şekilde de olabilir 
             // ama genellikle 1 tanedir. Basitlik için ilkini alıyoruz.)
-            var role = coordinatingRoles.First();
+            var role = id.HasValue
+                ? coordinatingRoles.FirstOrDefault(x => x.KoordinatorlukId == id.Value)
+                : coordinatingRoles.First();
+            if (role == null)
+            {
+                return Forbid();
+            }
             if (!role.KoordinatorlukId.HasValue || role.Koordinatorluk == null)
             {
                 return Forbid();
@@ -61,16 +70,17 @@ namespace PersonelTakipSistemi.Controllers
             {
                 komisyonQuery = _context.Komisyonlar
                     .Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
-                    .Where(k => k.BagliMerkezKoordinatorlukId == koordId && k.IsActive && k.PersonelKomisyonlar.Any());
+                    .Where(k => k.BagliMerkezKoordinatorlukId == koordId && k.PersonelKomisyonlar.Any());
             }
             else
             {
                 komisyonQuery = _context.Komisyonlar
                     .Include(k => k.Koordinatorluk).ThenInclude(k => k.Il)
-                    .Where(k => k.KoordinatorlukId == koordId && k.IsActive && k.PersonelKomisyonlar.Any());
+                    .Where(k => k.KoordinatorlukId == koordId && k.PersonelKomisyonlar.Any());
             }
 
             var komisyonlar = await komisyonQuery.ToListAsync();
+            var aktifKomisyonIds = komisyonlar.Where(k => k.IsActive).Select(k => k.KomisyonId).ToList();
 
             model.Komisyonlar = new List<BirimKartItem>();
             foreach (var k in komisyonlar)
@@ -85,9 +95,50 @@ namespace PersonelTakipSistemi.Controllers
                     IlId = k.Koordinatorluk?.IlId,
                     IlAdi = k.Koordinatorluk?.Il?.Ad,
                     PersonelSayisi = await _context.PersonelKomisyonlar.CountAsync(pk => pk.KomisyonId == k.KomisyonId),
-                    GorevSayisi = await GetKomisyonGorevleriQuery(k.KomisyonId).CountAsync()
+                    GorevSayisi = k.IsActive ? await GetKomisyonGorevleriQuery(k.KomisyonId).CountAsync() : 0,
+                    IsActive = k.IsActive
                 });
             }
+
+            var tumPersonelQuery = _context.Personeller
+                .Include(p => p.Brans)
+                .Include(p => p.PersonelKoordinatorlukler)
+                .Include(p => p.PersonelKomisyonlar)
+                .Where(p =>
+                    p.PersonelKoordinatorlukler.Any(pk => pk.KoordinatorlukId == koordId) ||
+                    p.PersonelKomisyonlar.Any(pk => aktifKomisyonIds.Contains(pk.KomisyonId)));
+
+            model.TumPersoneller = await tumPersonelQuery
+                .Select(p => new KomisyonPersonelItem
+                {
+                    PersonelId = p.PersonelId,
+                    AdSoyad = p.Ad + " " + p.Soyad,
+                    FotografYolu = p.FotografYolu,
+                    Brans = p.Brans != null ? p.Brans.Ad : null
+                })
+                .OrderBy(p => p.AdSoyad)
+                .ToListAsync();
+
+            var tumPersonelIds = model.TumPersoneller.Select(p => p.PersonelId).ToList();
+            model.TumGorevler = await _context.Gorevler
+                .Include(g => g.GorevDurum)
+                .Include(g => g.IsNiteligi)
+                .Where(g => g.IsActive &&
+                    (g.GorevAtamaKoordinatorlukler.Any(ga => ga.KoordinatorlukId == koordId) ||
+                     g.GorevAtamaKomisyonlar.Any(ga => aktifKomisyonIds.Contains(ga.KomisyonId)) ||
+                     g.GorevAtamaPersoneller.Any(ga => tumPersonelIds.Contains(ga.PersonelId) && !ga.SadeceAdminGorebilirMi)))
+                .Select(g => new KomisyonGorevItem
+                {
+                    GorevId = g.GorevId,
+                    Baslik = g.Ad,
+                    Durum = g.GorevDurum != null ? g.GorevDurum.Ad : "Bilinmiyor",
+                    DurumRenk = g.GorevDurum != null ? g.GorevDurum.Renk : "#6c757d",
+                    Kategori = g.IsNiteligi != null ? g.IsNiteligi.Ad : null,
+                    BaslangicTarihi = g.BaslangicTarihi,
+                    BitisTarihi = g.BitisTarihi
+                })
+                .OrderByDescending(g => g.BaslangicTarihi)
+                .ToListAsync();
 
             // 2. Harita Verisi
             List<int> highlightIlIds = new List<int>();
@@ -147,6 +198,60 @@ namespace PersonelTakipSistemi.Controllers
             return View(model);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ResetPersonelSifresi(int personelId, int? koordinatorlukId)
+        {
+            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdStr, out int userId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            var isAdminOrManager = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            var scopeIds = await GetCoordinatorScopeIdsAsync(userId);
+            if (!isAdminOrManager && !scopeIds.Any())
+            {
+                return Forbid();
+            }
+
+            var canResetTarget = isAdminOrManager || await _context.Personeller
+                .AsNoTracking()
+                .AnyAsync(p => p.PersonelId == personelId &&
+                    (p.PersonelKoordinatorlukler.Any(pk => scopeIds.Contains(pk.KoordinatorlukId)) ||
+                     p.PersonelKomisyonlar.Any(pk =>
+                        scopeIds.Contains(pk.Komisyon.KoordinatorlukId) ||
+                        (pk.Komisyon.BagliMerkezKoordinatorlukId.HasValue &&
+                         scopeIds.Contains(pk.Komisyon.BagliMerkezKoordinatorlukId.Value)))));
+
+            if (!canResetTarget)
+            {
+                return Forbid();
+            }
+
+            var personel = await _context.Personeller.FirstOrDefaultAsync(p => p.PersonelId == personelId && p.AktifMi);
+            if (personel == null)
+            {
+                TempData["Error"] = "Aktif personel kaydı bulunamadı.";
+                return RedirectToAction(nameof(KordinatorlukYonetimi), new { id = koordinatorlukId });
+            }
+
+            personel.SifreSifirlamaGerekli = true;
+            personel.SifreSifirlamaTarihi = DateTime.Now;
+            personel.SifreSifirlayanPersonelId = userId;
+            personel.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            await _logService.LogAsync(
+                "Şifre Sıfırlama",
+                $"{personel.Ad} {personel.Soyad} için şifre belirleme zorunluluğu oluşturuldu.",
+                personel.PersonelId,
+                $"KoordinatorlukId: {koordinatorlukId}");
+
+            TempData["Success"] = $"{personel.Ad} {personel.Soyad} için şifre sıfırlandı. Personel TC + captcha ile yeni şifre belirleyecek.";
+            return RedirectToAction(nameof(KordinatorlukYonetimi), new { id = koordinatorlukId });
+        }
+
         public IActionResult KomisyonYonetimi(int id)
         {
             // İlgili komisyonun detay sayfasına yönlendirir.
@@ -167,7 +272,11 @@ namespace PersonelTakipSistemi.Controllers
             {
                 var scopeIds = await GetCoordinatorScopeIdsAsync(userId);
                 var chairAccess = await _context.PersonelKurumsalRolAtamalari.AsNoTracking()
-                    .AnyAsync(a => a.PersonelId == userId && a.KurumsalRolId == 2 && a.KomisyonId == id);
+                    .AnyAsync(a => a.PersonelId == userId &&
+                        a.KurumsalRolId == 2 &&
+                        a.KomisyonId == id &&
+                        a.Komisyon != null &&
+                        a.Komisyon.IsActive);
 
                 var coordinatorAccess = scopeIds.Any() && await _context.Komisyonlar
                     .AsNoTracking()
@@ -187,6 +296,7 @@ namespace PersonelTakipSistemi.Controllers
                 .FirstOrDefaultAsync(k => k.KomisyonId == id);
 
             if (komisyon == null) return NotFound();
+            var canManagePersoneller = isAdminOrManager || await CanManageKomisyonPersonellerAsync(userId, komisyon);
 
             var personeller = await _context.PersonelKomisyonlar
                 .Include(pk => pk.Personel).ThenInclude(p => p.GorevliIl)
@@ -247,6 +357,8 @@ namespace PersonelTakipSistemi.Controllers
                 KoordinatorlukAd = komisyon.Koordinatorluk?.Ad,
                 TeskilatAd = komisyon.Koordinatorluk?.Teskilat?.Ad,
                 IlAd = komisyon.Koordinatorluk?.Il?.Ad,
+                IsActive = komisyon.IsActive,
+                CanManagePersoneller = canManagePersoneller,
                 Personeller = personeller,
                 Gorevler = gorevler,
                 KategoriDagilimi = new ChartDataJson
@@ -283,6 +395,19 @@ namespace PersonelTakipSistemi.Controllers
             return roleBasedIds.Concat(memberIds).Distinct().ToList();
         }
 
+        private async Task<bool> CanManageKomisyonPersonellerAsync(int personelId, Komisyon komisyon)
+        {
+            var coordinatorRoleIds = new[] { 3, 4, 5 };
+            return await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .AnyAsync(x => x.PersonelId == personelId &&
+                    x.KoordinatorlukId.HasValue &&
+                    coordinatorRoleIds.Contains(x.KurumsalRolId) &&
+                    (x.KoordinatorlukId == komisyon.KoordinatorlukId ||
+                     (komisyon.BagliMerkezKoordinatorlukId.HasValue &&
+                      x.KoordinatorlukId == komisyon.BagliMerkezKoordinatorlukId.Value)));
+        }
+
         private IQueryable<Gorev> GetKomisyonGorevleriQuery(int komisyonId)
         {
             var komisyonPersonelIds = _context.PersonelKomisyonlar
@@ -294,7 +419,7 @@ namespace PersonelTakipSistemi.Controllers
                 .Include(g => g.IsNiteligi)
                 .Where(g => g.IsActive &&
                     (g.GorevAtamaKomisyonlar.Any(ga => ga.KomisyonId == komisyonId) ||
-                     g.GorevAtamaPersoneller.Any(gp => komisyonPersonelIds.Contains(gp.PersonelId))));
+                     g.GorevAtamaPersoneller.Any(gp => komisyonPersonelIds.Contains(gp.PersonelId) && !gp.SadeceAdminGorebilirMi)));
         }
     }
 }

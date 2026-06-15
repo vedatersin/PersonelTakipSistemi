@@ -13,8 +13,6 @@
             <span style="font-size: 0.70rem; color: #b1b9c2; margin-top: 2px; letter-spacing: 0.3px;">Komisyon İzleme Sistemi</span>
         </div>
       </a>
-
-
   </div>
 
 
@@ -32,7 +30,7 @@
         // Fetch Corporate Roles for Special Menus
         var userCorporateRoles = currentUserIdStr != null 
             ? _sidebarContext.PersonelKurumsalRolAtamalari
-                .Where(a => a.PersonelId == currentUserIdInt)
+                .Where(a => a.PersonelId == currentUserIdInt && (!a.KomisyonId.HasValue || (a.Komisyon != null && a.Komisyon.IsActive)))
                 .Select(a => new { a.KurumsalRolId, a.KoordinatorlukId, a.KomisyonId, KomisyonAd = a.Komisyon != null ? a.Komisyon.Ad : null })
                 .ToList()
                 .Select(x => (dynamic)x)
@@ -70,6 +68,75 @@
             && (string.Equals(currentAction, "YazilimLisansYonetimi", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(currentAction, "YazilimLisansDetay", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(currentAction, "YazilimLisanslarim", StringComparison.OrdinalIgnoreCase));
+        bool isProgramGelistirmeModuleOpen = string.Equals(currentController, "ProgramGelistirme", StringComparison.OrdinalIgnoreCase);
+        bool isAgAnaliziRaporuActive = isProgramGelistirmeModuleOpen
+            && string.Equals(currentAction, "AgAnaliziRaporu", StringComparison.OrdinalIgnoreCase);
+        bool isGunesIsiniDiagramiActive = isProgramGelistirmeModuleOpen
+            && string.Equals(currentAction, "GunesIsiniDiagrami", StringComparison.OrdinalIgnoreCase);
+        bool isIsiHaritasiRaporuActive = isProgramGelistirmeModuleOpen
+            && string.Equals(currentAction, "IsiHaritasiRaporu", StringComparison.OrdinalIgnoreCase);
+        bool isGenelRaporlamaActive = isProgramGelistirmeModuleOpen
+            && string.Equals(currentAction, "GenelRaporlama", StringComparison.OrdinalIgnoreCase);
+        bool isOgrenciProfiliYonetimiActive = isProgramGelistirmeModuleOpen
+            && string.Equals(currentAction, "OgrenciProfiliYonetimi", StringComparison.OrdinalIgnoreCase);
+        bool isOgrenciProfiliTanimlariActive = isProgramGelistirmeModuleOpen
+            && string.Equals(currentAction, "OgrenciProfiliTanimlari", StringComparison.OrdinalIgnoreCase);
+        bool isProgramRaporlariOpen = isAgAnaliziRaporuActive
+            || isGunesIsiniDiagramiActive
+            || isIsiHaritasiRaporuActive
+            || isGenelRaporlamaActive
+            || isOgrenciProfiliYonetimiActive
+            || isOgrenciProfiliTanimlariActive;
+        bool canSeeProgramGelistirmeModule = userRole == "Admin" || userRole == "Yönetici" || userRole == "Program Geliştirme Uzmanı";
+        bool canManageOgrenciProfili = userRole == "Admin";
+
+        List<string> NormalizeModes(string? rawModes)
+        {
+            return (rawModes ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(x => x.ToLowerInvariant())
+                .Where(x => x is "program" or "komisyon" or "master")
+                .Distinct()
+                .ToList();
+        }
+
+        var currentPersonelModeText = currentUserIdInt > 0
+            ? _sidebarContext.Personeller
+                .Where(p => p.PersonelId == currentUserIdInt)
+                .Select(p => p.YetkiliModlar)
+                .FirstOrDefault()
+            : null;
+        var allowedSystemModes = new List<string>();
+        if (userRole == "Admin")
+        {
+            allowedSystemModes = NormalizeModes(currentPersonelModeText);
+            if (!allowedSystemModes.Any())
+            {
+                allowedSystemModes.Add("master");
+            }
+        }
+        else if (userRole == "Program Geliştirme Uzmanı")
+        {
+            allowedSystemModes.Add("program");
+        }
+        else
+        {
+            allowedSystemModes.Add("komisyon");
+        }
+
+        var requestedSystemMode = Context.Request.Cookies["tegm-system-mode"];
+        var activeSystemMode = allowedSystemModes.Contains(requestedSystemMode ?? string.Empty)
+            ? requestedSystemMode!
+            : allowedSystemModes.FirstOrDefault() ?? "komisyon";
+        bool showProgramMode = canSeeProgramGelistirmeModule && (activeSystemMode == "program" || activeSystemMode == "master");
+        bool showCommissionMode = activeSystemMode == "komisyon" || activeSystemMode == "master";
+        string ModeLabel(string mode) => mode switch
+        {
+            "program" => "Program Geliştirme Modu",
+            "komisyon" => "Komisyon İzleme Modu",
+            "master" => "Master Admin Modu",
+            _ => mode
+        };
 
         // Personel Modülü Logic (Controller Check Added)
         bool isPersonelController = string.Equals(currentController, "Personel", StringComparison.OrdinalIgnoreCase);
@@ -94,6 +161,138 @@
         
         string openClass = isProfileActive ? "open" : ""; 
     }
+
+    <li class="menu-header small text-uppercase px-3 pt-2 pb-1">
+        <span class="menu-header-text text-white-50">Sistem Modu Seçiniz</span>
+    </li>
+    <li class="menu-item px-3 pb-2">
+        <select id="systemModeSelect"
+                class="form-select form-select-sm sidebar-mode-select"
+                data-active-mode="@activeSystemMode"
+                data-allowed-modes="@string.Join(",", allowedSystemModes)"
+                data-storage-key="tegm-system-mode:@(currentUserIdStr ?? "anonymous")">
+            @foreach (var mode in allowedSystemModes)
+            {
+                if (mode == activeSystemMode)
+                {
+                    <option value="@mode" selected>@ModeLabel(mode)</option>
+                }
+                else
+                {
+                    <option value="@mode">@ModeLabel(mode)</option>
+                }
+            }
+        </select>
+    </li>
+
+    @if (showProgramMode)
+    {
+        if (activeSystemMode == "master")
+        {
+            <li class="menu-item sidebar-main-module @(isProgramGelistirmeModuleOpen ? "active open" : "")">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-network-chart"></i>
+                    <div class="text-truncate">Program Geliştirme Modülü</div>
+                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item sidebar-sub-module @(isProgramRaporlariOpen ? "active open" : "")">
+                        <a href="javascript:void(0);" class="menu-link menu-toggle">
+                            <i class="menu-icon tf-icons bx bx-line-chart"></i>
+                            <div class="text-truncate">Öğrenci Profili Raporları</div>
+                        </a>
+                        <ul class="menu-sub">
+                            <li class="menu-item sidebar-page-item @(isGunesIsiniDiagramiActive ? "active" : "")">
+                                <a asp-controller="ProgramGelistirme" asp-action="GunesIsiniDiagrami" class="menu-link">
+                                    <div class="text-truncate">Güneş Işını Haritası</div>
+                                </a>
+                            </li>
+                            <li class="menu-item sidebar-page-item @(isAgAnaliziRaporuActive ? "active" : "")">
+                                <a asp-controller="ProgramGelistirme" asp-action="AgAnaliziRaporu" class="menu-link">
+                                    <div class="text-truncate">Ağ Analizi Raporu</div>
+                                </a>
+                            </li>
+                            <li class="menu-item sidebar-page-item @(isIsiHaritasiRaporuActive ? "active" : "")">
+                                <a asp-controller="ProgramGelistirme" asp-action="IsiHaritasiRaporu" class="menu-link">
+                                    <div class="text-truncate">Isı Haritası Raporu</div>
+                                </a>
+                            </li>
+                            <li class="menu-item sidebar-page-item @(isGenelRaporlamaActive ? "active" : "")">
+                                <a asp-controller="ProgramGelistirme" asp-action="GenelRaporlama" class="menu-link">
+                                    <div class="text-truncate">Genel Raporlama</div>
+                                </a>
+                            </li>
+                            @if (canManageOgrenciProfili)
+                            {
+                                <li class="menu-item sidebar-page-item @(isOgrenciProfiliYonetimiActive ? "active" : "")">
+                                    <a asp-controller="ProgramGelistirme" asp-action="OgrenciProfiliYonetimi" class="menu-link">
+                                        <div class="text-truncate">Öğrenci Profili Yönetimi</div>
+                                    </a>
+                                </li>
+                                <li class="menu-item sidebar-page-item @(isOgrenciProfiliTanimlariActive ? "active" : "")">
+                                    <a asp-controller="ProgramGelistirme" asp-action="OgrenciProfiliTanimlari" class="menu-link">
+                                        <div class="text-truncate">Öğrenci Profili Tanımları</div>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        }
+        else
+        {
+            <li class="menu-item sidebar-main-module @(isProgramRaporlariOpen ? "active open" : "")">
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon tf-icons bx bx-line-chart"></i>
+                    <div class="text-truncate">Öğrenci Profili Raporları</div>
+                </a>
+                <ul class="menu-sub">
+                    <li class="menu-item sidebar-page-item @(isGunesIsiniDiagramiActive ? "active" : "")">
+                        <a asp-controller="ProgramGelistirme" asp-action="GunesIsiniDiagrami" class="menu-link">
+                            <div class="text-truncate">Güneş Işını Haritası</div>
+                        </a>
+                    </li>
+                    <li class="menu-item sidebar-page-item @(isAgAnaliziRaporuActive ? "active" : "")">
+                        <a asp-controller="ProgramGelistirme" asp-action="AgAnaliziRaporu" class="menu-link">
+                            <div class="text-truncate">Ağ Analizi Raporu</div>
+                        </a>
+                    </li>
+                    <li class="menu-item sidebar-page-item @(isIsiHaritasiRaporuActive ? "active" : "")">
+                        <a asp-controller="ProgramGelistirme" asp-action="IsiHaritasiRaporu" class="menu-link">
+                            <div class="text-truncate">Isı Haritası Raporu</div>
+                        </a>
+                    </li>
+                    <li class="menu-item sidebar-page-item @(isGenelRaporlamaActive ? "active" : "")">
+                        <a asp-controller="ProgramGelistirme" asp-action="GenelRaporlama" class="menu-link">
+                            <div class="text-truncate">Genel Raporlama</div>
+                        </a>
+                    </li>
+                    @if (canManageOgrenciProfili)
+                    {
+                        <li class="menu-item sidebar-page-item @(isOgrenciProfiliYonetimiActive ? "active" : "")">
+                            <a asp-controller="ProgramGelistirme" asp-action="OgrenciProfiliYonetimi" class="menu-link">
+                                <div class="text-truncate">Öğrenci Profili Yönetimi</div>
+                            </a>
+                        </li>
+                        <li class="menu-item sidebar-page-item @(isOgrenciProfiliTanimlariActive ? "active" : "")">
+                            <a asp-controller="ProgramGelistirme" asp-action="OgrenciProfiliTanimlari" class="menu-link">
+                                <div class="text-truncate">Öğrenci Profili Tanımları</div>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </li>
+        }
+    }
+
+    @if (showCommissionMode)
+    {
+        <li class="menu-item sidebar-main-module @(activeSystemMode == "master" ? "" : "sidebar-shell-hidden open") @(!isProgramGelistirmeModuleOpen ? "active open" : "")">
+          <a href="javascript:void(0);" class="menu-link menu-toggle">
+            <i class="menu-icon tf-icons bx bx-layer"></i>
+            <div class="text-truncate fw-bold">Komisyon İzleme Modülü</div>
+          </a>
+          <ul class="menu-sub">
 
     @if (userRole == "Admin")
     {
@@ -129,11 +328,34 @@
     @if (userRole == "Admin" || userRole == "Yönetici" || isCommissionChair)
     {
         <!-- Bildirim Modülü (Admin, Yönetici, Koordinatör, Komisyon Başkanı) -->
-        <li class="menu-item @(string.Equals(currentController, "BildirimModulu", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-          <a asp-controller="BildirimModulu" asp-action="Index" class="menu-link">
+        var isBildirimModuleOpen = string.Equals(currentController, "BildirimModulu", StringComparison.OrdinalIgnoreCase);
+        var isBildirimGonderActive = isBildirimModuleOpen &&
+            (string.Equals(currentAction, "Index", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(currentAction, "Gonder", StringComparison.OrdinalIgnoreCase));
+        var isBildirimListeActive = isBildirimModuleOpen &&
+            (string.Equals(currentAction, "BildirimListesi", StringComparison.OrdinalIgnoreCase) ||
+             string.Equals(currentAction, "Detay", StringComparison.OrdinalIgnoreCase));
+
+        <li class="menu-item @(isBildirimModuleOpen ? "active open" : "")">
+          <a href="javascript:void(0);" class="menu-link menu-toggle">
             <i class="menu-icon tf-icons bx bx-broadcast"></i>
             <div class="text-truncate fw-bold" data-i18n="Bildirim Modülü">Bildirim Modülü</div>
           </a>
+          <ul class="menu-sub">
+            <li class="menu-item @(isBildirimGonderActive ? "active" : "")">
+              <a asp-controller="BildirimModulu" asp-action="Gonder" class="menu-link">
+                <div class="text-truncate">Toplu Bildirim Gönder</div>
+              </a>
+            </li>
+            @if (userRole == "Admin")
+            {
+                <li class="menu-item @(isBildirimListeActive ? "active" : "")">
+                  <a asp-controller="BildirimModulu" asp-action="BildirimListesi" class="menu-link">
+                    <div class="text-truncate">Bildirimler Listesi</div>
+                  </a>
+                </li>
+            }
+          </ul>
         </li>
     }
 
@@ -208,7 +430,7 @@
               </a>
             </li>
             <li class="menu-item @(string.Equals(currentController, "BildirimModulu", StringComparison.OrdinalIgnoreCase) ? "active" : "")">
-              <a asp-controller="BildirimModulu" asp-action="Index" class="menu-link">
+              <a asp-controller="BildirimModulu" asp-action="Gonder" class="menu-link">
                 <div class="text-truncate">Bildirim Yönetimi</div>
               </a>
             </li>
@@ -401,6 +623,101 @@
           </ul>
     </li>
 
+          </ul>
+        </li>
+    }
+
+    @if (!showCommissionMode)
+    {
+        <li class="menu-item @(isProfileActive ? "active open" : "")">
+             <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons bx bx-user-circle"></i>
+                <div class="text-truncate" data-i18n="Profilim">Profilim</div>
+              </a>
+              <ul class="menu-sub">
+                <li class="menu-item @(currentAction == "BenimDetay" || (currentAction == "Detay" && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr) ? "active" : "")">
+                    <a asp-controller="Personel" asp-action="BenimDetay" class="menu-link">
+                        <div class="text-truncate" data-i18n="Profil Bilgileri">Profil Bilgileri</div>
+                    </a>
+                </li>
+                 <li class="menu-item @(currentAction == "Ekle" && ViewContext.RouteData.Values["id"]?.ToString() == currentUserIdStr ? "active" : "")">
+                    <a asp-controller="Personel" asp-action="Ekle" asp-route-id="@currentUserIdStr" class="menu-link">
+                        <div class="text-truncate" data-i18n="Profili Düzenle">Profili Düzenle</div>
+                    </a>
+                </li>
+              </ul>
+        </li>
+    }
+
     <!-- Placeholder for other menus -->
   </ul>
 </aside>
+
+<script>
+  (() => {
+    const select = document.getElementById('systemModeSelect');
+    const cookieName = 'tegm-system-mode';
+    const legacyStorageKey = 'tegm-system-mode';
+    const storageKey = select?.dataset.storageKey || legacyStorageKey;
+    const allowedModes = (select?.dataset.allowedModes || '').split(',').filter(Boolean);
+    const activeMode = select?.dataset.activeMode || select?.value || '';
+
+    const setModeCookie = value => {
+      document.cookie = `${cookieName}=${encodeURIComponent(value)}; path=/; max-age=31536000; SameSite=Lax`;
+    };
+
+    if (select) {
+      const storedMode = localStorage.getItem(storageKey) || localStorage.getItem(legacyStorageKey);
+      if (storedMode && allowedModes.includes(storedMode) && storedMode !== activeMode) {
+        localStorage.setItem(storageKey, storedMode);
+        localStorage.setItem(legacyStorageKey, storedMode);
+        setModeCookie(storedMode);
+        window.location.reload();
+        return;
+      }
+
+      if (activeMode && allowedModes.includes(activeMode)) {
+        localStorage.setItem(storageKey, activeMode);
+        localStorage.setItem(legacyStorageKey, activeMode);
+        setModeCookie(activeMode);
+      } else {
+        localStorage.removeItem(storageKey);
+      }
+
+      select.addEventListener('change', () => {
+        const value = select.value;
+        localStorage.setItem(storageKey, value);
+        localStorage.setItem(legacyStorageKey, value);
+        setModeCookie(value);
+        window.location.reload();
+      });
+    }
+
+    const sidebar = document.getElementById('layout-menu');
+    if (!sidebar) return;
+
+    sidebar.addEventListener('click', event => {
+      const toggle = event.target.closest('.menu-toggle');
+      if (!toggle || !sidebar.contains(toggle)) return;
+
+      const item = toggle.closest('.menu-item');
+      if (!item || !Array.from(item.children).some(child => child.classList?.contains('menu-sub'))) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      item.classList.toggle('open');
+      item.style.height = '';
+      item.style.overflow = '';
+      item.querySelectorAll('.menu-item-animating, .menu-item-closing').forEach(child => {
+        child.classList.remove('menu-item-animating', 'menu-item-closing');
+        child.style.height = '';
+        child.style.overflow = '';
+      });
+
+      if (window.Helpers?.menuPsScroll?.update) {
+        window.Helpers.menuPsScroll.update();
+      }
+    }, true);
+  })();
+</script>

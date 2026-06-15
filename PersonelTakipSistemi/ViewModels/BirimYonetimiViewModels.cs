@@ -13,6 +13,8 @@ namespace PersonelTakipSistemi.ViewModels
 
         public List<HaritaIlItem> HaritaIlleri { get; set; } = new();
         public List<BirimKartItem> Komisyonlar { get; set; } = new();
+        public List<KomisyonPersonelItem> TumPersoneller { get; set; } = new();
+        public List<KomisyonGorevItem> TumGorevler { get; set; } = new();
         
         // Sadece Merkez için
         public List<KomisyonPersonelItem> MerkezPersonelleri { get; set; } = new();

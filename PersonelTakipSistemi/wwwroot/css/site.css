@@ -16,6 +16,107 @@
   color: #fff !important;
 }
 
+/* Program Gelistirme diagram page headers */
+.pg-page-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.pg-page-title h4 {
+  margin: 0;
+  padding: 0.9rem 0;
+  color: #3f4d5a;
+  font-weight: 500;
+}
+
+.pg-page-title strong {
+  color: #2f3c49;
+  font-weight: 800;
+}
+
+.pg-summary-card,
+.pg-filter-card {
+  border: 0 !important;
+  border-radius: 0.45rem !important;
+  background: #fff !important;
+  box-shadow: 0 0.35rem 1rem rgba(67, 89, 113, 0.10) !important;
+}
+
+.pg-summary-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 96px;
+  padding: 1.45rem 1.55rem !important;
+}
+
+.pg-summary-title {
+  margin: 0 0 0.35rem;
+  color: #344354;
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.pg-summary-subtitle {
+  color: #697a8d;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.pg-summary-stats {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.pg-summary-stats span,
+.pg-stat {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0.25rem 0.65rem;
+  border-radius: 0.45rem;
+  background: #f2f5fa;
+  color: #566a7f;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pg-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.85rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #d9dee3;
+}
+
+.pg-filter-actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+@media (max-width: 767.98px) {
+  .pg-summary-body,
+  .pg-filter-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pg-summary-stats,
+  .pg-filter-actions {
+    justify-content: flex-start;
+  }
+}
+
 
 
 
@@ -55,7 +156,7 @@
 /* Sidebar Width Adjustment */
 /* Sidebar Width Adjustment - Global Override */
 .layout-menu-fixed .layout-menu {
-  width: 290px !important;
+  width: 320px !important;
   /* Standard narrow width */
 }
 
@@ -67,7 +168,7 @@
   border-radius: 0 !important;
   padding-left: 1rem !important;
   /* Top level padding */
-  padding-right: 1rem !important;
+  padding-right: 2.6rem !important;
   display: flex !important;
   /* Flexbox for alignment */
   gap: 0.5rem !important;
@@ -84,7 +185,7 @@
 
   /* Reduced padding to bring text closer to the dot */
   padding-left: 3rem !important;
-  padding-right: 1rem !important;
+  padding-right: 2.6rem !important;
 
   display: flex !important;
   align-items: center !important;
@@ -116,9 +217,191 @@
   display: block !important;
 }
 
+.layout-menu .menu-sub>.menu-item>.menu-link.menu-link-no-marker::before,
+.layout-menu .menu-sub>.menu-item.active>.menu-link.menu-link-no-marker::before {
+  display: none !important;
+}
+
 /* Remove manual div margin needed previously, as padding handles it now */
 .layout-menu .menu-sub>.menu-item>.menu-link>div {
   margin-left: 0 !important;
+}
+
+/* Sidebar hierarchy: Ana Modül -> Alt Modül -> Modül Sayfaları */
+#layout-menu {
+  color: #c9d5df !important;
+}
+
+#layout-menu .menu-link,
+#layout-menu .menu-link .text-truncate,
+#layout-menu .menu-link i {
+  color: #c9d5df !important;
+}
+
+#layout-menu .menu-link:hover,
+#layout-menu .menu-link:hover .text-truncate,
+#layout-menu .menu-link:hover i {
+  color: #e4edf4 !important;
+}
+
+#layout-menu .menu-toggle::after {
+  color: #aebdca !important;
+  opacity: 1 !important;
+  position: absolute !important;
+  right: 0.9rem !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  margin-left: 0 !important;
+}
+
+#layout-menu .sidebar-mode-select {
+  border: 1px solid #7a8793 !important;
+  background:
+    linear-gradient(180deg, #b9c0c7 0%, #8e99a4 48%, #6f7d89 100%) !important;
+  color: #172331 !important;
+  font-weight: 800 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 1px 3px rgba(0, 0, 0, 0.20) !important;
+}
+
+#layout-menu .sidebar-mode-select:focus {
+  border-color: #b9c8d6 !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.65),
+    0 0 0 0.16rem rgba(185, 200, 214, 0.25) !important;
+}
+
+#layout-menu .sidebar-mode-select option {
+  background-color: #d1d6dc;
+  color: #172331;
+}
+
+#layout-menu .menu-inner {
+  padding-left: 0.7rem !important;
+  padding-right: 0.7rem !important;
+}
+
+#layout-menu .menu-inner>.menu-item {
+  margin-bottom: 0.25rem !important;
+}
+
+#layout-menu .menu-inner>.menu-item>.menu-link {
+  min-height: 42px !important;
+  border-radius: 0.35rem !important;
+  font-weight: 800 !important;
+}
+
+#layout-menu .menu-inner>.menu-item.active>.menu-link,
+#layout-menu .menu-inner>.menu-item.open>.menu-link {
+  background-color: rgba(96, 133, 166, 0.35) !important;
+  color: #dce7ef !important;
+}
+
+#layout-menu .menu-inner>.menu-item.active>.menu-link .text-truncate,
+#layout-menu .menu-inner>.menu-item.open>.menu-link .text-truncate,
+#layout-menu .menu-inner>.menu-item.active>.menu-link i,
+#layout-menu .menu-inner>.menu-item.open>.menu-link i {
+  color: #dce7ef !important;
+}
+
+#layout-menu .menu-inner>.menu-item>.menu-sub {
+  margin: 0.2rem 0 0.45rem !important;
+  padding-left: 0 !important;
+}
+
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item>.menu-link {
+  min-height: 38px !important;
+  margin: 0.08rem 0.15rem !important;
+  padding-left: 1.05rem !important;
+  padding-right: 2.4rem !important;
+  border-left: 2px solid rgba(255, 255, 255, 0.16) !important;
+  border-radius: 0.3rem !important;
+  background-color: transparent !important;
+  font-weight: 750 !important;
+}
+
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item.active>.menu-link,
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item.open>.menu-link {
+  border-left-color: #9fc7ea !important;
+  background-color: rgba(96, 133, 166, 0.26) !important;
+  color: #d7e2eb !important;
+}
+
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item.active>.menu-link .text-truncate,
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item.open>.menu-link .text-truncate,
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item.active>.menu-link i,
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item.open>.menu-link i {
+  color: #d7e2eb !important;
+}
+
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item>.menu-link::before {
+  display: none !important;
+}
+
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item>.menu-sub {
+  margin: 0.1rem 0 0.35rem !important;
+  padding-left: 0 !important;
+}
+
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item>.menu-sub>.menu-item>.menu-link {
+  min-height: 34px !important;
+  margin: 0.04rem 0.15rem 0.04rem 0.35rem !important;
+  padding-left: 2.15rem !important;
+  padding-right: 2rem !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border-radius: 0.25rem !important;
+  background-color: transparent !important;
+  font-size: 0.88rem !important;
+  font-weight: 650 !important;
+}
+
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item>.menu-sub>.menu-item>.menu-link::before {
+  display: block !important;
+  left: 1.25rem !important;
+  width: 4px !important;
+  height: 4px !important;
+  opacity: 0.75 !important;
+}
+
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item>.menu-sub>.menu-item.active>.menu-link {
+  background-color: #405a72 !important;
+  color: #dce7ef !important;
+}
+
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item>.menu-sub>.menu-item.active>.menu-link .text-truncate,
+#layout-menu .menu-inner>.menu-item>.menu-sub>.menu-item>.menu-sub>.menu-item.active>.menu-link i {
+  color: #dce7ef !important;
+}
+
+#layout-menu .menu-inner>.menu-item.sidebar-shell-hidden {
+  margin-bottom: 0 !important;
+}
+
+#layout-menu .menu-inner>.menu-item.sidebar-shell-hidden>.menu-link {
+  display: none !important;
+}
+
+#layout-menu .menu-inner>.menu-item.sidebar-shell-hidden>.menu-sub {
+  display: block !important;
+  margin-top: 0 !important;
+}
+
+#layout-menu .menu-inner>.menu-item.sidebar-shell-hidden>.menu-sub>.menu-item>.menu-link {
+  min-height: 42px !important;
+  margin: 0 0 0.25rem !important;
+  padding-left: 1rem !important;
+  padding-right: 2.6rem !important;
+  border-left: 0 !important;
+  border-radius: 0.35rem !important;
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  font-weight: 800 !important;
+}
+
+#layout-menu .menu-inner>.menu-item.sidebar-shell-hidden>.menu-sub>.menu-item.active>.menu-link,
+#layout-menu .menu-inner>.menu-item.sidebar-shell-hidden>.menu-sub>.menu-item.open>.menu-link {
+  background-color: rgba(96, 133, 166, 0.35) !important;
+  color: #dce7ef !important;
 }
 
 /* Fix Icon Spacing in Flex */
@@ -147,7 +430,7 @@
   }
 
   .layout-menu-fixed .layout-menu {
-    width: 290px !important;
+    width: 320px !important;
     transition: transform 0.3s ease-in-out !important;
     /* Ensure smooth slide */
   }

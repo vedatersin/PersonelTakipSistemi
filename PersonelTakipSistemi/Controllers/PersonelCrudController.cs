@@ -33,12 +33,12 @@ namespace PersonelTakipSistemi.Controllers
                     PersonelId = 0,
                     SeciliYazilimIdleri = new List<int>(),
                     SeciliUzmanlikIdleri = new List<int>(),
-                    SeciliGorevTuruIdleri = new List<int>(),
                     SeciliIsNiteligiIdleri = new List<int>(),
 
                     SistemRolId = 4, // Default: Kullanici
                     IsAuthSkipped = false,
-                    AktifMi = true // Default to Active
+                    AktifMi = true, // Default to Active
+                    GorevBitisTarihi = new DateTime(2026, 6, 30)
                 };
                 
                 await FillLookupListsAsync(cleanModel);
@@ -60,7 +60,6 @@ namespace PersonelTakipSistemi.Controllers
             var personel = await _context.Personeller
                 .Include(p => p.PersonelYazilimlar)
                 .Include(p => p.PersonelUzmanliklar)
-                .Include(p => p.PersonelGorevTurleri)
                 .Include(p => p.PersonelIsNitelikleri)
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.KurumsalRol)
                 .Include(p => p.PersonelKurumsalRolAtamalari).ThenInclude(pkr => pkr.Teskilat)
@@ -92,6 +91,8 @@ namespace PersonelTakipSistemi.Controllers
                 Eposta = personel.Eposta,
                 PersonelCinsiyet = personel.PersonelCinsiyet ? 1 : 0,
                 DogumTarihi = personel.DogumTarihi,
+                GoreveBaslamaTarihi = personel.GoreveBaslamaTarihi,
+                GorevBitisTarihi = personel.GorevBitisTarihi ?? new DateTime(2026, 6, 30),
                 GorevliIlId = personel.GorevliIlId,
                 KadroIlId = personel.KadroIlId,
                 KadroIlceId = personel.KadroIlceId,
@@ -103,11 +104,11 @@ namespace PersonelTakipSistemi.Controllers
                 // Iliskili tablolari seçili olarak isaretle
                 SeciliYazilimIdleri = personel.PersonelYazilimlar.Select(x => x.YazilimId).ToList(),
                 SeciliUzmanlikIdleri = personel.PersonelUzmanliklar.Select(x => x.UzmanlikId).ToList(),
-                SeciliGorevTuruIdleri = personel.PersonelGorevTurleri.Select(x => x.GorevTuruId).ToList(),
                 SeciliIsNiteligiIdleri = personel.PersonelIsNitelikleri.Select(x => x.IsNiteligiId).ToList(),
 
                 // Auth Data
-                SistemRolId = personel.SistemRolId // Assuming property exists on Personel entity
+                SistemRolId = personel.SistemRolId, // Assuming property exists on Personel entity
+                YetkiliModlar = NormalizeModeList((personel.YetkiliModlar ?? string.Empty).Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
                 // If YetkiKapsami exists on Personel, map it too. If not, default "Self".
             };
 
@@ -368,7 +369,6 @@ namespace PersonelTakipSistemi.Controllers
                         var personel = await _context.Personeller
                             .Include(p => p.PersonelYazilimlar).ThenInclude(py => py.Yazilim)
                             .Include(p => p.PersonelUzmanliklar).ThenInclude(pu => pu.Uzmanlik)
-                            .Include(p => p.PersonelGorevTurleri).ThenInclude(pg => pg.GorevTuru)
                             .Include(p => p.PersonelIsNitelikleri).ThenInclude(pi => pi.IsNiteligi)
                             .Include(p => p.PersonelKurumsalRolAtamalari) // Fix: Include for deletion logic
                             .Include(p => p.PersonelKomisyonlar)
@@ -415,6 +415,21 @@ namespace PersonelTakipSistemi.Controllers
                             var oldSistemRol = await _context.SistemRoller.FindAsync(personel.SistemRolId);
                             changes.Add($"Sistem Rolü: {oldSistemRol?.Ad} -> {newSistemRol?.Ad}");
                         }
+                        var yeniYetkiliModlar = model.SistemRolId == 1
+                            ? SerializeModeList(model.YetkiliModlar, defaultToMaster: true)
+                            : null;
+                        if (!string.Equals(personel.YetkiliModlar, yeniYetkiliModlar, StringComparison.OrdinalIgnoreCase))
+                        {
+                            changes.Add($"Yetkili Modlar: {personel.YetkiliModlar ?? "-"} -> {yeniYetkiliModlar ?? "-"}");
+                        }
+                        if (personel.GoreveBaslamaTarihi?.Date != model.GoreveBaslamaTarihi?.Date)
+                        {
+                            changes.Add($"Göreve Başlama Tarihi: {personel.GoreveBaslamaTarihi:dd.MM.yyyy} -> {model.GoreveBaslamaTarihi:dd.MM.yyyy}");
+                        }
+                        if (personel.GorevBitisTarihi?.Date != model.GorevBitisTarihi?.Date)
+                        {
+                            changes.Add($"Görev Bitiş Tarihi: {personel.GorevBitisTarihi:dd.MM.yyyy} -> {model.GorevBitisTarihi:dd.MM.yyyy}");
+                        }
 
                         // 2. Collection Changes (Helper Function)
 
@@ -442,17 +457,6 @@ namespace PersonelTakipSistemi.Controllers
                         if (addedUzmanlik.Any()) changes.Add($"Eklenen Uzmanliklar: {string.Join(", ", addedUzmanlik)}");
                         if (removedUzmanlik.Any()) changes.Add($"Çikarilan Uzmanliklar: {string.Join(", ", removedUzmanlik)}");
 
-                        // Gorev Turu
-                        var oldGorev = personel.PersonelGorevTurleri.Select(x => x.GorevTuru.Ad).ToList();
-                        var newGorev = new List<string>();
-                        if (model.SeciliGorevTuruIdleri != null && model.SeciliGorevTuruIdleri.Any())
-                            newGorev = await _context.GorevTurleri.Where(x => model.SeciliGorevTuruIdleri.Contains(x.GorevTuruId)).Select(x => x.Ad).ToListAsync();
-
-                        var addedGorev = newGorev.Except(oldGorev).ToList();
-                        var removedGorev = oldGorev.Except(newGorev).ToList();
-                        if (addedGorev.Any()) changes.Add($"Eklenen Görev Türleri: {string.Join(", ", addedGorev)}");
-                        if (removedGorev.Any()) changes.Add($"Çikarilan Görev Türleri: {string.Join(", ", removedGorev)}");
-                        
                         // Is Niteligi
                         var oldNitelik = personel.PersonelIsNitelikleri.Select(x => x.IsNiteligi.Ad).ToList();
                         var newNitelik = new List<string>();
@@ -474,6 +478,8 @@ namespace PersonelTakipSistemi.Controllers
                         personel.Eposta = model.Eposta!;
                         personel.PersonelCinsiyet = (model.PersonelCinsiyet ?? 0) == 1;
                         personel.DogumTarihi = model.DogumTarihi!.Value;
+                        personel.GoreveBaslamaTarihi = model.GoreveBaslamaTarihi;
+                        personel.GorevBitisTarihi = model.GorevBitisTarihi;
                         personel.GorevliIlId = model.GorevliIlId!.Value;
                         personel.KadroIlId = model.KadroIlId;
                         personel.KadroIlceId = model.KadroIlceId;
@@ -491,6 +497,9 @@ namespace PersonelTakipSistemi.Controllers
                         if (User.IsInRole("Admin"))
                         {
                             personel.SistemRolId = model.SistemRolId;
+                            personel.YetkiliModlar = model.SistemRolId == 1
+                                ? SerializeModeList(model.YetkiliModlar, defaultToMaster: true)
+                                : null;
                         }
                         // Non-admins keep their existing role (personel.SistemRolId remains unchanged)
                         
@@ -546,7 +555,6 @@ namespace PersonelTakipSistemi.Controllers
                         // Iliskileri Temizle
                         _context.PersonelYazilimlar.RemoveRange(personel.PersonelYazilimlar);
                         _context.PersonelUzmanliklar.RemoveRange(personel.PersonelUzmanliklar);
-                        _context.PersonelGorevTurleri.RemoveRange(personel.PersonelGorevTurleri);
                         _context.PersonelIsNitelikleri.RemoveRange(personel.PersonelIsNitelikleri);
                         _context.PersonelKurumsalRolAtamalari.RemoveRange(personel.PersonelKurumsalRolAtamalari); // Clear existing roles
                         _context.PersonelKomisyonlar.RemoveRange(personel.PersonelKomisyonlar);
@@ -657,6 +665,8 @@ namespace PersonelTakipSistemi.Controllers
                             Eposta = model.Eposta!,
                             PersonelCinsiyet = (model.PersonelCinsiyet ?? 0) == 1,
                             DogumTarihi = model.DogumTarihi!.Value,
+                            GoreveBaslamaTarihi = model.GoreveBaslamaTarihi,
+                            GorevBitisTarihi = model.GorevBitisTarihi ?? new DateTime(2026, 6, 30),
                             GorevliIlId = model.GorevliIlId!.Value,
                             KadroIlId = model.KadroIlId,
                             KadroIlceId = model.KadroIlceId,
@@ -670,7 +680,10 @@ namespace PersonelTakipSistemi.Controllers
                             UpdatedAt = null,
 
                             // Rule: Only Admin can set SistemRolId for new users. Others default to 4 (Kullanici)
-                            SistemRolId = (User.IsInRole("Admin") && model.SistemRolId != null) ? model.SistemRolId.Value : 4
+                            SistemRolId = (User.IsInRole("Admin") && model.SistemRolId != null) ? model.SistemRolId.Value : 4,
+                            YetkiliModlar = (User.IsInRole("Admin") && model.SistemRolId == 1)
+                                ? SerializeModeList(model.YetkiliModlar, defaultToMaster: true)
+                                : null
                         };
 
                         _context.Personeller.Add(personel);
@@ -765,9 +778,6 @@ namespace PersonelTakipSistemi.Controllers
             
             if (model.SeciliUzmanlikIdleri != null)
                 foreach (var id in model.SeciliUzmanlikIdleri) _context.PersonelUzmanliklar.Add(new PersonelUzmanlik { PersonelId = personelId, UzmanlikId = id });
-
-            if (model.SeciliGorevTuruIdleri != null)
-                foreach (var id in model.SeciliGorevTuruIdleri) _context.PersonelGorevTurleri.Add(new PersonelGorevTuru { PersonelId = personelId, GorevTuruId = id });
 
             if (model.SeciliIsNiteligiIdleri != null)
                 foreach (var id in model.SeciliIsNiteligiIdleri) _context.PersonelIsNitelikleri.Add(new PersonelIsNiteligi { PersonelId = personelId, IsNiteligiId = id });

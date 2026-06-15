@@ -103,6 +103,26 @@
         border-color: #3498db;
     }
 
+    .birim-card-passive {
+        filter: grayscale(.9);
+        opacity: .48;
+        background: #f3f5f7;
+    }
+
+    .birim-card-passive:hover {
+        transform: none;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        border-color: rgba(0,0,0,0.03);
+    }
+
+    .passive-unit-badge {
+        position: absolute;
+        top: .75rem;
+        right: .75rem;
+        font-size: .7rem;
+        letter-spacing: 0;
+    }
+
     .birim-card .card-body {
         padding: 1.5rem;
     }
@@ -469,7 +489,7 @@
         </div>
     </div>
     <div class="col-auto">
-        <span class="badge bg-label-primary px-3 py-2" id="kartSayisi">@Model.Kartlar.Count birim</span>
+        <span class="badge bg-label-primary px-3 py-2" id="kartSayisi">@Model.Kartlar.Count(k => k.IsActive) birim</span>
     </div>
 </div>
 
@@ -482,7 +502,11 @@
         var altBilgiIkon = merkezKomisyonKarti ? "bx bx-category" : "bx bx-map-pin";
 
         <div class="col">
-            <div class="card birim-card h-100" onclick="birimKartTiklandi('@k.Tur', @k.Id)">
+            <div class="card birim-card @(k.IsActive ? "" : "birim-card-passive") h-100 position-relative" onclick="birimKartTiklandi('@k.Tur', @k.Id)">
+                @if (!k.IsActive)
+                {
+                    <span class="badge bg-label-secondary passive-unit-badge">Pasif</span>
+                }
                 <div class="card-body">
                     <div class="birim-ad">@kartBaslik</div>
                     @if (!string.IsNullOrEmpty(altBilgi))
@@ -516,12 +540,11 @@
             <div class="fw-bold" id="topluEkleHedef">-</div>
         </div>
         <div class="mb-3">
-            <label class="form-label">Personel Ara</label>
-            <input type="text" class="form-control" id="topluPersonelAra" placeholder="Ad, soyad veya il ile ara">
-        </div>
-        <div class="mb-3">
             <label class="form-label">Personeller</label>
-            <select class="form-select" id="topluPersonelSelect" multiple size="12"></select>
+            <select class="form-select" id="topluPersonelSelect" multiple style="width: 100%;"></select>
+            <small class="text-muted">Personel seç alanına tıklayıp ad, soyad veya il ile arama yapabilirsiniz.</small>
+        </div>
+        <div class="mb-3 d-none">
             <small class="text-muted">Ctrl veya Shift ile birden fazla personel seçebilirsiniz.</small>
         </div>
     </div>
@@ -603,6 +626,7 @@
         let selectedIlId = null;
         let currentTeskilatId = @(Model.DefaultTeskilatId ?? 0);
         let defaultKoordId = @(Model.DefaultKoordinatorlukId ?? 0);
+        let defaultKomisyonId = @(Model.DefaultKomisyonId ?? 0);
         let activeIlIds = [];
         let illerData = @Html.Raw(Json.Serialize(Model.Iller));
         let lastRenderedKartlar = @Html.Raw(Json.Serialize(Model.Kartlar));
@@ -613,12 +637,12 @@
         let personelCurrentPage = 1;
         let personelPageSize = 10;
         let highlightPersonelIds = [];
-        let topluEkleSearchTimer = null;
 
         $(document).ready(function() {
             hizliYetkiDrawer = new bootstrap.Offcanvas(document.getElementById('hizliYetkilendirmeDrawer'));
             topluEkleDrawer = new bootstrap.Offcanvas(document.getElementById('topluPersonelEkleDrawer'));
             initMapInteractions();
+            initTopluPersonelSelect();
 
             if (currentTeskilatId) {
                 const initialKoordId = parseNullableInt($('#filterKoordinatorluk').val()) || defaultKoordId || null;
@@ -633,10 +657,6 @@
                 renderPersoneller();
             });
 
-            $('#topluPersonelAra').on('input', function() {
-                clearTimeout(topluEkleSearchTimer);
-                topluEkleSearchTimer = setTimeout(() => loadTopluPersonelOptions($(this).val()), 250);
-            });
         });
 
         function parseNullableInt(value) {
@@ -943,7 +963,17 @@
 
             if (koordId) {
                 $.get('/Birimler/GetKomisyonlar?koordinatorlukId=' + koordId, function(data) {
-                    data.forEach(x => $kom.append(new Option(x.ad, x.komisyonId)));
+                    data.forEach(x => {
+                        const opt = new Option(x.ad, x.komisyonId);
+                        if (defaultKomisyonId && x.komisyonId == defaultKomisyonId) {
+                            opt.selected = true;
+                        }
+                        $kom.append(opt);
+                    });
+                    if (defaultKomisyonId) {
+                        $kom.trigger('change');
+                        defaultKomisyonId = 0;
+                    }
                 });
             }
 
@@ -1001,6 +1031,11 @@
 
             $.get(url, function(data) {
                 birimPersoneller = data || [];
+                if (highlightPersonelIds.length) {
+                    const highlighted = birimPersoneller.filter(p => highlightPersonelIds.includes(p.personelId));
+                    const rest = birimPersoneller.filter(p => !highlightPersonelIds.includes(p.personelId));
+                    birimPersoneller = highlighted.concat(rest);
+                }
                 personelCurrentPage = 1;
                 renderPersoneller();
             }).fail(function() {
@@ -1114,7 +1149,8 @@
                 return;
             }
 
-            $('#kartSayisi').text(kartlar.length + ' birim');
+            const aktifKartSayisi = kartlar.filter(k => k.isActive !== false).length;
+            $('#kartSayisi').text(aktifKartSayisi + ' birim');
 
             if (kartlar[0].tur === 'Komisyon') {
                 $('#kartBaslik').html('<i class="bx bxs-group me-2 text-primary"></i>Komisyonlar');
@@ -1137,9 +1173,13 @@
                 }
 
                 const ilBadge = secondaryText ? `<div class="birim-il"><i class="${secondaryIcon}"></i> ${secondaryText}</div>` : '';
+                const isPassive = k.isActive === false;
+                const passiveClass = isPassive ? ' birim-card-passive' : '';
+                const passiveBadge = isPassive ? '<span class="badge bg-label-secondary passive-unit-badge">Pasif</span>' : '';
                 const html = `
                     <div class="col">
-                        <div class="card birim-card h-100" onclick="birimKartTiklandi('${k.tur}', ${k.id})">
+                        <div class="card birim-card${passiveClass} h-100 position-relative" onclick="birimKartTiklandi('${k.tur}', ${k.id})">
+                            ${passiveBadge}
                             <div class="card-body">
                                 <div class="birim-ad">${displayedTitle}</div>
                                 ${ilBadge}
@@ -1422,10 +1462,39 @@
                     : $('#filterTeskilat option:selected').text();
 
             $('#topluEkleHedef').text(selectedText || scope.type);
-            $('#topluPersonelAra').val('');
-            $('#topluPersonelSelect').empty().append('<option>Personeller yükleniyor...</option>');
-            loadTopluPersonelOptions('');
+            $('#topluPersonelSelect').val(null).trigger('change');
+            $('#topluPersonelSelect').empty().val(null).trigger('change');
             topluEkleDrawer.show();
+        }
+
+        function initTopluPersonelSelect() {
+            const $select = $('#topluPersonelSelect');
+            if (!$select.length || typeof $.fn.select2 === 'undefined') return;
+
+            $select.select2({
+                theme: 'bootstrap-5',
+                dropdownParent: $('#topluPersonelEkleDrawer'),
+                width: '100%',
+                placeholder: 'Personel seç',
+                closeOnSelect: false,
+                allowClear: true,
+                language: {
+                    searching: () => 'Aranıyor...',
+                    noResults: () => 'Personel bulunamadı'
+                },
+                ajax: {
+                    url: '/Birimler/GetTopluAtamaPersoneller',
+                    dataType: 'json',
+                    delay: 200,
+                    data: params => ({ q: params.term || '' }),
+                    processResults: data => ({
+                        results: (data || []).map(p => ({
+                            id: p.personelId,
+                            text: p.adSoyad + (p.il ? ' - ' + p.il : '')
+                        }))
+                    })
+                }
+            });
         }
 
         function loadTopluPersonelOptions(query) {
@@ -1443,7 +1512,10 @@
 
         function topluEkleKaydet() {
             const selectedIds = ($('#topluPersonelSelect').val() || []).map(x => parseInt(x, 10)).filter(Boolean);
-            const selectedName = $('#topluPersonelSelect option:selected').first().text().split(' - ')[0] || '';
+            const selectedData = typeof $('#topluPersonelSelect').select2 === 'function'
+                ? ($('#topluPersonelSelect').select2('data') || [])
+                : [];
+            const selectedName = (selectedData[0]?.text || $('#topluPersonelSelect option:selected').first().text()).split(' - ')[0] || '';
             if (!selectedIds.length) {
                 Swal.fire('Personel Seçiniz', 'Eklemek için en az bir personel seçiniz.', 'warning');
                 return;
@@ -1466,6 +1538,7 @@
             }).done(function() {
                 highlightPersonelIds = selectedIds;
                 topluEkleDrawer.hide();
+                $('#topluPersonelSelect').val(null).trigger('change');
                 loadPersoneller();
                 loadKartlar();
                 if (selectedIds.length === 1) {

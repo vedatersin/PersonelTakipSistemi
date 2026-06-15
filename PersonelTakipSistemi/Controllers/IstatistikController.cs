@@ -8,6 +8,7 @@ using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using OfficeOpenXml.Drawing.Chart;
 using System.Drawing;
+using System.Security.Claims;
 
 namespace PersonelTakipSistemi.Controllers
 {
@@ -22,9 +23,13 @@ namespace PersonelTakipSistemi.Controllers
             ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
         }
 
-        [Authorize(Roles = "Admin,Yönetici")]
         public async Task<IActionResult> Index(int? personelId)
         {
+            if (personelId.HasValue && !await CanViewPersonelStatsAsync(personelId.Value))
+            {
+                return Forbid();
+            }
+
             var model = new IstatistikViewModel();
             model.PersonelId = personelId; // ID from URL param
 
@@ -39,6 +44,19 @@ namespace PersonelTakipSistemi.Controllers
                 .OrderBy(t => t.Ad)
                 .Select(t => new SelectListItem { Value = t.TeskilatId.ToString(), Text = t.Ad })
                 .ToListAsync();
+
+            if (personelId.HasValue)
+            {
+                model.PersonelList = await _context.Personeller
+                    .Where(p => p.PersonelId == personelId.Value)
+                    .Select(p => new SelectListItem
+                    {
+                        Value = p.PersonelId.ToString(),
+                        Text = p.Ad + " " + p.Soyad,
+                        Selected = true
+                    })
+                    .ToListAsync();
+            }
 
             return View(model);
         }
@@ -112,20 +130,27 @@ namespace PersonelTakipSistemi.Controllers
         [Authorize] 
         public async Task<IActionResult> GetStats(int? teskilatId, int? koordinatorlukId, int? komisyonId, int? personelId, int months = 6)
         {
-            // SECURITY CHECK: If not Admin/Manager, FORCE filtering by their own ID
-            if (!User.IsInRole("Admin") && !User.IsInRole("Yönetici"))
+            var hasGlobalAccess = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            if (!hasGlobalAccess)
             {
-                var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(userIdStr, out int uid))
+                if (personelId.HasValue && await CanViewPersonelStatsAsync(personelId.Value))
                 {
-                    personelId = uid;
                     teskilatId = null;
                     koordinatorlukId = null;
                     komisyonId = null;
                 }
                 else
                 {
-                    return Unauthorized();
+                    var currentUserId = GetCurrentUserId();
+                    if (currentUserId <= 0)
+                    {
+                        return Unauthorized();
+                    }
+
+                    personelId = currentUserId;
+                    teskilatId = null;
+                    koordinatorlukId = null;
+                    komisyonId = null;
                 }
             }
             
@@ -265,16 +290,13 @@ namespace PersonelTakipSistemi.Controllers
             else
             {
                 // ========== BİRİM MODU: Çift Çizgili Grafik ==========
-                int monthCount = months == 12 ? 12 : 6;
-                var startDate = DateTime.Now.AddMonths(-(monthCount - 1));
-                var monthList = Enumerable.Range(0, monthCount)
-                   .Select(i => startDate.AddMonths(i))
-                   .Select(d => new { Month = d.Month, Year = d.Year, Label = d.ToString("MM/yyyy") })
-                   .ToList();
+                var now = DateTime.Today;
+                var periods = BuildTrendPeriods(months, now);
+                var startDate = periods.First().Start;
                 
                 lineChart = new MultiSeriesChartJson
                 {
-                    Labels = monthList.Select(m => m.Label).ToList(),
+                    Labels = periods.Select(m => m.Label).ToList(),
                     Datasets = new List<ChartDataset>()
                 };
 
@@ -283,8 +305,7 @@ namespace PersonelTakipSistemi.Controllers
                 var taskData = await trendQuery
                     .Select(g => new 
                     {
-                        Month = g.CreatedAt.Month,
-                        Year = g.CreatedAt.Year,
+                        g.CreatedAt,
                         PersonelIds = g.GorevAtamaPersoneller.Select(p => p.PersonelId).ToList()
                     })
                     .ToListAsync();
@@ -292,12 +313,14 @@ namespace PersonelTakipSistemi.Controllers
                 var gorevSayilari = new List<int>();
                 var personelSayilari = new List<int>();
 
-                foreach(var m in monthList)
+                foreach(var period in periods)
                 {
-                    var monthTasks = taskData.Where(x => x.Year == m.Year && x.Month == m.Month).ToList();
-                    gorevSayilari.Add(monthTasks.Count);
+                    var periodTasks = taskData
+                        .Where(x => x.CreatedAt >= period.Start && x.CreatedAt < period.End)
+                        .ToList();
+                    gorevSayilari.Add(periodTasks.Count);
 
-                    var uniquePersonel = monthTasks
+                    var uniquePersonel = periodTasks
                         .SelectMany(x => x.PersonelIds)
                         .Distinct()
                         .Count();
@@ -378,12 +401,28 @@ namespace PersonelTakipSistemi.Controllers
         [Authorize]
         public async Task<IActionResult> ExportExcel(int? teskilatId, int? koordinatorlukId, int? komisyonId, int? personelId, int months = 6)
         {
-            // Security check
-            if (!User.IsInRole("Admin") && !User.IsInRole("Yönetici"))
+            var hasGlobalAccess = User.IsInRole("Admin") || User.IsInRole("Yönetici");
+            if (!hasGlobalAccess)
             {
-                var userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-                if (int.TryParse(userIdStr, out int uid)) { personelId = uid; teskilatId = null; koordinatorlukId = null; komisyonId = null; }
-                else return Unauthorized();
+                if (personelId.HasValue && await CanViewPersonelStatsAsync(personelId.Value))
+                {
+                    teskilatId = null;
+                    koordinatorlukId = null;
+                    komisyonId = null;
+                }
+                else
+                {
+                    var currentUserId = GetCurrentUserId();
+                    if (currentUserId <= 0)
+                    {
+                        return Unauthorized();
+                    }
+
+                    personelId = currentUserId;
+                    teskilatId = null;
+                    koordinatorlukId = null;
+                    komisyonId = null;
+                }
             }
 
             var query = _context.Gorevler.Include(g => g.IsNiteligi).Include(g => g.GorevDurum).AsQueryable();
@@ -490,6 +529,107 @@ namespace PersonelTakipSistemi.Controllers
 
             var fileName = $"Istatistik_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
             return File(package.GetAsByteArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        private static List<TrendPeriod> BuildTrendPeriods(int months, DateTime today)
+        {
+            if (months <= 0)
+            {
+                var start = today.AddDays(-6);
+                return Enumerable.Range(0, 7)
+                    .Select(i =>
+                    {
+                        var day = start.AddDays(i);
+                        return new TrendPeriod(day, day.AddDays(1), day.ToString("dd.MM"));
+                    })
+                    .ToList();
+            }
+
+            if (months == 1)
+            {
+                var start = today.AddDays(-27);
+                return Enumerable.Range(0, 4)
+                    .Select(i =>
+                    {
+                        var weekStart = start.AddDays(i * 7);
+                        var weekEnd = i == 3 ? today.AddDays(1) : weekStart.AddDays(7);
+                        return new TrendPeriod(weekStart, weekEnd, $"{weekStart:dd.MM}-{weekEnd.AddDays(-1):dd.MM}");
+                    })
+                    .ToList();
+            }
+
+            var monthCount = months == 12 ? 12 : months == 3 ? 3 : 6;
+            var monthStart = new DateTime(today.Year, today.Month, 1).AddMonths(-(monthCount - 1));
+            return Enumerable.Range(0, monthCount)
+                .Select(i =>
+                {
+                    var start = monthStart.AddMonths(i);
+                    return new TrendPeriod(start, start.AddMonths(1), start.ToString("MM/yyyy"));
+                })
+                .ToList();
+        }
+
+        private sealed record TrendPeriod(DateTime Start, DateTime End, string Label);
+
+        private int GetCurrentUserId()
+        {
+            var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(currentUserIdStr, out var currentUserId) ? currentUserId : 0;
+        }
+
+        private async Task<bool> CanViewPersonelStatsAsync(int personelId)
+        {
+            if (User.IsInRole("Admin") || User.IsInRole("Yönetici"))
+            {
+                return true;
+            }
+
+            var currentUserId = GetCurrentUserId();
+            if (currentUserId <= 0)
+            {
+                return false;
+            }
+
+            if (currentUserId == personelId)
+            {
+                return true;
+            }
+
+            var coordinatorRoleIds = new[] { 3, 4, 5, 14 };
+            var coordinatorIds = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Where(x => x.PersonelId == currentUserId && x.KoordinatorlukId.HasValue && coordinatorRoleIds.Contains(x.KurumsalRolId))
+                .Select(x => x.KoordinatorlukId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            if (coordinatorIds.Any())
+            {
+                var inCoordinatorScope = await _context.Personeller
+                    .AsNoTracking()
+                    .AnyAsync(p => p.PersonelId == personelId &&
+                                   (p.PersonelKoordinatorlukler.Any(pk => coordinatorIds.Contains(pk.KoordinatorlukId)) ||
+                                    p.PersonelKomisyonlar.Any(pk =>
+                                        coordinatorIds.Contains(pk.Komisyon.KoordinatorlukId) ||
+                                        (pk.Komisyon.BagliMerkezKoordinatorlukId.HasValue && coordinatorIds.Contains(pk.Komisyon.BagliMerkezKoordinatorlukId.Value)))));
+
+                if (inCoordinatorScope)
+                {
+                    return true;
+                }
+            }
+
+            var chairedCommissionIds = await _context.PersonelKurumsalRolAtamalari
+                .AsNoTracking()
+                .Where(x => x.PersonelId == currentUserId && x.KurumsalRolId == 2 && x.KomisyonId.HasValue)
+                .Select(x => x.KomisyonId!.Value)
+                .Distinct()
+                .ToListAsync();
+
+            return chairedCommissionIds.Any() &&
+                   await _context.PersonelKomisyonlar
+                       .AsNoTracking()
+                       .AnyAsync(pk => pk.PersonelId == personelId && chairedCommissionIds.Contains(pk.KomisyonId));
         }
     }
 }

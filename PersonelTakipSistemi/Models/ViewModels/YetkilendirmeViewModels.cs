@@ -27,6 +27,7 @@ namespace PersonelTakipSistemi.Models.ViewModels
         public string AdSoyad { get; set; } = null!;
         public string? FotografYolu { get; set; }
         public string SistemRol { get; set; } = null!;
+        public List<string> YetkiliModlar { get; set; } = new List<string>();
         public bool AktifMi { get; set; } // New
 
         // Display Lists (Strings for UI Chips)
@@ -51,6 +52,7 @@ namespace PersonelTakipSistemi.Models.ViewModels
         public string? FotografYolu { get; set; }
 
         public string SistemRol { get; set; } = null!;
+        public List<string> YetkiliModlar { get; set; } = new List<string>();
         public bool AktifMi { get; set; } // New
 
         // Selected Ids for Initial State in Drawer

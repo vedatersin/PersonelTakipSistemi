@@ -97,7 +97,8 @@ namespace PersonelTakipSistemi.Data
                     new SistemRol { SistemRolId = 1, Ad = "Admin" },
                     new SistemRol { SistemRolId = 2, Ad = "Yönetici" },
                     new SistemRol { SistemRolId = 3, Ad = "Editör" },
-                    new SistemRol { SistemRolId = 4, Ad = "Kullanıcı" }
+                    new SistemRol { SistemRolId = 4, Ad = "Kullanıcı" },
+                    new SistemRol { SistemRolId = 5, Ad = "Program Geliştirme Uzmanı" }
                 );
             });
 

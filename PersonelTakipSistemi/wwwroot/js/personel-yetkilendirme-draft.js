@@ -3,6 +3,7 @@
 let originalState = null;
 let draftState = null;
 let currentPersonelId = null;
+let activeDrawerTab = 'navs-atama';
 
 // Constants
 const ROLES = {
@@ -13,6 +14,11 @@ const ROLES = {
     MERKEZ_TESKILAT: 1,
     ANKARA_TEGM_KOORD: 1
 };
+const SYSTEM_MODES = [
+    { key: 'program', label: 'Program Geliştirme Modu' },
+    { key: 'komisyon', label: 'Komisyon İzleme Modu' },
+    { key: 'master', label: 'Master Admin Modu' }
+];
 
 // UI Helpers
 const showLoader = () => $('#drawerLoader').removeClass('d-none');
@@ -84,6 +90,7 @@ async function loadDraftData(id) {
     showLoader();
     $('#drawerContent').html('');
     currentPersonelId = id;
+    activeDrawerTab = 'navs-atama';
 
     try {
         const response = await fetch(`/Personel/GetYetkilendirmeData/${id}`);
@@ -96,6 +103,7 @@ async function loadDraftData(id) {
         originalState = {
             personelId: data.personelId,
             sistemRol: data.sistemRol,
+            yetkiliModlar: data.yetkiliModlar || [],
             teskilatIds: data.selectedTeskilatIds || [],
             koordinatorlukIds: data.selectedKoordinatorlukIds || [],
             komisyonIds: data.selectedKomisyonIds || [],
@@ -170,15 +178,15 @@ function renderDrawer() {
         </div>
 
         <ul class="nav nav-tabs nav-fill mb-4 border-bottom" role="tablist">
-            <li class="nav-item"><button class="nav-link active border-0" data-bs-toggle="tab" data-bs-target="#navs-atama">Kurumsal Atamalar</button></li>
-            <li class="nav-item"><button class="nav-link border-0" data-bs-toggle="tab" data-bs-target="#navs-sistem">Sistemsel Yetki</button></li>
+            <li class="nav-item"><button class="nav-link ${activeDrawerTab === 'navs-atama' ? 'active' : ''} border-0" data-bs-toggle="tab" data-bs-target="#navs-atama">Kurumsal Atamalar</button></li>
+            <li class="nav-item"><button class="nav-link ${activeDrawerTab === 'navs-sistem' ? 'active' : ''} border-0" data-bs-toggle="tab" data-bs-target="#navs-sistem">Sistemsel Yetki</button></li>
         </ul>
 
         <div class="tab-content p-0" style="min-height:300px;">
-            <div class="tab-pane fade show active" id="navs-atama">
+            <div class="tab-pane fade ${activeDrawerTab === 'navs-atama' ? 'show active' : ''}" id="navs-atama">
                 ${renderAssignmentsTab(state, data)}
             </div>
-            <div class="tab-pane fade" id="navs-sistem">
+            <div class="tab-pane fade ${activeDrawerTab === 'navs-sistem' ? 'show active' : ''}" id="navs-sistem">
                 ${renderSystemTab(state, data)}
             </div>
         </div>
@@ -195,6 +203,12 @@ function renderDrawer() {
     `;
 
     $('#drawerContent').html(html);
+    $('#drawerContent [data-bs-toggle="tab"]').off('shown.bs.tab.auth').on('shown.bs.tab.auth', function () {
+        const target = $(this).attr('data-bs-target');
+        if (target) {
+            activeDrawerTab = target.replace('#', '');
+        }
+    });
 }
 
 function renderAvatar(data) {
@@ -206,6 +220,7 @@ function renderAvatar(data) {
 }
 
 function renderSystemTab(state, data) {
+    const isAdmin = state.sistemRol === 'Admin';
     return `
         <div class="mb-3">
             <label class="form-label text-muted small text-uppercase">Sistem Rolü</label>
@@ -213,6 +228,19 @@ function renderSystemTab(state, data) {
                 ${window.allSistemRolOptions.map(o => `<option value="${o.text}" ${o.text === state.sistemRol ? 'selected' : ''}>${o.text}</option>`).join('')}
             </select>
         </div>
+        ${isAdmin ? `
+            <div class="border rounded p-3 bg-light">
+                <label class="form-label text-muted small text-uppercase mb-2">Admin Modları</label>
+                <div class="d-flex flex-column gap-2">
+                    ${SYSTEM_MODES.map(mode => `
+                        <label class="form-check mb-0">
+                            <input class="form-check-input" type="checkbox" value="${mode.key}" ${state.yetkiliModlar.includes(mode.key) ? 'checked' : ''} onchange="toggleYetkiliMod('${mode.key}', this.checked)">
+                            <span class="form-check-label">${mode.label}</span>
+                        </label>
+                    `).join('')}
+                </div>
+            </div>
+        ` : ''}
     `;
 }
 
@@ -641,7 +669,22 @@ function renderRoleOptions(selectedId) {
 // Logic for Add Form Interactivity
 // Logic for Add Form Interactivity
 window.updateSistemRol = function (val) {
+    activeDrawerTab = 'navs-sistem';
     draftState.sistemRol = val;
+    draftState.yetkiliModlar = val === 'Admin'
+        ? (draftState.yetkiliModlar && draftState.yetkiliModlar.length ? draftState.yetkiliModlar : ['master'])
+        : [];
+    renderDrawer();
+};
+
+window.toggleYetkiliMod = function (mode, checked) {
+    activeDrawerTab = 'navs-sistem';
+    draftState.yetkiliModlar = draftState.yetkiliModlar || [];
+    if (checked && !draftState.yetkiliModlar.includes(mode)) {
+        draftState.yetkiliModlar.push(mode);
+    } else if (!checked) {
+        draftState.yetkiliModlar = draftState.yetkiliModlar.filter(item => item !== mode);
+    }
     renderDrawer();
 };
 
@@ -673,10 +716,12 @@ window.handleAddChange = function (level, val) {
         if (rid >= 7 && rid <= 10) {
             if (draftState.sistemRol != 'Yönetici') {
                 draftState.sistemRol = 'Yönetici';
+                draftState.yetkiliModlar = [];
             }
         } else if (rid === 4) { // Genel Koordinatör
             if (draftState.sistemRol != 'Admin') {
                 draftState.sistemRol = 'Admin';
+                draftState.yetkiliModlar = ['master'];
             }
         }
     }
@@ -873,6 +918,7 @@ async function saveDraft() {
     const payload = {
         PersonelId: originalState.personelId,
         SistemRol: draftState.sistemRol,
+        YetkiliModlar: draftState.yetkiliModlar || [],
         TeskilatIds: draftState.teskilatIds,
         KoordinatorlukIds: draftState.koordinatorlukIds,
         KomisyonIds: draftState.komisyonIds,
@@ -904,6 +950,7 @@ async function saveDraft() {
         originalState = { // Reconstruct original state from fresh data
             personelId: data.personelId,
             sistemRol: data.sistemRol,
+            yetkiliModlar: data.yetkiliModlar || [],
             teskilatIds: data.selectedTeskilatIds || [],
             koordinatorlukIds: data.selectedKoordinatorlukIds || [],
             komisyonIds: data.selectedKomisyonIds || [],

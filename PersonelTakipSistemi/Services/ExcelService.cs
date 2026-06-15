@@ -38,7 +38,6 @@ namespace PersonelTakipSistemi.Services
                 var branslar = await _context.Branslar.OrderBy(x => x.Ad).ToListAsync();
                 var yazilimlar = await _context.Yazilimlar.OrderBy(x => x.Ad).ToListAsync();
                 var uzmanliklar = await _context.Uzmanliklar.OrderBy(x => x.Ad).ToListAsync();
-                var gorevTurleri = await _context.GorevTurleri.OrderBy(x => x.Ad).ToListAsync();
                 var isNitelikleri = await _context.IsNitelikleri.OrderBy(x => x.Ad).ToListAsync();
 
                 // 2. Populate Reference Data (Hidden Sheet)
@@ -46,16 +45,14 @@ namespace PersonelTakipSistemi.Services
                 for (int i = 0; i < branslar.Count; i++) hiddenSheet.Cells[i + 1, 2].Value = branslar[i].Ad;
                 for (int i = 0; i < yazilimlar.Count; i++) hiddenSheet.Cells[i + 1, 3].Value = yazilimlar[i].Ad;
                 for (int i = 0; i < uzmanliklar.Count; i++) hiddenSheet.Cells[i + 1, 4].Value = uzmanliklar[i].Ad;
-                for (int i = 0; i < gorevTurleri.Count; i++) hiddenSheet.Cells[i + 1, 5].Value = gorevTurleri[i].Ad;
-                for (int i = 0; i < isNitelikleri.Count; i++) hiddenSheet.Cells[i + 1, 6].Value = isNitelikleri[i].Ad;
+                for (int i = 0; i < isNitelikleri.Count; i++) hiddenSheet.Cells[i + 1, 5].Value = isNitelikleri[i].Ad;
 
                 // Define Named Ranges for Dropdowns
                 if (iller.Any()) package.Workbook.Names.Add("IllerList", hiddenSheet.Cells[1, 1, iller.Count, 1]);
                 if (branslar.Any()) package.Workbook.Names.Add("BranslarList", hiddenSheet.Cells[1, 2, branslar.Count, 2]);
                 if (yazilimlar.Any()) package.Workbook.Names.Add("YazilimlarList", hiddenSheet.Cells[1, 3, yazilimlar.Count, 3]);
                 if (uzmanliklar.Any()) package.Workbook.Names.Add("UzmanliklarList", hiddenSheet.Cells[1, 4, uzmanliklar.Count, 4]);
-                if (gorevTurleri.Any()) package.Workbook.Names.Add("GorevTurleriList", hiddenSheet.Cells[1, 5, gorevTurleri.Count, 5]);
-                if (isNitelikleri.Any()) package.Workbook.Names.Add("IsNitelikleriList", hiddenSheet.Cells[1, 6, isNitelikleri.Count, 6]);
+                if (isNitelikleri.Any()) package.Workbook.Names.Add("IsNitelikleriList", hiddenSheet.Cells[1, 5, isNitelikleri.Count, 5]);
 
                 // 3. Set Headers
                 string[] headers = {
@@ -63,7 +60,7 @@ namespace PersonelTakipSistemi.Services
                     "Doğum Tarihi (GG.AA.YYYY) *", "Cinsiyet (E/K) *", "İl *", 
                     "Kadro İl", "Kadro İlçe", // New Columns
                     "Branş *", "Kadro Kurum *", "Yazılımlar (Seç/Yaz)", "Uzmanlıklar (Seç/Yaz)",
-                    "Görev Türleri (Seç/Yaz)", "İş Nitelikleri (Seç/Yaz)"
+                    "İş Nitelikleri (Seç/Yaz)"
                 };
 
                 for (int i = 0; i < headers.Length; i++)
@@ -125,18 +122,10 @@ namespace PersonelTakipSistemi.Services
                     val.ShowErrorMessage = false;
                 }
 
-                // Görev Türleri - Col 15 (O)
-                if (gorevTurleri.Any())
-                {
-                    var val = workSheet.DataValidations.AddListValidation(workSheet.Cells[2, 15, dataRows, 15].Address);
-                    val.Formula.ExcelFormula = "GorevTurleriList";
-                    val.ShowErrorMessage = false;
-                }
-
-                // İş Nitelikleri - Col 16 (P)
+                // İş Nitelikleri - Col 15 (O)
                 if (isNitelikleri.Any())
                 {
-                    var val = workSheet.DataValidations.AddListValidation(workSheet.Cells[2, 16, dataRows, 16].Address);
+                    var val = workSheet.DataValidations.AddListValidation(workSheet.Cells[2, 15, dataRows, 15].Address);
                     val.Formula.ExcelFormula = "IsNitelikleriList";
                     val.ShowErrorMessage = false;
                 }
@@ -262,7 +251,6 @@ namespace PersonelTakipSistemi.Services
             var personeller = new List<Personel>();
             var softwareCache = await _context.Yazilimlar.ToDictionaryAsync(x => x.Ad.ToLower(), x => x);
             var expertiseCache = await _context.Uzmanliklar.ToDictionaryAsync(x => x.Ad.ToLower(), x => x);
-            var jobTypeCache = await _context.GorevTurleri.ToDictionaryAsync(x => x.Ad.ToLower(), x => x);
             var jobQualityCache = await _context.IsNitelikleri.ToDictionaryAsync(x => x.Ad.ToLower(), x => x);
             
             // Pre-fetch references to avoid N+1 queries
@@ -481,22 +469,8 @@ namespace PersonelTakipSistemi.Services
                                 }
                             }
 
-                            // Gorev Turleri
-                            var gorevTuruStr = workSheet.Cells[row, 15].Text;
-                            if (!string.IsNullOrEmpty(gorevTuruStr))
-                            {
-                                var items = gorevTuruStr.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
-                                foreach (var item in items)
-                                {
-                                    if (jobTypeCache.TryGetValue(item.ToLower(), out var val))
-                                    {
-                                        p.PersonelGorevTurleri.Add(new PersonelGorevTuru { GorevTuruId = val.GorevTuruId });
-                                    }
-                                }
-                            }
-
                              // Is Nitelikleri
-                            var isNiteligiStr = workSheet.Cells[row, 16].Text;
+                            var isNiteligiStr = workSheet.Cells[row, 15].Text;
                             if (!string.IsNullOrEmpty(isNiteligiStr))
                             {
                                 var items = isNiteligiStr.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());

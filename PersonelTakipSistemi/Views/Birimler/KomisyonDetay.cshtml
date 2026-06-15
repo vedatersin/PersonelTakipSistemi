@@ -9,6 +9,8 @@
     var backLabel = coordinatorContext ? "Birim Yönetimi" : "Birimleri Listele";
     var gorevReturnUrl = Url.Action("KomisyonDetay", "Birimler", new { id = Model.KomisyonId });
     const string gorevReturnLabel = "Komisyon Detayına Dön";
+    var canManagePersoneller = Model.CanManagePersoneller;
+    var canTogglePassive = User.IsInRole("Admin");
 }
 
 <style>
@@ -25,6 +27,51 @@
     .detail-header .breadcrumb-item span { color: rgba(255,255,255,0.78); }
     .detail-header .breadcrumb-item.active { color: #fff; }
     .detail-header .meta-info { font-size: 0.85rem; opacity: 0.85; margin-top: 0.5rem; }
+    .komisyon-passive-shell > .detail-header,
+    .komisyon-passive-shell > .row,
+    .komisyon-passive-shell > .card,
+    .komisyon-passive-shell > .mb-4 {
+        filter: grayscale(.88);
+        opacity: .54;
+        transition: filter .2s ease, opacity .2s ease;
+    }
+    body.komisyon-passive-mode .detail-header,
+    body.komisyon-passive-mode .card:not(.offcanvas .card) {
+        filter: grayscale(.88);
+        opacity: .54;
+        transition: filter .2s ease, opacity .2s ease;
+    }
+    .komisyon-passive-shell .komisyon-status-toggle {
+        filter: none;
+        opacity: 1;
+    }
+    body.komisyon-passive-mode .komisyon-status-toggle {
+        filter: none;
+        opacity: 1;
+    }
+    .komisyon-status-toggle {
+        min-width: 126px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: .55rem;
+        font-weight: 700;
+        color: #fff;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        padding-left: 0;
+    }
+    .komisyon-status-toggle span { line-height: 1; }
+    .komisyon-status-toggle .form-switch {
+        min-height: 0;
+        padding-left: 0;
+    }
+    .komisyon-status-toggle .form-check-input {
+        width: 2.8rem;
+        height: 1.45rem;
+        cursor: pointer;
+        margin: 0;
+    }
 
     .stat-summary-card {
         border: none;
@@ -56,22 +103,36 @@
     .role-chip { display: inline-flex; align-items: center; gap: .4rem; margin: .2rem; }
 </style>
 
+<div id="komisyonPageShell" class="@(Model.IsActive ? "" : "komisyon-passive-shell")">
 <!-- Header + Breadcrumb -->
 <div class="detail-header">
-    <nav aria-label="breadcrumb">
-        <ol class="breadcrumb mb-2">
-            <li class="breadcrumb-item"><a asp-controller="@backController" asp-action="@backAction"><i class="bx bx-arrow-back me-1"></i>@backLabel</a></li>
-            @if (!string.IsNullOrEmpty(Model.TeskilatAd)) { <li class="breadcrumb-item"><span>@Model.TeskilatAd</span></li> }
-            @if (!string.IsNullOrEmpty(Model.KoordinatorlukAd)) { <li class="breadcrumb-item"><span>@Model.KoordinatorlukAd</span></li> }
-            <li class="breadcrumb-item active">@Model.KomisyonAd</li>
-        </ol>
-    </nav>
-    <h4><i class="bx bxs-group me-2"></i>@Model.KomisyonAd</h4>
-    <div class="meta-info">
-        @if (!string.IsNullOrEmpty(Model.IlAd)) { <span><i class="bx bx-map-pin me-1"></i>@Model.IlAd</span> <span class="mx-2">|</span> }
-        <span><i class="bx bx-user me-1"></i>@Model.Personeller.Count Personel</span>
-        <span class="mx-2">|</span>
-        <span><i class="bx bx-briefcase me-1"></i>@Model.Gorevler.Count Görev</span>
+    <div class="d-flex justify-content-between gap-3">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a asp-controller="@backController" asp-action="@backAction"><i class="bx bx-arrow-back me-1"></i>@backLabel</a></li>
+                    @if (!string.IsNullOrEmpty(Model.TeskilatAd)) { <li class="breadcrumb-item"><span>@Model.TeskilatAd</span></li> }
+                    @if (!string.IsNullOrEmpty(Model.KoordinatorlukAd)) { <li class="breadcrumb-item"><span>@Model.KoordinatorlukAd</span></li> }
+                    <li class="breadcrumb-item active">@Model.KomisyonAd</li>
+                </ol>
+            </nav>
+            <h4><i class="bx bxs-group me-2"></i>@Model.KomisyonAd</h4>
+            <div class="meta-info">
+                @if (!string.IsNullOrEmpty(Model.IlAd)) { <span><i class="bx bx-map-pin me-1"></i>@Model.IlAd</span> <span class="mx-2">|</span> }
+                <span><i class="bx bx-user me-1"></i><span id="komisyonHeaderPersonelCount">@Model.Personeller.Count</span> Personel</span>
+                <span class="mx-2">|</span>
+                <span><i class="bx bx-briefcase me-1"></i>@Model.Gorevler.Count Görev</span>
+            </div>
+        </div>
+        @if (canTogglePassive)
+        {
+            <div class="komisyon-status-toggle" title="Komisyonu pasif/aktif yap">
+                <span>PASİF</span>
+                <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" id="komisyonPasifSwitch" @(Model.IsActive ? "" : "checked")>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -79,7 +140,7 @@
 <div class="row g-3 mb-4">
     <div class="col-md-3">
         <div class="card stat-summary-card">
-            <div class="stat-number" style="color:#696cff;">@Model.Personeller.Count</div>
+            <div class="stat-number" id="komisyonStatPersonelCount" style="color:#696cff;">@Model.Personeller.Count</div>
             <div class="stat-text">Toplam Personel</div>
         </div>
     </div>
@@ -107,9 +168,12 @@
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="mb-0"><i class="bx bxs-user-detail me-2" style="color:#696cff;"></i>Personeller</h6>
-        <button type="button" class="btn btn-sm btn-primary" onclick="komisyonPersonelEkleAc()">
-            <i class="bx bx-user-plus me-1"></i>Ekle
-        </button>
+        @if (canManagePersoneller)
+        {
+            <button type="button" class="btn btn-sm btn-primary" onclick="komisyonPersonelEkleAc()">
+                <i class="bx bx-user-plus me-1"></i>Ekle
+            </button>
+        }
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
@@ -212,9 +276,12 @@
                                         <button type="button" class="btn btn-sm btn-info personel-action-btn text-white" title="Yetkilendir" data-bs-toggle="tooltip" onclick="event.stopPropagation(); komisyonYetkilendirAc(@p.PersonelId, '@p.AdSoyad.Replace("'", "\\'")')">
                                             <i class="bx bx-user-check"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-danger personel-action-btn" title="Komisyondan çıkar" data-bs-toggle="tooltip" onclick="event.stopPropagation(); komisyonPersonelCikar(@p.PersonelId)">
-                                            <i class="bx bx-user-minus"></i>
-                                        </button>
+                                        @if (canManagePersoneller)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-danger personel-action-btn" title="Komisyondan çıkar" data-bs-toggle="tooltip" onclick="event.stopPropagation(); komisyonPersonelCikar(@p.PersonelId)">
+                                                <i class="bx bx-user-minus"></i>
+                                            </button>
+                                        }
                                     </div>
                                 </td>
                             </tr>
@@ -223,6 +290,7 @@
                 </table>
             </div>
     </div>
+</div>
 </div>
 
 <div class="offcanvas offcanvas-end" tabindex="-1" id="komisyonPersonelEkleDrawer" aria-labelledby="komisyonPersonelEkleLabel" style="width: 560px;">
@@ -236,13 +304,9 @@
             <div class="fw-bold">@Model.KomisyonAd</div>
         </div>
         <div class="mb-3">
-            <label class="form-label">Personel Ara</label>
-            <input type="text" class="form-control" id="komisyonPersonelAra" placeholder="Ad, soyad veya il ile ara">
-        </div>
-        <div class="mb-3">
-            <label class="form-label">Personel</label>
-            <select class="form-select" id="komisyonPersonelSelect" size="10"></select>
-            <small class="text-muted">Admin tüm personelleri, koordinatörler kendi koordinatörlüğündeki personelleri görür.</small>
+            <label class="form-label">Personeller</label>
+            <select class="form-select" id="komisyonPersonelSelect" multiple style="width: 100%;"></select>
+            <small class="text-muted">Birden fazla personel seçebilirsiniz. Admin tüm personelleri, koordinatörler kendi koordinatörlüğündeki personelleri görür.</small>
         </div>
     </div>
     <div class="offcanvas-footer p-3 border-top d-flex gap-2 bg-light">
@@ -366,24 +430,56 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         const komisyonId = @Model.KomisyonId;
+        const canManageKomisyonPersoneller = @JsonSerializer.Serialize(canManagePersoneller);
+        const komisyonBaslangicAktifMi = @JsonSerializer.Serialize(Model.IsActive);
         const komisyonReturnUrl = encodeURIComponent('@gorevReturnUrl');
         const komisyonReturnLabel = encodeURIComponent('Komisyon Detayına Dön');
         let komisyonPersonelEkleDrawer = null;
         let komisyonYetkiDrawer = null;
-        let komisyonPersonelSearchTimer = null;
         let komisyonHighlightPersonelIds = [];
 
         $(document).ready(function() {
             komisyonPersonelEkleDrawer = new bootstrap.Offcanvas(document.getElementById('komisyonPersonelEkleDrawer'));
             komisyonYetkiDrawer = new bootstrap.Offcanvas(document.getElementById('komisyonYetkiDrawer'));
             initKomisyonTooltips();
+            initKomisyonPersonelSelect();
+            applyKomisyonPassiveState(!komisyonBaslangicAktifMi);
+            $('#komisyonPasifSwitch').on('change', komisyonPasifDurumDegisti);
             loadKomisyonPersoneller();
-
-            $('#komisyonPersonelAra').on('input', function() {
-                clearTimeout(komisyonPersonelSearchTimer);
-                komisyonPersonelSearchTimer = setTimeout(() => loadKomisyonEklePersoneller($(this).val()), 250);
-            });
         });
+
+        function applyKomisyonPassiveState(isPassive) {
+            $('#komisyonPageShell').toggleClass('komisyon-passive-shell', isPassive);
+            document.body.classList.toggle('komisyon-passive-mode', isPassive);
+        }
+
+        function komisyonPasifDurumDegisti() {
+            const $switch = $('#komisyonPasifSwitch');
+            const isPassive = $switch.is(':checked');
+            $switch.prop('disabled', true);
+
+            $.post('/Birimler/KomisyonAktifDurumGuncelle', { komisyonId, isActive: !isPassive })
+                .done(function(response) {
+                    const passiveState = !(response && response.isActive);
+                    applyKomisyonPassiveState(passiveState);
+                    $switch.prop('checked', passiveState);
+                    Swal.fire({
+                        icon: 'success',
+                        title: passiveState ? 'Komisyon pasife alındı' : 'Komisyon aktifleştirildi',
+                        toast: true,
+                        position: 'top-end',
+                        timer: 1700,
+                        showConfirmButton: false
+                    });
+                })
+                .fail(function(xhr) {
+                    $switch.prop('checked', !isPassive);
+                    Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Komisyon durumu güncellenemedi.', 'error');
+                })
+                .always(function() {
+                    $switch.prop('disabled', false);
+                });
+        }
 
         function escapeHtml(value) {
             return (value || '').toString()
@@ -412,6 +508,7 @@
             const $body = $('#komisyonPersonelBody');
             if (!$body.length) return;
             $body.empty();
+            updateKomisyonPersonelCount(personeller.length);
 
             if (!personeller.length) {
                 $body.html('<tr><td colspan="9" class="text-center text-muted py-4"><i class="bx bx-user-x fs-3 d-block mb-2"></i>Bu komisyona henüz personel atanmamış.</td></tr>');
@@ -426,6 +523,11 @@
                 const avatar = p.fotografYolu
                     ? `<img src="${escapeHtml(p.fotografYolu)}" alt="${escapeHtml(p.adSoyad)}">`
                     : `<div class="avatar-circle">${escapeHtml(initials.toUpperCase())}</div>`;
+                const removeButton = canManageKomisyonPersoneller
+                    ? `<button type="button" class="btn btn-sm btn-danger personel-action-btn" title="Komisyondan çıkar" data-bs-toggle="tooltip" onclick="komisyonPersonelCikar(${p.personelId})">
+                            <i class="bx bx-user-minus"></i>
+                       </button>`
+                    : '';
 
                 $body.append(`
                     <tr class="${rowClass}" data-personel-id="${p.personelId}">
@@ -442,9 +544,7 @@
                                 <button type="button" class="btn btn-sm btn-info personel-action-btn text-white" title="Yetkilendir" data-bs-toggle="tooltip" onclick="komisyonYetkilendirAc(${p.personelId}, '${escapeHtml(p.adSoyad)}')">
                                     <i class="bx bx-user-check"></i>
                                 </button>
-                                <button type="button" class="btn btn-sm btn-danger personel-action-btn" title="Komisyondan çıkar" data-bs-toggle="tooltip" onclick="komisyonPersonelCikar(${p.personelId})">
-                                    <i class="bx bx-user-minus"></i>
-                                </button>
+                                ${removeButton}
                             </div>
                         </td>
                     </tr>
@@ -461,55 +561,104 @@
             }
         }
 
+        function updateKomisyonPersonelCount(count) {
+            $('#komisyonHeaderPersonelCount').text(count);
+            $('#komisyonStatPersonelCount').text(count);
+        }
+
         function komisyonPersonelEkleAc() {
-            $('#komisyonPersonelAra').val('');
-            $('#komisyonPersonelSelect').empty().append('<option>Personeller yükleniyor...</option>');
-            loadKomisyonEklePersoneller('');
+            if (!canManageKomisyonPersoneller) {
+                Swal.fire('Yetki Yok', 'Komisyona personel ekleme işlemini sadece koordinatörler yapabilir.', 'warning');
+                return;
+            }
+
+            $('#komisyonPersonelSelect').val(null).trigger('change');
             komisyonPersonelEkleDrawer.show();
         }
 
-        function loadKomisyonEklePersoneller(query) {
-            $.get('/Birimler/GetKomisyonEklePersoneller', { komisyonId, q: query || '' }, function(data) {
-                const $select = $('#komisyonPersonelSelect');
-                $select.empty();
-                if (!data || !data.length) {
-                    $select.append('<option value="">Uygun personel bulunamadı</option>');
-                    return;
-                }
+        function initKomisyonPersonelSelect() {
+            const $select = $('#komisyonPersonelSelect');
+            if (!$select.length || typeof $.fn.select2 === 'undefined') return;
 
-                data.forEach(p => {
-                    const label = p.adSoyad + (p.il ? ' - ' + p.il : '');
-                    $select.append(new Option(label, p.personelId));
-                });
-            }).fail(function() {
-                $('#komisyonPersonelSelect').empty().append('<option value="">Personeller yüklenemedi</option>');
+            $select.select2({
+                theme: 'bootstrap-5',
+                dropdownParent: $('#komisyonPersonelEkleDrawer'),
+                width: '100%',
+                placeholder: 'Personel seç',
+                allowClear: true,
+                closeOnSelect: false,
+                language: {
+                    inputTooShort: () => 'Personel adı veya il yazın',
+                    searching: () => 'Aranıyor...',
+                    noResults: () => 'Personel bulunamadı'
+                },
+                ajax: {
+                    url: '/Birimler/GetKomisyonEklePersoneller',
+                    dataType: 'json',
+                    delay: 200,
+                    data: params => ({
+                        komisyonId,
+                        q: params.term || ''
+                    }),
+                    processResults: data => ({
+                        results: (data || []).map(p => {
+                            const durum = !p.aktifMi ? 'Pasif' : (p.komisyondaMi ? 'Zaten komisyonda' : '');
+                            const il = p.il ? ` - ${p.il}` : '';
+                            return {
+                                id: p.personelId,
+                                text: `${p.adSoyad}${il}${durum ? ` (${durum})` : ''}`,
+                                disabled: p.komisyondaMi || !p.aktifMi
+                            };
+                        })
+                    })
+                }
             });
         }
 
         function komisyonPersonelEkle() {
-            const personelId = parseInt($('#komisyonPersonelSelect').val(), 10);
-            if (!personelId) {
-                Swal.fire('Personel Seçiniz', 'Eklemek için bir personel seçiniz.', 'warning');
+            const personelIds = ($('#komisyonPersonelSelect').val() || [])
+                .map(value => parseInt(value, 10))
+                .filter(value => Number.isInteger(value) && value > 0);
+
+            if (!personelIds.length) {
+                Swal.fire('Personel Seçiniz', 'Eklemek için en az bir personel seçiniz.', 'warning');
                 return;
             }
 
-            $('#komisyonPersonelEkleBtn').prop('disabled', true);
-            $.post('/Birimler/KomisyonDetayPersonelEkle', { personelId, komisyonId })
+            $('#komisyonPersonelEkleBtn').prop('disabled', true).text('Ekleniyor...');
+            const requests = personelIds.map(personelId =>
+                $.post('/Birimler/KomisyonDetayPersonelEkle', { personelId, komisyonId })
+            );
+
+            $.when.apply($, requests)
                 .done(function() {
-                    komisyonHighlightPersonelIds = [personelId];
+                    komisyonHighlightPersonelIds = personelIds;
                     komisyonPersonelEkleDrawer.hide();
+                    $('#komisyonPersonelSelect').val(null).trigger('change');
                     loadKomisyonPersoneller();
-                    Swal.fire({ icon: 'success', title: 'Personel eklendi', toast: true, position: 'top-end', timer: 1800, showConfirmButton: false });
+                    Swal.fire({
+                        icon: 'success',
+                        title: personelIds.length === 1 ? 'Personel eklendi' : `${personelIds.length} personel eklendi`,
+                        toast: true,
+                        position: 'top-end',
+                        timer: 1800,
+                        showConfirmButton: false
+                    });
                 })
                 .fail(function(xhr) {
-                    Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Personel eklenemedi.', 'error');
+                    Swal.fire('Hata', xhr.responseJSON?.message || xhr.responseText || 'Personeller eklenemedi.', 'error');
                 })
                 .always(function() {
-                    $('#komisyonPersonelEkleBtn').prop('disabled', false);
+                    $('#komisyonPersonelEkleBtn').prop('disabled', false).html('Ekle');
                 });
         }
 
         function komisyonPersonelCikar(personelId) {
+            if (!canManageKomisyonPersoneller) {
+                Swal.fire('Yetki Yok', 'Komisyondan personel çıkarma işlemini sadece koordinatörler yapabilir.', 'warning');
+                return;
+            }
+
             Swal.fire({
                 title: 'Personel komisyondan çıkarılsın mı?',
                 text: 'Kayıt koordinatörlükte kalır, sadece komisyondan çıkarılır.',
