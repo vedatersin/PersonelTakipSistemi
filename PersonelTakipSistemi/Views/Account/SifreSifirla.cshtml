@@ -1,7 +1,7 @@
 @model PersonelTakipSistemi.ViewModels.SifreSifirlaViewModel
 @{
     Layout = null;
-    ViewData["Title"] = "Şifre Sıfırla";
+    ViewData["Title"] = "Şifre Oluştur";
 }
 
 <!DOCTYPE html>
@@ -42,8 +42,8 @@
             </div>
 
             <h1 class="org-title">Temel Eğitim Genel Müdürlüğü</h1>
-            <h2 class="app-title">Şifre Belirleme</h2>
-            <p class="reset-note mb-4">T.C. Kimlik No ve ekrandaki CAPTCHA kodu ile yeni şifre belirleme adımına geçin.</p>
+            <h2 class="app-title">Şifre Oluştur</h2>
+            <p class="reset-note mb-4">T.C. Kimlik No ve ekrandaki CAPTCHA kodu ile şifre oluşturma adımına geçin.</p>
 
             @if (TempData["PasswordResetInfo"] is string resetInfo)
             {
@@ -87,7 +87,7 @@
                     <button class="btn btn-primary w-100" type="submit">Devam Et</button>
                 </div>
 
-                <a asp-controller="Account" asp-action="Login" asp-route-normal="true" class="text-primary fw-medium">Giriş ekranına dön</a>
+                <a asp-controller="Account" asp-action="Login" class="text-primary fw-medium">Giriş ekranına dön</a>
             </form>
         </div>
     </div>

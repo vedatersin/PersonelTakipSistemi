@@ -23,8 +23,19 @@ namespace PersonelTakipSistemi.Filters
                     {
                         var isHighLevel = await dbContext.PersonelKurumsalRolAtamalari
                             .AnyAsync(r => r.PersonelId == userId && new[] { 7, 8, 9, 10 }.Contains(r.KurumsalRolId));
+
+                        var currentUserModes = user.IsInRole("Admin")
+                            ? await dbContext.Personeller
+                                .AsNoTracking()
+                                .Where(p => p.PersonelId == userId)
+                                .Select(p => p.YetkiliModlar)
+                                .FirstOrDefaultAsync()
+                            : null;
+                        var adminWithKomisyonMode = user.IsInRole("Admin") && (currentUserModes ?? string.Empty)
+                            .Split(',', System.StringSplitOptions.RemoveEmptyEntries | System.StringSplitOptions.TrimEntries)
+                            .Any(mode => string.Equals(mode, "komisyon", System.StringComparison.OrdinalIgnoreCase));
                         
-                        if (isHighLevel)
+                        if (isHighLevel && !adminWithKomisyonMode)
                         {
                             var method = context.HttpContext.Request.Method;
                             

@@ -78,6 +78,12 @@ namespace PersonelTakipSistemi.Controllers
                 return NotFound();
             }
 
+            if (HasHighLevelKurumsalRole(personel.PersonelKurumsalRolAtamalari) && !await CurrentAdminHasKomisyonModeAsync())
+            {
+                TempData["Error"] = "Yetki Hatası: Üst düzey kurumsal role sahip personelleri düzenlemek için Admin rolünde Komisyon İzleme Modu açık olmalıdır.";
+                return RedirectToAction("Detay", new { id = personel.PersonelId });
+            }
+
             var model = new PersonelEkleViewModel
             {
                 IsEditMode = true,
@@ -285,6 +291,19 @@ namespace PersonelTakipSistemi.Controllers
 
                 // 1. Logic Separation
                 bool isUpdate = model.IsEditMode && model.PersonelId.HasValue && model.PersonelId.Value > 0;
+
+                if (isUpdate)
+                {
+                    var targetIsHighLevel = await _context.PersonelKurumsalRolAtamalari
+                        .AsNoTracking()
+                        .AnyAsync(r => r.PersonelId == model.PersonelId!.Value && HighLevelKurumsalRolIds.Contains(r.KurumsalRolId));
+
+                    if (targetIsHighLevel && !await CurrentAdminHasKomisyonModeAsync())
+                    {
+                        TempData["Error"] = "Yetki Hatası: Üst düzey kurumsal role sahip personelleri düzenlemek için Admin rolünde Komisyon İzleme Modu açık olmalıdır.";
+                        return RedirectToAction("Detay", new { id = model.PersonelId!.Value });
+                    }
+                }
 
                 // --- NEW: Security Check for "Yönetici" role ---
                 if (isUpdate && User.IsInRole("Yönetici"))

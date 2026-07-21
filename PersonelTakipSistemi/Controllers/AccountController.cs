@@ -35,16 +35,11 @@ namespace PersonelTakipSistemi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Login(bool normal = false)
+        public async Task<IActionResult> Login()
         {
             if (User.Identity!.IsAuthenticated)
             {
                 return await RedirectToLandingPageAsync();
-            }
-
-            if (!normal)
-            {
-                return RedirectToAction(nameof(SifreSifirla));
             }
 
             return View();
@@ -176,11 +171,17 @@ namespace PersonelTakipSistemi.Controllers
             }
 
             var personel = await _context.Personeller
-                .FirstOrDefaultAsync(p => p.TcKimlikNo == tc && p.AktifMi);
+                .FirstOrDefaultAsync(p => p.TcKimlikNo == tc);
 
-            if (personel == null)
+            if (personel == null || !personel.AktifMi)
             {
-                ModelState.AddModelError(string.Empty, "Bu bilgilerle aktif personel kaydı bulunamadı.");
+                ModelState.AddModelError(string.Empty, "Sistemde kayıtlı değilsiniz.");
+                return View(CreateCaptchaModel(model));
+            }
+
+            if (!personel.SifreSifirlamaGerekli)
+            {
+                ModelState.AddModelError(string.Empty, "Şifrenizi sıfırlamak için koordinatörünüzle iletişime geçin.");
                 return View(CreateCaptchaModel(model));
             }
 
@@ -245,7 +246,7 @@ namespace PersonelTakipSistemi.Controllers
             await _logService.LogAsync("Şifre Belirleme", "Kullanıcı yeni şifresini belirledi.", personel.PersonelId);
 
             TempData["PasswordResetSuccess"] = "Şifreniz güncellendi. Yeni şifrenizle giriş yapabilirsiniz.";
-            return RedirectToAction(nameof(Login), new { normal = true });
+            return RedirectToAction(nameof(Login));
         }
 
         [HttpPost]

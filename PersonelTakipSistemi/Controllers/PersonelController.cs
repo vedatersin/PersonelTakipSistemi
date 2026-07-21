@@ -20,6 +20,8 @@ namespace PersonelTakipSistemi.Controllers
     [ReadOnlyForHighLevelRoles]
     public partial class PersonelController : Controller
     {
+        private static readonly int[] HighLevelKurumsalRolIds = { 7, 8, 9, 10 };
+
         private readonly TegmPersonelTakipDbContext _context;
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly INotificationService _notificationService;
@@ -45,6 +47,35 @@ namespace PersonelTakipSistemi.Controllers
             _personelAuthorizationService = personelAuthorizationService;
             _personelAssignmentService = personelAssignmentService;
             _personelMaintenanceService = personelMaintenanceService;
+        }
+
+        private async Task<bool> CurrentAdminHasKomisyonModeAsync()
+        {
+            if (!User.IsInRole("Admin"))
+            {
+                return false;
+            }
+
+            var currentUserIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? User.FindFirst("PersonelId")?.Value;
+            if (!int.TryParse(currentUserIdStr, out var currentUserId) || currentUserId <= 0)
+            {
+                return false;
+            }
+
+            var rawModes = await _context.Personeller
+                .AsNoTracking()
+                .Where(p => p.PersonelId == currentUserId)
+                .Select(p => p.YetkiliModlar)
+                .FirstOrDefaultAsync();
+
+            return NormalizeModeList((rawModes ?? string.Empty)
+                .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                .Contains("komisyon");
+        }
+
+        private static bool HasHighLevelKurumsalRole(IEnumerable<PersonelKurumsalRolAtama> assignments)
+        {
+            return assignments.Any(role => HighLevelKurumsalRolIds.Contains(role.KurumsalRolId));
         }
 
         [HttpGet]
@@ -460,6 +491,9 @@ namespace PersonelTakipSistemi.Controllers
             model.GorevTurleri = personelGorevTurleri.TryGetValue(personel.PersonelId, out var detailGorevTurleri)
                 ? detailGorevTurleri
                 : new List<string>();
+
+            ViewBag.TargetHighLevelReadOnly = HasHighLevelKurumsalRole(personel.PersonelKurumsalRolAtamalari)
+                && !await CurrentAdminHasKomisyonModeAsync();
 
             // Aggregate Roles Logic (Unified with Frontend)
             // Aggregate Roles Logic (Optimized for Simple Text Display)
